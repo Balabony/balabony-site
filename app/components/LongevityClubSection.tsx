@@ -320,36 +320,17 @@ export default function LongevityClubSection() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {FLUTTER_GAMES.map(game => (
-              <button
+              <div
                 key={game.id}
                 onClick={() => setActiveView('flutter')}
-                style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '0.5px solid rgba(239,159,39,0.2)',
-                  borderRadius: 14,
-                  padding: '16px 10px',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  transition: 'background 0.15s, border-color 0.15s',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 8,
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(239,159,39,0.1)'
-                  ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(239,159,39,0.5)'
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'
-                  ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(239,159,39,0.2)'
-                }}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: '18px 12px', cursor: 'pointer', textAlign: 'center' }}
               >
-                <span style={{ fontSize: 28 }}>{game.emoji}</span>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#f5f0e8', lineHeight: 1.3 }}>{game.title}</div>
-                <div style={{ fontSize: 11, color: '#8899bb', lineHeight: 1.4 }}>{game.desc}</div>
-                <div style={{ fontSize: 12, color: '#ef9f27', fontWeight: 700, marginTop: 4 }}>Грати →</div>
-              </button>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+                  <span style={{ fontSize: 32 }}>{game.emoji}</span>
+                </div>
+                <div style={{ fontSize: 15, color: '#f5f0e8', fontWeight: 500 }}>{game.title}</div>
+                <div style={{ fontSize: 12, color: '#8899bb', marginTop: 4 }}>{game.desc}</div>
+              </div>
             ))}
           </div>
         </div>
