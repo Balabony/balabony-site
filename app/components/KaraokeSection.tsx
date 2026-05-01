@@ -9,10 +9,6 @@ interface Song {
   lyrics: string
 }
 
-// Songs whose authors died within the last 70 years retain copyright.
-// Add lyrics manually once you have the appropriate licence.
-const LICENSED = '(Текст пісні — авторські права. Співайте під музику)'
-
 const SONGS: Song[] = [
   {
     id: 1,
@@ -42,12 +38,6 @@ const SONGS: Song[] = [
   },
   {
     id: 2,
-    title: 'Червона рута',
-    artist: 'Володимир Івасюк',
-    lyrics: LICENSED,
-  },
-  {
-    id: 3,
     title: 'Розпрягайте, хлопці, коні',
     artist: 'Народна',
     lyrics:
@@ -77,7 +67,7 @@ const SONGS: Song[] = [
 В косі стрічка голуба.`,
   },
   {
-    id: 4,
+    id: 3,
     title: 'Їхав козак за Дунай',
     artist: 'Семен Климовський',
     lyrics:
@@ -105,7 +95,7 @@ const SONGS: Song[] = [
 Враг ізгине лютий, дерзкий.`,
   },
   {
-    id: 5,
+    id: 4,
     title: 'Несе Галя воду',
     artist: 'Народна',
     lyrics:
@@ -139,19 +129,7 @@ const SONGS: Song[] = [
 Як барвінок, в'ється.`,
   },
   {
-    id: 6,
-    title: 'Два кольори',
-    artist: 'Дмитро Павличко / Олександр Білаш',
-    lyrics: LICENSED,
-  },
-  {
-    id: 7,
-    title: 'Рушничок',
-    artist: 'Андрій Малишко / Платон Майборода',
-    lyrics: LICENSED,
-  },
-  {
-    id: 8,
+    id: 5,
     title: 'Ой на горі та й женці жнуть',
     artist: 'Народна',
     lyrics:
@@ -180,7 +158,7 @@ const SONGS: Song[] = [
 Козаку в дорозі знадобиться!`,
   },
   {
-    id: 9,
+    id: 6,
     title: 'Горіла сосна, палала',
     artist: 'Народна',
     lyrics:
@@ -202,7 +180,7 @@ const SONGS: Song[] = [
 Тепер вже він мій чоловік.`,
   },
   {
-    id: 10,
+    id: 7,
     title: 'Реве та стогне Дніпр широкий',
     artist: 'Тарас Шевченко / Данило Крижанівський',
     lyrics:
@@ -226,7 +204,7 @@ const SONGS: Song[] = [
 Та ясен раз у раз скрипів.`,
   },
   {
-    id: 11,
+    id: 8,
     title: 'Стоїть гора високая',
     artist: 'Леонід Глібов / Микола Лисенко',
     lyrics:
@@ -256,7 +234,7 @@ const SONGS: Song[] = [
 І радощі мої!`,
   },
   {
-    id: 12,
+    id: 9,
     title: 'Верховино, світку ти наш',
     artist: 'Микола Устиянович',
     lyrics:
@@ -282,7 +260,7 @@ const SONGS: Song[] = [
 А звіра голос — весілля!`,
   },
   {
-    id: 13,
+    id: 10,
     title: 'Місяць на небі, зіроньки сяють',
     artist: 'Народна',
     lyrics:
@@ -308,13 +286,7 @@ const SONGS: Song[] = [
 Де ж ви навчились зводить людей?`,
   },
   {
-    id: 14,
-    title: 'Ой летіли дикі гуси',
-    artist: 'Юрій Рибчинський / Ігор Поклад',
-    lyrics: LICENSED,
-  },
-  {
-    id: 15,
+    id: 11,
     title: 'Чорнії брови, карії очі',
     artist: 'Костянтин Думитрашко / Денис Бонковський',
     lyrics:
@@ -340,7 +312,7 @@ const SONGS: Song[] = [
 Все будеш думать, очі, про вас.`,
   },
   {
-    id: 16,
+    id: 12,
     title: 'Чом ти не прийшов',
     artist: 'Народна',
     lyrics:
@@ -370,7 +342,7 @@ const SONGS: Song[] = [
 За кого я хочу.`,
   },
   {
-    id: 17,
+    id: 13,
     title: 'Гей, наливайте повнії чари',
     artist: 'Народна',
     lyrics:
@@ -398,7 +370,7 @@ const SONGS: Song[] = [
 Поки ще лихо сміється.`,
   },
   {
-    id: 18,
+    id: 14,
     title: 'Ой у вишневому садочку',
     artist: 'Народна',
     lyrics:
@@ -424,7 +396,7 @@ const SONGS: Song[] = [
 Ти той козак, що все гуляє.`,
   },
   {
-    id: 19,
+    id: 15,
     title: 'Взяв би я бандуру',
     artist: 'Михайло Петренко',
     lyrics:
@@ -459,7 +431,7 @@ const SONGS: Song[] = [
 Бандуристом став.`,
   },
   {
-    id: 20,
+    id: 16,
     title: 'Якби мені черевички',
     artist: 'Народна',
     lyrics:
@@ -489,7 +461,7 @@ const SONGS: Song[] = [
 Безталанна я!`,
   },
   {
-    id: 21,
+    id: 17,
     title: 'Дивлюсь я на небо',
     artist: 'Михайло Петренко',
     lyrics:
@@ -511,7 +483,7 @@ const SONGS: Song[] = [
 Далекеє небо — моя сторона.`,
   },
   {
-    id: 22,
+    id: 18,
     title: 'Ой Морозе, Морозенку',
     artist: 'Народна козацька',
     lyrics:
@@ -539,7 +511,7 @@ const SONGS: Song[] = [
 На свою Вкраїну!`,
   },
   {
-    id: 23,
+    id: 19,
     title: 'Ой летіли білі гуси',
     artist: 'Народна весільна',
     lyrics:
@@ -561,7 +533,7 @@ const SONGS: Song[] = [
 Ой не плакала б тепер сльозами.`,
   },
   {
-    id: 24,
+    id: 20,
     title: 'В саду гуляла',
     artist: 'Народна',
     lyrics:
@@ -590,12 +562,6 @@ const SONGS: Song[] = [
 Тільки серце б'ється —
 Любить ж лихо.`,
   },
-  {
-    id: 25,
-    title: 'Київський вальс',
-    artist: 'Платон Майборода',
-    lyrics: LICENSED,
-  },
 ]
 
 export default function KaraokeSection() {
@@ -612,12 +578,10 @@ export default function KaraokeSection() {
   const lines = song.lyrics.split('\n')
   const audioSrc = `/karaoke/${String(song.id).padStart(2, '0')}.mp3`
 
-  // Proportional active line based on elapsed time
   const activeIdx = playing && currentTime > 0
     ? Math.min(lines.length - 1, Math.floor((currentTime / duration) * lines.length))
     : -1
 
-  // Auto-scroll to active line
   useEffect(() => {
     if (lyricsRef.current && activeIdx >= 0) {
       const el = lyricsRef.current.children[activeIdx] as HTMLElement
@@ -625,7 +589,6 @@ export default function KaraokeSection() {
     }
   }, [activeIdx])
 
-  // Reset on song change
   useEffect(() => {
     stopDemo()
     setPlaying(false)
@@ -743,7 +706,7 @@ export default function KaraokeSection() {
                   minHeight: line === '' ? 10 : undefined,
                 }}
               >
-                {line || ' '}
+                {line || ' '}
               </div>
             )
           })}
@@ -772,7 +735,7 @@ export default function KaraokeSection() {
           onClick={() => setShowList(s => !s)}
           style={{ width: '100%', minHeight: 48, borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.12)', color: '#8899bb', fontSize: 14, cursor: 'pointer' }}
         >
-          {showList ? '▲ Сховати список' : '☰ Всі пісні (25)'}
+          {showList ? '▲ Сховати список' : '☰ Всі пісні (20)'}
         </button>
 
         {/* Song list */}
