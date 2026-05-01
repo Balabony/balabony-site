@@ -7,8 +7,10 @@
 
 # env files (never commit secrets)
 .env
+.env.*
 .env.local
 .env.*.local
+*.env
 
 # misc
 .DS_Store

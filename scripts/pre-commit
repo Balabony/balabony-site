@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# Pre-commit hook: blocks commits containing API keys or secrets.
+# Bypass (emergency only): SKIP_SECRET_CHECK=1 git commit
+
+[ "${SKIP_SECRET_CHECK:-0}" = "1" ] && exit 0
+
+RED='\033[0;31m'; YELLOW='\033[1;33m'; NC='\033[0m'
+
+# Known secret patterns
+PATTERNS=(
+  'sk-proj-[A-Za-z0-9_-]{20,}'                          # OpenAI API key
+  'sk_[a-f0-9]{48,}'                                     # ElevenLabs API key
+  'sb_secret_[A-Za-z0-9_-]{20,}'                        # Supabase secret key
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[A-Za-z0-9_-]{20,}'  # Supabase JWT
+  'sandbox_[A-Za-z0-9]{30,}'                            # LiqPay sandbox keys
+  'OPENAI_API_KEY\s*=\s*sk-[A-Za-z0-9_-]{10,}'         # Hardcoded OpenAI assignment
+  'ELEVENLABS_API_KEY\s*=\s*[a-f0-9]{40,}'              # Hardcoded ElevenLabs assignment
+  'SUPABASE_SERVICE_KEY\s*=\s*[A-Za-z0-9_.-]{20,}'     # Hardcoded Supabase service key
+  'LIQPAY_PRIVATE_KEY\s*=\s*[A-Za-z0-9_-]{20,}'        # Hardcoded LiqPay private key
+)
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null)
+[ -z "$STAGED" ] && exit 0
+
+BLOCKED=0
+
+while IFS= read -r FILE; do
+  [ -z "$FILE" ] && continue
+
+  # Skip the hook script itself and markdown docs
+  case "$FILE" in
+    scripts/pre-commit|scripts/install-hooks.sh|*.md) continue ;;
+  esac
+
+  # Read staged content (skip if unreadable / binary)
+  CONTENT=$(git show ":$FILE" 2>/dev/null) || continue
+  echo "$CONTENT" | grep -qP '[^\x00-\x7F]|\x00' 2>/dev/null && continue
+
+  for PAT in "${PATTERNS[@]}"; do
+    MATCH=$(echo "$CONTENT" | grep -oE "$PAT" 2>/dev/null | head -1)
+    if [ -n "$MATCH" ]; then
+      printf "${RED}✗ Secret detected${NC}  ${YELLOW}%s${NC}\n" "$FILE"
+      printf "   Pattern : %s\n" "$PAT"
+      printf "   Found   : %s...\n" "${MATCH:0:24}"
+      BLOCKED=1
+    fi
+  done
+done <<< "$STAGED"
+
+if [ "$BLOCKED" = "1" ]; then
+  printf "\n${RED}Commit blocked.${NC} Remove or move secrets to .env before committing.\n"
+  printf "Emergency bypass: %s\n\n" "SKIP_SECRET_CHECK=1 git commit"
+  exit 1
+fi
+
+exit 0
