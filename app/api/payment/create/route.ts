@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto, { randomUUID } from 'crypto'
 
-const PUBLIC_KEY  = process.env.LIQPAY_PUBLIC_KEY  || 'sandbox_i25357948733'
+const PUBLIC_KEY  = process.env.LIQPAY_PUBLIC_KEY  || ''
 const PRIVATE_KEY = process.env.LIQPAY_PRIVATE_KEY || ''
 const WEBHOOK_URL = 'https://balabony.vercel.app/api/webhook/liqpay'
 const RESULT_URL  = process.env.NEXT_PUBLIC_SITE_URL || 'https://balabony.com'
@@ -14,8 +14,8 @@ function sign(data: string): string {
 }
 
 export async function POST(req: NextRequest) {
-  if (!PRIVATE_KEY) {
-    return NextResponse.json({ error: 'LIQPAY_PRIVATE_KEY not configured' }, { status: 500 })
+  if (!PUBLIC_KEY || !PRIVATE_KEY) {
+    return NextResponse.json({ error: 'LIQPAY_PUBLIC_KEY and LIQPAY_PRIVATE_KEY must be set' }, { status: 500 })
   }
 
   try {
