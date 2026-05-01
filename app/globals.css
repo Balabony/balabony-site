@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Montserrat:wght@400;600;700&display=swap');
+:root {
+  --dark: #0f172a;
+  --bg-deep: #0f172a;
+  --accent-gold: #ef9f27;
+  --reader-ivory: #f8fafc;
+  --amber: #ef9f27;
+  --light: #f8fafc;
+  --white: #ffffff;
+  --text: #1e293b;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --highlight: #fef08a;
+}
+body.dark-mode {
+  --light: #0f172a;
+  --white: #1e293b;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --border: #334155;
+  --highlight: rgba(239,159,39,0.2);
+}
+body.amber-mode {
+  --light: #1a0f00;
+  --white: #261500;
+  --text: #ffbf00;
+  --muted: #c8960a;
+  --border: #3d2200;
+  --highlight: rgba(255,191,0,0.15);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+}
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: var(--light);
+  color: var(--text);
+  padding-bottom: 800px;
+}
+@media (max-width: 900px) {
+  .pricing-grid-3 { grid-template-columns: 1fr !important; max-width: 420px; margin: 0 auto; }
+}
+@media (max-width: 768px) {
+  .hero-inner { grid-template-columns: 1fr !important; text-align: center !important; }
+}

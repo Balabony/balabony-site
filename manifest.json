@@ -1,0 +1,40 @@
+{
+  "name": "Balabony® — Українські аудіоісторії",
+  "short_name": "Balabony",
+  "description": "Слухайте українські аудіоісторії онлайн і офлайн.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1623",
+  "theme_color": "#ef9f27",
+  "lang": "uk",
+  "orientation": "portrait-primary",
+  "categories": ["entertainment", "music"],
+  "icons": [
+    {
+      "src": "/icon-light-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/og-image.jpg",
+      "sizes": "1200x630",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Слухати",
+      "short_name": "Слухати",
+      "description": "Відкрити аудіоплеєр",
+      "url": "/#reader"
+    },
+    {
+      "name": "Тарифи",
+      "short_name": "Тарифи",
+      "description": "Переглянути тарифи",
+      "url": "/#pricing"
+    }
+  ]
+}
