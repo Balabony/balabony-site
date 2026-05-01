@@ -36,43 +36,147 @@ const FLUTTER_GAMES = [
     id: 'word-builder',
     title: 'Словесний конструктор',
     desc: 'Складай слова з літер великого слова',
-    emoji: '🔤',
+    svg: (
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+        <rect x="1" y="3" width="11" height="13" rx="2" fill="rgba(212,160,23,0.15)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="6.5" y="13.5" textAnchor="middle" fill="#F5F3EE" fontSize="8" fontWeight="700">А</text>
+        <rect x="14" y="3" width="11" height="13" rx="2" fill="rgba(212,160,23,0.15)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="19.5" y="13.5" textAnchor="middle" fill="#F5F3EE" fontSize="8" fontWeight="700">Б</text>
+        <rect x="27" y="3" width="11" height="13" rx="2" fill="rgba(212,160,23,0.15)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="32.5" y="13.5" textAnchor="middle" fill="#F5F3EE" fontSize="8" fontWeight="700">В</text>
+        <path d="M20 17 L20 22" stroke="#D4A017" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M17.5 20.5 L20 23 L22.5 20.5" fill="none" stroke="#D4A017" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <rect x="3" y="25" width="34" height="12" rx="2" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1.2"/>
+        <text x="20" y="34" textAnchor="middle" fill="#D4A017" fontSize="8" fontWeight="800">А · Б · В</text>
+      </svg>
+    ),
   },
   {
     id: 'memory',
     title: 'Знайди пару',
     desc: 'Знаходь пари однакових карток',
-    emoji: '🃏',
+    svg: (
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+        <rect x="2" y="2" width="17" height="17" rx="3" fill="rgba(212,160,23,0.2)" stroke="#D4A017" strokeWidth="1"/>
+        <path d="M10.5 6 L11.8 9.6 L15.5 9.6 L12.5 11.8 L13.7 15.5 L10.5 13.1 L7.3 15.5 L8.5 11.8 L5.5 9.6 L9.2 9.6 Z" fill="#D4A017"/>
+        <rect x="21" y="2" width="17" height="17" rx="3" fill="rgba(245,243,238,0.05)" stroke="rgba(245,243,238,0.25)" strokeWidth="1"/>
+        <text x="29.5" y="14.5" textAnchor="middle" fill="#F5F3EE" fontSize="12" fontWeight="700">?</text>
+        <rect x="2" y="21" width="17" height="17" rx="3" fill="rgba(245,243,238,0.05)" stroke="rgba(245,243,238,0.25)" strokeWidth="1"/>
+        <text x="10.5" y="33.5" textAnchor="middle" fill="#F5F3EE" fontSize="12" fontWeight="700">?</text>
+        <rect x="21" y="21" width="17" height="17" rx="3" fill="rgba(212,160,23,0.2)" stroke="#D4A017" strokeWidth="1"/>
+        <path d="M29.5 25 L30.8 28.6 L34.5 28.6 L31.5 30.8 L32.7 34.5 L29.5 32.1 L26.3 34.5 L27.5 30.8 L24.5 28.6 L28.2 28.6 Z" fill="#D4A017"/>
+      </svg>
+    ),
   },
   {
     id: 'sudoku',
     title: 'Числові доріжки',
     desc: 'Логічна гра Судоку 4×4',
-    emoji: '🔢',
+    svg: (
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+        <rect x="2" y="9" width="8" height="10" rx="1.5" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="6" y="17" textAnchor="middle" fill="#D4A017" fontSize="7" fontWeight="700">1</text>
+        <rect x="11" y="9" width="8" height="10" rx="1.5" fill="rgba(245,243,238,0.06)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/>
+        <text x="15" y="17" textAnchor="middle" fill="#F5F3EE" fontSize="7">2</text>
+        <rect x="20" y="9" width="8" height="10" rx="1.5" fill="rgba(245,243,238,0.06)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/>
+        <text x="24" y="17" textAnchor="middle" fill="#F5F3EE" fontSize="7">3</text>
+        <rect x="29" y="9" width="9" height="10" rx="1.5" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="33.5" y="17" textAnchor="middle" fill="#D4A017" fontSize="7" fontWeight="700">4</text>
+        <rect x="2" y="21" width="8" height="10" rx="1.5" fill="rgba(245,243,238,0.06)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/>
+        <text x="6" y="29" textAnchor="middle" fill="#F5F3EE" fontSize="7">3</text>
+        <rect x="11" y="21" width="8" height="10" rx="1.5" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="15" y="29" textAnchor="middle" fill="#D4A017" fontSize="7" fontWeight="700">4</text>
+        <rect x="20" y="21" width="8" height="10" rx="1.5" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="24" y="29" textAnchor="middle" fill="#D4A017" fontSize="7" fontWeight="700">1</text>
+        <rect x="29" y="21" width="9" height="10" rx="1.5" fill="rgba(245,243,238,0.06)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/>
+        <text x="33.5" y="29" textAnchor="middle" fill="#F5F3EE" fontSize="7">2</text>
+      </svg>
+    ),
   },
   {
     id: 'wordle',
     title: 'Вгадай слово',
     desc: 'Вгадай українське слово за 6 спроб',
-    emoji: '💡',
+    svg: (
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+        <rect x="1" y="5" width="6" height="7" rx="1" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="4" y="10.5" textAnchor="middle" fill="#D4A017" fontSize="5.5" fontWeight="700">С</text>
+        <rect x="9" y="5" width="6" height="7" rx="1" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="12" y="10.5" textAnchor="middle" fill="#D4A017" fontSize="5.5" fontWeight="700">Л</text>
+        <rect x="17" y="5" width="6" height="7" rx="1" fill="rgba(245,243,238,0.06)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/>
+        <text x="20" y="10.5" textAnchor="middle" fill="#F5F3EE" fontSize="5.5">О</text>
+        <rect x="25" y="5" width="6" height="7" rx="1" fill="rgba(245,243,238,0.06)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/>
+        <text x="28" y="10.5" textAnchor="middle" fill="#F5F3EE" fontSize="5.5">В</text>
+        <rect x="33" y="5" width="6" height="7" rx="1" fill="rgba(245,243,238,0.06)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/>
+        <text x="36" y="10.5" textAnchor="middle" fill="#F5F3EE" fontSize="5.5">О</text>
+        <rect x="1" y="14" width="6" height="7" rx="1" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="4" y="19.5" textAnchor="middle" fill="#D4A017" fontSize="5.5" fontWeight="700">С</text>
+        <rect x="9" y="14" width="6" height="7" rx="1" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="12" y="19.5" textAnchor="middle" fill="#D4A017" fontSize="5.5" fontWeight="700">Л</text>
+        <rect x="17" y="14" width="6" height="7" rx="1" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="20" y="19.5" textAnchor="middle" fill="#D4A017" fontSize="5.5" fontWeight="700">О</text>
+        <rect x="25" y="14" width="6" height="7" rx="1" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="28" y="19.5" textAnchor="middle" fill="#D4A017" fontSize="5.5" fontWeight="700">В</text>
+        <rect x="33" y="14" width="6" height="7" rx="1" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="36" y="19.5" textAnchor="middle" fill="#D4A017" fontSize="5.5" fontWeight="700">О</text>
+        <rect x="1" y="28" width="38" height="3" rx="1.5" fill="rgba(245,243,238,0.1)"/>
+        <rect x="1" y="28" width="24" height="3" rx="1.5" fill="#D4A017" opacity="0.8"/>
+      </svg>
+    ),
   },
   {
     id: 'word-chain',
     title: 'Ланцюжок слів',
     desc: 'Утворюй слова з останньої літери попереднього',
-    emoji: '🔗',
+    svg: (
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+        <rect x="1" y="13" width="16" height="14" rx="2" fill="rgba(212,160,23,0.2)" stroke="#D4A017" strokeWidth="1.2"/>
+        <text x="9" y="23" textAnchor="middle" fill="#D4A017" fontSize="8" fontWeight="700">КІТ</text>
+        <path d="M18 20 L22 20" stroke="#D4A017" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M20 17.5 L23 20 L20 22.5" fill="none" stroke="#D4A017" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <rect x="23" y="13" width="16" height="14" rx="2" fill="rgba(245,243,238,0.07)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/>
+        <text x="31" y="23" textAnchor="middle" fill="#F5F3EE" fontSize="8" fontWeight="700">ТУН</text>
+        <text x="20" y="10" textAnchor="middle" fill="#D4A017" fontSize="7" opacity="0.7">Т</text>
+      </svg>
+    ),
   },
   {
     id: 'quiz',
     title: 'Вікторина знань',
     desc: '20 питань з культури та природи України',
-    emoji: '🇺🇦',
+    svg: (
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+        <circle cx="20" cy="15" r="12" fill="rgba(212,160,23,0.15)" stroke="#D4A017" strokeWidth="1.2"/>
+        <text x="20" y="21" textAnchor="middle" fill="#D4A017" fontSize="18" fontWeight="800">?</text>
+        <rect x="1" y="30" width="17" height="8" rx="2" fill="rgba(245,243,238,0.08)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/>
+        <text x="9.5" y="36.5" textAnchor="middle" fill="#F5F3EE" fontSize="6">Так</text>
+        <rect x="22" y="30" width="17" height="8" rx="2" fill="rgba(212,160,23,0.15)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="30.5" y="36.5" textAnchor="middle" fill="#D4A017" fontSize="6">Ні</text>
+      </svg>
+    ),
   },
   {
     id: 'anagram',
     title: 'Анаграми',
     desc: 'Склади правильне слово з переставлених літер',
-    emoji: '✏️',
+    svg: (
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+        <rect x="1" y="3" width="11" height="12" rx="2" fill="rgba(212,160,23,0.15)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="6.5" y="12.5" textAnchor="middle" fill="#D4A017" fontSize="8" fontWeight="700">А</text>
+        <rect x="14" y="3" width="11" height="12" rx="2" fill="rgba(212,160,23,0.15)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="19.5" y="12.5" textAnchor="middle" fill="#D4A017" fontSize="8" fontWeight="700">Н</text>
+        <rect x="27" y="3" width="11" height="12" rx="2" fill="rgba(212,160,23,0.15)" stroke="#D4A017" strokeWidth="1"/>
+        <text x="32.5" y="12.5" textAnchor="middle" fill="#D4A017" fontSize="8" fontWeight="700">Г</text>
+        <path d="M7 16 Q20 22 33 16" fill="none" stroke="#D4A017" strokeWidth="1.5" strokeDasharray="3 2" strokeLinecap="round"/>
+        <path d="M30.5 14.5 L33 16.5 L30.5 18.5" fill="none" stroke="#D4A017" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <rect x="3" y="26" width="10" height="12" rx="2" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1.2"/>
+        <text x="8" y="35.5" textAnchor="middle" fill="#D4A017" fontSize="8" fontWeight="700">Н</text>
+        <rect x="15" y="26" width="10" height="12" rx="2" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1.2"/>
+        <text x="20" y="35.5" textAnchor="middle" fill="#D4A017" fontSize="8" fontWeight="700">А</text>
+        <rect x="27" y="26" width="10" height="12" rx="2" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1.2"/>
+        <text x="32" y="35.5" textAnchor="middle" fill="#D4A017" fontSize="8" fontWeight="700">Г</text>
+      </svg>
+    ),
   },
 ]
 
@@ -326,7 +430,7 @@ export default function LongevityClubSection() {
                 style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: '18px 12px', cursor: 'pointer', textAlign: 'center' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-                  <span style={{ fontSize: 32 }}>{game.emoji}</span>
+                  {game.svg}
                 </div>
                 <div style={{ fontSize: 15, color: '#f5f0e8', fontWeight: 500 }}>{game.title}</div>
                 <div style={{ fontSize: 12, color: '#8899bb', marginTop: 4 }}>{game.desc}</div>
@@ -347,19 +451,54 @@ export default function LongevityClubSection() {
             {[
               {
                 id: 'voice', label: 'Вгадай голос', desc: 'Слухай і вгадуй',
-                svg: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M10 16 Q9 10 13 8 Q18 6 20 12 Q22 18 18 22 Q16 24 16 28" stroke="#ef9f27" strokeWidth="1.5" fill="none" strokeLinecap="round"/><circle cx="16" cy="30" r="2" fill="#ef9f27"/><path d="M24 10 Q28 16 24 22" stroke="#ef9f27" strokeWidth="1.5" fill="none" strokeLinecap="round"/><path d="M27 7 Q33 16 27 25" stroke="#ef9f27" strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.5"/></svg>
+                svg: (
+                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <rect x="13" y="4" width="14" height="20" rx="7" fill="rgba(212,160,23,0.15)" stroke="#D4A017" strokeWidth="1.2"/>
+                    <path d="M20 15 L20 18" stroke="#F5F3EE" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M7 20 Q7 30 20 30 Q33 30 33 20" stroke="#D4A017" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                    <line x1="20" y1="30" x2="20" y2="36" stroke="#D4A017" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="14" y1="36" x2="26" y2="36" stroke="#D4A017" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                ),
               },
               {
                 id: 'text', label: 'Вікторина', desc: '3 питання',
-                svg: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><text x="16" y="26" textAnchor="middle" style={{fontFamily:"'Lora',serif",fontSize:'28px',fill:'none',stroke:'#ef9f27',strokeWidth:'1.2'}}>?</text><circle cx="24" cy="8" r="3" fill="#ef9f27" opacity="0.6"/><circle cx="28" cy="14" r="2" fill="#ef9f27" opacity="0.4"/><circle cx="22" cy="15" r="1.5" fill="#ef9f27" opacity="0.3"/></svg>
+                svg: (
+                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <circle cx="20" cy="17" r="13" fill="rgba(212,160,23,0.15)" stroke="#D4A017" strokeWidth="1.2"/>
+                    <text x="20" y="24" textAnchor="middle" fill="#D4A017" fontSize="20" fontWeight="800">?</text>
+                    <rect x="2" y="34" width="36" height="3" rx="1.5" fill="rgba(245,243,238,0.1)"/>
+                    <rect x="2" y="34" width="22" height="3" rx="1.5" fill="#D4A017" opacity="0.8"/>
+                  </svg>
+                ),
               },
               {
                 id: 'memory', label: 'Пам\'ять', desc: 'Запам\'ятай слова',
-                svg: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="5" y="5" width="10" height="10" rx="3" stroke="#ef9f27" strokeWidth="1.5" fill="none"/><rect x="17" y="5" width="10" height="10" rx="3" stroke="#ef9f27" strokeWidth="1.5" fill="none"/><rect x="5" y="17" width="10" height="10" rx="3" stroke="#ef9f27" strokeWidth="1.5" fill="none"/><rect x="17" y="17" width="10" height="10" rx="3" stroke="#ef9f27" strokeWidth="1.5" fill="rgba(239,159,39,0.2)"/><line x1="15" y1="10" x2="17" y2="10" stroke="#ef9f27" strokeWidth="1" opacity="0.5"/><line x1="15" y1="22" x2="17" y2="22" stroke="#ef9f27" strokeWidth="1" opacity="0.5"/><line x1="10" y1="15" x2="10" y2="17" stroke="#ef9f27" strokeWidth="1" opacity="0.5"/><line x1="22" y1="15" x2="22" y2="17" stroke="#ef9f27" strokeWidth="1" opacity="0.5"/></svg>
+                svg: (
+                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <rect x="2" y="2" width="17" height="17" rx="3" fill="rgba(212,160,23,0.2)" stroke="#D4A017" strokeWidth="1"/>
+                    <text x="10.5" y="14.5" textAnchor="middle" fill="#D4A017" fontSize="10" fontWeight="700">А</text>
+                    <rect x="21" y="2" width="17" height="17" rx="3" fill="rgba(212,160,23,0.2)" stroke="#D4A017" strokeWidth="1"/>
+                    <text x="29.5" y="14.5" textAnchor="middle" fill="#D4A017" fontSize="10" fontWeight="700">А</text>
+                    <rect x="2" y="21" width="17" height="17" rx="3" fill="rgba(245,243,238,0.06)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/>
+                    <text x="10.5" y="33.5" textAnchor="middle" fill="#F5F3EE" fontSize="10" fontWeight="700">Б</text>
+                    <rect x="21" y="21" width="17" height="17" rx="3" fill="rgba(245,243,238,0.06)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/>
+                    <text x="29.5" y="33.5" textAnchor="middle" fill="#F5F3EE" fontSize="12" fontWeight="700">?</text>
+                  </svg>
+                ),
               },
               {
                 id: 'leaderboard', label: 'Рейтинг', desc: 'Незабаром',
-                svg: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 4 L18.5 11 L26 11 L20 16 L22.5 23 L16 19 L9.5 23 L12 16 L6 11 L13.5 11 Z" stroke="#ef9f27" strokeWidth="1.5" fill="none" strokeLinejoin="round"/></svg>
+                svg: (
+                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <rect x="13" y="16" width="14" height="22" rx="2" fill="#D4A017" opacity="0.9"/>
+                    <rect x="2" y="22" width="11" height="16" rx="2" fill="rgba(245,243,238,0.25)" stroke="rgba(245,243,238,0.4)" strokeWidth="1"/>
+                    <rect x="27" y="26" width="11" height="12" rx="2" fill="rgba(245,243,238,0.15)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/>
+                    <text x="20" y="12" textAnchor="middle" fill="#D4A017" fontSize="9" fontWeight="700">1</text>
+                    <text x="7.5" y="20" textAnchor="middle" fill="#F5F3EE" fontSize="9">2</text>
+                    <text x="32.5" y="24" textAnchor="middle" fill="#F5F3EE" fontSize="9">3</text>
+                  </svg>
+                ),
               },
             ].map(g => (
               <div key={g.id}
