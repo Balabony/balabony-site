@@ -72,7 +72,7 @@ const FLUTTER_GAMES = [
     id: 'anagram',
     title: 'Анаграми',
     desc: 'Склади правильне слово з переставлених літер',
-    emoji: '🔀',
+    emoji: '✏️',
   },
 ]
 
@@ -318,7 +318,7 @@ export default function LongevityClubSection() {
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#ef9f27', marginBottom: 12 }}>
             🎮 Ігри для мозку
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {FLUTTER_GAMES.map(game => (
               <div
                 key={game.id}
