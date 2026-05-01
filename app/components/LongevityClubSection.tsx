@@ -318,7 +318,7 @@ export default function LongevityClubSection() {
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#ef9f27', marginBottom: 12 }}>
             🎮 Ігри для мозку
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {FLUTTER_GAMES.map(game => (
               <button
                 key={game.id}
