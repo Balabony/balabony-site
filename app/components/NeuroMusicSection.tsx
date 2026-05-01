@@ -272,8 +272,8 @@ export default function NeuroMusicSection() {
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
                   {cat.icon}
                 </div>
-                <div style={{ fontSize: 15, color: isOpen ? '#D4A017' : '#f5f0e8', fontWeight: 500 }}>{cat.label}</div>
-                <div style={{ fontSize: 12, color: '#8899bb', marginTop: 4 }}>{cat.desc}</div>
+                <div style={{ fontSize: 15, color: isOpen ? '#D4A017' : '#f5f0e8', fontWeight: 500, fontFamily: "'Lora', serif" }}>{cat.label}</div>
+                <div style={{ fontSize: 12, color: '#8899bb', marginTop: 4, fontFamily: "'Lora', serif" }}>{cat.desc}</div>
               </div>
             )
           })}
@@ -282,7 +282,7 @@ export default function NeuroMusicSection() {
         {/* Track list */}
         {openCategory && (
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#D4A017', marginBottom: 10 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#D4A017', marginBottom: 10, fontFamily: "'Lora', serif" }}>
               {openCategory.label} · {openCategory.tracks.length} треків
             </div>
             {openCategory.tracks.map((track, idx) => {
@@ -329,6 +329,7 @@ export default function NeuroMusicSection() {
                       fontSize: 14, fontWeight: isActive ? 600 : 400,
                       color: isActive ? '#D4A017' : '#f5f0e8',
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                      fontFamily: "'Lora', serif",
                     }}>
                       {track.title}
                     </div>

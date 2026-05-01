@@ -432,8 +432,8 @@ export default function LongevityClubSection() {
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
                   {game.svg}
                 </div>
-                <div style={{ fontSize: 15, color: '#f5f0e8', fontWeight: 500 }}>{game.title}</div>
-                <div style={{ fontSize: 12, color: '#8899bb', marginTop: 4 }}>{game.desc}</div>
+                <div style={{ fontSize: 15, color: '#f5f0e8', fontWeight: 500, fontFamily: "'Lora', serif" }}>{game.title}</div>
+                <div style={{ fontSize: 12, color: '#8899bb', marginTop: 4, fontFamily: "'Lora', serif" }}>{game.desc}</div>
               </div>
             ))}
           </div>
@@ -510,8 +510,8 @@ export default function LongevityClubSection() {
                 style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: '18px 12px', cursor: 'pointer', textAlign: 'center' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>{g.svg}</div>
-                <div style={{ fontSize: 15, color: '#f5f0e8', fontWeight: 500 }}>{g.label}</div>
-                <div style={{ fontSize: 12, color: '#8899bb', marginTop: 4 }}>{g.desc}</div>
+                <div style={{ fontSize: 15, color: '#f5f0e8', fontWeight: 500, fontFamily: "'Lora', serif" }}>{g.label}</div>
+                <div style={{ fontSize: 12, color: '#8899bb', marginTop: 4, fontFamily: "'Lora', serif" }}>{g.desc}</div>
               </div>
             ))}
           </div>
