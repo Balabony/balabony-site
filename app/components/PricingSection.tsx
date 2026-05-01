@@ -307,10 +307,10 @@ export default function PricingSection() {
                 borderRadius: 20, whiteSpace: 'nowrap', color: '#fff', background: plan.badgeBg
               }}>{plan.badge}</span>
             )}
-            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--muted)', marginBottom: 10 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--muted)', marginBottom: 10 }}>
               {plan.tierLabel}
             </div>
-            <div style={{ fontFamily: "'Lora', serif", fontSize: 40, fontWeight: 600, color: 'var(--text)', lineHeight: 1, marginBottom: 4 }}>
+            <div style={{ fontFamily: "'Lora', serif", fontSize: 72, fontWeight: 600, color: 'var(--text)', lineHeight: 1, marginBottom: 4 }}>
               {plan.price} <span style={{ fontSize: 16, fontWeight: 400, color: 'var(--muted)' }}>{plan.unit}</span>
             </div>
             <p style={{ fontSize: 12, color: 'var(--muted)', margin: '10px 0 14px', lineHeight: 1.5 }}>
@@ -319,7 +319,7 @@ export default function PricingSection() {
             <div style={{ height: 1, background: 'var(--border)', margin: '0 0 14px' }} />
             <ul style={{ listStyle: 'none', marginBottom: 20, padding: 0, flex: 1 }}>
               {plan.features.map(f => (
-                <li key={f.text} style={{ fontSize: 12, color: 'var(--text)', padding: '5px 0', display: 'flex', alignItems: 'flex-start', gap: 7, lineHeight: 1.4 }}>
+                <li key={f.text} style={{ fontSize: 16, color: 'var(--text)', padding: '5px 0', display: 'flex', alignItems: 'flex-start', gap: 7, lineHeight: 1.4 }}>
                   <span style={{ color: f.ok ? 'var(--accent-gold)' : '#ef4444', fontWeight: 800, flexShrink: 0 }}>{f.ok ? '✓' : '×'}</span>
                   {f.text}
                 </li>
@@ -386,7 +386,7 @@ export default function PricingSection() {
             )}
             <button
               onClick={() => setModal({ price: plan.price, tier: plan.tierLabel, unit: plan.unit })}
-              style={{ display: 'block', textAlign: 'center', padding: 14, borderRadius: 9, fontSize: 14, fontWeight: 700, cursor: 'pointer', border: 'none', fontFamily: "'Montserrat', sans-serif", minHeight: 52, background: plan.btnBg, color: '#fff' }}
+              style={{ display: 'block', textAlign: 'center', padding: 14, borderRadius: 9, fontSize: 18, fontWeight: 700, cursor: 'pointer', border: 'none', fontFamily: "'Montserrat', sans-serif", minHeight: 52, background: plan.btnBg, color: '#fff' }}
             >{plan.btnLabel}</button>
           </div>
         ))}

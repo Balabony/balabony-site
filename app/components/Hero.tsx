@@ -52,6 +52,24 @@ export default function Hero() {
               </div>
             </div>
 
+            {/* Пілюлі — між фото і заголовком */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, justifyContent: 'center', flexShrink: 0 }}>
+              {['21 пісня для душі', '7 ігор для мозку', 'Караоке онлайн'].map(text => (
+                <span key={text} style={{
+                  background: '#0D1B3E',
+                  color: '#D4A017',
+                  fontFamily: "'Lora', serif",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  padding: '6px 14px',
+                  borderRadius: 20,
+                  whiteSpace: 'nowrap',
+                  border: '1px solid rgba(212,160,23,0.35)',
+                  display: 'block',
+                }}>{text}</span>
+              ))}
+            </div>
+
             {/* Заголовок — справа, великий */}
             <div style={{ flex: 1, minWidth: 0 }}>
               <h1 style={{

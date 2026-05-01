@@ -40,7 +40,7 @@ export default function HomePage() {
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
             {/* Музична терапія */}
-            <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <a href="#neuro-music" style={{ background: '#0D1B3E', border: '1px solid #D4A017', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', cursor: 'pointer' }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{flexShrink:0}}>
                 <path d="M5 12 Q8 6 11 12 Q14 18 17 12" stroke="#ef9f27" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
                 <circle cx="9" cy="19" r="3" stroke="#ef9f27" strokeWidth="1.5" fill="none"/>
@@ -48,9 +48,9 @@ export default function HomePage() {
                 <line x1="12" y1="8" x2="19" y2="6" stroke="#ef9f27" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9' }}>Музична терапія</span>
-            </div>
+            </a>
             {/* Когнітивний тренінг */}
-            <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <a href="#longevity-club" style={{ background: '#0D1B3E', border: '1px solid #D4A017', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', cursor: 'pointer' }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{flexShrink:0}}>
                 <path d="M12 21 Q8 21 7 17 Q5 16 5 13 Q4 11 6 9 Q6 6 9 5 Q10 3 12 3 Q14 3 15 5 Q18 6 18 9 Q20 11 19 13 Q19 16 17 17 Q16 21 12 21Z" stroke="#ef9f27" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
                 <path d="M9 10 Q12 8 15 10" stroke="#ef9f27" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
@@ -58,9 +58,9 @@ export default function HomePage() {
                 <path d="M14 4 L15 1 L16 4" stroke="#ef9f27" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9' }}>Когнітивний тренінг</span>
-            </div>
+            </a>
             {/* Родинний зв'язок */}
-            <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <a href="#reader" style={{ background: '#0D1B3E', border: '1px solid #D4A017', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', cursor: 'pointer' }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{flexShrink:0}}>
                 <circle cx="12" cy="6" r="3.5" stroke="#ef9f27" strokeWidth="1.5" fill="none"/>
                 <circle cx="5" cy="17" r="2.5" stroke="#ef9f27" strokeWidth="1.5" fill="none"/>
@@ -70,15 +70,15 @@ export default function HomePage() {
                 <path d="M10 12 L12 10 L14 12 L13 14 L12 15 L11 14 Z" fill="#ef9f27" opacity="0.7"/>
               </svg>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9' }}>Родинний зв'язок</span>
-            </div>
+            </a>
             {/* Цифрова безпека */}
-            <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <a href="#pricing" style={{ background: '#0D1B3E', border: '1px solid #D4A017', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', cursor: 'pointer' }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{flexShrink:0}}>
                 <path d="M12 2 Q18 5 19 12 Q19 18 12 22 Q5 18 5 12 Q5 5 12 2Z" stroke="#ef9f27" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
                 <path d="M9 12 L11 14 L15 10" stroke="#ef9f27" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9' }}>Цифрова безпека</span>
-            </div>
+            </a>
           </div>
         </div>
 
@@ -88,8 +88,8 @@ export default function HomePage() {
 
         {/* Нові модулі */}
         <KaraokeSection />
-        <NeuroMusicSection />
-        <LongevityClubSection />
+        <div id="neuro-music"><NeuroMusicSection /></div>
+        <div id="longevity-club"><LongevityClubSection /></div>
 
         <div style={{
           background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 16,
