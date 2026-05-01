@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react'
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 interface QuizItem {
   id: string
   question: string
@@ -10,6 +12,10 @@ interface QuizItem {
   correctIdx: number
   hint?: string
 }
+
+type ActiveView = null | 'voice' | 'text' | 'memory' | 'leaderboard' | 'flutter'
+
+// ─── Data ─────────────────────────────────────────────────────────────────────
 
 const VOICE_QUIZ: QuizItem[] = [
   { id: 'q1', question: 'Хто розповідає цю історію?', audioClip: 'https://swwzsrtbfjsdsmpgfpsk.supabase.co/storage/v1/object/public/Audio/seria1.mp3.mp3', options: ['Дід Панас', 'Балабон', 'Зайченя Оксанка'], correctIdx: 0, hint: 'Голос мудрий і теплий' },
@@ -25,7 +31,52 @@ const TEXT_QUIZ: QuizItem[] = [
 
 const MEMORY_WORDS = ['Балабон', 'Ліс', 'Панас', 'Казка', 'Зірка', 'Річка', 'Пісня', 'Серце']
 
-type GameType = null | 'voice' | 'text' | 'memory' | 'leaderboard'
+const FLUTTER_GAMES = [
+  {
+    id: 'word-builder',
+    title: 'Словесний конструктор',
+    desc: 'Складай слова з літер великого слова',
+    emoji: '🔤',
+  },
+  {
+    id: 'memory',
+    title: 'Знайди пару',
+    desc: 'Знаходь пари однакових карток',
+    emoji: '🃏',
+  },
+  {
+    id: 'sudoku',
+    title: 'Числові доріжки',
+    desc: 'Логічна гра Судоку 4×4',
+    emoji: '🔢',
+  },
+  {
+    id: 'wordle',
+    title: 'Вгадай слово',
+    desc: 'Вгадай українське слово за 6 спроб',
+    emoji: '💡',
+  },
+  {
+    id: 'word-chain',
+    title: 'Ланцюжок слів',
+    desc: 'Утворюй слова з останньої літери попереднього',
+    emoji: '🔗',
+  },
+  {
+    id: 'quiz',
+    title: 'Вікторина знань',
+    desc: '20 питань з культури та природи України',
+    emoji: '🇺🇦',
+  },
+  {
+    id: 'anagram',
+    title: 'Анаграми',
+    desc: 'Склади правильне слово з переставлених літер',
+    emoji: '🔀',
+  },
+]
+
+// ─── Memory Game ──────────────────────────────────────────────────────────────
 
 function MemoryGame({ onBack }: { onBack: () => void }) {
   const [phase, setPhase] = useState<'show' | 'hide' | 'input' | 'result'>('show')
@@ -77,13 +128,8 @@ function MemoryGame({ onBack }: { onBack: () => void }) {
       <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#8899bb', fontSize: 14, marginBottom: 18 }}>
         ← Назад
       </button>
-
-      <div style={{ fontSize: 18, color: '#f5f0e8', fontWeight: 600, marginBottom: 8, textAlign: 'center' }}>
-        Тренування пам'яті
-      </div>
-      <div style={{ fontSize: 13, color: '#8899bb', textAlign: 'center', marginBottom: 20 }}>
-        Запам'ятайте слова з казки і відтворіть їх
-      </div>
+      <div style={{ fontSize: 18, color: '#f5f0e8', fontWeight: 600, marginBottom: 8, textAlign: 'center' }}>Тренування пам'яті</div>
+      <div style={{ fontSize: 13, color: '#8899bb', textAlign: 'center', marginBottom: 20 }}>Запам'ятайте слова з казки і відтворіть їх</div>
 
       {phase === 'show' && (
         <>
@@ -93,9 +139,7 @@ function MemoryGame({ onBack }: { onBack: () => void }) {
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
             {visibleWords.map(w => (
-              <div key={w} style={{ background: 'rgba(239,159,39,0.15)', border: '1px solid rgba(239,159,39,0.4)', borderRadius: 12, padding: '10px 20px', fontSize: 18, fontWeight: 700, color: '#ef9f27' }}>
-                {w}
-              </div>
+              <div key={w} style={{ background: 'rgba(239,159,39,0.15)', border: '1px solid rgba(239,159,39,0.4)', borderRadius: 12, padding: '10px 20px', fontSize: 18, fontWeight: 700, color: '#ef9f27' }}>{w}</div>
             ))}
           </div>
         </>
@@ -110,20 +154,15 @@ function MemoryGame({ onBack }: { onBack: () => void }) {
 
       {phase === 'input' && (
         <>
-          <div style={{ fontSize: 15, color: '#f5f0e8', marginBottom: 12 }}>
-            Напишіть слова які запам'ятали (через кому або пробіл):
-          </div>
+          <div style={{ fontSize: 15, color: '#f5f0e8', marginBottom: 12 }}>Напишіть слова які запам'ятали (через кому або пробіл):</div>
           <textarea
             value={userInput}
             onChange={e => setUserInput(e.target.value)}
             placeholder="Балабон, Ліс, ..."
             style={{ width: '100%', minHeight: 80, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, padding: 14, fontSize: 16, color: '#f5f0e8', fontFamily: "'Montserrat', sans-serif", resize: 'none', boxSizing: 'border-box' }}
           />
-          <button
-            onClick={checkAnswer}
-            disabled={!userInput.trim()}
-            style={{ width: '100%', marginTop: 12, background: '#ef9f27', color: '#fff', border: 'none', borderRadius: 12, padding: 14, fontSize: 16, fontWeight: 700, cursor: userInput.trim() ? 'pointer' : 'not-allowed', opacity: userInput.trim() ? 1 : 0.5 }}
-          >
+          <button onClick={checkAnswer} disabled={!userInput.trim()}
+            style={{ width: '100%', marginTop: 12, background: '#ef9f27', color: '#fff', border: 'none', borderRadius: 12, padding: 14, fontSize: 16, fontWeight: 700, cursor: userInput.trim() ? 'pointer' : 'not-allowed', opacity: userInput.trim() ? 1 : 0.5 }}>
             Перевірити ✓
           </button>
         </>
@@ -131,39 +170,72 @@ function MemoryGame({ onBack }: { onBack: () => void }) {
 
       {phase === 'result' && (
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 56, marginBottom: 12 }}>
-            {score === visibleWords.length ? '★★★' : score >= 3 ? '★★' : '★'}
-          </div>
-          <div style={{ fontSize: 22, color: '#f5f0e8', fontWeight: 700, marginBottom: 8 }}>
-            {score} з {visibleWords.length} слів!
-          </div>
-          <div style={{ fontSize: 14, color: '#8899bb', marginBottom: 8 }}>
-            Правильні слова:
-          </div>
+          <div style={{ fontSize: 56, marginBottom: 12 }}>{score === visibleWords.length ? '★★★' : score >= 3 ? '★★' : '★'}</div>
+          <div style={{ fontSize: 22, color: '#f5f0e8', fontWeight: 700, marginBottom: 8 }}>{score} з {visibleWords.length} слів!</div>
+          <div style={{ fontSize: 14, color: '#8899bb', marginBottom: 8 }}>Правильні слова:</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 20 }}>
             {visibleWords.map(w => (
-              <div key={w} style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid #22c55e', borderRadius: 10, padding: '6px 14px', fontSize: 14, color: '#86efac' }}>
-                {w}
-              </div>
+              <div key={w} style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid #22c55e', borderRadius: 10, padding: '6px 14px', fontSize: 14, color: '#86efac' }}>{w}</div>
             ))}
           </div>
           <div style={{ fontSize: 14, color: '#8899bb', marginBottom: 20 }}>
             {score === visibleWords.length ? 'Ідеальна пам\'ять! Профілактика деменції на відмінно!' : score >= 3 ? 'Добре! Тренуйтеся щодня — це корисно для мозку!' : 'Спробуйте ще раз — кожна спроба зміцнює нейронні зв\'язки!'}
           </div>
-          <button onClick={restart} style={{ background: '#ef9f27', color: '#fff', border: 'none', borderRadius: 12, padding: '14px 28px', fontSize: 16, fontWeight: 700, cursor: 'pointer', marginRight: 10 }}>
-            Ще раз
-          </button>
-          <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.06)', color: '#f5f0e8', border: '0.5px solid rgba(255,255,255,0.18)', borderRadius: 12, padding: '14px 28px', fontSize: 16, fontWeight: 700, cursor: 'pointer' }}>
-            Інші ігри
-          </button>
+          <button onClick={restart} style={{ background: '#ef9f27', color: '#fff', border: 'none', borderRadius: 12, padding: '14px 28px', fontSize: 16, fontWeight: 700, cursor: 'pointer', marginRight: 10 }}>Ще раз</button>
+          <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.06)', color: '#f5f0e8', border: '0.5px solid rgba(255,255,255,0.18)', borderRadius: 12, padding: '14px 28px', fontSize: 16, fontWeight: 700, cursor: 'pointer' }}>Інші ігри</button>
         </div>
       )}
     </div>
   )
 }
 
+// ─── Flutter Game Overlay ─────────────────────────────────────────────────────
+
+function FlutterGameOverlay({ onClose }: { onClose: () => void }) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 1000,
+      display: 'flex', flexDirection: 'column',
+      background: '#000512',
+    }}>
+      {/* Header */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '10px 16px',
+        background: '#0f1e3a',
+        borderBottom: '1px solid rgba(239,159,39,0.2)',
+        flexShrink: 0,
+      }}>
+        <span style={{ color: '#ef9f27', fontWeight: 700, fontSize: 15, fontFamily: "'Montserrat', sans-serif" }}>
+          🎮 Ігри для мозку · Балабон
+        </span>
+        <button
+          onClick={onClose}
+          style={{
+            background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
+            borderRadius: 8, padding: '6px 14px', color: '#fff',
+            fontSize: 14, cursor: 'pointer', fontFamily: "'Montserrat', sans-serif",
+          }}
+        >
+          ✕ Закрити
+        </button>
+      </div>
+
+      {/* Flutter app iframe */}
+      <iframe
+        src="/games/"
+        title="Ігри Балабон"
+        allow="fullscreen"
+        style={{ flex: 1, border: 'none', width: '100%' }}
+      />
+    </div>
+  )
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
 export default function LongevityClubSection() {
-  const [activeGame, setActiveGame] = useState<GameType>(null)
+  const [activeView, setActiveView] = useState<ActiveView>(null)
   const [quizType, setQuizType] = useState<'voice' | 'text'>('voice')
   const [quizIdx, setQuizIdx] = useState(0)
   const [answered, setAnswered] = useState<number | null>(null)
@@ -199,7 +271,10 @@ export default function LongevityClubSection() {
     }, 1400)
   }
 
-  const resetGame = () => { setQuizIdx(0); setAnswered(null); setScore(0); setDone(false); setFeedback(null); setClipPlaying(false) }
+  const resetGame = () => {
+    setQuizIdx(0); setAnswered(null); setScore(0)
+    setDone(false); setFeedback(null); setClipPlaying(false)
+  }
 
   const btnStyle = (idx: number) => {
     if (answered === null) return { bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.12)', color: '#f5f0e8' }
@@ -211,6 +286,11 @@ export default function LongevityClubSection() {
   return (
     <section style={{ marginBottom: 56 }}>
       <audio ref={audioRef} />
+
+      {/* Flutter fullscreen overlay */}
+      {activeView === 'flutter' && (
+        <FlutterGameOverlay onClose={() => setActiveView(null)} />
+      )}
 
       <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#ef9f27', display: 'block', marginBottom: 8 }}>
         Модуль 3
@@ -233,7 +313,55 @@ export default function LongevityClubSection() {
           Ігри для розуму після кожної серії. Профілактика деменції та Альцгеймера.
         </p>
 
-        {activeGame === null && (
+        {/* ── Flutter Games Grid ────────────────────────────────────────────── */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#ef9f27', marginBottom: 12 }}>
+            🎮 Ігри для мозку
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
+            {FLUTTER_GAMES.map(game => (
+              <button
+                key={game.id}
+                onClick={() => setActiveView('flutter')}
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '0.5px solid rgba(239,159,39,0.2)',
+                  borderRadius: 14,
+                  padding: '16px 10px',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  transition: 'background 0.15s, border-color 0.15s',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(239,159,39,0.1)'
+                  ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(239,159,39,0.5)'
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'
+                  ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(239,159,39,0.2)'
+                }}
+              >
+                <span style={{ fontSize: 28 }}>{game.emoji}</span>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#f5f0e8', lineHeight: 1.3 }}>{game.title}</div>
+                <div style={{ fontSize: 11, color: '#8899bb', lineHeight: 1.4 }}>{game.desc}</div>
+                <div style={{ fontSize: 12, color: '#ef9f27', fontWeight: 700, marginTop: 4 }}>Грати →</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '4px 0 20px' }} />
+
+        {/* ── Quick React Mini-Games ────────────────────────────────────────── */}
+        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#8899bb', marginBottom: 12 }}>
+          ⚡ Швидкі ігри прямо тут
+        </div>
+
+        {activeView === null && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {[
               {
@@ -255,9 +383,9 @@ export default function LongevityClubSection() {
             ].map(g => (
               <div key={g.id}
                 onClick={() => {
-                  if (g.id === 'voice') { setQuizType('voice'); setActiveGame('voice') }
-                  else if (g.id === 'text') { setQuizType('text'); setActiveGame('text') }
-                  else setActiveGame(g.id as GameType)
+                  if (g.id === 'voice') { setQuizType('voice'); setActiveView('voice') }
+                  else if (g.id === 'text') { setQuizType('text'); setActiveView('text') }
+                  else setActiveView(g.id as ActiveView)
                 }}
                 style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: '18px 12px', cursor: 'pointer', textAlign: 'center' }}
               >
@@ -269,13 +397,11 @@ export default function LongevityClubSection() {
           </div>
         )}
 
-        {activeGame === 'memory' && (
-          <MemoryGame onBack={() => setActiveGame(null)} />
-        )}
+        {activeView === 'memory' && <MemoryGame onBack={() => setActiveView(null)} />}
 
-        {(activeGame === 'voice' || activeGame === 'text') && !done && (
+        {(activeView === 'voice' || activeView === 'text') && !done && (
           <div>
-            <button onClick={() => { setActiveGame(null); resetGame() }} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#8899bb', fontSize: 14, marginBottom: 18 }}>
+            <button onClick={() => { setActiveView(null); resetGame() }} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#8899bb', fontSize: 14, marginBottom: 18 }}>
               ← Назад
             </button>
             <div style={{ display: 'flex', gap: 6, marginBottom: 18 }}>
@@ -283,8 +409,9 @@ export default function LongevityClubSection() {
                 <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i < quizIdx ? '#ef9f27' : i === quizIdx ? 'rgba(239,159,39,0.4)' : 'rgba(255,255,255,0.1)' }} />
               ))}
             </div>
-            {activeGame === 'voice' && q.audioClip && (
-              <button onClick={playClip} disabled={clipPlaying} style={{ width: '100%', minHeight: 60, borderRadius: 12, background: clipPlaying ? 'rgba(239,159,39,0.2)' : 'rgba(239,159,39,0.1)', border: `0.5px solid ${clipPlaying ? '#ef9f27' : 'rgba(239,159,39,0.3)'}`, color: '#ef9f27', fontSize: 17, fontWeight: 500, cursor: clipPlaying ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 18 }}>
+            {activeView === 'voice' && q.audioClip && (
+              <button onClick={playClip} disabled={clipPlaying}
+                style={{ width: '100%', minHeight: 60, borderRadius: 12, background: clipPlaying ? 'rgba(239,159,39,0.2)' : 'rgba(239,159,39,0.1)', border: `0.5px solid ${clipPlaying ? '#ef9f27' : 'rgba(239,159,39,0.3)'}`, color: '#ef9f27', fontSize: 17, fontWeight: 500, cursor: clipPlaying ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 18 }}>
                 ▶ {clipPlaying ? 'Слухаємо... (5 сек)' : 'Прослухати фрагмент'}
               </button>
             )}
@@ -303,17 +430,17 @@ export default function LongevityClubSection() {
             })}
             {feedback && (
               <div style={{ textAlign: 'center', padding: 12, fontSize: 16, fontWeight: 500, color: feedback === 'correct' ? '#86efac' : '#fca5a5', lineHeight: 1.5 }}>
-                {feedback === 'correct' ? (
-                  <><div style={{fontSize:20}}>Правильно!</div><div style={{fontSize:13,color:'#ef9f27',marginTop:6}}>Ох і пам'ять у тебе, як у молодого козака!</div></>
-                ) : '✗ Не вірно — спробуй ще!'}
+                {feedback === 'correct'
+                  ? <><div style={{fontSize:20}}>Правильно!</div><div style={{fontSize:13,color:'#ef9f27',marginTop:6}}>Ох і пам'ять у тебе, як у молодого козака!</div></>
+                  : '✗ Не вірно — спробуй ще!'}
               </div>
             )}
           </div>
         )}
 
-        {(activeGame === 'voice' || activeGame === 'text') && done && (
+        {(activeView === 'voice' || activeView === 'text') && done && (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <button onClick={() => { setActiveGame(null); resetGame() }} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#8899bb', fontSize: 14, marginBottom: 18 }}>
+            <button onClick={() => { setActiveView(null); resetGame() }} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#8899bb', fontSize: 14, marginBottom: 18 }}>
               ← Назад
             </button>
             <div style={{ marginBottom: 12, display:'flex', justifyContent:'center' }}>
@@ -326,13 +453,13 @@ export default function LongevityClubSection() {
               {score === quiz.length ? 'Чудово! Ви уважний слухач!' : score >= Math.ceil(quiz.length / 2) ? 'Непогано! Спробуйте ще раз.' : 'Послухайте серію знову і спробуйте!'}
             </div>
             <button onClick={resetGame} style={{ background: '#ef9f27', color: '#fff', border: 'none', borderRadius: 12, padding: '14px 28px', fontSize: 17, fontWeight: 500, cursor: 'pointer', marginRight: 10 }}>Ще раз</button>
-            <button onClick={() => { setActiveGame(null); resetGame() }} style={{ background: 'rgba(255,255,255,0.06)', color: '#f5f0e8', border: '0.5px solid rgba(255,255,255,0.18)', borderRadius: 12, padding: '14px 28px', fontSize: 17, fontWeight: 500, cursor: 'pointer' }}>Інші ігри</button>
+            <button onClick={() => { setActiveView(null); resetGame() }} style={{ background: 'rgba(255,255,255,0.06)', color: '#f5f0e8', border: '0.5px solid rgba(255,255,255,0.18)', borderRadius: 12, padding: '14px 28px', fontSize: 17, fontWeight: 500, cursor: 'pointer' }}>Інші ігри</button>
           </div>
         )}
 
-        {activeGame === 'leaderboard' && (
+        {activeView === 'leaderboard' && (
           <div>
-            <button onClick={() => setActiveGame(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#8899bb', fontSize: 14, marginBottom: 20 }}>
+            <button onClick={() => setActiveView(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#8899bb', fontSize: 14, marginBottom: 20 }}>
               ← Назад
             </button>
             <div style={{ textAlign: 'center', padding: '30px 0', color: '#8899bb', fontSize: 16 }}>
