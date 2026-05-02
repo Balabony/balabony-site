@@ -530,12 +530,14 @@ export default function KaraokeSection() {
   const lines = song.lyrics.split('\n')
   const audioSrc = `/karaoke/${String(song.id).padStart(2, '0')}.mp3`
 
-  const lyricsDuration = LYRICS_DURATION_OVERRIDES[song.id] ?? durationRef.current * 0.15
+  const effectiveDuration = durationRef.current || duration
+  const lyricsDuration = LYRICS_DURATION_OVERRIDES[song.id] ?? effectiveDuration * 0.15
   const activeIdx = playing && lyricsDuration > 0
     ? currentTime <= lyricsDuration
       ? Math.min(lines.length - 1, Math.floor((currentTime / lyricsDuration) * lines.length))
       : lines.length - 1
     : -1
+  console.log('[karaoke] RENDER activeIdx=', activeIdx, 'playing=', playing, 'lyricsDuration=', lyricsDuration.toFixed(1), 'currentTime=', currentTime.toFixed(1))
 
   useEffect(() => {
     if (lyricsRef.current && activeIdx >= 0) {
@@ -661,7 +663,7 @@ export default function KaraokeSection() {
           {lines.map((line, i) => {
             const isActive = i === activeIdx
             const isDone   = activeIdx >= 0 && i < activeIdx
-            console.log('[karaoke] rendering line', i, 'activeIdx=', activeIdx, 'match=', isActive)
+            if (isActive) console.log('[karaoke] LINE MATCH i=', i, 'activeIdx=', activeIdx)
             return (
               <div
                 key={i}
