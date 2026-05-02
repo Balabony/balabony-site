@@ -519,7 +519,7 @@ const LYRICS_DURATION_OVERRIDES: Record<number, number> = {
 // Per-song exact line start times (seconds). When set, overrides uniform distribution.
 // Key = song id, value = array with one timestamp per lyrics line.
 const LYRICS_TIMESTAMPS: Record<number, number[]> = {
-  2: [0, 8, 16, 24, 33, 41, 49, 57, 66, 74, 82, 90, 99, 107, 115, 123, 132, 140, 148, 156],
+  2: [9, 11, 14, 16, 20, 21, 23, 26, 28, 41, 43, 45, 48, 51, 53, 55, 59, 64, 68, 72],
 }
 
 function findActiveIdxByTimestamps(timestamps: number[], currentTime: number): number {

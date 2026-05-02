@@ -295,7 +295,8 @@ export async function processOneSong(songId, apiKey) {
   }
 
   const segments = data.segments ?? []
-  console.log(`Whisper: ${segments.length} segments`)
+  const words    = data.words ?? []
+  console.log(`Whisper: ${segments.length} segments, ${words.length} words`)
   if (!segments.length) throw new Error('Whisper returned no segments')
 
   console.log('All Whisper segments:')
@@ -305,7 +306,7 @@ export async function processOneSong(songId, apiKey) {
   console.log()
 
   console.log('Matching segments to lines:')
-  const timestamps = matchSegmentsToLines(lines, segments)
+  const timestamps = matchSegmentsToLines(lines, segments, words)
   return { songId, title, timestamps }
 }
 
