@@ -510,10 +510,26 @@ const SONGS: Song[] = [
   },
 ]
 
-// Per-song lyrics duration overrides (seconds). When set, overrides duration*0.45 estimate.
+// Per-song lyrics duration overrides (seconds). When set, overrides duration*0.15 estimate.
 // Key = song id. Add entries here to fine-tune sync for individual songs.
 const LYRICS_DURATION_OVERRIDES: Record<number, number> = {
   2: 164,
+}
+
+// Per-song exact line start times (seconds). When set, overrides uniform distribution.
+// Key = song id, value = array with one timestamp per lyrics line.
+const LYRICS_TIMESTAMPS: Record<number, number[]> = {
+  2: [0, 8, 16, 24, 33, 41, 49, 57, 66, 74, 82, 90, 99, 107, 115, 123, 132, 140, 148, 156],
+}
+
+function findActiveIdxByTimestamps(timestamps: number[], currentTime: number): number {
+  let lo = 0, hi = timestamps.length - 1
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1
+    if (timestamps[mid] <= currentTime) lo = mid
+    else hi = mid - 1
+  }
+  return lo
 }
 
 export default function KaraokeSection() {
@@ -530,12 +546,17 @@ export default function KaraokeSection() {
   const lines = song.lyrics.split('\n')
   const audioSrc = `/karaoke/${String(song.id).padStart(2, '0')}.mp3`
 
+  const timestamps = LYRICS_TIMESTAMPS[song.id]
   const effectiveDuration = durationRef.current || duration
   const lyricsDuration = LYRICS_DURATION_OVERRIDES[song.id] ?? effectiveDuration * 0.15
-  const activeIdx = playing && lyricsDuration > 0
-    ? currentTime <= lyricsDuration
-      ? Math.min(lines.length - 1, Math.floor((currentTime / lyricsDuration) * lines.length))
-      : lines.length - 1
+  const activeIdx = playing
+    ? timestamps
+      ? findActiveIdxByTimestamps(timestamps, currentTime)
+      : lyricsDuration > 0
+        ? currentTime <= lyricsDuration
+          ? Math.min(lines.length - 1, Math.floor((currentTime / lyricsDuration) * lines.length))
+          : lines.length - 1
+        : -1
     : -1
   console.log('[karaoke] RENDER activeIdx=', activeIdx, 'playing=', playing, 'lyricsDuration=', lyricsDuration.toFixed(1), 'currentTime=', currentTime.toFixed(1))
 
