@@ -524,8 +524,9 @@ export default function KaraokeSection() {
   const lines = song.lyrics.split('\n')
   const audioSrc = `/karaoke/${String(song.id).padStart(2, '0')}.mp3`
 
-  const activeIdx = playing && currentTime > 0 && duration > 0
-    ? Math.min(lines.length - 1, Math.floor((currentTime / duration) * lines.length))
+  const introEnd = duration * 0.15
+  const activeIdx = playing && duration > 0 && currentTime >= introEnd
+    ? Math.min(lines.length - 1, Math.floor(((currentTime - introEnd) / (duration * 0.85)) * lines.length))
     : -1
 
   useEffect(() => {
