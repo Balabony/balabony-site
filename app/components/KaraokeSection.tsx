@@ -530,7 +530,7 @@ export default function KaraokeSection() {
   const lines = song.lyrics.split('\n')
   const audioSrc = `/karaoke/${String(song.id).padStart(2, '0')}.mp3`
 
-  const lyricsDuration = LYRICS_DURATION_OVERRIDES[song.id] ?? duration * 0.15
+  const lyricsDuration = LYRICS_DURATION_OVERRIDES[song.id] ?? durationRef.current * 0.15
   const activeIdx = playing && lyricsDuration > 0
     ? currentTime <= lyricsDuration
       ? Math.min(lines.length - 1, Math.floor((currentTime / lyricsDuration) * lines.length))
@@ -610,8 +610,13 @@ export default function KaraokeSection() {
             durationRef.current = d
             console.log('[karaoke] duration recovered in timeupdate:', d)
           }
-          const idx = d > 0 ? Math.min(lines.length - 1, Math.floor((ct / d) * lines.length)) : -1
-          console.log('[karaoke] time:', ct.toFixed(2), '/', d?.toFixed(2), '— activeIdx:', idx, '/ lines:', lines.length)
+          const lyricsD = LYRICS_DURATION_OVERRIDES[song.id] ?? d * 0.15
+          const idx = lyricsD > 0
+            ? ct <= lyricsD
+              ? Math.min(lines.length - 1, Math.floor((ct / lyricsD) * lines.length))
+              : lines.length - 1
+            : -1
+          console.log('[karaoke] time:', ct.toFixed(2), '/ lyricsEnd:', lyricsD.toFixed(2), '/ fullDur:', d?.toFixed(2), '— activeIdx:', idx, '/', lines.length)
           setCurrentTime(ct)
         }}
         onDurationChange={handleLoadedMetadata}
