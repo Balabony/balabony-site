@@ -143,7 +143,7 @@ export default function Footer() {
           <span style={{ fontFamily: "'Comfortaa', cursive", fontSize: 22, color: 'var(--accent-gold)', display: 'block', marginBottom: 12 }}>
             Balabony<sup style={{ fontSize: 10 }}>®</sup>
           </span>
-          <p style={{ fontSize: 13, lineHeight: 1.8, color: '#64748b', marginBottom: 8 }}>
+          <p style={{ fontSize: 16, lineHeight: 1.8, color: 'rgba(255,255,255,0.8)', marginBottom: 8 }}>
             Платформа для тих, хто любить живі та щирі українські історії.
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginTop: 4 }}>
@@ -153,7 +153,7 @@ export default function Footer() {
               { label: 'Facebook', href: 'https://www.facebook.com/profile.php?id=61568006368489' },
             ].map(s => (
               <a key={s.label} href={s.href} target="_blank" rel="noreferrer"
-                style={{ textDecoration: 'none', color: '#64748b', fontSize: 13, fontWeight: 600 }}>
+                style={{ textDecoration: 'none', color: 'rgba(255,255,255,0.8)', fontSize: 16, fontWeight: 600 }}>
                 {s.label}
               </a>
             ))}
@@ -161,44 +161,60 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4 style={{ color: '#fff', marginBottom: 16, fontSize: 14, fontWeight: 600 }}>Платформи</h4>
+          <h4 style={{ color: '#FFFFFF', marginBottom: 16, fontSize: 18, fontWeight: 700 }}>Платформи</h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {['Web (браузер)', 'iOS (Safari PWA)', 'Android (Chrome PWA)', 'Telegram-бот', 'Smart TV / Tablets'].map(item => (
               <li key={item} style={{ marginBottom: 9 }}>
-                <a href="#" style={{ color: '#64748b', textDecoration: 'none', fontSize: 13 }}>{item}</a>
+                <a href="#" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 16 }}>{item}</a>
               </li>
             ))}
           </ul>
         </div>
 
         <div>
-          <h4 style={{ color: '#fff', marginBottom: 16, fontSize: 14, fontWeight: 600 }}>Інклюзивність</h4>
-          <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.8 }}>
+          <h4 style={{ color: '#FFFFFF', marginBottom: 16, fontSize: 18, fontWeight: 700 }}>Інклюзивність</h4>
+          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.8 }}>
             Пільгові умови для ветеранів (УБД) та людей з інвалідністю: повний доступ за 1 грн.
           </p>
         </div>
 
         <div>
-          <h4 style={{ color: '#fff', marginBottom: 16, fontSize: 14, fontWeight: 600 }}>Документи</h4>
+          <h4 style={{ color: '#FFFFFF', marginBottom: 16, fontSize: 18, fontWeight: 700 }}>🎁 Бонусна програма</h4>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {[
+              'Запроси друга — ти і друг отримаєте по 50 бонусних балів.',
+              'Купи підписку — отримай 10% від суми балами.',
+              '100 балів = 1 місяць Місячного плану.',
+              'Бали можна витратити на будь-який план або подарувати рідним.',
+            ].map(line => (
+              <li key={line} style={{ marginBottom: 10, fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.6 }}>
+                {line}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h4 style={{ color: '#FFFFFF', marginBottom: 16, fontSize: 18, fontWeight: 700 }}>Документи</h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {LEGAL_DOCS.map(d => (
               <li key={d.title} style={{ marginBottom: 9 }}>
                 <button
                   onClick={() => setLegalDoc(d.title)}
-                  style={{ background: 'none', border: 'none', color: '#64748b', fontSize: 13, cursor: 'pointer', padding: 0, fontFamily: "'Montserrat', sans-serif", textAlign: 'left' }}
+                  style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.8)', fontSize: 16, cursor: 'pointer', padding: 0, fontFamily: "'Montserrat', sans-serif", textAlign: 'left' }}
                 >
                   {d.title}
                 </button>
               </li>
             ))}
             <li style={{ marginBottom: 9 }}>
-              <a href="#" style={{ color: '#64748b', textDecoration: 'none', fontSize: 13 }}>Договір з автором</a>
+              <a href="#" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 16 }}>Договір з автором</a>
             </li>
           </ul>
         </div>
 
         <div>
-          <h4 style={{ color: '#fff', marginBottom: 16, fontSize: 14, fontWeight: 600 }}>Навігація</h4>
+          <h4 style={{ color: '#FFFFFF', marginBottom: 16, fontSize: 18, fontWeight: 700 }}>Навігація</h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {[
               { label: 'Відеоісторія дня', href: '#video' },
@@ -206,7 +222,7 @@ export default function Footer() {
               { label: 'Тарифи', href: '#pricing' },
             ].map(item => (
               <li key={item.label} style={{ marginBottom: 9 }}>
-                <a href={item.href} style={{ color: '#64748b', textDecoration: 'none', fontSize: 13 }}>{item.label}</a>
+                <a href={item.href} style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 16 }}>{item.label}</a>
               </li>
             ))}
           </ul>
@@ -215,11 +231,11 @@ export default function Footer() {
 
       <div style={{
         borderTop: '1px solid #1e293b', paddingTop: 28, textAlign: 'center',
-        fontSize: 12, color: '#475569', maxWidth: 1100, margin: '0 auto'
+        fontSize: 14, color: 'rgba(255,255,255,0.6)', maxWidth: 1100, margin: '0 auto'
       }}>
         <p>
           © 2026 Balabony®. Історії українською. Усі права захищено згідно із законодавством України.<br />
-          <span style={{ fontSize: 11, color: '#334155' }}>
+          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
             Торговельна марка: заявка №m202501234 до Укрпатенту.
           </span>
         </p>
