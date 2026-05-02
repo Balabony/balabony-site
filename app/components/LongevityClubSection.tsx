@@ -13,7 +13,7 @@ interface QuizItem {
   hint?: string
 }
 
-type ActiveView = null | 'voice' | 'text' | 'memory' | 'leaderboard' | 'flutter'
+type ActiveView = null | 'voice' | 'text' | 'memory' | 'leaderboard' | 'flutter' | 'connections' | 'tictactoe'
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -65,31 +65,6 @@ const FLUTTER_GAMES = [
         <text x="10.5" y="33.5" textAnchor="middle" fill="#F5F3EE" fontSize="12" fontWeight="700">?</text>
         <rect x="21" y="21" width="17" height="17" rx="3" fill="rgba(212,160,23,0.2)" stroke="#D4A017" strokeWidth="1"/>
         <path d="M29.5 25 L30.8 28.6 L34.5 28.6 L31.5 30.8 L32.7 34.5 L29.5 32.1 L26.3 34.5 L27.5 30.8 L24.5 28.6 L28.2 28.6 Z" fill="#D4A017"/>
-      </svg>
-    ),
-  },
-  {
-    id: 'sudoku',
-    title: 'Числові доріжки',
-    desc: 'Логічна гра Судоку 4×4',
-    svg: (
-      <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-        <rect x="2" y="9" width="8" height="10" rx="1.5" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1"/>
-        <text x="6" y="17" textAnchor="middle" fill="#D4A017" fontSize="7" fontWeight="700">1</text>
-        <rect x="11" y="9" width="8" height="10" rx="1.5" fill="rgba(245,243,238,0.06)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/>
-        <text x="15" y="17" textAnchor="middle" fill="#F5F3EE" fontSize="7">2</text>
-        <rect x="20" y="9" width="8" height="10" rx="1.5" fill="rgba(245,243,238,0.06)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/>
-        <text x="24" y="17" textAnchor="middle" fill="#F5F3EE" fontSize="7">3</text>
-        <rect x="29" y="9" width="9" height="10" rx="1.5" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1"/>
-        <text x="33.5" y="17" textAnchor="middle" fill="#D4A017" fontSize="7" fontWeight="700">4</text>
-        <rect x="2" y="21" width="8" height="10" rx="1.5" fill="rgba(245,243,238,0.06)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/>
-        <text x="6" y="29" textAnchor="middle" fill="#F5F3EE" fontSize="7">3</text>
-        <rect x="11" y="21" width="8" height="10" rx="1.5" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1"/>
-        <text x="15" y="29" textAnchor="middle" fill="#D4A017" fontSize="7" fontWeight="700">4</text>
-        <rect x="20" y="21" width="8" height="10" rx="1.5" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1"/>
-        <text x="24" y="29" textAnchor="middle" fill="#D4A017" fontSize="7" fontWeight="700">1</text>
-        <rect x="29" y="21" width="9" height="10" rx="1.5" fill="rgba(245,243,238,0.06)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/>
-        <text x="33.5" y="29" textAnchor="middle" fill="#F5F3EE" fontSize="7">2</text>
       </svg>
     ),
   },
@@ -179,6 +154,266 @@ const FLUTTER_GAMES = [
     ),
   },
 ]
+
+// ─── Connections Data ─────────────────────────────────────────────────────────
+
+const FONT = "'Montserrat', Arial, sans-serif"
+const BG   = '#0f1b35'
+const GOLD = '#f0a500'
+
+const CONNECTIONS_PUZZLES = [
+  {
+    title: 'Рослини',
+    categories: [
+      { label: 'Квіти',  color: GOLD,      words: ['Соняшник', 'Троянда', 'Волошка'] },
+      { label: 'Дерева', color: '#3b82f6', words: ['Дуб', 'Береза', 'Верба'] },
+      { label: 'Фрукти', color: '#22c55e', words: ['Яблуко', 'Груша', 'Слива'] },
+      { label: 'Ягоди',  color: '#a855f7', words: ['Калина', 'Вишня', 'Смородина'] },
+    ],
+  },
+  {
+    title: 'Тварини',
+    categories: [
+      { label: 'Птахи',    color: GOLD,      words: ['Лелека', 'Соловей', 'Ластівка'] },
+      { label: 'Риби',     color: '#3b82f6', words: ['Карась', 'Щука', 'Окунь'] },
+      { label: 'Домашні',  color: '#22c55e', words: ['Корова', 'Кінь', 'Вівця'] },
+      { label: 'Дикі',     color: '#a855f7', words: ['Вовк', 'Лисиця', 'Заєць'] },
+    ],
+  },
+  {
+    title: 'Їжа',
+    categories: [
+      { label: 'Супи',     color: GOLD,      words: ['Борщ', 'Капусняк', 'Юшка'] },
+      { label: 'Страви',   color: '#3b82f6', words: ['Вареники', 'Голубці', 'Деруни'] },
+      { label: 'Напої',    color: '#22c55e', words: ['Узвар', 'Кисіль', 'Квас'] },
+      { label: 'Солодке',  color: '#a855f7', words: ['Медівник', 'Пундик', 'Коржі'] },
+    ],
+  },
+  {
+    title: 'Міста України',
+    categories: [
+      { label: 'Захід',    color: GOLD,      words: ['Львів', 'Луцьк', 'Рівне'] },
+      { label: 'Схід',     color: '#3b82f6', words: ['Харків', 'Дніпро', 'Запоріжжя'] },
+      { label: 'Південь',  color: '#22c55e', words: ['Одеса', 'Херсон', 'Миколаїв'] },
+      { label: 'Північ',   color: '#a855f7', words: ['Київ', 'Чернігів', 'Житомир'] },
+    ],
+  },
+  {
+    title: 'Народні свята',
+    categories: [
+      { label: 'Зима',     color: GOLD,      words: ['Різдво', 'Маланка', 'Водохреще'] },
+      { label: 'Весна',    color: '#3b82f6', words: ['Великдень', 'Провідна', 'Юрія'] },
+      { label: 'Літо',     color: '#22c55e', words: ['Купала', 'Петра', 'Спаса'] },
+      { label: 'Осінь',    color: '#a855f7', words: ['Покрова', 'Михайла', 'Катерини'] },
+    ],
+  },
+]
+
+// ─── Connections Game ─────────────────────────────────────────────────────────
+
+function ConnectionsGame({ onBack }: { onBack: () => void }) {
+  const [puzzleIdx, setPuzzleIdx] = useState(0)
+  const [selected, setSelected] = useState<string[]>([])
+  const [solved, setSolved] = useState<number[]>([])
+  const [lives, setLives] = useState(3)
+  const [shake, setShake] = useState(false)
+  const [done, setDone] = useState(false)
+  const [won, setWon] = useState(false)
+
+  const puzzle = CONNECTIONS_PUZZLES[puzzleIdx]
+  const allWords = puzzle.categories.flatMap(c => c.words)
+  const [shuffled] = useState(() => [...allWords].sort(() => Math.random() - 0.5))
+
+  const toggle = (word: string) => {
+    if (done) return
+    const cat = puzzle.categories.findIndex(c => c.words.includes(word))
+    if (solved.includes(cat)) return
+    setSelected(prev =>
+      prev.includes(word) ? prev.filter(w => w !== word) : prev.length < 3 ? [...prev, word] : prev
+    )
+  }
+
+  const check = () => {
+    if (selected.length !== 3) return
+    const catIdx = puzzle.categories.findIndex(c => c.words.every(w => selected.includes(w)) && c.words.length === 3)
+    if (catIdx !== -1) {
+      const next = [...solved, catIdx]
+      setSolved(next)
+      setSelected([])
+      if (next.length === 4) { setDone(true); setWon(true) }
+    } else {
+      const newLives = lives - 1
+      setLives(newLives)
+      setShake(true)
+      setTimeout(() => setShake(false), 600)
+      setSelected([])
+      if (newLives === 0) { setDone(true); setWon(false) }
+    }
+  }
+
+  const nextPuzzle = () => {
+    setPuzzleIdx(i => (i + 1) % CONNECTIONS_PUZZLES.length)
+    setSolved([]); setSelected([]); setLives(3); setDone(false); setWon(false)
+  }
+
+  const cardStyle = (word: string): React.CSSProperties => {
+    const catIdx = puzzle.categories.findIndex(c => c.words.includes(word))
+    const isSolved = solved.includes(catIdx)
+    const isSelected = selected.includes(word)
+    if (isSolved) return { background: puzzle.categories[catIdx].color, color: '#fff', border: `2px solid ${puzzle.categories[catIdx].color}`, opacity: 0.85 }
+    if (isSelected) return { background: 'rgba(240,165,0,0.25)', color: '#f0a500', border: '2px solid #f0a500' }
+    return { background: 'rgba(255,255,255,0.06)', color: '#f5f0e8', border: '1px solid rgba(255,255,255,0.12)' }
+  }
+
+  return (
+    <div style={{ fontFamily: FONT }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8899bb', fontSize: 14, marginBottom: 16, fontFamily: FONT }}>← Назад</button>
+      <div style={{ textAlign: 'center', marginBottom: 6 }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8' }}>Зв'язки · {puzzle.title}</div>
+        <div style={{ fontSize: 13, color: '#8899bb', marginTop: 4 }}>Знайдіть 4 групи по 3 слова</div>
+        <div style={{ fontSize: 13, color: '#8899bb', marginTop: 4 }}>{'❤️'.repeat(lives)}{'🖤'.repeat(3 - lives)}</div>
+      </div>
+
+      {done && (
+        <div style={{ textAlign: 'center', padding: '16px 0', marginBottom: 12 }}>
+          <div style={{ fontSize: 28, marginBottom: 8 }}>{won ? '🎉' : '😔'}</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: won ? GOLD : '#ef4444', marginBottom: 16 }}>
+            {won ? 'Чудово! Всі групи знайдено!' : 'Спроби вичерпано!'}
+          </div>
+          <button onClick={nextPuzzle} style={{ background: GOLD, color: '#fff', border: 'none', borderRadius: 12, padding: '12px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: FONT, marginRight: 8 }}>
+            Наступна головоломка
+          </button>
+          <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.08)', color: '#f5f0e8', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, padding: '12px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: FONT }}>
+            Інші ігри
+          </button>
+        </div>
+      )}
+
+      {/* Solved categories */}
+      {solved.map(ci => (
+        <div key={ci} style={{ background: puzzle.categories[ci].color, borderRadius: 12, padding: '12px 16px', marginBottom: 8, textAlign: 'center' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', opacity: 0.8, textTransform: 'uppercase', letterSpacing: 1 }}>{puzzle.categories[ci].label}</div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginTop: 4 }}>{puzzle.categories[ci].words.join(' · ')}</div>
+        </div>
+      ))}
+
+      {/* Word grid */}
+      {!done && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 14, transition: shake ? 'none' : undefined, animation: shake ? 'shake 0.4s' : undefined }}>
+          {shuffled.filter(w => !solved.some(ci => puzzle.categories[ci].words.includes(w))).map(word => (
+            <button key={word} onClick={() => toggle(word)}
+              style={{ ...cardStyle(word), borderRadius: 12, padding: '14px 8px', fontSize: 18, fontWeight: 700, cursor: 'pointer', fontFamily: FONT, textAlign: 'center', transition: 'all 0.15s', minHeight: 56 }}>
+              {word}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!done && (
+        <button onClick={check} disabled={selected.length !== 3}
+          style={{ width: '100%', background: selected.length === 3 ? GOLD : 'rgba(255,255,255,0.06)', color: selected.length === 3 ? '#fff' : '#556688', border: 'none', borderRadius: 12, padding: '14px', fontSize: 17, fontWeight: 700, cursor: selected.length === 3 ? 'pointer' : 'default', fontFamily: FONT, transition: 'all 0.2s' }}>
+          {selected.length === 3 ? 'Перевірити' : `Оберіть ${3 - selected.length} ще`}
+        </button>
+      )}
+    </div>
+  )
+}
+
+// ─── Tic-Tac-Toe Game ─────────────────────────────────────────────────────────
+
+function TicTacToeGame({ onBack }: { onBack: () => void }) {
+  const [board, setBoard] = useState<(string | null)[]>(Array(9).fill(null))
+  const [playerTurn, setPlayerTurn] = useState(true)
+  const [status, setStatus] = useState<'playing' | 'won' | 'lost' | 'draw'>('playing')
+
+  const LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]
+
+  const checkWinner = (b: (string|null)[]) => {
+    for (const [a,c,d] of LINES) if (b[a] && b[a] === b[c] && b[a] === b[d]) return b[a]
+    return b.every(Boolean) ? 'draw' : null
+  }
+
+  const bestMove = (b: (string|null)[]): number => {
+    // Win
+    for (const [a,c,d] of LINES) {
+      const cells = [b[a],b[c],b[d]]
+      if (cells.filter(x=>x==='О').length===2 && cells.includes(null)) return [a,c,d][cells.indexOf(null)]
+    }
+    // Block
+    for (const [a,c,d] of LINES) {
+      const cells = [b[a],b[c],b[d]]
+      if (cells.filter(x=>x==='Х').length===2 && cells.includes(null)) return [a,c,d][cells.indexOf(null)]
+    }
+    // Center
+    if (!b[4]) return 4
+    // Corner
+    for (const i of [0,2,6,8]) if (!b[i]) return i
+    // Any
+    return b.findIndex(x => !x)
+  }
+
+  const handleClick = (idx: number) => {
+    if (!playerTurn || board[idx] || status !== 'playing') return
+    const next = [...board]; next[idx] = 'Х'
+    const result = checkWinner(next)
+    if (result) { setBoard(next); setStatus(result === 'draw' ? 'draw' : 'won'); return }
+    setBoard(next); setPlayerTurn(false)
+    setTimeout(() => {
+      const ai = bestMove(next); const next2 = [...next]; next2[ai] = 'О'
+      const r2 = checkWinner(next2)
+      setBoard(next2)
+      setStatus(r2 ? (r2 === 'draw' ? 'draw' : 'lost') : 'playing')
+      setPlayerTurn(true)
+    }, 400)
+  }
+
+  const reset = () => { setBoard(Array(9).fill(null)); setPlayerTurn(true); setStatus('playing') }
+
+  const winLine = LINES.find(([a,c,d]) => board[a] && board[a]===board[c] && board[a]===board[d])
+
+  const statusMsg = () => {
+    if (status === 'won')  return { text: '🎉 Ви виграли!', color: '#22c55e' }
+    if (status === 'lost') return { text: '😔 Комп\'ютер виграв!', color: '#ef4444' }
+    if (status === 'draw') return { text: '🤝 Нічия!', color: GOLD }
+    return { text: playerTurn ? 'Ваш хід (Х)' : 'Комп\'ютер думає...', color: '#8899bb' }
+  }
+
+  const msg = statusMsg()
+
+  return (
+    <div style={{ fontFamily: FONT, maxWidth: 340, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8899bb', fontSize: 14, marginBottom: 16, fontFamily: FONT }}>← Назад</button>
+      <div style={{ textAlign: 'center', marginBottom: 16 }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', marginBottom: 6 }}>Хрестики-нулики</div>
+        <div style={{ fontSize: 16, fontWeight: 600, color: msg.color }}>{msg.text}</div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 20 }}>
+        {board.map((cell, i) => {
+          const isWin = winLine?.includes(i)
+          return (
+            <button key={i} onClick={() => handleClick(i)}
+              style={{
+                height: 90, borderRadius: 14, border: isWin ? `2px solid ${GOLD}` : '1px solid rgba(255,255,255,0.12)',
+                background: isWin ? 'rgba(240,165,0,0.15)' : cell ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.04)',
+                fontSize: 36, fontWeight: 900, color: cell === 'Х' ? GOLD : '#60a5fa',
+                cursor: !cell && status === 'playing' && playerTurn ? 'pointer' : 'default',
+                fontFamily: FONT, transition: 'all 0.15s',
+              }}>
+              {cell}
+            </button>
+          )
+        })}
+      </div>
+
+      {status !== 'playing' && (
+        <button onClick={reset} style={{ width: '100%', background: GOLD, color: '#fff', border: 'none', borderRadius: 12, padding: '14px', fontSize: 17, fontWeight: 700, cursor: 'pointer', fontFamily: FONT }}>
+          Грати ще раз
+        </button>
+      )}
+    </div>
+  )
+}
 
 // ─── Memory Game ──────────────────────────────────────────────────────────────
 
@@ -500,6 +735,42 @@ export default function LongevityClubSection() {
                   </svg>
                 ),
               },
+              {
+                id: 'connections', label: "Зв'язки", desc: '4 групи по 3 слова',
+                svg: (
+                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <rect x="1" y="2" width="17" height="8" rx="2" fill="rgba(212,160,23,0.3)" stroke="#D4A017" strokeWidth="1"/>
+                    <text x="9.5" y="9" textAnchor="middle" fill="#D4A017" fontSize="6" fontWeight="700">КВІТИ</text>
+                    <rect x="22" y="2" width="17" height="8" rx="2" fill="rgba(59,130,246,0.3)" stroke="#3b82f6" strokeWidth="1"/>
+                    <text x="30.5" y="9" textAnchor="middle" fill="#93c5fd" fontSize="6" fontWeight="700">ДЕРЕВА</text>
+                    <rect x="1" y="16" width="17" height="8" rx="2" fill="rgba(34,197,94,0.3)" stroke="#22c55e" strokeWidth="1"/>
+                    <text x="9.5" y="23" textAnchor="middle" fill="#86efac" fontSize="6" fontWeight="700">ФРУКТИ</text>
+                    <rect x="22" y="16" width="17" height="8" rx="2" fill="rgba(168,85,247,0.3)" stroke="#a855f7" strokeWidth="1"/>
+                    <text x="30.5" y="23" textAnchor="middle" fill="#d8b4fe" fontSize="5.5" fontWeight="700">ЯГОДИ</text>
+                    <rect x="5" y="30" width="9" height="7" rx="1.5" fill="rgba(245,243,238,0.08)" stroke="rgba(245,243,238,0.2)" strokeWidth="1"/>
+                    <rect x="16" y="30" width="9" height="7" rx="1.5" fill="rgba(245,243,238,0.08)" stroke="rgba(245,243,238,0.2)" strokeWidth="1"/>
+                    <rect x="27" y="30" width="9" height="7" rx="1.5" fill="rgba(245,243,238,0.08)" stroke="rgba(245,243,238,0.2)" strokeWidth="1"/>
+                  </svg>
+                ),
+              },
+              {
+                id: 'tictactoe', label: 'Хрестики-нулики', desc: 'Проти комп\'ютера',
+                svg: (
+                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <line x1="14" y1="2" x2="14" y2="38" stroke="rgba(245,243,238,0.25)" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="26" y1="2" x2="26" y2="38" stroke="rgba(245,243,238,0.25)" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="2" y1="14" x2="38" y2="14" stroke="rgba(245,243,238,0.25)" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="2" y1="26" x2="38" y2="26" stroke="rgba(245,243,238,0.25)" strokeWidth="1.5" strokeLinecap="round"/>
+                    <text x="7" y="12" textAnchor="middle" fill="#D4A017" fontSize="9" fontWeight="900">Х</text>
+                    <circle cx="32" cy="8" r="4" stroke="#60a5fa" strokeWidth="1.5" fill="none"/>
+                    <text x="7" y="24" textAnchor="middle" fill="#D4A017" fontSize="9" fontWeight="900">Х</text>
+                    <circle cx="20" cy="20" r="4" stroke="#60a5fa" strokeWidth="1.5" fill="none"/>
+                    <text x="32" y="36" textAnchor="middle" fill="#D4A017" fontSize="9" fontWeight="900">Х</text>
+                    <path d="M5 29 L12 36" stroke="#D4A017" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M12 29 L5 36" stroke="#D4A017" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                ),
+              },
             ].map(g => (
               <div key={g.id}
                 onClick={() => {
@@ -518,6 +789,8 @@ export default function LongevityClubSection() {
         )}
 
         {activeView === 'memory' && <MemoryGame onBack={() => setActiveView(null)} />}
+        {activeView === 'connections' && <ConnectionsGame onBack={() => setActiveView(null)} />}
+        {activeView === 'tictactoe' && <TicTacToeGame onBack={() => setActiveView(null)} />}
 
         {(activeView === 'voice' || activeView === 'text') && !done && (
           <div>
