@@ -39,6 +39,17 @@ export default function HomePage() {
             та когнітивному занепаду, повертаючи літнім людям радість активного життя.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+            {/* Історії */}
+            <a href="#reader" style={{ background: '#0D1B3E', border: '1px solid #D4A017', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', cursor: 'pointer' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{flexShrink:0}}>
+                <path d="M12 7 Q9 5 4 6 L4 20 Q9 19 12 21Z" stroke="#ef9f27" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                <path d="M12 7 Q15 5 20 6 L20 20 Q15 19 12 21Z" stroke="#ef9f27" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                <line x1="12" y1="7" x2="12" y2="21" stroke="#ef9f27" strokeWidth="1.2"/>
+                <line x1="6" y1="10" x2="10" y2="9.5" stroke="#ef9f27" strokeWidth="1" strokeLinecap="round"/>
+                <line x1="6" y1="13" x2="10" y2="12.5" stroke="#ef9f27" strokeWidth="1" strokeLinecap="round"/>
+              </svg>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9' }}>Історії</span>
+            </a>
             {/* Музична терапія */}
             <a href="#neuro-music" style={{ background: '#0D1B3E', border: '1px solid #D4A017', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', cursor: 'pointer' }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{flexShrink:0}}>
@@ -60,7 +71,7 @@ export default function HomePage() {
               <span style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9' }}>Когнітивний тренінг</span>
             </a>
             {/* Родинний зв'язок */}
-            <a href="#reader" style={{ background: '#0D1B3E', border: '1px solid #D4A017', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', cursor: 'pointer' }}>
+            <a href="#pricing" style={{ background: '#0D1B3E', border: '1px solid #D4A017', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', cursor: 'pointer' }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{flexShrink:0}}>
                 <circle cx="12" cy="6" r="3.5" stroke="#ef9f27" strokeWidth="1.5" fill="none"/>
                 <circle cx="5" cy="17" r="2.5" stroke="#ef9f27" strokeWidth="1.5" fill="none"/>
@@ -69,15 +80,7 @@ export default function HomePage() {
                 <path d="M14 9 Q16 11 17 14" stroke="#ef9f27" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
                 <path d="M10 12 L12 10 L14 12 L13 14 L12 15 L11 14 Z" fill="#ef9f27" opacity="0.7"/>
               </svg>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9' }}>Родинний зв'язок</span>
-            </a>
-            {/* Цифрова безпека */}
-            <a href="#pricing" style={{ background: '#0D1B3E', border: '1px solid #D4A017', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', cursor: 'pointer' }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{flexShrink:0}}>
-                <path d="M12 2 Q18 5 19 12 Q19 18 12 22 Q5 18 5 12 Q5 5 12 2Z" stroke="#ef9f27" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
-                <path d="M9 12 L11 14 L15 10" stroke="#ef9f27" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9' }}>Цифрова безпека</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9' }}>Родинний зв&apos;язок</span>
             </a>
           </div>
         </div>
