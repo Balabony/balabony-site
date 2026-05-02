@@ -510,6 +510,12 @@ const SONGS: Song[] = [
   },
 ]
 
+// Per-song lyrics duration overrides (seconds). When set, overrides duration*0.45 estimate.
+// Key = song id. Add entries here to fine-tune sync for individual songs.
+const LYRICS_DURATION_OVERRIDES: Record<number, number> = {
+  // 1: 150,  // example: song 1 lyrics end at 150s
+}
+
 export default function KaraokeSection() {
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [showList, setShowList]       = useState(false)
@@ -524,8 +530,11 @@ export default function KaraokeSection() {
   const lines = song.lyrics.split('\n')
   const audioSrc = `/karaoke/${String(song.id).padStart(2, '0')}.mp3`
 
-  const activeIdx = playing && duration > 0
-    ? Math.min(lines.length - 1, Math.floor((currentTime / duration) * lines.length))
+  const lyricsDuration = LYRICS_DURATION_OVERRIDES[song.id] ?? duration * 0.45
+  const activeIdx = playing && lyricsDuration > 0
+    ? currentTime <= lyricsDuration
+      ? Math.min(lines.length - 1, Math.floor((currentTime / lyricsDuration) * lines.length))
+      : lines.length - 1
     : -1
 
   useEffect(() => {
