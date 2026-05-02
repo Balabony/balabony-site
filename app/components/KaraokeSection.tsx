@@ -542,11 +542,14 @@ export default function KaraokeSection() {
     setDuration(0)
     durationRef.current = 0
     const audio = audioRef.current
+    console.log('[karaoke] song change — audioRef.current:', audio ? 'exists' : 'NULL', 'new src:', audioSrc)
     if (audio) { audio.pause(); audio.currentTime = 0 }
   }, [selectedIdx])
 
   const handleLoadedMetadata = () => {
-    const d = audioRef.current?.duration || 0
+    const audio = audioRef.current
+    console.log('[karaoke] loadedmetadata — src:', audio?.src, 'duration:', audio?.duration)
+    const d = audio?.duration || 0
     setDuration(d)
     durationRef.current = d
   }
@@ -562,12 +565,13 @@ export default function KaraokeSection() {
 
   const toggle = () => {
     const audio = audioRef.current
-    if (!audio) return
+    if (!audio) { console.log('[karaoke] toggle — audioRef.current is NULL'); return }
+    console.log('[karaoke] toggle — src:', audio.src, 'duration:', audio.duration, 'readyState:', audio.readyState)
     if (playing) {
       audio.pause()
       setPlaying(false)
     } else {
-      audio.play().catch(() => {})
+      audio.play().catch((e) => console.log('[karaoke] play() failed:', e))
       setPlaying(true)
     }
   }
@@ -588,7 +592,12 @@ export default function KaraokeSection() {
         ref={audioRef}
         src={audioSrc}
         onLoadedMetadata={handleLoadedMetadata}
-        onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
+        onTimeUpdate={() => {
+          const audio = audioRef.current
+          if (!audio) { console.log('[karaoke] timeupdate — audioRef.current is NULL'); return }
+          console.log('[karaoke] time:', audio.currentTime.toFixed(2), 'duration:', audio.duration?.toFixed(2), 'src:', audio.src)
+          setCurrentTime(audio.currentTime)
+        }}
         onDurationChange={handleLoadedMetadata}
         onEnded={() => { setPlaying(false); setCurrentTime(0) }}
       />
