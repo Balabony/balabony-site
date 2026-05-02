@@ -2,14 +2,31 @@
 
 import { useState, useRef, useCallback } from 'react'
 
-const FONT = "'Montserrat', Arial, sans-serif"
-const GOLD = '#f0a500'
-const NAVY = '#0f1e3a'
-const NAVY_DEEP = '#0a1628'
+const FONT       = "'Montserrat', Arial, sans-serif"
+const GOLD       = '#f0a500'
+const NAVY       = '#0f1e3a'
+const NAVY_DEEP  = '#0a1628'
+const JAMENDO_ID = 'a4f04bbe'
 
 const CHARACTERS = ['Дід Панас', 'Балабон', 'Зайченя Оксанка', 'Оповідач', 'Інший персонаж']
 const SEASONS    = ['Сезон 1', 'Сезон 2', 'Сезон 3']
 const GENRES     = ['Казка', 'Пригода', 'Природа', 'Сімейна', 'Освітня', 'Детективна']
+
+const MOODS = [
+  { label: 'Весела',       tags: 'happy folk acoustic' },
+  { label: 'Ностальгічна', tags: 'melancholic ambient piano' },
+  { label: 'Пригодницька', tags: 'adventure orchestral' },
+  { label: 'Зустріч',      tags: 'romantic acoustic guitar' },
+]
+
+interface JTrack {
+  id: string
+  name: string
+  duration: number
+  artist_name: string
+  audio: string
+  image: string
+}
 
 // ── Reusable primitives ──────────────────────────────────────────────────────
 
@@ -46,9 +63,14 @@ function SectionCard({ n, title, children }: { n: number; title: string; childre
   )
 }
 
+function fmtDur(s: number) {
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+}
+
 // ── Main page ────────────────────────────────────────────────────────────────
 
 export default function StoriesAdminPage() {
+  // story fields
   const [title,     setTitle]     = useState('')
   const [season,    setSeason]    = useState(SEASONS[0])
   const [episode,   setEpisode]   = useState('1')
@@ -56,15 +78,31 @@ export default function StoriesAdminPage() {
   const [genre,     setGenre]     = useState(GENRES[0])
   const [summary,   setSummary]   = useState('')
   const [text,      setText]      = useState('')
-  const [imgSrc,    setImgSrc]    = useState('')
-  const [urlDraft,  setUrlDraft]  = useState('')
-  const [dragOver,  setDragOver]  = useState(false)
+
+  // photo
+  const [imgSrc,   setImgSrc]   = useState('')
+  const [urlDraft, setUrlDraft] = useState('')
+  const [dragOver, setDragOver] = useState(false)
+
+  // music
+  const [mood,          setMood]          = useState(MOODS[0].label)
+  const [tracks,        setTracks]        = useState<JTrack[]>([])
+  const [musicLoading,  setMusicLoading]  = useState(false)
+  const [musicError,    setMusicError]    = useState('')
+  const [playingId,     setPlayingId]     = useState<string | null>(null)
+  const [selectedTrack, setSelectedTrack] = useState<JTrack | null>(null)
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false)
+
+  // export
   const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle')
 
-  const fileRef = useRef<HTMLInputElement>(null)
+  const fileRef  = useRef<HTMLInputElement>(null)
+  const musicRef = useRef<HTMLAudioElement>(null)
 
   const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
   const readMin   = Math.ceil(wordCount / 180) || 0
+
+  // ── Photo handlers ────────────────────────────────────────────────────────
 
   const loadFile = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) return
@@ -81,10 +119,54 @@ export default function StoriesAdminPage() {
 
   const handleUrlChange = (val: string) => {
     setUrlDraft(val)
-    const trimmed = val.trim()
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) setImgSrc(trimmed)
-    else if (!trimmed) setImgSrc('')
+    const t = val.trim()
+    if (t.startsWith('http://') || t.startsWith('https://')) setImgSrc(t)
+    else if (!t) setImgSrc('')
   }
+
+  // ── Jamendo music ─────────────────────────────────────────────────────────
+
+  const searchJamendo = async () => {
+    const moodObj = MOODS.find(m => m.label === mood)
+    if (!moodObj) return
+    setMusicLoading(true); setTracks([]); setMusicError(''); setSelectedTrack(null)
+    const audio = musicRef.current
+    if (audio) { audio.pause(); setPlayingId(null); setIsAudioPlaying(false) }
+    try {
+      const u = new URL('https://api.jamendo.com/v3.0/tracks/')
+      u.searchParams.set('client_id', JAMENDO_ID)
+      u.searchParams.set('format', 'json')
+      u.searchParams.set('limit', '5')
+      u.searchParams.set('tags', moodObj.tags)
+      u.searchParams.set('audioformat', 'mp32')
+      const res = await fetch(u.toString())
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data: { results: JTrack[] } = await res.json()
+      const results = data.results ?? []
+      setTracks(results)
+      if (results.length === 0) setMusicError('Нічого не знайдено. Спробуйте іншу настрій.')
+    } catch {
+      setMusicError('Помилка пошуку. Перевірте з\'єднання та спробуйте знову.')
+    } finally {
+      setMusicLoading(false)
+    }
+  }
+
+  const togglePlay = (track: JTrack) => {
+    const audio = musicRef.current
+    if (!audio) return
+    if (playingId === track.id) {
+      if (audio.paused) { audio.play().catch(() => {}); setIsAudioPlaying(true) }
+      else              { audio.pause(); setIsAudioPlaying(false) }
+    } else {
+      audio.src = track.audio
+      audio.play().catch(() => {})
+      setPlayingId(track.id)
+      setIsAudioPlaying(true)
+    }
+  }
+
+  // ── Export helpers ────────────────────────────────────────────────────────
 
   const epNum = episode.padStart(2, '0')
 
@@ -95,6 +177,7 @@ export default function StoriesAdminPage() {
       `📺  ${season} · Серія ${epNum}`,
       `👤  ${character} · ${genre}`,
     ]
+    if (selectedTrack) lines.push(`🎵  ${selectedTrack.name} — ${selectedTrack.artist_name}`)
     if (summary) lines.push(`\n📝  ${summary}`)
     lines.push('══════════════════════════════', '', text)
     return lines.join('\n')
@@ -118,10 +201,14 @@ export default function StoriesAdminPage() {
 
   const fileBase = `s${season.slice(-1)}_ep${epNum}_${(title || 'story').substring(0, 32).replace(/\s+/g, '_').replace(/[^\w_]/g, '')}`
 
-  const handleDownloadTxt = () => downloadBlob(exportText(), `${fileBase}.txt`, 'text/plain;charset=utf-8')
-
+  const handleDownloadTxt  = () => downloadBlob(exportText(), `${fileBase}.txt`, 'text/plain;charset=utf-8')
   const handleDownloadJson = () => {
-    const payload = { title, season, episode, character, genre, summary, text, coverUrl: urlDraft || (imgSrc.startsWith('http') ? imgSrc : ''), wordCount, createdAt: new Date().toISOString() }
+    const payload = {
+      title, season, episode, character, genre, summary, text,
+      coverUrl: urlDraft || (imgSrc.startsWith('http') ? imgSrc : ''),
+      music: selectedTrack ? { id: selectedTrack.id, name: selectedTrack.name, artist: selectedTrack.artist_name, url: selectedTrack.audio } : null,
+      wordCount, createdAt: new Date().toISOString(),
+    }
     downloadBlob(JSON.stringify(payload, null, 2), `${fileBase}.json`, 'application/json;charset=utf-8')
   }
 
@@ -130,6 +217,7 @@ export default function StoriesAdminPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT, padding: '24px 16px 80px' }}>
+      <audio ref={musicRef} onEnded={() => setIsAudioPlaying(false)} />
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
 
         {/* ── Admin header ── */}
@@ -142,9 +230,7 @@ export default function StoriesAdminPage() {
             </svg>
           </div>
           <div>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: GOLD, textTransform: 'uppercase', marginBottom: 2, fontFamily: FONT }}>
-              Balabony · Адмін панель
-            </div>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: GOLD, textTransform: 'uppercase', marginBottom: 2, fontFamily: FONT }}>Balabony · Адмін панель</div>
             <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT }}>Редактор серій</div>
           </div>
           <div style={{ marginLeft: 'auto', fontSize: 12, color: '#445566', fontFamily: FONT }}>
@@ -154,15 +240,9 @@ export default function StoriesAdminPage() {
 
         {/* ━━━ SECTION 1 — Story Details ━━━ */}
         <SectionCard n={1} title="Деталі серії">
-
           <Field label="Назва серії">
-            <input
-              style={inputBase} value={title}
-              onChange={e => setTitle(e.target.value)}
-              placeholder="Наприклад: Балабон і Темний ліс"
-            />
+            <input style={inputBase} value={title} onChange={e => setTitle(e.target.value)} placeholder="Наприклад: Балабон і Темний ліс" />
           </Field>
-
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
             <Field label="Сезон">
               <select style={selectStyle} value={season} onChange={e => setSeason(e.target.value)}>
@@ -178,152 +258,234 @@ export default function StoriesAdminPage() {
               </select>
             </Field>
           </div>
-
           <Field label="Персонаж">
             <select style={selectStyle} value={character} onChange={e => setCharacter(e.target.value)}>
               {CHARACTERS.map(c => <option key={c} value={c} style={{ background: NAVY }}>{c}</option>)}
             </select>
           </Field>
-
           <Field label="Короткий опис / тизер">
-            <textarea
-              style={{ ...inputBase, height: 68, resize: 'vertical', lineHeight: 1.6 }}
-              placeholder="2–3 речення, які читач побачить у превʼю..."
-              value={summary} onChange={e => setSummary(e.target.value)}
-            />
+            <textarea style={{ ...inputBase, height: 68, resize: 'vertical', lineHeight: 1.6 }} placeholder="2–3 речення, які читач побачить у превʼю..." value={summary} onChange={e => setSummary(e.target.value)} />
           </Field>
-
           <Field label="Текст серії" right={`${wordCount} слів · ${text.length} символів · ~${readMin} хв`}>
-            <textarea
-              style={{ ...inputBase, height: 300, resize: 'vertical', lineHeight: 1.75 }}
-              placeholder="Вставте або введіть повний текст серії..."
-              value={text} onChange={e => setText(e.target.value)}
-            />
+            <textarea style={{ ...inputBase, height: 300, resize: 'vertical', lineHeight: 1.75 }} placeholder="Вставте або введіть повний текст серії..." value={text} onChange={e => setText(e.target.value)} />
           </Field>
-
         </SectionCard>
 
         {/* ━━━ SECTION 2 — Cover Photo ━━━ */}
         <SectionCard n={2} title="Фото обкладинки">
-
-          {/* Drop zone */}
           <div
             onDragOver={e => { e.preventDefault(); setDragOver(true) }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
             onClick={() => fileRef.current?.click()}
-            style={{
-              border: `1.5px dashed ${dragOver ? GOLD : 'rgba(255,255,255,0.15)'}`,
-              borderRadius: 12, padding: '30px 20px', textAlign: 'center', cursor: 'pointer',
-              background: dragOver ? 'rgba(240,165,0,0.06)' : 'rgba(255,255,255,0.02)',
-              transition: 'all 0.2s', marginBottom: 14,
-            }}
+            style={{ border: `1.5px dashed ${dragOver ? GOLD : 'rgba(255,255,255,0.15)'}`, borderRadius: 12, padding: '30px 20px', textAlign: 'center', cursor: 'pointer', background: dragOver ? 'rgba(240,165,0,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.2s', marginBottom: 14 }}
           >
             <div style={{ fontSize: 30, marginBottom: 8 }}>🖼</div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#f5f0e8', marginBottom: 4, fontFamily: FONT }}>
-              Перетягніть фото сюди або клікніть
-            </div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#f5f0e8', marginBottom: 4, fontFamily: FONT }}>Перетягніть фото сюди або клікніть</div>
             <div style={{ fontSize: 11, color: '#445566', fontFamily: FONT }}>PNG · JPG · WEBP · до 10 МБ</div>
-            <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }}
-              onChange={e => { const f = e.target.files?.[0]; if (f) loadFile(f) }} />
+            <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) loadFile(f) }} />
           </div>
-
-          {/* URL input — auto-applies on paste/type */}
           <div style={{ marginBottom: imgSrc ? 14 : 0 }}>
-            <input
-              style={inputBase}
-              placeholder="Або вставте URL зображення..."
-              value={urlDraft}
+            <input style={inputBase} placeholder="Або вставте URL зображення..." value={urlDraft}
               onChange={e => handleUrlChange(e.target.value)}
-              onPaste={e => {
-                const pasted = e.clipboardData.getData('text')
-                handleUrlChange(pasted)
-              }}
+              onPaste={e => handleUrlChange(e.clipboardData.getData('text'))}
             />
           </div>
-
-          {/* Image preview */}
           {imgSrc && (
             <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={imgSrc} alt="cover preview" style={{ width: '100%', maxHeight: 260, objectFit: 'cover', display: 'block' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,22,40,0.6) 0%, transparent 40%)' }} />
-              <button
-                onClick={() => { setImgSrc(''); setUrlDraft('') }}
-                style={{ position: 'absolute', top: 10, right: 10, width: 30, height: 30, borderRadius: '50%', background: 'rgba(0,0,0,0.65)', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
-              >
-                ×
+              <button onClick={() => { setImgSrc(''); setUrlDraft('') }} style={{ position: 'absolute', top: 10, right: 10, width: 30, height: 30, borderRadius: '50%', background: 'rgba(0,0,0,0.65)', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>×</button>
+            </div>
+          )}
+        </SectionCard>
+
+        {/* ━━━ SECTION 3 — Jamendo Music ━━━ */}
+        <SectionCard n={3} title="Музика для серії">
+
+          {/* Mood chips + search button */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+            {MOODS.map(m => (
+              <button key={m.label} onClick={() => setMood(m.label)} style={{
+                background: mood === m.label ? GOLD : 'rgba(255,255,255,0.07)',
+                color: mood === m.label ? NAVY_DEEP : '#c8d4e8',
+                border: `1px solid ${mood === m.label ? GOLD : 'rgba(255,255,255,0.12)'}`,
+                borderRadius: 20, padding: '7px 16px', fontSize: 13, fontWeight: 600,
+                cursor: 'pointer', fontFamily: FONT, transition: 'all 0.15s',
+              }}>
+                {m.label}
               </button>
+            ))}
+          </div>
+
+          <button
+            onClick={searchJamendo}
+            disabled={musicLoading}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              background: musicLoading ? 'rgba(240,165,0,0.5)' : GOLD,
+              color: NAVY_DEEP, border: 'none', borderRadius: 12,
+              padding: '13px 18px', fontSize: 14, fontWeight: 700,
+              cursor: musicLoading ? 'wait' : 'pointer', fontFamily: FONT, marginBottom: 16,
+            }}
+          >
+            {musicLoading ? (
+              <>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 1s linear infinite' }}>
+                  <circle cx="8" cy="8" r="6" stroke={NAVY_DEEP} strokeWidth="2" strokeDasharray="20 18" strokeLinecap="round"/>
+                </svg>
+                Пошук…
+              </>
+            ) : (
+              <>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <circle cx="7" cy="7" r="5" stroke={NAVY_DEEP} strokeWidth="1.8"/>
+                  <line x1="11" y1="11" x2="14.5" y2="14.5" stroke={NAVY_DEEP} strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+                Знайти музику
+              </>
+            )}
+          </button>
+
+          {/* Error */}
+          {musicError && (
+            <div style={{ fontSize: 13, color: '#f87171', textAlign: 'center', padding: '10px', background: 'rgba(239,68,68,0.08)', borderRadius: 10, marginBottom: 10, fontFamily: FONT }}>
+              {musicError}
+            </div>
+          )}
+
+          {/* Track list */}
+          {tracks.map(track => {
+            const isPlaying  = playingId === track.id && isAudioPlaying
+            const isPaused   = playingId === track.id && !isAudioPlaying
+            const isSelected = selectedTrack?.id === track.id
+            return (
+              <div key={track.id} onClick={() => setSelectedTrack(track)} style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '11px 14px', borderRadius: 12, cursor: 'pointer', marginBottom: 8,
+                background: isSelected ? 'rgba(240,165,0,0.1)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${isSelected ? GOLD : 'rgba(255,255,255,0.08)'}`,
+                transition: 'all 0.15s',
+              }}>
+
+                {/* Play/pause button */}
+                <button
+                  onClick={e => { e.stopPropagation(); togglePlay(track) }}
+                  style={{
+                    width: 36, height: 36, borderRadius: '50%', flexShrink: 0, cursor: 'pointer',
+                    background: isPlaying ? 'rgba(240,165,0,0.25)' : 'rgba(255,255,255,0.07)',
+                    border: `1px solid ${isPlaying || isPaused ? GOLD : 'rgba(255,255,255,0.15)'}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  {isPlaying ? (
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <rect x="1.5" y="1.5" width="3" height="9" rx="1" fill={GOLD}/>
+                      <rect x="7.5" y="1.5" width="3" height="9" rx="1" fill={GOLD}/>
+                    </svg>
+                  ) : (
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <polygon points="2.5,1.5 11,6 2.5,10.5" fill={isPaused ? GOLD : '#8899bb'}/>
+                    </svg>
+                  )}
+                </button>
+
+                {/* Track info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: isSelected ? 600 : 400, color: isSelected ? GOLD : '#f5f0e8', fontFamily: FONT, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {track.name}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#8899bb', marginTop: 2, fontFamily: FONT }}>
+                    {track.artist_name}
+                    {track.duration > 0 && <span style={{ marginLeft: 8, color: '#445566' }}>· {fmtDur(track.duration)}</span>}
+                  </div>
+                </div>
+
+                {/* Selected badge */}
+                {isSelected && (
+                  <div style={{ fontSize: 11, color: '#4ade80', fontWeight: 700, fontFamily: FONT, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6 L5 9 L10 3" stroke="#4ade80" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    Вибрано
+                  </div>
+                )}
+              </div>
+            )
+          })}
+
+          {/* Selected track summary */}
+          {selectedTrack && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4, padding: '10px 14px', background: 'rgba(240,165,0,0.07)', borderRadius: 10, border: `0.5px solid rgba(240,165,0,0.25)` }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 13V6l8-2v7" stroke={GOLD} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="2.5" cy="13" r="1.5" stroke={GOLD} strokeWidth="1.4"/>
+                <circle cx="10.5" cy="11" r="1.5" stroke={GOLD} strokeWidth="1.4"/>
+              </svg>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: GOLD, fontFamily: FONT }}>{selectedTrack.name}</span>
+                <span style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}> — {selectedTrack.artist_name}</span>
+              </div>
+              <button onClick={() => { setSelectedTrack(null) }} style={{ background: 'none', border: 'none', color: '#445566', cursor: 'pointer', fontSize: 16, padding: 0, lineHeight: 1 }}>×</button>
             </div>
           )}
 
         </SectionCard>
 
-        {/* ━━━ SECTION 3 — Preview & Export ━━━ */}
-        <SectionCard n={3} title="Превʼю та Експорт">
+        {/* ━━━ SECTION 4 — Preview & Export ━━━ */}
+        <SectionCard n={4} title="Превʼю та Експорт">
 
-          {/* ── Story preview card ── */}
+          {/* Story preview card */}
           <div style={{ background: NAVY_DEEP, border: `1px solid rgba(240,165,0,0.2)`, borderRadius: 16, overflow: 'hidden', marginBottom: 20 }}>
-
             {imgSrc && (
               <div style={{ position: 'relative', height: 200 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={imgSrc} alt="story cover" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,22,40,1) 0%, rgba(10,22,40,0.3) 50%, transparent 100%)' }} />
                 <div style={{ position: 'absolute', bottom: 16, left: 18, right: 18 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 5, fontFamily: FONT }}>
-                    {season} · Серія {epNum}
-                  </div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT, lineHeight: 1.2 }}>
-                    {title || '(без назви)'}
-                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 5, fontFamily: FONT }}>{season} · Серія {epNum}</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT, lineHeight: 1.2 }}>{title || '(без назви)'}</div>
                 </div>
               </div>
             )}
-
             <div style={{ padding: '16px 18px 20px' }}>
               {!imgSrc && (
                 <>
-                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 5, fontFamily: FONT }}>
-                    {season} · Серія {epNum}
-                  </div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', marginBottom: 12, fontFamily: FONT }}>
-                    {title || '(без назви)'}
-                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 5, fontFamily: FONT }}>{season} · Серія {epNum}</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', marginBottom: 12, fontFamily: FONT }}>{title || '(без назви)'}</div>
                 </>
               )}
-
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: GOLD, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>{character} · {genre}</span>
               </div>
-
-              {summary && (
-                <p style={{ fontSize: 14, color: '#c8d4e8', lineHeight: 1.7, margin: '0 0 14px', fontFamily: FONT, fontStyle: 'italic', borderLeft: `2px solid rgba(240,165,0,0.35)`, paddingLeft: 12 }}>
-                  {summary}
-                </p>
+              {selectedTrack && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 10V5l6-1.5v5" stroke={GOLD} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="1.5" cy="10" r="1" fill={GOLD}/>
+                    <circle cx="7.5" cy="8.5" r="1" fill={GOLD}/>
+                  </svg>
+                  <span style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>{selectedTrack.name} — {selectedTrack.artist_name}</span>
+                </div>
               )}
-
+              {summary && (
+                <p style={{ fontSize: 14, color: '#c8d4e8', lineHeight: 1.7, margin: '0 0 14px', fontFamily: FONT, fontStyle: 'italic', borderLeft: `2px solid rgba(240,165,0,0.35)`, paddingLeft: 12 }}>{summary}</p>
+              )}
               {text ? (
                 <div style={{ paddingTop: 12, borderTop: '0.5px solid rgba(255,255,255,0.06)' }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#445566', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, fontFamily: FONT }}>
-                    Уривок тексту · {wordCount} слів · ~{readMin} хв
-                  </div>
-                  <p style={{ fontSize: 13, color: '#8899bb', lineHeight: 1.75, margin: 0, fontFamily: FONT, maxHeight: 120, overflow: 'hidden' }}>
-                    {text.substring(0, 350)}{text.length > 350 ? '…' : ''}
-                  </p>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: '#445566', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, fontFamily: FONT }}>Уривок тексту · {wordCount} слів · ~{readMin} хв</div>
+                  <p style={{ fontSize: 13, color: '#8899bb', lineHeight: 1.75, margin: 0, fontFamily: FONT, maxHeight: 120, overflow: 'hidden' }}>{text.substring(0, 350)}{text.length > 350 ? '…' : ''}</p>
                 </div>
               ) : isEmpty ? (
-                <div style={{ textAlign: 'center', padding: '16px 0', color: '#334455', fontSize: 13, fontFamily: FONT }}>
-                  Заповніть Секцію 1, щоб побачити превʼю
-                </div>
+                <div style={{ textAlign: 'center', padding: '16px 0', color: '#334455', fontSize: 13, fontFamily: FONT }}>Заповніть Секцію 1, щоб побачити превʼю</div>
               ) : null}
             </div>
           </div>
 
-          {/* ── Export buttons ── */}
+          {/* Export buttons */}
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
-
             <button onClick={handleCopy} style={{ flex: '1 1 180px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: GOLD, color: NAVY_DEEP, border: 'none', borderRadius: 12, padding: '13px 18px', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: FONT }}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" stroke={NAVY_DEEP} strokeWidth="1.5"/>
@@ -331,7 +493,6 @@ export default function StoriesAdminPage() {
               </svg>
               {copyState === 'copied' ? '✓ Скопійовано!' : 'Скопіювати текст'}
             </button>
-
             <button onClick={handleDownloadTxt} style={{ flex: '1 1 150px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'rgba(255,255,255,0.07)', color: '#f5f0e8', border: '1px solid rgba(255,255,255,0.13)', borderRadius: 12, padding: '13px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: FONT }}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M8 2 L8 10" stroke="#f5f0e8" strokeWidth="1.6" strokeLinecap="round"/>
@@ -340,7 +501,6 @@ export default function StoriesAdminPage() {
               </svg>
               Завантажити .txt
             </button>
-
             <button onClick={handleDownloadJson} style={{ flex: '1 1 150px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'rgba(255,255,255,0.07)', color: '#8899bb', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '13px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: FONT }}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M3 2 L3 14 L13 14 L13 6 L9 2 Z" stroke="#8899bb" strokeWidth="1.4" strokeLinejoin="round"/>
@@ -350,17 +510,16 @@ export default function StoriesAdminPage() {
               </svg>
               Завантажити .json
             </button>
-
           </div>
 
-          {/* ── Stats row ── */}
+          {/* Stats row */}
           <div style={{ display: 'flex', gap: 4, padding: '12px 16px', background: 'rgba(255,255,255,0.03)', borderRadius: 12, border: '0.5px solid rgba(255,255,255,0.06)', flexWrap: 'wrap' }}>
             {[
-              { label: 'Слів',          val: wordCount > 0 ? wordCount.toLocaleString('uk') : '—' },
-              { label: 'Символів',      val: text.length > 0 ? text.length.toLocaleString('uk') : '—' },
-              { label: 'Хв читання',    val: readMin > 0 ? `~${readMin}` : '—' },
-              { label: 'Фото',          val: imgSrc ? '✓' : '—', accent: !!imgSrc },
-              { label: 'Тизер',         val: summary ? '✓' : '—', accent: !!summary },
+              { label: 'Слів',       val: wordCount > 0 ? wordCount.toLocaleString('uk') : '—' },
+              { label: 'Символів',   val: text.length > 0 ? text.length.toLocaleString('uk') : '—' },
+              { label: 'Хв читання', val: readMin > 0 ? `~${readMin}` : '—' },
+              { label: 'Фото',       val: imgSrc ? '✓' : '—',           accent: !!imgSrc },
+              { label: 'Музика',     val: selectedTrack ? '✓' : '—',    accent: !!selectedTrack },
             ].map(s => (
               <div key={s.label} style={{ textAlign: 'center', flex: '1 1 60px', padding: '6px 4px' }}>
                 <div style={{ fontSize: 18, fontWeight: 700, color: s.accent ? '#4ade80' : GOLD, fontFamily: FONT, lineHeight: 1.2 }}>{s.val}</div>
@@ -372,6 +531,8 @@ export default function StoriesAdminPage() {
         </SectionCard>
 
       </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   )
 }
