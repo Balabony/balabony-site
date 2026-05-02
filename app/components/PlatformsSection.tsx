@@ -58,7 +58,7 @@ export default function PlatformsSection() {
       <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent-gold)', display: 'block', marginBottom: 8 }}>
         Де слухати
       </span>
-      <h2 style={{ fontFamily: "'Lora', serif", fontSize: 28, fontWeight: 600, color: 'var(--text)', marginBottom: 28 }}>
+      <h2 style={{ fontFamily: "'Lora', serif", fontSize: 28, fontWeight: 700, color: '#FFFFFF', marginBottom: 28 }}>
         Доступно на 5 платформах
       </h2>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>

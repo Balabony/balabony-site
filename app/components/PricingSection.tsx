@@ -279,7 +279,7 @@ export default function PricingSection() {
       <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent-gold)', display: 'block', marginBottom: 8 }}>
         Підписки
       </span>
-      <h2 style={{ fontFamily: "'Lora', serif", fontSize: 28, fontWeight: 600, color: 'var(--text)', marginBottom: 28 }}>
+      <h2 style={{ fontFamily: "'Lora', serif", fontSize: 28, fontWeight: 700, color: '#FFFFFF', marginBottom: 28 }}>
         Оберіть свій план доступу
       </h2>
 
