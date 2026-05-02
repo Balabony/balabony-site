@@ -84,19 +84,19 @@ export default function HomePage() {
             </a>
           </div>
         </div>
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
         <ReaderSection />
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
         <PlatformsSection />
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
         <PricingSection />
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
         <KaraokeSection />
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
         <div id="neuro-music"><NeuroMusicSection /></div>
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
         <div id="longevity-club"><LongevityClubSection /></div>
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
 
         <div style={{
           background: '#0f1e3a', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 16,
@@ -121,7 +121,7 @@ export default function HomePage() {
             </button>
           </div>
         </div>
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
 
       </main>
 

@@ -345,6 +345,8 @@ export default function PricingSection() {
         <FreeViewTimer />
       </div>
 
+      <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '32px 0' }} />
+
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
