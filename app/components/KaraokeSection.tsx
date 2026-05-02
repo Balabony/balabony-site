@@ -527,7 +527,6 @@ export default function KaraokeSection() {
   const activeIdx = playing && duration > 0
     ? Math.min(lines.length - 1, Math.floor((currentTime / duration) * lines.length))
     : -1
-  console.log('[karaoke] activeIdx:', activeIdx, 'lines:', lines.length)
 
   useEffect(() => {
     if (lyricsRef.current && activeIdx >= 0) {
@@ -566,7 +565,7 @@ export default function KaraokeSection() {
   const toggle = () => {
     const audio = audioRef.current
     if (!audio) { console.log('[karaoke] toggle — audioRef.current is NULL'); return }
-    console.log('[karaoke] toggle — src:', audio.src, 'duration:', audio.duration, 'readyState:', audio.readyState)
+    console.log('[karaoke] toggle playing:', !playing, '— src:', audio.src, 'duration:', audio.duration, 'readyState:', audio.readyState)
     if (playing) {
       audio.pause()
       setPlaying(false)
@@ -595,8 +594,11 @@ export default function KaraokeSection() {
         onTimeUpdate={() => {
           const audio = audioRef.current
           if (!audio) { console.log('[karaoke] timeupdate — audioRef.current is NULL'); return }
-          console.log('[karaoke] time:', audio.currentTime.toFixed(2), 'duration:', audio.duration?.toFixed(2), 'src:', audio.src)
-          setCurrentTime(audio.currentTime)
+          const ct = audio.currentTime
+          const d = audio.duration
+          const idx = d > 0 ? Math.min(lines.length - 1, Math.floor((ct / d) * lines.length)) : -1
+          console.log('[karaoke] time:', ct.toFixed(2), '/', d?.toFixed(2), '— activeIdx:', idx, '/ lines:', lines.length)
+          setCurrentTime(ct)
         }}
         onDurationChange={handleLoadedMetadata}
         onEnded={() => { setPlaying(false); setCurrentTime(0) }}
