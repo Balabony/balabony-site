@@ -8,6 +8,7 @@ Marketing and subscription landing page for **Balabony** — an AI voice compani
 - Installment options via PrivatBank and Oschadbank
 - Telegram webhook for notifications
 - Flutter mini-games embedded at `/games`
+- Karaoke module: 01.mp3 - 18.mp3 (18 пісень)
 - Admin panel and AI news feed API routes
 
 ## Tech Stack
