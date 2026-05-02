@@ -116,7 +116,7 @@ function EmergencySection() {
 
 export default function Footer() {
   return (
-    <footer style={{ background: 'var(--dark)', color: '#94a3b8', padding: '60px 5% 30px', marginTop: 60 }}>
+    <footer style={{ background: 'var(--dark)', color: '#94a3b8', padding: '32px 5% 30px', marginTop: 24 }}>
 
       {/* Екстрена допомога */}
       <EmergencySection />
