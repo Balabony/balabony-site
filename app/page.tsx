@@ -19,7 +19,7 @@ export default function HomePage() {
       <ResumeBanner />
       <Hero />
 
-      <main style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 20px 60px' }}>
+      <main style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 20px 0' }}>
 
         {/* Місія */}
         <div style={{
