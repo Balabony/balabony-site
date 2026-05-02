@@ -515,16 +515,17 @@ export default function KaraokeSection() {
   const [showList, setShowList]       = useState(false)
   const [playing, setPlaying]         = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration]       = useState(180)
-  const audioRef  = useRef<HTMLAudioElement>(null)
-  const lyricsRef = useRef<HTMLDivElement>(null)
-  const demoRef   = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [duration, setDuration]       = useState(0)
+  const audioRef    = useRef<HTMLAudioElement>(null)
+  const lyricsRef   = useRef<HTMLDivElement>(null)
+  const demoRef     = useRef<ReturnType<typeof setInterval> | null>(null)
+  const durationRef = useRef(0)
 
   const song  = SONGS[selectedIdx]
   const lines = song.lyrics.split('\n')
   const audioSrc = `/karaoke/${String(song.id).padStart(2, '0')}.mp3`
 
-  const activeIdx = playing && currentTime > 0
+  const activeIdx = playing && currentTime > 0 && duration > 0
     ? Math.min(lines.length - 1, Math.floor((currentTime / duration) * lines.length))
     : -1
 
@@ -539,7 +540,8 @@ export default function KaraokeSection() {
     stopDemo()
     setPlaying(false)
     setCurrentTime(0)
-    setDuration(180)
+    setDuration(0)
+    durationRef.current = 0
     const audio = audioRef.current
     if (audio) { audio.pause(); audio.currentTime = 0 }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -551,11 +553,10 @@ export default function KaraokeSection() {
     if (demoRef.current) { clearInterval(demoRef.current); demoRef.current = null }
   }
 
-  const startDemo = () => {
-    if (demoRef.current) return
-    let sec = 0
-    const total = 180
-    setDuration(total)
+  const startDemo = (startAt = 0) => {
+    stopDemo()
+    const total = durationRef.current || 180
+    let sec = startAt
     demoRef.current = setInterval(() => {
       sec++
       setCurrentTime(sec)
@@ -565,6 +566,22 @@ export default function KaraokeSection() {
         setCurrentTime(0)
       }
     }, 1000)
+  }
+
+  const handleLoadedMetadata = () => {
+    const d = audioRef.current?.duration || 0
+    setDuration(d)
+    durationRef.current = d
+  }
+
+  const seekToLine = (lineIdx: number) => {
+    const total = durationRef.current
+    if (!total) return
+    const time = (lineIdx / lines.length) * total
+    const audio = audioRef.current
+    if (audio) audio.currentTime = time
+    setCurrentTime(time)
+    if (demoRef.current) startDemo(Math.floor(time))
   }
 
   const toggle = () => {
@@ -595,8 +612,9 @@ export default function KaraokeSection() {
       <audio
         ref={audioRef}
         src={audioSrc}
+        onLoadedMetadata={handleLoadedMetadata}
         onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
-        onDurationChange={() => setDuration(audioRef.current?.duration || 180)}
+        onDurationChange={handleLoadedMetadata}
         onEnded={() => { setPlaying(false); setCurrentTime(0); stopDemo() }}
       />
 
@@ -641,6 +659,7 @@ export default function KaraokeSection() {
             return (
               <div
                 key={i}
+                onClick={() => seekToLine(i)}
                 style={{
                   fontSize: isActive ? 22 : 18,
                   fontWeight: isActive ? 600 : 400,
@@ -650,6 +669,7 @@ export default function KaraokeSection() {
                   padding: '1px 0',
                   transition: 'all 0.35s ease',
                   minHeight: line === '' ? 10 : undefined,
+                  cursor: 'pointer',
                 }}
               >
                 {line || ' '}
