@@ -471,6 +471,19 @@ function ChessGame({ onBack }: { onBack: () => void }) {
   const [status, setStatus] = useState<'playing'|'won'|'lost'|'draw'>('playing')
   const [level, setLevel] = useState<number|null>(null)
   const [thinking, setThinking] = useState(false)
+  const [elapsed, setElapsed] = useState(0)
+  const timerRef = useRef<ReturnType<typeof setInterval>|null>(null)
+
+  useEffect(() => {
+    if (level !== null && status === 'playing') {
+      timerRef.current = setInterval(() => setElapsed(s => s + 1), 1000)
+    } else {
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
+    }
+    return () => { if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null } }
+  }, [level, status])
+
+  const fmtTime = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
   const handleSquare = (r: number, c: number) => {
     if (!playerTurn || status!=='playing' || level===null || thinking) return
@@ -504,11 +517,19 @@ function ChessGame({ onBack }: { onBack: () => void }) {
     }, 50)
   }
 
-  const reset = () => { setBoard(CHESS_INIT.map(r=>[...r])); setSel(null); setValidMoves([]); setPlayerTurn(true); setStatus('playing'); setLevel(null) }
+  const reset = () => {
+    setBoard(CHESS_INIT.map(r=>[...r])); setSel(null); setValidMoves([])
+    setPlayerTurn(true); setStatus('playing'); setLevel(null); setElapsed(0)
+  }
+
+  const backBtn: React.CSSProperties = {
+    background: GOLD, border: 'none', cursor: 'pointer', color: '#fff',
+    fontSize: 16, fontWeight: 700, padding: '10px 22px', borderRadius: 12, fontFamily: FONT,
+  }
 
   if (level===null) return (
     <div style={{ fontFamily:FONT }}>
-      <button onClick={onBack} style={{background:'none',border:'none',cursor:'pointer',color:'#8899bb',fontSize:14,marginBottom:16,fontFamily:FONT}}>← Назад</button>
+      <button onClick={onBack} style={{...backBtn, marginBottom: 20}}>← Назад</button>
       <div style={{textAlign:'center'}}>
         <div style={{fontSize:20,fontWeight:700,color:'#f5f0e8',marginBottom:6}}>Шахи ♔</div>
         <div style={{fontSize:13,color:'#8899bb',marginBottom:20}}>Оберіть рівень складності</div>
@@ -523,18 +544,23 @@ function ChessGame({ onBack }: { onBack: () => void }) {
 
   return (
     <div style={{fontFamily:FONT}}>
-      <button onClick={onBack} style={{background:'none',border:'none',cursor:'pointer',color:'#8899bb',fontSize:14,marginBottom:6,fontFamily:FONT}}>← Назад</button>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
+        <button onClick={onBack} style={backBtn}>← Назад</button>
+        <div style={{fontSize:24,fontWeight:700,color:GOLD,letterSpacing:3,fontVariantNumeric:'tabular-nums',fontFamily:'monospace'}}>{fmtTime(elapsed)}</div>
+        <div style={{width:100}} />
+      </div>
       <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:status!=='playing'?GOLD:'#8899bb',marginBottom:8}}>{statusText}</div>
       <div style={{overflowX:'auto',marginBottom:10}}>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(8,80px)',gap:2,borderRadius:8,overflow:'hidden',width:'fit-content',margin:'0 auto'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(8,90px)',gap:0,borderRadius:8,overflow:'hidden',width:'fit-content',margin:'0 auto',border:'3px solid #7a5c2e'}}>
           {board.map((row,r)=>row.map((piece,c)=>{
             const light=(r+c)%2===0
             const isSel=sel?.[0]===r&&sel?.[1]===c
             const isValid=validMoves.some(([mr,mc])=>mr===r&&mc===c)
+            const bg = isSel ? '#FFE600' : isValid ? (light ? 'rgba(34,197,94,0.45)' : 'rgba(34,197,94,0.65)') : light ? '#F0D9B5' : '#B58863'
             return (
               <div key={`${r}-${c}`} onClick={()=>handleSquare(r,c)}
-                style={{width:80,height:80,background:isSel?'rgba(240,165,0,0.55)':isValid?'rgba(34,197,94,0.5)':light?'#f0d9b5':'#b58863',display:'flex',alignItems:'center',justifyContent:'center',fontSize:56,lineHeight:1,cursor:status==='playing'&&playerTurn&&!thinking?'pointer':'default',userSelect:'none',position:'relative'}}>
-                {piece ? PIECE_GLYPH[piece] ?? piece : isValid&&!board[r][c]?<div style={{width:26,height:26,borderRadius:'50%',background:'rgba(0,0,0,0.25)'}}/>:''}
+                style={{width:90,height:90,background:bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:44,lineHeight:1,padding:4,boxSizing:'border-box',cursor:status==='playing'&&playerTurn&&!thinking?'pointer':'default',userSelect:'none',position:'relative',transition:'background 0.1s'}}>
+                {piece ? PIECE_GLYPH[piece] ?? piece : isValid&&!board[r][c]?<div style={{width:28,height:28,borderRadius:'50%',background:'rgba(0,0,0,0.22)'}}/>:''}
               </div>
             )
           }))}
