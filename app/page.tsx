@@ -115,7 +115,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <section id="docs" style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 20, padding: '28px 24px 0', marginBottom: 24 }}>
+        <section id="docs" style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 20, padding: '28px 24px 0', marginBottom: 0 }}>
           <h2 style={{ fontFamily: "'Lora', serif", fontSize: 28, fontWeight: 600, color: 'var(--text)', textAlign: 'center', marginBottom: 40 }}>
             Юридична інформація
           </h2>
