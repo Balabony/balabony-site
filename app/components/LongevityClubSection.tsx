@@ -525,15 +525,15 @@ function ChessGame({ onBack }: { onBack: () => void }) {
     <div style={{fontFamily:FONT}}>
       <button onClick={onBack} style={{background:'none',border:'none',cursor:'pointer',color:'#8899bb',fontSize:14,marginBottom:6,fontFamily:FONT}}>← Назад</button>
       <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:status!=='playing'?GOLD:'#8899bb',marginBottom:8}}>{statusText}</div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:1,borderRadius:8,overflow:'hidden',maxWidth:320,margin:'0 auto',marginBottom:10}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:2,borderRadius:8,overflow:'hidden',width:'min(560px,100%)',margin:'0 auto',marginBottom:10}}>
         {board.map((row,r)=>row.map((piece,c)=>{
           const light=(r+c)%2===0
           const isSel=sel?.[0]===r&&sel?.[1]===c
           const isValid=validMoves.some(([mr,mc])=>mr===r&&mc===c)
           return (
             <div key={`${r}${c}`} onClick={()=>handleSquare(r,c)}
-              style={{aspectRatio:'1',background:isSel?'rgba(240,165,0,0.55)':isValid?'rgba(34,197,94,0.5)':light?'#f0d9b5':'#b58863',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,cursor:status==='playing'&&playerTurn&&!thinking?'pointer':'default',userSelect:'none',position:'relative'}}>
-              {piece ? PIECE_GLYPH[piece] ?? piece : isValid&&!board[r][c]?<div style={{width:10,height:10,borderRadius:'50%',background:'rgba(0,0,0,0.25)'}}/>:''}
+              style={{aspectRatio:'1',background:isSel?'rgba(240,165,0,0.55)':isValid?'rgba(34,197,94,0.5)':light?'#f0d9b5':'#b58863',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'clamp(20px,6.5vw,42px)',cursor:status==='playing'&&playerTurn&&!thinking?'pointer':'default',userSelect:'none',position:'relative'}}>
+              {piece ? PIECE_GLYPH[piece] ?? piece : isValid&&!board[r][c]?<div style={{width:'32%',height:'32%',borderRadius:'50%',background:'rgba(0,0,0,0.25)'}}/>:''}
             </div>
           )
         }))}
@@ -628,20 +628,20 @@ function CheckersGame({ onBack }: { onBack: () => void }) {
     <div style={{fontFamily:FONT}}>
       <button onClick={onBack} style={{background:'none',border:'none',cursor:'pointer',color:'#8899bb',fontSize:14,marginBottom:6,fontFamily:FONT}}>← Назад</button>
       <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:status!=='playing'?GOLD:'#8899bb',marginBottom:8}}>
-        {status==='won'?'🎉 Ви виграли!':status==='lost'?'😔 Ви програли!':playerTurn?'Ваш хід (червоні)':'Комп\'ютер думає...'}
+        {status==='won'?'🎉 Ви виграли!':status==='lost'?'😔 Ви програли!':playerTurn?'Ваш хід (золоті)':'Комп\'ютер думає...'}
       </div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:1,borderRadius:8,overflow:'hidden',maxWidth:320,margin:'0 auto',marginBottom:10}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:2,borderRadius:8,overflow:'hidden',width:'min(560px,100%)',margin:'0 auto',marginBottom:10}}>
         {board.map((row,r)=>row.map((cell,c)=>{
           const dark=(r+c)%2===1
           const isSel=sel?.[0]===r&&sel?.[1]===c
           const isValid=moves.some(([mr,mc])=>mr===r&&mc===c)
           return (
             <div key={`${r}${c}`} onClick={()=>handleClick(r,c)}
-              style={{aspectRatio:'1',background:isSel?'rgba(240,165,0,0.5)':isValid?'rgba(34,197,94,0.4)':dark?'#769656':'#eeeed2',display:'flex',alignItems:'center',justifyContent:'center',cursor:dark&&playerTurn&&status==='playing'?'pointer':'default'}}>
-              {cell===1&&<div style={{width:'72%',aspectRatio:'1',borderRadius:'50%',background:'#dc2626',border:'2px solid #991b1b',boxSizing:'border-box'}}/>}
-              {cell===2&&<div style={{width:'72%',aspectRatio:'1',borderRadius:'50%',background:'#334155',border:'2px solid #0f172a',boxSizing:'border-box'}}/>}
-              {cell===3&&<div style={{width:'72%',aspectRatio:'1',borderRadius:'50%',background:'#dc2626',border:'3px solid '+GOLD,boxSizing:'border-box'}}/>}
-              {cell===4&&<div style={{width:'72%',aspectRatio:'1',borderRadius:'50%',background:'#334155',border:'3px solid '+GOLD,boxSizing:'border-box'}}/>}
+              style={{aspectRatio:'1',background:isSel?'rgba(240,165,0,0.6)':isValid?'rgba(240,165,0,0.4)':dark?'#0f1b35':'#1a2f5e',display:'flex',alignItems:'center',justifyContent:'center',cursor:dark&&playerTurn&&status==='playing'?'pointer':'default'}}>
+              {cell===1&&<div style={{width:'72%',aspectRatio:'1',borderRadius:'50%',background:'#f0a500',border:'2px solid #b8860b',boxSizing:'border-box'}}/>}
+              {cell===2&&<div style={{width:'72%',aspectRatio:'1',borderRadius:'50%',background:'#ffffff',border:'2px solid rgba(200,200,200,0.7)',boxSizing:'border-box'}}/>}
+              {cell===3&&<div style={{width:'72%',aspectRatio:'1',borderRadius:'50%',background:'#f0a500',border:'3px solid #ffffff',boxSizing:'border-box'}}/>}
+              {cell===4&&<div style={{width:'72%',aspectRatio:'1',borderRadius:'50%',background:'#ffffff',border:'3px solid '+GOLD,boxSizing:'border-box'}}/>}
             </div>
           )
         }))}
@@ -699,7 +699,7 @@ function DurakGame({ onBack }: { onBack: () => void }) {
 
   useEffect(()=>{ startGame() }, [])
 
-  const cardColor = (s: string) => (s==='♥'||s==='♦')?'#ef4444':'#f5f0e8'
+  const cardColor = (s: string) => (s==='♥'||s==='♦')?'#dc2626':'#111827'
   const isOver = phase==='won'||phase==='lost'
 
   const playerAttack = (card: DCard) => {
@@ -709,8 +709,8 @@ function DurakGame({ onBack }: { onBack: () => void }) {
     setPlayerHand(ph); setAtkCard(card); setDefCard(null)
     setPhase('ai-def'); setMsg('Комп\'ютер відбивається...')
     setTimeout(()=>{
-      const def = ah.find(c=>beats(card,c,tr))
       const tr = trump
+      const def = ah.find(c=>beats(card,c,tr))
       if (def) {
         const nah = ah.filter(c=>c.id!==def.id)
         setAiHand(nah); setDefCard(def)
@@ -766,10 +766,10 @@ function DurakGame({ onBack }: { onBack: () => void }) {
 
   const CardEl = ({card, onClick, selected, faceDown}: {card?: DCard, onClick?:()=>void, selected?:boolean, faceDown?:boolean}) => (
     faceDown
-      ? <div style={{width:40,height:56,borderRadius:8,background:'#1e3a5f',border:'1px solid rgba(255,255,255,0.15)',flexShrink:0}}/>
-      : card ? <div onClick={onClick} style={{background:selected?'rgba(240,165,0,0.25)':'rgba(255,255,255,0.1)',border:`1.5px solid ${selected?GOLD:card.suit===trump?'#ef9f27':'rgba(255,255,255,0.2)'}`,borderRadius:8,padding:'6px 8px',cursor:onClick?'pointer':'default',textAlign:'center',minWidth:40,flexShrink:0,fontFamily:FONT}}>
-        <div style={{fontSize:12,fontWeight:700,color:cardColor(card.suit)}}>{card.rank}</div>
-        <div style={{fontSize:14,color:cardColor(card.suit)}}>{card.suit}</div>
+      ? <div style={{width:48,height:66,borderRadius:8,background:'#1e3a5f',border:'1px solid rgba(255,255,255,0.15)',flexShrink:0}}/>
+      : card ? <div onClick={onClick} style={{background:selected?'rgba(240,165,0,0.12)':'rgba(255,255,255,0.97)',border:`1.5px solid ${selected?GOLD:card.suit===trump?GOLD:'rgba(0,0,0,0.15)'}`,borderRadius:8,padding:'4px 7px 6px',cursor:onClick?'pointer':'default',textAlign:'center',minWidth:48,width:48,flexShrink:0,fontFamily:FONT,boxShadow:card.suit===trump?`0 0 0 2px ${GOLD}`:'0 1px 4px rgba(0,0,0,0.3)'}}>
+        <div style={{fontSize:13,fontWeight:800,color:cardColor(card.suit),lineHeight:1}}>{card.rank}</div>
+        <div style={{fontSize:24,color:cardColor(card.suit),lineHeight:1.1}}>{card.suit}</div>
       </div> : null
   )
 
@@ -900,15 +900,15 @@ function PokerGame({ onBack }: { onBack: () => void }) {
     setPhase('result')
   }
 
-  const cardColor = (s: string) => (s==='♥'||s==='♦')?'#ef4444':'#f5f0e8'
+  const cardColor = (s: string) => (s==='♥'||s==='♦')?'#dc2626':'#111827'
 
   const CardEl = ({card, selected, onClick, back}: {card?: PCard, selected?: boolean, onClick?:()=>void, back?:boolean}) => (
     back
-      ? <div style={{width:44,height:64,borderRadius:10,background:'#1e3a5f',border:'1px solid rgba(255,255,255,0.15)',flexShrink:0}}/>
+      ? <div style={{width:54,height:74,borderRadius:10,background:'#1e3a5f',border:'1px solid rgba(255,255,255,0.15)',flexShrink:0}}/>
       : card
-        ? <div onClick={onClick} style={{background:selected?'rgba(239,68,68,0.2)':'rgba(255,255,255,0.1)',border:`2px solid ${selected?'#ef4444':'rgba(255,255,255,0.2)'}`,borderRadius:10,padding:'8px 10px',cursor:onClick?'pointer':'default',textAlign:'center',minWidth:44,transform:selected?'translateY(8px)':'none',transition:'all 0.15s',fontFamily:FONT,flexShrink:0}}>
-            <div style={{fontSize:13,fontWeight:700,color:cardColor(card.suit)}}>{card.rank}</div>
-            <div style={{fontSize:16,color:cardColor(card.suit)}}>{card.suit}</div>
+        ? <div onClick={onClick} style={{background:selected?'rgba(239,68,68,0.08)':'rgba(255,255,255,0.97)',border:`2px solid ${selected?'#ef4444':'rgba(0,0,0,0.15)'}`,borderRadius:10,padding:'4px 8px 8px',cursor:onClick?'pointer':'default',textAlign:'center',minWidth:54,width:54,transform:selected?'translateY(8px)':'none',transition:'all 0.15s',fontFamily:FONT,flexShrink:0,boxShadow:selected?'0 0 0 3px #ef4444':'0 2px 5px rgba(0,0,0,0.35)'}}>
+            <div style={{fontSize:14,fontWeight:800,color:cardColor(card.suit),lineHeight:1}}>{card.rank}</div>
+            <div style={{fontSize:26,color:cardColor(card.suit),lineHeight:1.1}}>{card.suit}</div>
           </div>
         : null
   )
