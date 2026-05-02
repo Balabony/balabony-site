@@ -510,10 +510,6 @@ const SONGS: Song[] = [
   },
 ]
 
-const LYRICS_START_OFFSET: Record<number, number> = {
-  2: 3,
-}
-
 export default function KaraokeSection() {
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [showList, setShowList]       = useState(false)
@@ -521,29 +517,11 @@ export default function KaraokeSection() {
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration]       = useState(0)
   const audioRef    = useRef<HTMLAudioElement>(null)
-  const lyricsRef   = useRef<HTMLDivElement>(null)
   const durationRef = useRef(0)
 
   const song  = SONGS[selectedIdx]
   const lines = song.lyrics.split('\n')
   const audioSrc = `/karaoke/${String(song.id).padStart(2, '0')}.mp3`
-
-  const effectiveDuration = durationRef.current || duration
-  const lyricsDuration = effectiveDuration * 0.42
-  const startOffset = LYRICS_START_OFFSET[song.id] ?? 0
-  const adjustedTime = currentTime - startOffset
-  const activeIdx = playing && lyricsDuration > 0 && adjustedTime >= 0
-    ? adjustedTime <= lyricsDuration
-      ? Math.min(lines.length - 1, Math.floor((adjustedTime / lyricsDuration) * lines.length))
-      : lines.length - 1
-    : -1
-
-  useEffect(() => {
-    if (lyricsRef.current && activeIdx >= 0) {
-      const el = lyricsRef.current.children[activeIdx] as HTMLElement
-      el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
-  }, [activeIdx])
 
   useEffect(() => {
     setPlaying(false)
@@ -558,15 +536,6 @@ export default function KaraokeSection() {
     const d = audioRef.current?.duration || 0
     setDuration(d)
     durationRef.current = d
-  }
-
-  const seekToLine = (lineIdx: number) => {
-    const total = durationRef.current
-    if (!total) return
-    const time = (lineIdx / lines.length) * total
-    const audio = audioRef.current
-    if (audio) audio.currentTime = time
-    setCurrentTime(time)
   }
 
   const toggle = () => {
@@ -643,32 +612,25 @@ export default function KaraokeSection() {
 
         {/* Lyrics */}
         <div
-          ref={lyricsRef}
           style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '16px 18px', marginBottom: 16, maxHeight: 260, overflowY: 'auto' }}
         >
-          {lines.map((line, i) => {
-            const isActive = i === activeIdx
-            const isDone   = activeIdx >= 0 && i < activeIdx
-            return (
+          {lines.map((line, i) => (
               <div
                 key={i}
-                onClick={() => seekToLine(i)}
                 style={{
-                  fontSize: isActive ? 22 : 18,
-                  fontWeight: isActive ? 700 : 400,
-                  color: isActive ? '#D4A017' : isDone ? '#c8d4e8' : '#7a8fa8',
+                  fontSize: 18,
+                  fontWeight: 400,
+                  color: '#7a8fa8',
                   fontFamily: "'Lora', serif",
                   lineHeight: 1.9,
                   padding: '1px 0',
-                  transition: 'all 0.35s ease',
                   minHeight: line === '' ? 10 : undefined,
-                  cursor: 'pointer',
                 }}
               >
                 {line || ' '}
               </div>
             )
-          })}
+          ))}
         </div>
 
         {/* Progress bar */}
