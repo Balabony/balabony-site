@@ -79,7 +79,12 @@ export default function StoriesAdminPage() {
     if (f) loadFile(f)
   }, [loadFile])
 
-  const applyUrl = () => { if (urlDraft.trim()) { setImgSrc(urlDraft.trim()) } }
+  const handleUrlChange = (val: string) => {
+    setUrlDraft(val)
+    const trimmed = val.trim()
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) setImgSrc(trimmed)
+    else if (!trimmed) setImgSrc('')
+  }
 
   const epNum = episode.padStart(2, '0')
 
@@ -223,18 +228,18 @@ export default function StoriesAdminPage() {
               onChange={e => { const f = e.target.files?.[0]; if (f) loadFile(f) }} />
           </div>
 
-          {/* URL input */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: imgSrc ? 14 : 0 }}>
+          {/* URL input — auto-applies on paste/type */}
+          <div style={{ marginBottom: imgSrc ? 14 : 0 }}>
             <input
-              style={{ ...inputBase, flex: 1 }}
+              style={inputBase}
               placeholder="Або вставте URL зображення..."
               value={urlDraft}
-              onChange={e => setUrlDraft(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && applyUrl()}
+              onChange={e => handleUrlChange(e.target.value)}
+              onPaste={e => {
+                const pasted = e.clipboardData.getData('text')
+                handleUrlChange(pasted)
+              }}
             />
-            <button onClick={applyUrl} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 10, padding: '10px 16px', color: '#f5f0e8', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: FONT, flexShrink: 0, whiteSpace: 'nowrap' }}>
-              Додати
-            </button>
           </div>
 
           {/* Image preview */}
