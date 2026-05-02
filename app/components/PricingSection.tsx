@@ -290,14 +290,14 @@ export default function PricingSection() {
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: 16,
+        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gap: 20,
       }}>
         {plans.map(plan => (
           <div key={plan.tier} style={{
             background: 'var(--white)',
             border: `2px solid ${plan.featured ? 'var(--accent-gold)' : 'var(--border)'}`,
-            borderRadius: 18, padding: '28px 22px',
+            borderRadius: 18, padding: '36px 28px',
             display: 'flex', flexDirection: 'column', position: 'relative'
           }}>
             {plan.badge && (
@@ -307,7 +307,7 @@ export default function PricingSection() {
                 borderRadius: 20, whiteSpace: 'nowrap', color: '#fff', background: plan.badgeBg
               }}>{plan.badge}</span>
             )}
-            <div style={{ fontSize: 18, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--muted)', marginBottom: 10 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--accent-gold)', marginBottom: 10 }}>
               {plan.tierLabel}
             </div>
             <div style={{ fontFamily: "'Lora', serif", fontSize: 72, fontWeight: 600, color: 'var(--text)', lineHeight: 1, marginBottom: 4 }}>
