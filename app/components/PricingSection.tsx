@@ -41,7 +41,7 @@ function FreeViewTimer() {
 
   return (
     <div style={{ textAlign: 'center', margin: '12px 0 0' }}>
-      <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 8 }}>
+      <div style={{ fontSize: 18, color: 'rgba(255,255,255,0.8)', marginBottom: 8 }}>
         🕐 Безкоштовний перегляд оновлюється через:
       </div>
       <div style={{
@@ -51,7 +51,7 @@ function FreeViewTimer() {
       }}>
         {fmtCountdown(secs)}
       </div>
-      <div style={{ fontSize: 12, color: '#64748b', marginTop: 8 }}>
+      <div style={{ fontSize: 16, color: 'rgba(255,255,255,0.7)', marginTop: 8 }}>
         Одна історія безкоштовно кожні 8 годин — або обери план
       </div>
     </div>
@@ -340,12 +340,12 @@ export default function PricingSection() {
       </h2>
 
       <div style={{ background: 'var(--bg-deep)', color: '#f8fafc', borderRadius: 14, padding: '16px 24px', marginBottom: 28 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: '#ef9f27' }}>1 Сезон = 20 Серій</div>
-        <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>Кожні 8 годин — нова безкоштовна історія для тебе. Без реєстрації.</div>
+        <div style={{ fontSize: 24, fontWeight: 700, color: '#ef9f27' }}>1 Сезон = 20 Серій</div>
+        <div style={{ fontSize: 20, color: '#FFFFFF', marginTop: 8 }}>Кожні 8 годин — нова безкоштовна історія для тебе. Без реєстрації.</div>
         <FreeViewTimer />
       </div>
 
-      <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '32px 0' }} />
+      <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
 
       <div style={{
         display: 'grid',
