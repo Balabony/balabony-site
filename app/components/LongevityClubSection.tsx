@@ -359,6 +359,14 @@ const PIECE_GLYPH: Record<string, string> = {
   bK:'♚', bQ:'♛', bR:'♜', bB:'♝', bN:'♞', bP:'♟',
 }
 
+const BASE_PIECE = 'https://lichess1.org/assets/piece/cburnett/'
+const PIECE_IMG: Record<string, string> = {
+  wK:`${BASE_PIECE}wK.svg`, wQ:`${BASE_PIECE}wQ.svg`, wR:`${BASE_PIECE}wR.svg`,
+  wB:`${BASE_PIECE}wB.svg`, wN:`${BASE_PIECE}wN.svg`, wP:`${BASE_PIECE}wP.svg`,
+  bK:`${BASE_PIECE}bK.svg`, bQ:`${BASE_PIECE}bQ.svg`, bR:`${BASE_PIECE}bR.svg`,
+  bB:`${BASE_PIECE}bB.svg`, bN:`${BASE_PIECE}bN.svg`, bP:`${BASE_PIECE}bP.svg`,
+}
+
 const PIECE_VAL: Record<string, number> = { P:1, N:3, B:3, R:5, Q:9, K:0 }
 
 function chessRawMoves(board: ChessBoard, r: number, c: number): [number,number][] {
@@ -551,19 +559,19 @@ function ChessGame({ onBack }: { onBack: () => void }) {
       </div>
       <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:status!=='playing'?GOLD:'#8899bb',marginBottom:8}}>{statusText}</div>
       <div style={{overflowX:'auto',marginBottom:10}}>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(8,100px)',gap:0,borderRadius:8,overflow:'hidden',width:'fit-content',margin:'0 auto',border:'4px solid #8B6914'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(8,90px)',gap:0,borderRadius:8,overflow:'hidden',width:'fit-content',margin:'0 auto',border:'4px solid #8B6914'}}>
           {board.map((row,r)=>row.map((piece,c)=>{
             const light=(r+c)%2===0
             const isSel=sel?.[0]===r&&sel?.[1]===c
             const isValid=validMoves.some(([mr,mc])=>mr===r&&mc===c)
             const bg = isSel ? '#FFE600' : isValid ? (light ? 'rgba(34,197,94,0.45)' : 'rgba(34,197,94,0.65)') : light ? '#F0D9B5' : '#B58863'
-            const isWhite = piece?.[0] === 'w'
             return (
               <div key={`${r}-${c}`} onClick={()=>handleSquare(r,c)}
-                style={{width:100,height:100,background:bg,display:'flex',alignItems:'center',justifyContent:'center',overflow:'visible',cursor:status==='playing'&&playerTurn&&!thinking?'pointer':'default',userSelect:'none',position:'relative',transition:'background 0.1s'}}>
+                style={{width:90,height:90,background:bg,display:'flex',alignItems:'center',justifyContent:'center',cursor:status==='playing'&&playerTurn&&!thinking?'pointer':'default',userSelect:'none',position:'relative',transition:'background 0.1s'}}>
                 {piece
-                  ? <span style={{fontSize:36,lineHeight:1,color:isWhite?'#FFFFFF':'#1a1a2e',textShadow:isWhite?'0 0 3px #000, 0 1px 3px rgba(0,0,0,0.9)':'none',display:'block'}}>{PIECE_GLYPH[piece] ?? piece}</span>
-                  : isValid&&!board[r][c]?<div style={{width:28,height:28,borderRadius:'50%',background:'rgba(0,0,0,0.22)'}}/>:''}
+                  // eslint-disable-next-line @next/next/no-img-element
+                  ? <img src={PIECE_IMG[piece]} width={70} height={70} alt={piece} style={{display:'block',pointerEvents:'none'}} />
+                  : isValid&&!board[r][c]?<div style={{width:26,height:26,borderRadius:'50%',background:'rgba(0,0,0,0.22)'}}/>:''}
               </div>
             )
           }))}
