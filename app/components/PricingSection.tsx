@@ -40,20 +40,18 @@ function FreeViewTimer() {
   }, [])
 
   return (
-    <div style={{ textAlign: 'center', margin: '12px 0 0' }}>
-      <div style={{ fontSize: 18, color: 'rgba(255,255,255,0.8)', marginBottom: 8 }}>
-        🕐 Безкоштовний перегляд оновлюється через:
-      </div>
-      <div style={{
-        fontSize: 24, fontWeight: 700, color: '#FFB800',
-        fontVariantNumeric: 'tabular-nums', letterSpacing: 2, lineHeight: 1,
+    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginTop: 12 }}>
+      <span style={{ fontSize: 18, color: '#FFFFFF' }}>
+        Кожні 8 годин — нова історія безкоштовно. Без реєстрації. 🕐 Наступна оновиться через:
+      </span>
+      <span style={{
+        fontSize: 18, fontWeight: 700, color: '#FFB800',
+        fontVariantNumeric: 'tabular-nums', letterSpacing: 1,
         fontFamily: "'Montserrat', Arial, sans-serif",
       }}>
         {fmtCountdown(secs)}
-      </div>
-      <div style={{ fontSize: 16, color: 'rgba(255,255,255,0.7)', marginTop: 8 }}>
-        Одна історія безкоштовно кожні 8 годин — або обери план
-      </div>
+      </span>
+      <span style={{ fontSize: 18, color: '#FFFFFF' }}>— або обери план</span>
     </div>
   )
 }
@@ -341,7 +339,6 @@ export default function PricingSection() {
 
       <div style={{ background: 'var(--bg-deep)', color: '#f8fafc', borderRadius: 14, padding: '16px 24px', marginBottom: 28 }}>
         <div style={{ fontSize: 24, fontWeight: 700, color: '#ef9f27' }}>1 Сезон = 20 Серій</div>
-        <div style={{ fontSize: 20, color: '#FFFFFF', marginTop: 8 }}>Кожні 8 годин — нова безкоштовна історія для тебе. Без реєстрації.</div>
         <FreeViewTimer />
       </div>
 
