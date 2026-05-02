@@ -547,18 +547,23 @@ export default function KaraokeSection() {
   const audioSrc = `/karaoke/${String(song.id).padStart(2, '0')}.mp3`
 
   const timestamps = LYRICS_TIMESTAMPS[song.id]
+  console.log('[karaoke] song.id=', song.id, 'timestamps=', timestamps, 'LYRICS_TIMESTAMPS keys=', Object.keys(LYRICS_TIMESTAMPS))
   const effectiveDuration = durationRef.current || duration
   const lyricsDuration = LYRICS_DURATION_OVERRIDES[song.id] ?? effectiveDuration * 0.15
   const activeIdx = playing
     ? timestamps
-      ? findActiveIdxByTimestamps(timestamps, currentTime)
+      ? (() => {
+          const idx = findActiveIdxByTimestamps(timestamps, currentTime)
+          console.log('[karaoke] TIMESTAMPS BRANCH — currentTime=', currentTime.toFixed(2), 'idx=', idx)
+          return idx
+        })()
       : lyricsDuration > 0
         ? currentTime <= lyricsDuration
           ? Math.min(lines.length - 1, Math.floor((currentTime / lyricsDuration) * lines.length))
           : lines.length - 1
         : -1
     : -1
-  console.log('[karaoke] RENDER activeIdx=', activeIdx, 'playing=', playing, 'lyricsDuration=', lyricsDuration.toFixed(1), 'currentTime=', currentTime.toFixed(1))
+  console.log('[karaoke] RENDER activeIdx=', activeIdx, 'playing=', playing, 'usingTimestamps=', !!timestamps)
 
   useEffect(() => {
     if (lyricsRef.current && activeIdx >= 0) {
