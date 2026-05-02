@@ -510,27 +510,6 @@ const SONGS: Song[] = [
   },
 ]
 
-// Per-song lyrics duration overrides (seconds). When set, overrides duration*0.15 estimate.
-// Key = song id. Add entries here to fine-tune sync for individual songs.
-const LYRICS_DURATION_OVERRIDES: Record<number, number> = {
-  2: 164,
-}
-
-// Per-song exact line start times (seconds). When set, overrides uniform distribution.
-// Key = song id, value = array with one timestamp per lyrics line.
-const LYRICS_TIMESTAMPS: Record<number, number[]> = {
-  2: [9, 11, 14, 16, 20, 21, 23, 26, 28, 41, 43, 45, 48, 51, 53, 55, 59, 64, 68, 72],
-}
-
-function findActiveIdxByTimestamps(timestamps: number[], currentTime: number): number {
-  let lo = 0, hi = timestamps.length - 1
-  while (lo < hi) {
-    const mid = (lo + hi + 1) >> 1
-    if (timestamps[mid] <= currentTime) lo = mid
-    else hi = mid - 1
-  }
-  return lo
-}
 
 export default function KaraokeSection() {
   const [selectedIdx, setSelectedIdx] = useState(0)
@@ -546,24 +525,13 @@ export default function KaraokeSection() {
   const lines = song.lyrics.split('\n')
   const audioSrc = `/karaoke/${String(song.id).padStart(2, '0')}.mp3`
 
-  const timestamps = LYRICS_TIMESTAMPS[song.id]
-  console.log('[karaoke] song.id=', song.id, 'timestamps=', timestamps, 'LYRICS_TIMESTAMPS keys=', Object.keys(LYRICS_TIMESTAMPS))
   const effectiveDuration = durationRef.current || duration
-  const lyricsDuration = LYRICS_DURATION_OVERRIDES[song.id] ?? effectiveDuration * 0.15
-  const activeIdx = playing
-    ? timestamps
-      ? (() => {
-          const idx = findActiveIdxByTimestamps(timestamps, currentTime)
-          console.log('[karaoke] TIMESTAMPS BRANCH — currentTime=', currentTime.toFixed(2), 'idx=', idx)
-          return idx
-        })()
-      : lyricsDuration > 0
-        ? currentTime <= lyricsDuration
-          ? Math.min(lines.length - 1, Math.floor((currentTime / lyricsDuration) * lines.length))
-          : lines.length - 1
-        : -1
+  const lyricsDuration = effectiveDuration * 0.42
+  const activeIdx = playing && lyricsDuration > 0
+    ? currentTime <= lyricsDuration
+      ? Math.min(lines.length - 1, Math.floor((currentTime / lyricsDuration) * lines.length))
+      : lines.length - 1
     : -1
-  console.log('[karaoke] RENDER activeIdx=', activeIdx, 'playing=', playing, 'usingTimestamps=', !!timestamps)
 
   useEffect(() => {
     if (lyricsRef.current && activeIdx >= 0) {
@@ -578,14 +546,11 @@ export default function KaraokeSection() {
     setDuration(0)
     durationRef.current = 0
     const audio = audioRef.current
-    console.log('[karaoke] song change — audioRef.current:', audio ? 'exists' : 'NULL', 'new src:', audioSrc)
     if (audio) { audio.pause(); audio.currentTime = 0 }
   }, [selectedIdx])
 
   const handleLoadedMetadata = () => {
-    const audio = audioRef.current
-    console.log('[karaoke] loadedmetadata — src:', audio?.src, 'duration:', audio?.duration)
-    const d = audio?.duration || 0
+    const d = audioRef.current?.duration || 0
     setDuration(d)
     durationRef.current = d
   }
@@ -601,13 +566,12 @@ export default function KaraokeSection() {
 
   const toggle = () => {
     const audio = audioRef.current
-    if (!audio) { console.log('[karaoke] toggle — audioRef.current is NULL'); return }
-    console.log('[karaoke] toggle playing:', !playing, '— src:', audio.src, 'duration:', audio.duration, 'readyState:', audio.readyState)
+    if (!audio) return
     if (playing) {
       audio.pause()
       setPlaying(false)
     } else {
-      audio.play().catch((e) => console.log('[karaoke] play() failed:', e))
+      audio.play().catch(() => {})
       setPlaying(true)
     }
   }
@@ -630,22 +594,13 @@ export default function KaraokeSection() {
         onLoadedMetadata={handleLoadedMetadata}
         onTimeUpdate={() => {
           const audio = audioRef.current
-          if (!audio) { console.log('[karaoke] timeupdate — audioRef.current is NULL'); return }
-          const ct = audio.currentTime
+          if (!audio) return
           const d = audio.duration
           if (d && !durationRef.current) {
             setDuration(d)
             durationRef.current = d
-            console.log('[karaoke] duration recovered in timeupdate:', d)
           }
-          const lyricsD = LYRICS_DURATION_OVERRIDES[song.id] ?? d * 0.15
-          const idx = lyricsD > 0
-            ? ct <= lyricsD
-              ? Math.min(lines.length - 1, Math.floor((ct / lyricsD) * lines.length))
-              : lines.length - 1
-            : -1
-          console.log('[karaoke] time:', ct.toFixed(2), '/ lyricsEnd:', lyricsD.toFixed(2), '/ fullDur:', d?.toFixed(2), '— activeIdx:', idx, '/', lines.length)
-          setCurrentTime(ct)
+          setCurrentTime(audio.currentTime)
         }}
         onDurationChange={handleLoadedMetadata}
         onEnded={() => { setPlaying(false); setCurrentTime(0) }}
@@ -689,7 +644,6 @@ export default function KaraokeSection() {
           {lines.map((line, i) => {
             const isActive = i === activeIdx
             const isDone   = activeIdx >= 0 && i < activeIdx
-            if (isActive) console.log('[karaoke] LINE MATCH i=', i, 'activeIdx=', activeIdx)
             return (
               <div
                 key={i}
