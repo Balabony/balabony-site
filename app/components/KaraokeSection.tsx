@@ -510,6 +510,9 @@ const SONGS: Song[] = [
   },
 ]
 
+const LYRICS_START_OFFSET: Record<number, number> = {
+  2: 3,
+}
 
 export default function KaraokeSection() {
   const [selectedIdx, setSelectedIdx] = useState(0)
@@ -527,9 +530,11 @@ export default function KaraokeSection() {
 
   const effectiveDuration = durationRef.current || duration
   const lyricsDuration = effectiveDuration * 0.42
-  const activeIdx = playing && lyricsDuration > 0
-    ? currentTime <= lyricsDuration
-      ? Math.min(lines.length - 1, Math.floor((currentTime / lyricsDuration) * lines.length))
+  const startOffset = LYRICS_START_OFFSET[song.id] ?? 0
+  const adjustedTime = currentTime - startOffset
+  const activeIdx = playing && lyricsDuration > 0 && adjustedTime >= 0
+    ? adjustedTime <= lyricsDuration
+      ? Math.min(lines.length - 1, Math.floor((adjustedTime / lyricsDuration) * lines.length))
       : lines.length - 1
     : -1
 
