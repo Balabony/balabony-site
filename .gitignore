@@ -18,6 +18,3 @@
 .DS_Store
 *.pem
 public/games/assets/.env
-
-# audio — served as Vercel static assets, not tracked in git
-public/karaoke/*.mp3
