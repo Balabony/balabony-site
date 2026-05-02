@@ -518,7 +518,6 @@ export default function KaraokeSection() {
   const [duration, setDuration]       = useState(0)
   const audioRef    = useRef<HTMLAudioElement>(null)
   const lyricsRef   = useRef<HTMLDivElement>(null)
-  const demoRef     = useRef<ReturnType<typeof setInterval> | null>(null)
   const durationRef = useRef(0)
 
   const song  = SONGS[selectedIdx]
@@ -537,36 +536,13 @@ export default function KaraokeSection() {
   }, [activeIdx])
 
   useEffect(() => {
-    stopDemo()
     setPlaying(false)
     setCurrentTime(0)
     setDuration(0)
     durationRef.current = 0
     const audio = audioRef.current
     if (audio) { audio.pause(); audio.currentTime = 0 }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedIdx])
-
-  useEffect(() => () => stopDemo(), [])
-
-  const stopDemo = () => {
-    if (demoRef.current) { clearInterval(demoRef.current); demoRef.current = null }
-  }
-
-  const startDemo = (startAt = 0) => {
-    stopDemo()
-    const total = durationRef.current || 180
-    let sec = startAt
-    demoRef.current = setInterval(() => {
-      sec++
-      setCurrentTime(sec)
-      if (sec >= total) {
-        stopDemo()
-        setPlaying(false)
-        setCurrentTime(0)
-      }
-    }, 1000)
-  }
 
   const handleLoadedMetadata = () => {
     const d = audioRef.current?.duration || 0
@@ -581,7 +557,6 @@ export default function KaraokeSection() {
     const audio = audioRef.current
     if (audio) audio.currentTime = time
     setCurrentTime(time)
-    if (demoRef.current) startDemo(Math.floor(time))
   }
 
   const toggle = () => {
@@ -589,10 +564,9 @@ export default function KaraokeSection() {
     if (!audio) return
     if (playing) {
       audio.pause()
-      stopDemo()
       setPlaying(false)
     } else {
-      audio.play().catch(() => startDemo())
+      audio.play().catch(() => {})
       setPlaying(true)
     }
   }
@@ -615,7 +589,7 @@ export default function KaraokeSection() {
         onLoadedMetadata={handleLoadedMetadata}
         onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
         onDurationChange={handleLoadedMetadata}
-        onEnded={() => { setPlaying(false); setCurrentTime(0); stopDemo() }}
+        onEnded={() => { setPlaying(false); setCurrentTime(0) }}
       />
 
       <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#ef9f27', display: 'block', marginBottom: 8 }}>
