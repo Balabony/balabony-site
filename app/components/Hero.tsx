@@ -97,7 +97,7 @@ export default function Hero() {
       <div style={{ background: 'var(--dark)', borderTop: '1px solid rgba(255,255,255,0.06)', padding: '20px 5%' }}>
         <div style={{
           maxWidth: 1100, margin: '0 auto', display: 'flex',
-          justifyContent: 'space-around', gap: 12, flexWrap: 'wrap'
+          justifyContent: 'space-around', gap: 16, flexWrap: 'wrap'
         }}>
           {[
             { num: '1', label: 'Серія безкоштовно' },
@@ -106,9 +106,9 @@ export default function Hero() {
             { num: '1₴', label: 'Соціальний доступ' },
             { num: '5', label: 'Платформ' },
           ].map(s => (
-            <div key={s.label} style={{ textAlign: 'center' }}>
+            <div key={s.label} style={{ textAlign: 'center', minWidth: 90, flex: '1 1 90px' }}>
               <span style={{ fontFamily: "'Lora', serif", fontSize: 24, fontWeight: 600, color: 'var(--amber)', display: 'block' }}>{s.num}</span>
-              <span style={{ fontSize: 10, color: '#475569', letterSpacing: 0.5, textTransform: 'uppercase' }}>{s.label}</span>
+              <span style={{ fontSize: 10, color: '#475569', letterSpacing: 0.5, textTransform: 'uppercase', display: 'block', lineHeight: 1.4 }}>{s.label}</span>
             </div>
           ))}
         </div>
