@@ -45,7 +45,7 @@ function FreeViewTimer() {
         🕐 Безкоштовний перегляд оновлюється через:
       </div>
       <div style={{
-        fontSize: 48, fontWeight: 700, color: '#FFB800',
+        fontSize: 24, fontWeight: 700, color: '#FFB800',
         fontVariantNumeric: 'tabular-nums', letterSpacing: 2, lineHeight: 1,
         fontFamily: "'Montserrat', Arial, sans-serif",
       }}>
@@ -341,7 +341,7 @@ export default function PricingSection() {
 
       <div style={{ background: 'var(--bg-deep)', color: '#f8fafc', borderRadius: 14, padding: '16px 24px', marginBottom: 28 }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: '#ef9f27' }}>1 Сезон = 20 Серій</div>
-        <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>Серії 1–2 безкоштовно. Серії 3–20 — одна на 24 год або одразу з Premium.</div>
+        <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>Кожні 8 годин — нова безкоштовна історія для тебе. Без реєстрації.</div>
         <FreeViewTimer />
       </div>
 
