@@ -80,7 +80,8 @@ function ytdlpCmd() {
 }
 
 export function downloadVocal(title, artist, outDir, songId) {
-  const query    = `${title} ${artist} українська пісня`
+  // Exclude karaoke/instrumental/backing tracks; seek live or studio vocal recordings
+  const query    = `${title} співає вокал -karaoke -мінус -instrumental -"без слів"`
   const outTpl   = join(outDir, `vocal-${songId}.%(ext)s`)
 
   // cmd is either ['yt-dlp'] or ['python', ['-m', 'yt_dlp']]
@@ -130,6 +131,7 @@ export async function transcribe(filePath, apiKey) {
   form.append('model', 'whisper-1')
   form.append('response_format', 'verbose_json')
   form.append('timestamp_granularities[]', 'segment')
+  form.append('timestamp_granularities[]', 'word')
   form.append('language', 'uk')
 
   const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
@@ -161,17 +163,73 @@ function wordOverlap(line, segText) {
   return hits / lineWords.size
 }
 
-export function matchSegmentsToLines(lines, segments) {
+/**
+ * Match lyrics lines to word-level Whisper timestamps.
+ * For each line, find the first word from the line that appears in the
+ * Whisper word stream (searching forward from where the previous line ended).
+ * Falls back to linear interpolation when no word matches.
+ */
+export function matchSegmentsToLines(lines, segments, words) {
+  // Prefer word-level if available
+  if (words?.length) return matchByWords(lines, words)
+  return matchBySegments(lines, segments)
+}
+
+function matchByWords(lines, words) {
+  // Normalize all transcribed words and keep their start times
+  const wStream = words.map(w => ({ t: w.start, norm: normalize(w.word) }))
+  const lastT   = words.at(-1)?.end ?? 0
   const timestamps = []
   let cursor = 0
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim()
+    if (!line) {
+      timestamps.push((timestamps.at(-1) ?? 0) + 2)
+      console.log(`  [${String(i).padStart(2)}] t=${String(timestamps.at(-1)).padStart(4)}s  (empty)`)
+      continue
+    }
 
+    const lineWords = normalize(line).split(' ').filter(w => w.length > 2) // skip short words
+    let matchT = null
+
+    // Search forward in the word stream for the first word of this line
+    for (let j = cursor; j < wStream.length; j++) {
+      if (lineWords.includes(wStream[j].norm)) {
+        matchT = Math.round(wStream[j].t)
+        cursor = j + 1
+        break
+      }
+    }
+
+    if (matchT === null) {
+      // Interpolate: spread remaining lines evenly over remaining audio
+      const prev      = timestamps.at(-1) ?? 0
+      const remaining = lines.filter(l => l.trim()).length - timestamps.filter((_, k) => lines[k]?.trim()).length
+      const gap       = Math.max(4, Math.round((lastT - prev) / Math.max(1, remaining)))
+      matchT = prev + gap
+    }
+
+    // Enforce monotonic increase
+    const prev = timestamps.at(-1) ?? 0
+    if (matchT < prev) matchT = prev + 4
+
+    timestamps.push(matchT)
+    console.log(`  [${String(i).padStart(2)}] t=${String(matchT).padStart(4)}s  "${line.slice(0, 55)}"`)
+  }
+  return timestamps
+}
+
+function matchBySegments(lines, segments) {
+  const lastSegEnd = segments.at(-1)?.end ?? 0
+  const timestamps = []
+  let cursor = 0
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim()
     if (!line) {
       const prev = timestamps.at(-1) ?? 0
       timestamps.push(prev + 2)
-      console.log(`  [${String(i).padStart(2)}] t=${String(prev + 2).padStart(4)}s  (empty)`)
       continue
     }
 
@@ -181,15 +239,23 @@ export function matchSegmentsToLines(lines, segments) {
       if (score > bestScore) { bestScore = score; bestIdx = j }
     }
 
-    const seg = segments[bestIdx] ?? segments.at(-1)
-    const t   = Math.round(seg?.start ?? i * 8)
-    timestamps.push(t)
-    if (bestScore > 0) cursor = bestIdx + 1
+    let t
+    if (bestScore > 0) {
+      t = Math.round(segments[bestIdx].start)
+      cursor = bestIdx + 1
+    } else {
+      const prev      = timestamps.at(-1) ?? 0
+      const remaining = lines.length - i
+      const gap       = Math.max(4, Math.round((lastSegEnd - prev) / remaining))
+      t = prev + gap
+    }
 
+    const prev = timestamps.at(-1) ?? 0
+    if (t < prev) t = prev + 4
+    timestamps.push(t)
     console.log(
       `  [${String(i).padStart(2)}] t=${String(t).padStart(4)}s` +
-      `  score=${bestScore.toFixed(2)}` +
-      `  "${line.slice(0, 48)}"`
+      `  score=${bestScore.toFixed(2)}  "${line.slice(0, 48)}"`
     )
   }
   return timestamps
@@ -231,6 +297,12 @@ export async function processOneSong(songId, apiKey) {
   const segments = data.segments ?? []
   console.log(`Whisper: ${segments.length} segments`)
   if (!segments.length) throw new Error('Whisper returned no segments')
+
+  console.log('All Whisper segments:')
+  segments.forEach((s, i) =>
+    console.log(`  [${String(i).padStart(2)}] ${s.start.toFixed(1)}s–${s.end.toFixed(1)}s: "${s.text.trim()}"`)
+  )
+  console.log()
 
   console.log('Matching segments to lines:')
   const timestamps = matchSegmentsToLines(lines, segments)
