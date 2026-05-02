@@ -264,6 +264,12 @@ export default function StoriesAdminPage() {
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12, fontFamily: FONT }}>
             {wordCount > 0 && <span style={{ fontSize: 12, color: GOLD }}>{wordCount} слів</span>}
             <button
+              onClick={() => router.push('/admin/reviews')}
+              style={{ fontSize: 12, fontWeight: 600, color: GOLD, background: 'rgba(240,165,0,0.1)', border: '1px solid rgba(240,165,0,0.25)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: FONT }}
+            >
+              ⭐ Відгуки
+            </button>
+            <button
               onClick={async () => { await fetch('/api/admin/logout', { method: 'POST' }); router.push('/admin/login') }}
               style={{ fontSize: 12, fontWeight: 600, color: '#8899bb', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: FONT }}
             >
