@@ -24,7 +24,7 @@ export default function ReaderSection() {
       <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent-gold)', display: 'block', marginBottom: 8 }}>
         Читайте та слухайте одночасно
       </span>
-      <h2 style={{ fontFamily: "'Lora', serif", fontSize: 28, fontWeight: 600, color: 'var(--text)', marginBottom: 28 }}>
+      <h2 style={{ fontFamily: "'Lora', serif", fontSize: 28, fontWeight: 600, color: '#f5f0e8', marginBottom: 28 }}>
         Синхронізований рідер
       </h2>
 
