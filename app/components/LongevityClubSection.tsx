@@ -525,18 +525,20 @@ function ChessGame({ onBack }: { onBack: () => void }) {
     <div style={{fontFamily:FONT}}>
       <button onClick={onBack} style={{background:'none',border:'none',cursor:'pointer',color:'#8899bb',fontSize:14,marginBottom:6,fontFamily:FONT}}>← Назад</button>
       <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:status!=='playing'?GOLD:'#8899bb',marginBottom:8}}>{statusText}</div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:2,borderRadius:8,overflow:'hidden',width:'min(560px,100%)',margin:'0 auto',marginBottom:10}}>
-        {board.map((row,r)=>row.map((piece,c)=>{
-          const light=(r+c)%2===0
-          const isSel=sel?.[0]===r&&sel?.[1]===c
-          const isValid=validMoves.some(([mr,mc])=>mr===r&&mc===c)
-          return (
-            <div key={`${r}${c}`} onClick={()=>handleSquare(r,c)}
-              style={{aspectRatio:'1',background:isSel?'rgba(240,165,0,0.55)':isValid?'rgba(34,197,94,0.5)':light?'#f0d9b5':'#b58863',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'clamp(20px,6.5vw,42px)',cursor:status==='playing'&&playerTurn&&!thinking?'pointer':'default',userSelect:'none',position:'relative'}}>
-              {piece ? PIECE_GLYPH[piece] ?? piece : isValid&&!board[r][c]?<div style={{width:'32%',height:'32%',borderRadius:'50%',background:'rgba(0,0,0,0.25)'}}/>:''}
-            </div>
-          )
-        }))}
+      <div style={{overflowX:'auto',marginBottom:10}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(8,80px)',gap:2,borderRadius:8,overflow:'hidden',width:'fit-content',margin:'0 auto'}}>
+          {board.map((row,r)=>row.map((piece,c)=>{
+            const light=(r+c)%2===0
+            const isSel=sel?.[0]===r&&sel?.[1]===c
+            const isValid=validMoves.some(([mr,mc])=>mr===r&&mc===c)
+            return (
+              <div key={`${r}-${c}`} onClick={()=>handleSquare(r,c)}
+                style={{width:80,height:80,background:isSel?'rgba(240,165,0,0.55)':isValid?'rgba(34,197,94,0.5)':light?'#f0d9b5':'#b58863',display:'flex',alignItems:'center',justifyContent:'center',fontSize:56,lineHeight:1,cursor:status==='playing'&&playerTurn&&!thinking?'pointer':'default',userSelect:'none',position:'relative'}}>
+                {piece ? PIECE_GLYPH[piece] ?? piece : isValid&&!board[r][c]?<div style={{width:26,height:26,borderRadius:'50%',background:'rgba(0,0,0,0.25)'}}/>:''}
+              </div>
+            )
+          }))}
+        </div>
       </div>
       {status!=='playing' && <button onClick={reset} style={{width:'100%',background:GOLD,color:'#fff',border:'none',borderRadius:12,padding:'14px',fontSize:16,fontWeight:700,cursor:'pointer',fontFamily:FONT}}>Нова гра</button>}
     </div>
