@@ -551,16 +551,19 @@ function ChessGame({ onBack }: { onBack: () => void }) {
       </div>
       <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:status!=='playing'?GOLD:'#8899bb',marginBottom:8}}>{statusText}</div>
       <div style={{overflowX:'auto',marginBottom:10}}>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(8,90px)',gap:0,borderRadius:8,overflow:'hidden',width:'fit-content',margin:'0 auto',border:'3px solid #7a5c2e'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(8,100px)',gap:0,borderRadius:8,overflow:'hidden',width:'fit-content',margin:'0 auto',border:'4px solid #8B6914'}}>
           {board.map((row,r)=>row.map((piece,c)=>{
             const light=(r+c)%2===0
             const isSel=sel?.[0]===r&&sel?.[1]===c
             const isValid=validMoves.some(([mr,mc])=>mr===r&&mc===c)
             const bg = isSel ? '#FFE600' : isValid ? (light ? 'rgba(34,197,94,0.45)' : 'rgba(34,197,94,0.65)') : light ? '#F0D9B5' : '#B58863'
+            const isWhite = piece?.[0] === 'w'
             return (
               <div key={`${r}-${c}`} onClick={()=>handleSquare(r,c)}
-                style={{width:90,height:90,background:bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:44,lineHeight:1,padding:4,boxSizing:'border-box',cursor:status==='playing'&&playerTurn&&!thinking?'pointer':'default',userSelect:'none',position:'relative',transition:'background 0.1s'}}>
-                {piece ? PIECE_GLYPH[piece] ?? piece : isValid&&!board[r][c]?<div style={{width:28,height:28,borderRadius:'50%',background:'rgba(0,0,0,0.22)'}}/>:''}
+                style={{width:100,height:100,background:bg,display:'flex',alignItems:'center',justifyContent:'center',overflow:'visible',cursor:status==='playing'&&playerTurn&&!thinking?'pointer':'default',userSelect:'none',position:'relative',transition:'background 0.1s'}}>
+                {piece
+                  ? <span style={{fontSize:36,lineHeight:1,color:isWhite?'#FFFFFF':'#1a1a2e',textShadow:isWhite?'0 0 3px #000, 0 1px 3px rgba(0,0,0,0.9)':'none',display:'block'}}>{PIECE_GLYPH[piece] ?? piece}</span>
+                  : isValid&&!board[r][c]?<div style={{width:28,height:28,borderRadius:'50%',background:'rgba(0,0,0,0.22)'}}/>:''}
               </div>
             )
           }))}
