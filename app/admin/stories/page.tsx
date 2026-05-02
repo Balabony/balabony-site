@@ -72,13 +72,18 @@ export default function StoriesAdminPage() {
   const router = useRouter()
 
   // story fields
-  const [title,     setTitle]     = useState('')
-  const [season,    setSeason]    = useState('')
-  const [episode,   setEpisode]   = useState('')
-  const [character, setCharacter] = useState('')
-  const [genre,     setGenre]     = useState(GENRES[0])
-  const [summary,   setSummary]   = useState('')
-  const [text,      setText]      = useState('')
+  const [title,        setTitle]        = useState('')
+  const [season,       setSeason]       = useState('')
+  const [episode,      setEpisode]      = useState('')
+  const [character,    setCharacter]    = useState('')
+  const [genre,        setGenre]        = useState(GENRES[0])
+  const [summary,      setSummary]      = useState('')
+  const [text,         setText]         = useState('')
+  const [styleContext, setStyleContext] = useState('')
+
+  // AI generation
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError,   setAiError]   = useState('')
 
   // photo
   const [imgSrc,   setImgSrc]   = useState('')
@@ -164,6 +169,26 @@ export default function StoriesAdminPage() {
       audio.play().catch(() => {})
       setPlayingId(track.id)
       setIsAudioPlaying(true)
+    }
+  }
+
+  // ── AI generation ────────────────────────────────────────────────────────
+
+  const generateAI = async () => {
+    setAiLoading(true); setAiError('')
+    try {
+      const res = await fetch('/api/admin/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, season, episode, character, genre, summary, styleContext }),
+      })
+      const data = await res.json() as { text?: string; error?: string }
+      if (!res.ok || data.error) { setAiError(data.error ?? 'Помилка генерації'); return }
+      setText(data.text ?? '')
+    } catch {
+      setAiError("Помилка з'єднання з API")
+    } finally {
+      setAiLoading(false)
     }
   }
 
@@ -271,8 +296,54 @@ export default function StoriesAdminPage() {
           <Field label="Короткий опис / тизер">
             <textarea style={{ ...inputBase, height: 68, resize: 'vertical', lineHeight: 1.6 }} placeholder="2–3 речення, які читач побачить у превʼю..." value={summary} onChange={e => setSummary(e.target.value)} />
           </Field>
+          <Field label="Стиль та контекст">
+            <textarea
+              style={{ ...inputBase, height: 120, resize: 'vertical', lineHeight: 1.65 }}
+              placeholder="Вставте уривки попередніх серій або опишіть стиль, атмосферу, ключові деталі. Claude використає це для збереження єдиного голосу і стилю..."
+              value={styleContext}
+              onChange={e => setStyleContext(e.target.value)}
+            />
+          </Field>
+
+          {/* AI generate button */}
+          <button
+            onClick={generateAI}
+            disabled={aiLoading}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
+              background: aiLoading ? 'rgba(240,165,0,0.45)' : 'linear-gradient(135deg, #f0a500 0%, #e8920a 100%)',
+              color: NAVY_DEEP, border: 'none', borderRadius: 12,
+              padding: '14px 18px', fontSize: 14, fontWeight: 700,
+              cursor: aiLoading ? 'wait' : 'pointer', fontFamily: FONT, marginBottom: 16,
+              boxShadow: aiLoading ? 'none' : '0 2px 12px rgba(240,165,0,0.3)',
+              transition: 'all 0.2s',
+            }}
+          >
+            {aiLoading ? (
+              <>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 1s linear infinite' }}>
+                  <circle cx="8" cy="8" r="6" stroke={NAVY_DEEP} strokeWidth="2" strokeDasharray="20 18" strokeLinecap="round"/>
+                </svg>
+                Claude пише…
+              </>
+            ) : (
+              <>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 1 L10 6 L15 6 L11 9.5 L12.5 14.5 L8 11.5 L3.5 14.5 L5 9.5 L1 6 L6 6 Z" fill={NAVY_DEEP} opacity="0.9"/>
+                </svg>
+                Згенерувати текст (Claude AI)
+              </>
+            )}
+          </button>
+
+          {aiError && (
+            <div style={{ fontSize: 13, color: '#f87171', marginBottom: 14, padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>
+              {aiError}
+            </div>
+          )}
+
           <Field label="Текст серії" right={`${wordCount} слів · ${text.length} символів · ~${readMin} хв`}>
-            <textarea style={{ ...inputBase, height: 300, resize: 'vertical', lineHeight: 1.75 }} placeholder="Вставте або введіть повний текст серії..." value={text} onChange={e => setText(e.target.value)} />
+            <textarea style={{ ...inputBase, height: 300, resize: 'vertical', lineHeight: 1.75 }} placeholder="Вставте або введіть повний текст серії, або згенеруйте через Claude AI вище..." value={text} onChange={e => setText(e.target.value)} />
           </Field>
         </SectionCard>
 
