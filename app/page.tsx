@@ -115,7 +115,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <section id="docs" style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 20, padding: '28px 24px', marginBottom: 24 }}>
+        <section id="docs" style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 20, padding: '28px 24px 0', marginBottom: 24 }}>
           <h2 style={{ fontFamily: "'Lora', serif", fontSize: 28, fontWeight: 600, color: 'var(--text)', textAlign: 'center', marginBottom: 40 }}>
             Юридична інформація
           </h2>
@@ -132,8 +132,8 @@ export default function HomePage() {
               title: 'Публічна оферта',
               content: 'Акцептом оферти вважається здійснення оплати обраного тарифу. Послуга вважається наданою в момент відкриття доступу до аудіофайлів у месенджері. Повернення коштів за цифрові товари належної якості після надання доступу не здійснюється згідно з законодавством України. Ціни на тарифи можуть бути змінені адміністрацією з попередженням на сайті.',
             },
-          ].map(item => (
-            <div key={item.title} style={{ marginBottom: 40 }}>
+          ].map((item, idx, arr) => (
+            <div key={item.title} style={{ marginBottom: idx < arr.length - 1 ? 40 : 0 }}>
               <h3 style={{ fontFamily: "'Lora', serif", fontSize: 18, fontWeight: 600, color: 'var(--text)', marginBottom: 14, paddingBottom: 8, borderBottom: '2px solid var(--accent-gold)', display: 'inline-block' }}>
                 {item.title}
               </h3>
