@@ -596,6 +596,11 @@ export default function KaraokeSection() {
           if (!audio) { console.log('[karaoke] timeupdate — audioRef.current is NULL'); return }
           const ct = audio.currentTime
           const d = audio.duration
+          if (d && !durationRef.current) {
+            setDuration(d)
+            durationRef.current = d
+            console.log('[karaoke] duration recovered in timeupdate:', d)
+          }
           const idx = d > 0 ? Math.min(lines.length - 1, Math.floor((ct / d) * lines.length)) : -1
           console.log('[karaoke] time:', ct.toFixed(2), '/', d?.toFixed(2), '— activeIdx:', idx, '/ lines:', lines.length)
           setCurrentTime(ct)
@@ -642,14 +647,15 @@ export default function KaraokeSection() {
           {lines.map((line, i) => {
             const isActive = i === activeIdx
             const isDone   = activeIdx >= 0 && i < activeIdx
+            console.log('[karaoke] rendering line', i, 'activeIdx=', activeIdx, 'match=', isActive)
             return (
               <div
                 key={i}
                 onClick={() => seekToLine(i)}
                 style={{
                   fontSize: isActive ? 22 : 18,
-                  fontWeight: isActive ? 600 : 400,
-                  color: isActive ? '#ef9f27' : isDone ? '#c8d4e8' : '#7a8fa8',
+                  fontWeight: isActive ? 700 : 400,
+                  color: isActive ? '#D4A017' : isDone ? '#c8d4e8' : '#7a8fa8',
                   fontFamily: "'Lora', serif",
                   lineHeight: 1.9,
                   padding: '1px 0',
