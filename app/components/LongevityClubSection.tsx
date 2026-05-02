@@ -1084,10 +1084,6 @@ export default function LongevityClubSection() {
     <section style={{ marginBottom: 56 }}>
       <audio ref={audioRef} />
 
-      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#ef9f27', display: 'block', marginBottom: 8 }}>
-        Модуль 3
-      </span>
-
       <div style={{ background: '#0f1e3a', borderRadius: 16, padding: '22px 18px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
           <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(239,159,39,0.1)', border: '0.5px solid rgba(239,159,39,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

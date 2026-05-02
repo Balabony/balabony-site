@@ -91,7 +91,9 @@ export default function HomePage() {
 
         {/* Нові модулі */}
         <KaraokeSection />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '32px 0' }} />
         <div id="neuro-music"><NeuroMusicSection /></div>
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '32px 0' }} />
         <div id="longevity-club"><LongevityClubSection /></div>
 
         <div style={{

@@ -580,10 +580,6 @@ export default function KaraokeSection() {
         onEnded={() => { setPlaying(false); setCurrentTime(0) }}
       />
 
-      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#ef9f27', display: 'block', marginBottom: 8 }}>
-        Модуль 1
-      </span>
-
       <div style={{ background: '#0f1e3a', borderRadius: 16, padding: '22px 18px' }}>
 
         {/* Header */}
