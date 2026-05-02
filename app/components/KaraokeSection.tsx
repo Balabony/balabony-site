@@ -629,7 +629,6 @@ export default function KaraokeSection() {
               >
                 {line || ' '}
               </div>
-            )
           ))}
         </div>
 
