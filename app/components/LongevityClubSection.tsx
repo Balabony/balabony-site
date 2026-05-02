@@ -559,22 +559,41 @@ function ChessGame({ onBack }: { onBack: () => void }) {
       </div>
       <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:status!=='playing'?GOLD:'#8899bb',marginBottom:8}}>{statusText}</div>
       <div style={{overflowX:'auto',marginBottom:10}}>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(8,90px)',gap:0,borderRadius:8,overflow:'hidden',width:'fit-content',margin:'0 auto',border:'4px solid #8B6914'}}>
-          {board.map((row,r)=>row.map((piece,c)=>{
-            const light=(r+c)%2===0
-            const isSel=sel?.[0]===r&&sel?.[1]===c
-            const isValid=validMoves.some(([mr,mc])=>mr===r&&mc===c)
-            const bg = isSel ? '#FFE600' : isValid ? (light ? 'rgba(34,197,94,0.45)' : 'rgba(34,197,94,0.65)') : light ? '#F0D9B5' : '#B58863'
-            return (
-              <div key={`${r}-${c}`} onClick={()=>handleSquare(r,c)}
-                style={{width:90,height:90,background:bg,display:'flex',alignItems:'center',justifyContent:'center',cursor:status==='playing'&&playerTurn&&!thinking?'pointer':'default',userSelect:'none',position:'relative',transition:'background 0.1s'}}>
-                {piece
-                  // eslint-disable-next-line @next/next/no-img-element
-                  ? <img src={PIECE_IMG[piece]} width={70} height={70} alt={piece} style={{display:'block',pointerEvents:'none'}} />
-                  : isValid&&!board[r][c]?<div style={{width:26,height:26,borderRadius:'50%',background:'rgba(0,0,0,0.22)'}}/>:''}
+        <div style={{width:'fit-content',margin:'0 auto',background:'#8B6914',borderRadius:8,padding:6}}>
+          <div style={{display:'flex',flexDirection:'column'}}>
+            <div style={{display:'flex',alignItems:'stretch'}}>
+              {/* Rank labels — left */}
+              <div style={{display:'flex',flexDirection:'column',width:22,marginRight:3}}>
+                {[8,7,6,5,4,3,2,1].map(rank=>(
+                  <div key={rank} style={{height:100,display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#F0D9B5',fontFamily:'monospace',flexShrink:0}}>{rank}</div>
+                ))}
               </div>
-            )
-          }))}
+              {/* 8×8 board grid */}
+              <div style={{display:'grid',gridTemplateColumns:'repeat(8,100px)',width:800,height:800}}>
+                {board.map((row,r)=>row.map((piece,c)=>{
+                  const light=(r+c)%2===0
+                  const isSel=sel?.[0]===r&&sel?.[1]===c
+                  const isValid=validMoves.some(([mr,mc])=>mr===r&&mc===c)
+                  const bg = isSel ? '#FFE600' : isValid ? (light ? 'rgba(34,197,94,0.45)' : 'rgba(34,197,94,0.65)') : light ? '#F0D9B5' : '#B58863'
+                  return (
+                    <div key={`${r}-${c}`} onClick={()=>handleSquare(r,c)}
+                      style={{width:100,height:100,background:bg,display:'flex',alignItems:'center',justifyContent:'center',cursor:status==='playing'&&playerTurn&&!thinking?'pointer':'default',userSelect:'none',position:'relative',transition:'background 0.1s'}}>
+                      {piece
+                        // eslint-disable-next-line @next/next/no-img-element
+                        ? <img src={PIECE_IMG[piece]} width={88} height={88} alt={piece} style={{display:'block',pointerEvents:'none',objectFit:'contain'}} />
+                        : isValid&&!board[r][c]?<div style={{width:28,height:28,borderRadius:'50%',background:'rgba(0,0,0,0.28)'}}/>:''}
+                    </div>
+                  )
+                }))}
+              </div>
+            </div>
+            {/* File labels — bottom */}
+            <div style={{display:'flex',marginTop:3,marginLeft:25}}>
+              {['a','b','c','d','e','f','g','h'].map(file=>(
+                <div key={file} style={{width:100,height:18,display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#F0D9B5',fontFamily:'monospace',flexShrink:0}}>{file}</div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
       {status!=='playing' && <button onClick={reset} style={{width:'100%',background:GOLD,color:'#fff',border:'none',borderRadius:12,padding:'14px',fontSize:16,fontWeight:700,cursor:'pointer',fontFamily:FONT}}>Нова гра</button>}
