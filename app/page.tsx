@@ -92,20 +92,20 @@ export default function HomePage() {
         <div id="longevity-club"><LongevityClubSection /></div>
 
         <div style={{
-          background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 16,
+          background: '#0f1e3a', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 16,
           padding: 28, marginBottom: 56, textAlign: 'center'
         }}>
-          <h4 style={{ fontSize: 16, fontWeight: 700, color: '#065f46', marginBottom: 8 }}>
+          <h4 style={{ fontSize: 16, fontWeight: 700, color: '#f5f0e8', marginBottom: 8 }}>
             Реферальна програма
           </h4>
-          <p style={{ fontSize: 14, color: '#047857', marginBottom: 16 }}>
+          <p style={{ fontSize: 14, color: '#8899bb', marginBottom: 16 }}>
             Запроси друга — отримайте обидва по 50 бонусних балів на рахунок.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
             <input
               type="text" readOnly defaultValue="balabony.com/ref?user123"
               onClick={e => (e.target as HTMLInputElement).select()}
-              style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #a7f3d0', fontSize: 13, width: 220, background: '#fff', fontFamily: "'Montserrat', sans-serif" }}
+              style={{ padding: '8px 14px', borderRadius: 8, border: '0.5px solid rgba(255,255,255,0.15)', fontSize: 13, width: 220, background: 'rgba(255,255,255,0.06)', color: '#f5f0e8', fontFamily: "'Montserrat', sans-serif" }}
             />
             <button
               onClick={() => navigator.clipboard?.writeText('balabony.com/ref?user123')}
