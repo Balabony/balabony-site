@@ -2,6 +2,21 @@
 
 import { useState } from 'react'
 
+const LEGAL_DOCS = [
+  {
+    title: 'Угода користувача',
+    content: 'Ця Угода регулює доступ та використання платформи Balabony. Контент платформи захищений авторським правом. Будь-яке копіювання чи розповсюдження аудіофайлів без дозволу заборонено. Адміністрація не несе відповідальності за тимчасові технічні збої месенджерів (Telegram, Viber). Користувач зобов\'язується надавати правдиві дані для валідації через сервіс «Дія» при обранні соціального тарифу.',
+  },
+  {
+    title: 'Політика конфіденційності',
+    content: 'Ми поважаємо ваші дані згідно із Законом України «Про захист персональних даних». Ми збираємо лише ті дані, які необхідні для функціонування бота та ідентифікації оплати. Дані про валідацію через «Дія» обробляються згідно з державними стандартами безпеки. Ми не передаємо ваші контактні дані третім особам для маркетингових цілей.',
+  },
+  {
+    title: 'Публічна оферта',
+    content: 'Акцептом оферти вважається здійснення оплати обраного тарифу. Послуга вважається наданою в момент відкриття доступу до аудіофайлів у месенджері. Повернення коштів за цифрові товари належної якості після надання доступу не здійснюється згідно з законодавством України. Ціни на тарифи можуть бути змінені адміністрацією з попередженням на сайті.',
+  },
+]
+
 function EmergencySection() {
   const [confirm, setConfirm] = useState<string | null>(null)
 
@@ -22,7 +37,6 @@ function EmergencySection() {
           ЕКСТРЕНА ДОПОМОГА
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-          {/* 112 */}
           <button
             onClick={() => setConfirm('112')}
             style={{
@@ -37,7 +51,6 @@ function EmergencySection() {
             <span style={{ fontSize: 11, opacity: 0.9 }}>Єдина екстрена</span>
           </button>
 
-          {/* 102 — Поліція між 112 і 103 */}
           <button
             onClick={() => setConfirm('102')}
             style={{
@@ -51,7 +64,6 @@ function EmergencySection() {
             <span style={{ fontSize: 11, opacity: 0.9 }}>Поліція</span>
           </button>
 
-          {/* 103 */}
           <button
             onClick={() => setConfirm('103')}
             style={{
@@ -67,7 +79,6 @@ function EmergencySection() {
         </div>
       </div>
 
-      {/* Підтвердження */}
       {confirm && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
@@ -115,6 +126,9 @@ function EmergencySection() {
 }
 
 export default function Footer() {
+  const [legalDoc, setLegalDoc] = useState<string | null>(null)
+  const doc = LEGAL_DOCS.find(d => d.title === legalDoc)
+
   return (
     <footer style={{ background: 'var(--dark)', color: '#94a3b8', padding: '32px 5% 30px', marginTop: 24 }}>
 
@@ -167,11 +181,19 @@ export default function Footer() {
         <div>
           <h4 style={{ color: '#fff', marginBottom: 16, fontSize: 14, fontWeight: 600 }}>Документи</h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
-            {['Угода користувача', 'Політика конфіденційності', 'Публічна оферта', 'Договір з автором'].map(item => (
-              <li key={item} style={{ marginBottom: 9 }}>
-                <a href="#docs" style={{ color: '#64748b', textDecoration: 'none', fontSize: 13 }}>{item}</a>
+            {LEGAL_DOCS.map(d => (
+              <li key={d.title} style={{ marginBottom: 9 }}>
+                <button
+                  onClick={() => setLegalDoc(d.title)}
+                  style={{ background: 'none', border: 'none', color: '#64748b', fontSize: 13, cursor: 'pointer', padding: 0, fontFamily: "'Montserrat', sans-serif", textAlign: 'left' }}
+                >
+                  {d.title}
+                </button>
               </li>
             ))}
+            <li style={{ marginBottom: 9 }}>
+              <a href="#" style={{ color: '#64748b', textDecoration: 'none', fontSize: 13 }}>Договір з автором</a>
+            </li>
           </ul>
         </div>
 
@@ -182,7 +204,6 @@ export default function Footer() {
               { label: 'Відеоісторія дня', href: '#video' },
               { label: 'Рідер', href: '#reader' },
               { label: 'Тарифи', href: '#pricing' },
-              { label: 'Документи', href: '#docs' },
             ].map(item => (
               <li key={item.label} style={{ marginBottom: 9 }}>
                 <a href={item.href} style={{ color: '#64748b', textDecoration: 'none', fontSize: 13 }}>{item.label}</a>
@@ -203,6 +224,32 @@ export default function Footer() {
           </span>
         </p>
       </div>
+
+      {/* Legal document modal */}
+      {doc && (
+        <div
+          onClick={() => setLegalDoc(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: '#0f1e3a', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '28px 24px', maxWidth: 600, width: '100%', maxHeight: '80vh', overflowY: 'auto', position: 'relative' }}
+          >
+            <button
+              onClick={() => setLegalDoc(null)}
+              style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 8, color: '#f5f0e8', width: 32, height: 32, cursor: 'pointer', fontSize: 16, lineHeight: 1 }}
+            >
+              ✕
+            </button>
+            <h3 style={{ fontFamily: "'Lora', serif", fontSize: 20, fontWeight: 600, color: '#f5f0e8', marginBottom: 16, paddingRight: 40 }}>
+              {doc.title}
+            </h3>
+            <p style={{ fontSize: 14, color: '#8899bb', lineHeight: 1.8 }}>
+              {doc.content}
+            </p>
+          </div>
+        </div>
+      )}
     </footer>
   )
 }
