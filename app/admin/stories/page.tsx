@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 
 const FONT       = "'Montserrat', Arial, sans-serif"
 const GOLD       = '#f0a500'
@@ -8,9 +9,7 @@ const NAVY       = '#0f1e3a'
 const NAVY_DEEP  = '#0a1628'
 const JAMENDO_ID = 'a4f04bbe'
 
-const CHARACTERS = ['Дід Панас', 'Балабон', 'Зайченя Оксанка', 'Оповідач', 'Інший персонаж']
-const SEASONS    = ['Сезон 1', 'Сезон 2', 'Сезон 3']
-const GENRES     = ['Казка', 'Пригода', 'Природа', 'Сімейна', 'Освітня', 'Детективна']
+const GENRES = ['Казка', 'Оповідання', 'Детектив', 'Пригода', 'Романтика', 'Фантастика', 'Інше']
 
 const MOODS = [
   { label: 'Весела',       tags: 'happy folk acoustic' },
@@ -70,11 +69,13 @@ function fmtDur(s: number) {
 // ── Main page ────────────────────────────────────────────────────────────────
 
 export default function StoriesAdminPage() {
+  const router = useRouter()
+
   // story fields
   const [title,     setTitle]     = useState('')
-  const [season,    setSeason]    = useState(SEASONS[0])
-  const [episode,   setEpisode]   = useState('1')
-  const [character, setCharacter] = useState(CHARACTERS[0])
+  const [season,    setSeason]    = useState('')
+  const [episode,   setEpisode]   = useState('')
+  const [character, setCharacter] = useState('')
   const [genre,     setGenre]     = useState(GENRES[0])
   const [summary,   setSummary]   = useState('')
   const [text,      setText]      = useState('')
@@ -168,15 +169,16 @@ export default function StoriesAdminPage() {
 
   // ── Export helpers ────────────────────────────────────────────────────────
 
-  const epNum = episode.padStart(2, '0')
+  const epNum = episode ? episode.padStart(2, '0') : ''
+  const seasonEpLabel = [season, epNum ? `Серія ${epNum}` : ''].filter(Boolean).join(' · ')
 
   const exportText = (): string => {
     const lines = [
       '══════════════════════════════',
       `📖  ${title || '(без назви)'}`,
-      `📺  ${season} · Серія ${epNum}`,
-      `👤  ${character} · ${genre}`,
     ]
+    if (seasonEpLabel) lines.push(`📺  ${seasonEpLabel}`)
+    lines.push(`👤  ${character || '—'} · ${genre}`)
     if (selectedTrack) lines.push(`🎵  ${selectedTrack.name} — ${selectedTrack.artist_name}`)
     if (summary) lines.push(`\n📝  ${summary}`)
     lines.push('══════════════════════════════', '', text)
@@ -199,7 +201,8 @@ export default function StoriesAdminPage() {
     URL.revokeObjectURL(url)
   }
 
-  const fileBase = `s${season.slice(-1)}_ep${epNum}_${(title || 'story').substring(0, 32).replace(/\s+/g, '_').replace(/[^\w_]/g, '')}`
+  const slug = (title || 'story').substring(0, 32).replace(/\s+/g, '_').replace(/[^\w_]/g, '')
+  const fileBase = [season && `s${season.replace(/\D/g, '')}`, epNum && `ep${epNum}`, slug].filter(Boolean).join('_')
 
   const handleDownloadTxt  = () => downloadBlob(exportText(), `${fileBase}.txt`, 'text/plain;charset=utf-8')
   const handleDownloadJson = () => {
@@ -230,11 +233,17 @@ export default function StoriesAdminPage() {
             </svg>
           </div>
           <div>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: GOLD, textTransform: 'uppercase', marginBottom: 2, fontFamily: FONT }}>Balabony · Адмін панель</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT }}>Редактор серій</div>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: GOLD, textTransform: 'uppercase', marginBottom: 2, fontFamily: FONT }}>Адмін панель</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT }}>Редактор історій</div>
           </div>
-          <div style={{ marginLeft: 'auto', fontSize: 12, color: '#445566', fontFamily: FONT }}>
-            {wordCount > 0 && <span style={{ color: GOLD }}>{wordCount} слів</span>}
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12, fontFamily: FONT }}>
+            {wordCount > 0 && <span style={{ fontSize: 12, color: GOLD }}>{wordCount} слів</span>}
+            <button
+              onClick={async () => { await fetch('/api/admin/logout', { method: 'POST' }); router.push('/admin/login') }}
+              style={{ fontSize: 12, fontWeight: 600, color: '#8899bb', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: FONT }}
+            >
+              Вийти
+            </button>
           </div>
         </div>
 
@@ -244,13 +253,11 @@ export default function StoriesAdminPage() {
             <input style={inputBase} value={title} onChange={e => setTitle(e.target.value)} placeholder="Наприклад: Балабон і Темний ліс" />
           </Field>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <Field label="Сезон">
-              <select style={selectStyle} value={season} onChange={e => setSeason(e.target.value)}>
-                {SEASONS.map(s => <option key={s} value={s} style={{ background: NAVY }}>{s}</option>)}
-              </select>
+            <Field label="Сезон" right="необов'язково">
+              <input style={inputBase} value={season} onChange={e => setSeason(e.target.value)} placeholder="Напр.: 1" />
             </Field>
-            <Field label="Серія №">
-              <input style={inputBase} type="number" min={1} max={999} value={episode} onChange={e => setEpisode(e.target.value)} />
+            <Field label="Серія №" right="необов'язково">
+              <input style={inputBase} type="number" min={1} max={999} value={episode} onChange={e => setEpisode(e.target.value)} placeholder="Напр.: 5" />
             </Field>
             <Field label="Жанр">
               <select style={selectStyle} value={genre} onChange={e => setGenre(e.target.value)}>
@@ -259,9 +266,7 @@ export default function StoriesAdminPage() {
             </Field>
           </div>
           <Field label="Персонаж">
-            <select style={selectStyle} value={character} onChange={e => setCharacter(e.target.value)}>
-              {CHARACTERS.map(c => <option key={c} value={c} style={{ background: NAVY }}>{c}</option>)}
-            </select>
+            <input style={inputBase} value={character} onChange={e => setCharacter(e.target.value)} placeholder="Ім'я персонажа або автора" />
           </Field>
           <Field label="Короткий опис / тизер">
             <textarea style={{ ...inputBase, height: 68, resize: 'vertical', lineHeight: 1.6 }} placeholder="2–3 речення, які читач побачить у превʼю..." value={summary} onChange={e => setSummary(e.target.value)} />
@@ -444,7 +449,7 @@ export default function StoriesAdminPage() {
                 <img src={imgSrc} alt="story cover" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,22,40,1) 0%, rgba(10,22,40,0.3) 50%, transparent 100%)' }} />
                 <div style={{ position: 'absolute', bottom: 16, left: 18, right: 18 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 5, fontFamily: FONT }}>{season} · Серія {epNum}</div>
+                  {seasonEpLabel && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 5, fontFamily: FONT }}>{seasonEpLabel}</div>}
                   <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT, lineHeight: 1.2 }}>{title || '(без назви)'}</div>
                 </div>
               </div>
@@ -452,7 +457,7 @@ export default function StoriesAdminPage() {
             <div style={{ padding: '16px 18px 20px' }}>
               {!imgSrc && (
                 <>
-                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 5, fontFamily: FONT }}>{season} · Серія {epNum}</div>
+                  {seasonEpLabel && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 5, fontFamily: FONT }}>{seasonEpLabel}</div>}
                   <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', marginBottom: 12, fontFamily: FONT }}>{title || '(без назви)'}</div>
                 </>
               )}
