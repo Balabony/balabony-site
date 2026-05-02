@@ -1,6 +1,62 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+
+const CYCLE_MS = 8 * 60 * 60 * 1000
+
+function getSecondsLeft(): number {
+  if (typeof window === 'undefined') return CYCLE_MS / 1000
+  const stored = localStorage.getItem('free_view_start')
+  const now = Date.now()
+  if (!stored) {
+    localStorage.setItem('free_view_start', String(now))
+    return CYCLE_MS / 1000
+  }
+  const elapsed = now - Number(stored)
+  if (elapsed >= CYCLE_MS) {
+    localStorage.setItem('free_view_start', String(now))
+    return CYCLE_MS / 1000
+  }
+  return Math.ceil((CYCLE_MS - elapsed) / 1000)
+}
+
+function fmtCountdown(s: number): string {
+  const h = Math.floor(s / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  const sec = s % 60
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
+}
+
+function FreeViewTimer() {
+  const [secs, setSecs] = useState<number>(() => getSecondsLeft())
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    setSecs(getSecondsLeft())
+    timerRef.current = setInterval(() => {
+      setSecs(getSecondsLeft())
+    }, 1000)
+    return () => { if (timerRef.current) clearInterval(timerRef.current) }
+  }, [])
+
+  return (
+    <div style={{ textAlign: 'center', margin: '12px 0 0' }}>
+      <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 8 }}>
+        🕐 Безкоштовний перегляд оновлюється через:
+      </div>
+      <div style={{
+        fontSize: 48, fontWeight: 700, color: '#FFB800',
+        fontVariantNumeric: 'tabular-nums', letterSpacing: 2, lineHeight: 1,
+        fontFamily: "'Montserrat', Arial, sans-serif",
+      }}>
+        {fmtCountdown(secs)}
+      </div>
+      <div style={{ fontSize: 12, color: '#64748b', marginTop: 8 }}>
+        Одна історія безкоштовно кожні 8 годин — або обери план
+      </div>
+    </div>
+  )
+}
 
 async function initiatePayment(pkg: { price: string; tier: string; unit: string }) {
   try {
@@ -286,6 +342,7 @@ export default function PricingSection() {
       <div style={{ background: 'var(--bg-deep)', color: '#f8fafc', borderRadius: 14, padding: '16px 24px', marginBottom: 28 }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: '#ef9f27' }}>1 Сезон = 20 Серій</div>
         <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>Серії 1–2 безкоштовно. Серії 3–20 — одна на 24 год або одразу з Premium.</div>
+        <FreeViewTimer />
       </div>
 
       <div style={{
