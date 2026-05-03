@@ -9,10 +9,17 @@ const FONT_SIZES = [
   { label: 'A++', value: '26px', title: 'Дуже великий' },
 ]
 
+const NAV_ITEMS = [
+  { label: 'Історії', href: '#reader' },
+  { label: 'Серіали', href: '#' },
+  { label: 'Ігри',    href: '#' },
+]
+
 export default function Header() {
   const [lang, setLang]       = useState('UA')
   const [fontIdx, setFontIdx] = useState(0)
   const [eyeCare, setEyeCare] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const { isNight, toggle: toggleNight } = useTheme()
 
   useEffect(() => {
@@ -40,44 +47,53 @@ export default function Header() {
     if (savedEye === 'true') setEyeCare(true)
   }, [])
 
+  // Close menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return
+    const close = () => setMenuOpen(false)
+    document.addEventListener('click', close)
+    return () => document.removeEventListener('click', close)
+  }, [menuOpen])
+
   return (
     <>
     <style>{`
-      .baly-nav { display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0; justify-content: center; }
+      .baly-nav-desktop { display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0; justify-content: center; }
       .baly-nav-link { font-size: 13px; font-weight: 600; color: var(--text); text-decoration: none; padding: 6px 10px; border-radius: 8px; font-family: 'Montserrat', sans-serif; white-space: nowrap; }
+      .baly-nav-link:hover { background: rgba(245,166,35,0.1); }
+      .baly-burger { display: none; }
       @media (max-width: 820px) { .baly-nav-link { font-size: 11px; padding: 5px 7px; } }
-      @media (max-width: 640px) { .baly-nav-link { font-size: 10px; padding: 4px 5px; } }
-      @media (max-width: 600px) { .baly-lang { display: none !important; } .baly-eye { display: none !important; } }
-      @media (max-width: 430px) { .baly-nav { gap: 0; } .baly-nav-link { font-size: 9px; padding: 3px 5px; } }
-      @media (max-width: 360px) { .baly-nav-link { font-size: 8px; padding: 2px 4px; } .baly-logo { font-size: 18px !important; } }
+      @media (max-width: 640px) { .baly-lang { display: none !important; } .baly-eye { display: none !important; } }
+      @media (max-width: 600px) {
+        .baly-nav-desktop { display: none !important; }
+        .baly-burger { display: flex !important; }
+      }
     `}</style>
+
     <header style={{
       background: 'var(--white)', borderBottom: '1px solid var(--border)',
       padding: '0 4%', height: 56, display: 'flex', justifyContent: 'space-between',
       alignItems: 'center', position: 'sticky', top: 0, zIndex: 100,
     }}>
+
       {/* Logo */}
-      <a href="#" className="baly-logo" style={{
+      <a href="#" style={{
         fontFamily: "'Comfortaa', cursive", fontSize: 22, fontWeight: 700,
         color: 'var(--accent-gold)', textDecoration: 'none', flexShrink: 0,
       }}>
         Balabony<sup style={{ fontSize: 9, color: 'var(--accent-gold)' }}>®</sup>
       </a>
 
-      {/* Navigation */}
-      <nav className="baly-nav">
-        {[
-          { label: 'Історії',  href: '#reader' },
-          { label: 'Серіали',  href: '#' },
-          { label: 'Ігри',     href: '#' },
-        ].map(item => (
+      {/* Desktop navigation — hidden on mobile */}
+      <nav className="baly-nav-desktop">
+        {NAV_ITEMS.map(item => (
           <a key={item.label} href={item.href} className="baly-nav-link">
             {item.label}
           </a>
         ))}
       </nav>
 
-      {/* Права частина — жорстко в один рядок */}
+      {/* Right controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, flexWrap: 'nowrap' }}>
 
         {/* Language */}
@@ -140,9 +156,53 @@ export default function Header() {
           </span>
         </button>
 
-
+        {/* Hamburger — visible only on mobile */}
+        <button
+          className="baly-burger"
+          onClick={e => { e.stopPropagation(); setMenuOpen(o => !o) }}
+          aria-label="Меню"
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            padding: '6px 4px', display: 'none',
+            flexDirection: 'column', gap: 5, flexShrink: 0,
+          }}
+        >
+          <span style={{ display: 'block', width: 22, height: 2, borderRadius: 2, background: menuOpen ? '#F5A623' : 'var(--text)', transition: 'background 0.2s' }} />
+          <span style={{ display: 'block', width: 22, height: 2, borderRadius: 2, background: menuOpen ? '#F5A623' : 'var(--text)', transition: 'background 0.2s' }} />
+          <span style={{ display: 'block', width: 22, height: 2, borderRadius: 2, background: menuOpen ? '#F5A623' : 'var(--text)', transition: 'background 0.2s' }} />
+        </button>
       </div>
     </header>
+
+    {/* Mobile dropdown menu */}
+    {menuOpen && (
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          position: 'fixed', top: 56, left: 0, right: 0, zIndex: 99,
+          background: 'var(--white)', borderBottom: '1.5px solid #F5A623',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+          display: 'flex', flexDirection: 'column',
+        }}
+      >
+        {NAV_ITEMS.map(item => (
+          <a
+            key={item.label}
+            href={item.href}
+            onClick={() => setMenuOpen(false)}
+            style={{
+              fontFamily: "'Montserrat', sans-serif",
+              fontSize: 16, fontWeight: 600,
+              color: 'var(--text)', textDecoration: 'none',
+              padding: '16px 6%',
+              borderBottom: '1px solid var(--border)',
+            }}
+          >
+            {item.label}
+          </a>
+        ))}
+      </div>
+    )}
     </>
   )
 }
