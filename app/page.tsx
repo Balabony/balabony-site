@@ -7,9 +7,7 @@ import PlatformsSection from './components/PlatformsSection'
 import PricingSection from './components/PricingSection'
 import AudioPlayer from './components/AudioPlayer'
 import Footer from './components/Footer'
-import KaraokeSection from './components/KaraokeSection'
 import NeuroMusicSection from './components/NeuroMusicSection'
-import LongevityClubSection from './components/LongevityClubSection'
 import ResumeBanner from './components/ResumeBanner'
 import { ThemeProvider } from './context/ThemeContext'
 import StatsSection from './components/StatsSection'
@@ -71,10 +69,7 @@ export default function HomePage() {
             </h3>
           </div>
           <p style={{ fontSize: 15, lineHeight: 1.8, opacity: 0.9, marginBottom: 20 }}>
-            Ми будуємо екосистему цифрового добробуту для літніх людей. Наша мета — не лише розважати, 
-            а й активно підтримувати ментальне та когнітивне здоров'я нації. Через музичну терапію, 
-            ігрові механіки для стимуляції мозку та безпечний зв'язок ми запобігаємо стресам, деменції 
-            та когнітивному занепаду, повертаючи літнім людям радість активного життя.
+            Українські історії для всієї родини.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
             {/* Історії */}
@@ -129,11 +124,7 @@ export default function HomePage() {
         <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
         <PricingSection />
         <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
-        <KaraokeSection />
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
         <div id="neuro-music"><NeuroMusicSection /></div>
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
-        <div id="longevity-club"><LongevityClubSection /></div>
         <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
 
         <div style={{

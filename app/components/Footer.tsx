@@ -17,123 +17,12 @@ const LEGAL_DOCS = [
   },
 ]
 
-function EmergencySection() {
-  const [confirm, setConfirm] = useState<string | null>(null)
-
-  const call = (num: string) => {
-    window.location.href = `tel:${num}`
-    setConfirm(null)
-  }
-
-  return (
-    <>
-      <div style={{
-        background: '#fdf6ec',
-        border: '1px solid #f5d9b0',
-        borderRadius: 20, padding: '20px 24px',
-        marginBottom: 40, maxWidth: 1100, margin: '0 auto 40px',
-      }}>
-        <div style={{ color: '#c2410c', fontSize: 12, fontWeight: 700, textAlign: 'center', marginBottom: 12, letterSpacing: 1 }}>
-          ЕКСТРЕНА ДОПОМОГА
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-          <button
-            onClick={() => setConfirm('112')}
-            style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              gap: 4, background: '#dc2626', color: '#fff', border: 'none',
-              borderRadius: 14, padding: '14px', cursor: 'pointer',
-              fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: 22,
-              boxShadow: '0 2px 12px rgba(220,38,38,0.4)',
-            }}
-          >
-            <b>112</b>
-            <span style={{ fontSize: 11, opacity: 0.9 }}>Єдина екстрена</span>
-          </button>
-
-          <button
-            onClick={() => setConfirm('102')}
-            style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              gap: 4, background: '#1d4ed8', color: '#fff', border: 'none',
-              borderRadius: 14, padding: '14px', cursor: 'pointer',
-              fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: 20,
-            }}
-          >
-            <b>102</b>
-            <span style={{ fontSize: 11, opacity: 0.9 }}>Поліція</span>
-          </button>
-
-          <button
-            onClick={() => setConfirm('103')}
-            style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              gap: 4, background: '#b91c1c', color: '#fff', border: 'none',
-              borderRadius: 14, padding: '14px', cursor: 'pointer',
-              fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: 20,
-            }}
-          >
-            <b>103</b>
-            <span style={{ fontSize: 11, opacity: 0.9 }}>Швидка</span>
-          </button>
-        </div>
-      </div>
-
-      {confirm && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
-          zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
-        }}>
-          <div style={{
-            background: '#1a2332', borderRadius: 24, padding: 32,
-            width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column',
-            alignItems: 'center', gap: 20,
-          }}>
-            <div style={{ fontSize: 56 }}>
-              {confirm === '112' ? '🆘' : confirm === '103' ? '🚑' : '🛡️'}
-            </div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', textAlign: 'center' }}>
-              Викликати {confirm === '103' ? 'Швидку допомогу' : confirm === '102' ? 'Поліцію' : 'екстрену службу'}?
-            </div>
-            <div style={{ fontSize: 40, fontWeight: 900, color: '#ef4444' }}>{confirm}</div>
-            <button
-              onClick={() => call(confirm)}
-              style={{
-                background: '#dc2626', color: '#fff', border: 'none',
-                borderRadius: 14, padding: '18px', fontSize: 22, fontWeight: 800,
-                cursor: 'pointer', width: '100%',
-                fontFamily: "'Montserrat', sans-serif",
-              }}
-            >
-              ✅ ТАК, ВИКЛИКАТИ
-            </button>
-            <button
-              onClick={() => setConfirm(null)}
-              style={{
-                background: '#334155', color: '#fff', border: 'none',
-                borderRadius: 14, padding: '14px', fontSize: 18, fontWeight: 700,
-                cursor: 'pointer', width: '100%',
-                fontFamily: "'Montserrat', sans-serif",
-              }}
-            >
-              ❌ НІ, СКАСУВАТИ
-            </button>
-          </div>
-        </div>
-      )}
-    </>
-  )
-}
-
 export default function Footer() {
   const [legalDoc, setLegalDoc] = useState<string | null>(null)
   const doc = LEGAL_DOCS.find(d => d.title === legalDoc)
 
   return (
     <footer style={{ background: 'var(--dark)', color: '#94a3b8', padding: '32px 5% 30px', marginTop: 24 }}>
-
-      {/* Екстрена допомога */}
-      <EmergencySection />
 
       <div style={{
         display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -144,7 +33,7 @@ export default function Footer() {
             Balabony<sup style={{ fontSize: 10 }}>®</sup>
           </span>
           <p style={{ fontSize: 16, lineHeight: 1.8, color: 'rgba(255,255,255,0.8)', marginBottom: 8 }}>
-            Платформа для тих, хто любить живі та щирі українські історії.
+            Читай українське.
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginTop: 4 }}>
             {[
@@ -230,7 +119,7 @@ export default function Footer() {
       </div>
 
       <div style={{
-        borderTop: '1px solid #1e293b', paddingTop: 28, textAlign: 'center',
+        borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: 28, textAlign: 'center',
         fontSize: 14, color: 'rgba(255,255,255,0.6)', maxWidth: 1100, margin: '0 auto'
       }}>
         <p>

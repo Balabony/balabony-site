@@ -55,6 +55,32 @@ export default function Header() {
         Balabony<sup style={{ fontSize: 9, color: 'var(--accent-gold)' }}>®</sup>
       </a>
 
+      {/* Navigation */}
+      <nav style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, justifyContent: 'center' }}>
+        {[
+          { label: 'Історії',  href: '#reader' },
+          { label: 'Серіали',  href: '#' },
+          { label: 'Ігри',     href: '#' },
+        ].map(item => (
+          <a key={item.label} href={item.href} style={{
+            fontSize: 13, fontWeight: 600, color: 'var(--text)',
+            textDecoration: 'none', padding: '6px 10px', borderRadius: 8,
+            fontFamily: "'Montserrat', sans-serif", whiteSpace: 'nowrap',
+          }}>
+            {item.label}
+          </a>
+        ))}
+        <a href="#pricing" style={{
+          fontSize: 12, fontWeight: 700,
+          background: '#F5A623', color: '#081420',
+          padding: '7px 14px', borderRadius: 8,
+          textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
+          whiteSpace: 'nowrap', marginLeft: 6,
+        }}>
+          Спробуй безкоштовно
+        </a>
+      </nav>
+
       {/* Права частина — жорстко в один рядок */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, flexWrap: 'nowrap' }}>
 
