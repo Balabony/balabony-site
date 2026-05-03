@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTheme } from '../context/ThemeContext'
 
 const FONT_SIZES = [
   { label: 'A',   value: '16px', title: 'Стандартний' },
@@ -9,20 +10,15 @@ const FONT_SIZES = [
 ]
 
 export default function Header() {
-  const [lang, setLang]           = useState('UA')
-  const [fontIdx, setFontIdx]     = useState(0)
-  const [nightMode, setNightMode] = useState(false)
-  const [eyeCare, setEyeCare]     = useState(false)
+  const [lang, setLang]       = useState('UA')
+  const [fontIdx, setFontIdx] = useState(0)
+  const [eyeCare, setEyeCare] = useState(false)
+  const { isNight, toggle: toggleNight } = useTheme()
 
   useEffect(() => {
     document.documentElement.style.setProperty('--base-font-size', FONT_SIZES[fontIdx].value)
     localStorage.setItem('balabony-font-size', String(fontIdx))
   }, [fontIdx])
-
-  useEffect(() => {
-    document.body.classList.toggle('dark-mode', nightMode)
-    localStorage.setItem('balabony-night', String(nightMode))
-  }, [nightMode])
 
   useEffect(() => {
     if (eyeCare) {
@@ -38,12 +34,10 @@ export default function Header() {
   }, [eyeCare])
 
   useEffect(() => {
-    const savedFont  = localStorage.getItem('balabony-font-size')
-    const savedNight = localStorage.getItem('balabony-night')
-    const savedEye   = localStorage.getItem('balabony-eyecare')
-    if (savedFont)  setFontIdx(parseInt(savedFont))
-    if (savedNight === 'true') setNightMode(true)
-    if (savedEye   === 'true') setEyeCare(true)
+    const savedFont = localStorage.getItem('balabony-font-size')
+    const savedEye  = localStorage.getItem('balabony-eyecare')
+    if (savedFont) setFontIdx(parseInt(savedFont))
+    if (savedEye === 'true') setEyeCare(true)
   }, [])
 
   return (
@@ -98,19 +92,29 @@ export default function Header() {
           Захист
         </button>
 
-        {/* Night mode */}
+        {/* Day/Night toggle */}
         <button
-          onClick={() => setNightMode(n => !n)}
-          title={nightMode ? 'Денний режим' : 'Нічний режим'}
+          onClick={toggleNight}
+          title={isNight ? 'Денний режим' : 'Нічний режим'}
           style={{
-            fontSize: 11, fontWeight: 600,
-            background: nightMode ? '#ef9f27' : 'var(--bg-deep)',
-            border: 'none', color: '#fff',
-            padding: '5px 10px', borderRadius: 8, cursor: 'pointer',
-            fontFamily: "'Montserrat', sans-serif", whiteSpace: 'nowrap',
+            width: 54, height: 28, borderRadius: 14, position: 'relative',
+            background: isNight ? '#1a2e4a' : '#f0e6cc',
+            border: `1.5px solid ${isNight ? 'rgba(245,166,35,0.3)' : 'rgba(245,166,35,0.55)'}`,
+            cursor: 'pointer', flexShrink: 0, transition: 'background 0.3s',
+            padding: 0,
           }}
         >
-          {nightMode ? '☀️' : '🌙'}
+          <span style={{
+            position: 'absolute', top: 3, left: isNight ? 3 : 25,
+            width: 20, height: 20, borderRadius: '50%',
+            background: '#F5A623',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 11, lineHeight: 1,
+            transition: 'left 0.28s cubic-bezier(.4,0,.2,1)',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
+          }}>
+            {isNight ? '🌙' : '☀️'}
+          </span>
         </button>
 
 
