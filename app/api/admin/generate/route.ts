@@ -38,10 +38,14 @@ export async function POST(request: NextRequest) {
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({
       model: 'gemini-1.5-flash-latest',
-      systemInstruction: SYSTEM_PROMPT,
     }, { apiVersion: 'v1' })
 
-    const result = await model.generateContent(userMessage)
+    const result = await model.generateContent({
+      contents: [
+        { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
+        { role: 'user', parts: [{ text: userMessage }] },
+      ],
+    })
     const text = result.response.text()
 
     return NextResponse.json({ text })
