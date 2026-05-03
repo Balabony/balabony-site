@@ -265,6 +265,12 @@ export default function StoriesAdminPage() {
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12, fontFamily: FONT }}>
             {wordCount > 0 && <span style={{ fontSize: 12, color: GOLD }}>{wordCount} слів</span>}
             <button
+              onClick={() => router.push('/admin/batch-review')}
+              style={{ fontSize: 12, fontWeight: 600, color: '#34d399', background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: FONT }}
+            >
+              📋 Пакет
+            </button>
+            <button
               onClick={() => router.push('/admin/review')}
               style={{ fontSize: 12, fontWeight: 600, color: '#818cf8', background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: FONT }}
             >
