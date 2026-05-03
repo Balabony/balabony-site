@@ -382,8 +382,8 @@ export default function PricingSection() {
               ))}
             </ul>
 
-            {/* Розстрочка — мінібанер під річним тарифом */}
-            {plan.tier === 'annual' && (
+            {/* Розстрочка — мінібанер під річним та місячним тарифом */}
+            {(plan.tier === 'annual' || plan.tier === 'standard') && (
               <div style={{
                 background: 'linear-gradient(135deg, #f0f7ff 0%, #f0fdf4 100%)',
                 border: '1px solid #e2e8f0', borderRadius: 12,
