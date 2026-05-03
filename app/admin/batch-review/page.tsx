@@ -24,6 +24,8 @@ interface SeriesEntry {
   crossIssues?: string[]
   markedForDeletion: boolean
   error?: string
+  editorialStatus?: 'submitted' | 'error'
+  submissionId?: number
 }
 
 // ── API response shapes ──────────────────────────────────────────────────────
@@ -102,6 +104,7 @@ export default function BatchReviewPage() {
   const [pasteText,   setPasteText]   = useState('')
   const [recheckingIds, setRecheckingIds] = useState<Set<string>>(new Set())
   const [replacingId,  setReplacingId]  = useState<string | null>(null)
+  const [submittingEditorial, setSubmittingEditorial] = useState(false)
 
   const entriesRef     = useRef<SeriesEntry[]>([])
   const replaceRef     = useRef<HTMLInputElement>(null)
@@ -380,6 +383,32 @@ export default function BatchReviewPage() {
     }
   }
 
+  // ── Editorial submission ───────────────────────────────────────────────────
+
+  async function submitToEditorial(entryId: string) {
+    const entry = entriesRef.current.find(e => e.id === entryId)
+    if (!entry) return
+    setSubmittingEditorial(true)
+    try {
+      const res = await fetch('/api/admin/editorial/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entries: [{ filename: entry.filename, text: entry.text }] }),
+      })
+      const data = await res.json() as { submitted?: number; editorCount?: number; error?: string }
+      if (!res.ok || data.error) {
+        alert(data.error ?? 'Помилка надсилання редакторам')
+        setEntries(prev => prev.map(e => e.id === entryId ? { ...e, editorialStatus: 'error' } : e))
+      } else {
+        setEntries(prev => prev.map(e => e.id === entryId ? { ...e, editorialStatus: 'submitted' } : e))
+      }
+    } catch {
+      alert("Помилка з'єднання")
+    } finally {
+      setSubmittingEditorial(false)
+    }
+  }
+
   // ── ZIP download ───────────────────────────────────────────────────────────
 
   const downloadZip = async () => {
@@ -446,6 +475,7 @@ export default function BatchReviewPage() {
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
             <button onClick={() => router.push('/admin/review')} style={{ fontSize: 12, fontWeight: 600, color: '#818cf8', background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: FONT }}>✍️ Редактор</button>
+            <button onClick={() => router.push('/admin/editorial')} style={{ fontSize: 12, fontWeight: 600, color: '#c8d4e8', background: 'rgba(200,212,232,0.07)', border: '1px solid rgba(200,212,232,0.2)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: FONT }}>📋 Редакція</button>
             <button onClick={() => router.push('/admin/stories')} style={{ fontSize: 12, fontWeight: 600, color: GOLD, background: 'rgba(240,165,0,0.1)', border: '1px solid rgba(240,165,0,0.25)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: FONT }}>← Редактор серій</button>
             <button onClick={async () => { await fetch('/api/admin/logout', { method: 'POST' }); router.push('/admin/login') }} style={{ fontSize: 12, fontWeight: 600, color: '#8899bb', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: FONT }}>Вийти</button>
           </div>
@@ -725,6 +755,24 @@ export default function BatchReviewPage() {
                     >
                       {recheckingIds.has(entry.id) ? '⏳ Перевіряю…' : '↺ Перевірити знову'}
                     </button>
+
+                    {/* Editorial submit */}
+                    {!entry.markedForDeletion && (qc.verdict === 'quality' || qc.verdict === 'remarks') && (
+                      entry.editorialStatus === 'submitted' ? (
+                        <span style={{ fontSize: 11, fontWeight: 600, color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)', borderRadius: 6, padding: '4px 10px', fontFamily: FONT, whiteSpace: 'nowrap' }}>
+                          🔄 На перевірці у редактора
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => submitToEditorial(entry.id)}
+                          disabled={submittingEditorial}
+                          title="Надіслати на редакційне погодження"
+                          style={{ fontSize: 11, fontWeight: 600, color: '#c8d4e8', background: 'rgba(200,212,232,0.08)', border: '1px solid rgba(200,212,232,0.2)', borderRadius: 6, padding: '4px 10px', cursor: submittingEditorial ? 'wait' : 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
+                        >
+                          📨 Надіслати редакторам
+                        </button>
+                      )
+                    )}
 
                     <div style={{ flex: 1 }} />
 
