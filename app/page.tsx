@@ -92,25 +92,35 @@ export default function HomePage() {
           <h4 style={{ fontSize: 16, fontWeight: 700, color: '#f5f0e8', marginBottom: 8, textAlign: 'center' }}>
             Завжди під рукою
           </h4>
-          <p style={{ fontSize: 13, color: '#8899bb', textAlign: 'center', marginBottom: 24 }}>
+          <p style={{ fontSize: 16, color: '#8899bb', textAlign: 'center', marginBottom: 24 }}>
             Додай Balabony на головний екран — як звичайний застосунок, без завантажень.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24 }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#f5a623', marginBottom: 12, textAlign: 'center' }}>Android · Chrome</div>
-              {['Відкрий balabony.com у Chrome', 'Натисни ⋮ → «Додати на головний екран»', 'Підтверди — іконка з\'явиться на робочому столі'].map((step, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
-                  <span style={{ minWidth: 24, height: 24, borderRadius: '50%', background: 'rgba(245,166,35,0.15)', border: '1.5px solid #f5a623', color: '#f5a623', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
-                  <span style={{ fontSize: 13, color: '#c8d8e8', lineHeight: 1.6 }}>{step}</span>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#f5a623', marginBottom: 12, textAlign: 'center' }}>Android · Chrome</div>
+              {[
+                'Відкрий balabony.com у Chrome',
+                'Натисни ⋮ → «Додати на головний екран»',
+                'Підтверди — іконка з\'явиться на робочому столі',
+              ].map((step, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
+                  <span style={{ minWidth: 28, height: 28, borderRadius: '50%', background: 'rgba(245,166,35,0.15)', border: '1.5px solid #f5a623', color: '#f5a623', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
+                  <span style={{ fontSize: 17, color: '#c8d8e8', lineHeight: 1.6 }}>{step}</span>
                 </div>
               ))}
             </div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#f5a623', marginBottom: 12, textAlign: 'center' }}>iPhone · Safari</div>
-              {['Відкрий balabony.com у Safari', 'Натисни □↑ (кнопка «Поділитися»)', 'Вибери «На екран «Додому»» та підтверди'].map((step, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
-                  <span style={{ minWidth: 24, height: 24, borderRadius: '50%', background: 'rgba(245,166,35,0.15)', border: '1.5px solid #f5a623', color: '#f5a623', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
-                  <span style={{ fontSize: 13, color: '#c8d8e8', lineHeight: 1.6 }}>{step}</span>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#f5a623', marginBottom: 12, textAlign: 'center' }}>iPhone · Safari</div>
+              {[
+                'Відкрий balabony.com у браузері Safari',
+                'Натисни кнопку "Поділитися" — стрілка вгору з прямокутника, внизу екрану посередині',
+                'У меню що відкрилось — прокрути список вниз',
+                'Натисни "На Початковий екран" — іконка квадрат з плюсом',
+                'Натисни "Додати" у правому верхньому куті',
+              ].map((step, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
+                  <span style={{ minWidth: 28, height: 28, borderRadius: '50%', background: 'rgba(245,166,35,0.15)', border: '1.5px solid #f5a623', color: '#f5a623', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
+                  <span style={{ fontSize: 17, color: '#c8d8e8', lineHeight: 1.6 }}>{step}</span>
                 </div>
               ))}
             </div>
