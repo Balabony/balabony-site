@@ -74,9 +74,6 @@ export default function Header() {
             {item.label}
           </a>
         ))}
-        <a href="#pricing" className="baly-try">
-          Спробуй безкоштовно
-        </a>
       </nav>
 
       {/* Права частина — жорстко в один рядок */}

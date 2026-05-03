@@ -10,37 +10,61 @@ import Footer from './components/Footer'
 import NeuroMusicSection from './components/NeuroMusicSection'
 import ResumeBanner from './components/ResumeBanner'
 import { ThemeProvider } from './context/ThemeContext'
-import LatestEpisodeHero from './components/LatestEpisodeHero'
 import SeriesStrip, { type SeriesCard } from './components/SeriesStrip'
 import FreshStoriesGrid, { type Story } from './components/FreshStoriesGrid'
-import type { Episode } from './components/LatestEpisodeHero'
-
-const LATEST_EPISODE: Episode = {
-  number: 47, season: 3,
-  title: 'Балабони та загублений рецепт',
-  coverUrl: '/covers/ep47.jpg',
-  teaser: 'Бабуся Параска сорок років зберігала рецепт борщу в старому записнику, але одного ранку він зник. Вся родина Балабонів кидається на пошуки — і знаходить набагато більше, ніж очікувала.',
-  hasAudio: true,
-  readUrl: '/episodes/47',
-  audioUrl: '/audio/47',
-}
 
 const SAMPLE_SERIES: SeriesCard[] = [
   { id: '47', number: 47, season: 3, title: 'Загублений рецепт',       coverUrl: '/covers/ep47.jpg',  hasAudio: true,  url: '/episodes/47' },
   { id: '46', number: 46, season: 3, title: 'Велика прогулянка',        coverUrl: '/covers/ep46.jpg',  hasAudio: true,  url: '/episodes/46' },
   { id: '45', number: 45, season: 3, title: 'Дощ у суботу',             coverUrl: '/covers/ep45.jpg',  hasAudio: false, url: '/episodes/45' },
-  { id: '44', number: 44, season: 3, title: 'Сусід з третього поверху', coverUrl: '/covers/ep44.jpg',  hasAudio: true,  url: '/episodes/44' },
-  { id: '43', number: 43, season: 2, title: 'Літо у Карпатах',          coverUrl: '/covers/ep43.jpg',  hasAudio: false, url: '/episodes/43' },
-  { id: '42', number: 42, season: 2, title: 'Повернення Михайла',       coverUrl: '/covers/ep42.jpg',  hasAudio: true,  url: '/episodes/42' },
 ]
 
 const SAMPLE_STORIES: Story[] = [
-  { id: 's1', title: 'Рецепт від серця',      author: 'Оксана Мельник',   coverUrl: '/stories/s1.jpg', tags: ['родина', 'кухня'],    hasAudio: true,  teaser: 'Найстаріший рецепт у родині завжди передавався з рук у руки — але що відбувається, коли передати вже нікому?',  url: '/stories/1' },
-  { id: 's2', title: 'Перший сніг',           author: 'Іван Коваленко',   coverUrl: '/stories/s2.jpg', tags: ['зима', 'дитинство'],  hasAudio: false, teaser: 'У пам\'яті дідуся перший сніг завжди пахне мандаринами і дровами у грубці.',                                  url: '/stories/2' },
-  { id: 's3', title: 'Лист з минулого',       author: 'Марія Петренко',   coverUrl: '/stories/s3.jpg', tags: ['пам\'ять', 'листи'], hasAudio: true,  teaser: 'Розбираючи горище, Галина знайшла стос листів, перев\'язаних синьою стрічкою. Адресат — вона сама.',          url: '/stories/3' },
-  { id: 's4', title: 'Яблуня у дворі',        author: 'Степан Гнатенко',  coverUrl: '/stories/s4.jpg', tags: ['природа', 'сад'],     hasAudio: false, teaser: 'Яблуня, що посадив дід ще у п\'ятдесятих, досі плодоносить. Онук вирішив її зрубати — і не зміг.',            url: '/stories/4' },
-  { id: 's5', title: 'Танці у вівторок',      author: 'Ніна Сидоренко',   coverUrl: '/stories/s5.jpg', tags: ['клуб', 'музика'],     hasAudio: true,  teaser: 'У будинку культури щовівторка грає жива музика. Баба Тамара прийшла вперше — і стала постійною відвідувачкою.', url: '/stories/5' },
-  { id: 's6', title: 'Телефонна розмова',     author: 'Олег Бондаренко',  coverUrl: '/stories/s6.jpg', tags: ['зв\'язок', 'сім\'я'], hasAudio: true,  teaser: 'Щоп\'ятниці о восьмій ранку — телефонний дзвінок від сина. Навіть коли він забуває, мама чекає.',              url: '/stories/6' },
+  { id: 's1', title: 'Рецепт від серця',  author: 'Оксана Мельник',  coverUrl: '/stories/s1.jpg', tags: ['родина', 'кухня'],   hasAudio: true,  teaser: 'Найстаріший рецепт у родині завжди передавався з рук у руки — але що відбувається, коли передати вже нікому?', url: '/stories/1' },
+  { id: 's2', title: 'Перший сніг',       author: 'Іван Коваленко',  coverUrl: '/stories/s2.jpg', tags: ['зима', 'дитинство'], hasAudio: false, teaser: 'У пам\'яті дідуся перший сніг завжди пахне мандаринами і дровами у грубці.',                                 url: '/stories/2' },
+  { id: 's3', title: 'Лист з минулого',   author: 'Марія Петренко',  coverUrl: '/stories/s3.jpg', tags: ['пам\'ять', 'листи'], hasAudio: true,  teaser: 'Розбираючи горище, Галина знайшла стос листів, перев\'язаних синьою стрічкою. Адресат — вона сама.',         url: '/stories/3' },
+]
+
+function ShareIcon() {
+  return (
+    <svg
+      width="14" height="16" viewBox="0 0 14 16" fill="none"
+      stroke="#f5a623" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
+      style={{ display: 'inline-block', verticalAlign: 'middle', marginBottom: 2 }}
+    >
+      <path d="M2 7 L2 14 Q2 15 3 15 L11 15 Q12 15 12 14 L12 7" />
+      <line x1="7" y1="10" x2="7" y2="1" />
+      <polyline points="3.5,5 7,1 10.5,5" />
+    </svg>
+  )
+}
+
+function AddToHomeIcon() {
+  return (
+    <svg
+      width="14" height="14" viewBox="0 0 14 14" fill="none"
+      stroke="#f5a623" strokeWidth="1.6" strokeLinecap="round"
+      style={{ display: 'inline-block', verticalAlign: 'middle', marginBottom: 2 }}
+    >
+      <rect x="1" y="1" width="12" height="12" rx="2" />
+      <line x1="7" y1="4" x2="7" y2="10" />
+      <line x1="4" y1="7" x2="10" y2="7" />
+    </svg>
+  )
+}
+
+const ANDROID_STEPS = [
+  'Відкрий balabony.com у Chrome',
+  'Натисни ⋮ → «Додати на головний екран»',
+  'Підтверди — іконка з\'явиться на робочому столі',
+]
+
+const IPHONE_STEPS: React.ReactNode[] = [
+  'Відкрий balabony.com у браузері Safari',
+  <>{'Натисни кнопку "Поділитися" '}<ShareIcon />{' — внизу екрану посередині'}</>,
+  'У меню що відкрилось — прокрути список вниз',
+  <>{'Натисни '}<AddToHomeIcon />{' "На Початковий екран"'}</>,
+  'Натисни "Додати" у правому верхньому куті',
 ]
 
 export default function HomePage() {
@@ -49,7 +73,6 @@ export default function HomePage() {
       <Header />
       <ResumeBanner />
       <Hero />
-      <LatestEpisodeHero episode={LATEST_EPISODE} />
       <SeriesStrip series={SAMPLE_SERIES} />
       <FreshStoriesGrid stories={SAMPLE_STORIES} />
 
@@ -98,11 +121,7 @@ export default function HomePage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24 }}>
             <div>
               <div style={{ fontSize: 18, fontWeight: 700, color: '#f5a623', marginBottom: 12, textAlign: 'center' }}>Android · Chrome</div>
-              {[
-                'Відкрий balabony.com у Chrome',
-                'Натисни ⋮ → «Додати на головний екран»',
-                'Підтверди — іконка з\'явиться на робочому столі',
-              ].map((step, i) => (
+              {ANDROID_STEPS.map((step, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
                   <span style={{ minWidth: 28, height: 28, borderRadius: '50%', background: 'rgba(245,166,35,0.15)', border: '1.5px solid #f5a623', color: '#f5a623', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
                   <span style={{ fontSize: 17, color: '#c8d8e8', lineHeight: 1.6 }}>{step}</span>
@@ -111,13 +130,7 @@ export default function HomePage() {
             </div>
             <div>
               <div style={{ fontSize: 18, fontWeight: 700, color: '#f5a623', marginBottom: 12, textAlign: 'center' }}>iPhone · Safari</div>
-              {[
-                'Відкрий balabony.com у браузері Safari',
-                'Натисни кнопку "Поділитися" — стрілка вгору з прямокутника, внизу екрану посередині',
-                'У меню що відкрилось — прокрути список вниз',
-                'Натисни "На Початковий екран" — іконка квадрат з плюсом',
-                'Натисни "Додати" у правому верхньому куті',
-              ].map((step, i) => (
+              {IPHONE_STEPS.map((step, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
                   <span style={{ minWidth: 28, height: 28, borderRadius: '50%', background: 'rgba(245,166,35,0.15)', border: '1.5px solid #f5a623', color: '#f5a623', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
                   <span style={{ fontSize: 17, color: '#c8d8e8', lineHeight: 1.6 }}>{step}</span>

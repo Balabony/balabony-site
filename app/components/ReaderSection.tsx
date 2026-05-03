@@ -21,12 +21,9 @@ export default function ReaderSection() {
 
   return (
     <section id="reader" style={{ marginBottom: 56 }}>
-      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent-gold)', display: 'block', marginBottom: 8 }}>
-        Читайте та слухайте одночасно
+      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent-gold)', display: 'block', marginBottom: 28 }}>
+        Читайте
       </span>
-      <h2 style={{ fontFamily: "'Lora', serif", fontSize: 28, fontWeight: 600, color: '#f5f0e8', marginBottom: 28 }}>
-        Синхронізований рідер
-      </h2>
 
       <div style={{ background: 'var(--white)', border: '1.5px solid #f5a623', borderRadius: 20, overflow: 'hidden' }}>
         {/* Toolbar */}
@@ -73,9 +70,6 @@ export default function ReaderSection() {
           position: 'relative', minHeight: 160, display: 'flex', alignItems: 'flex-end'
         }}>
           <div style={{ paddingBottom: 20 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-gold)', letterSpacing: 1.5, marginBottom: 6 }}>
-              СЕРІЯ {currentEp} ІЗ 20
-            </div>
             <h2 style={{ fontFamily: "'Lora', serif", fontSize: 20, fontWeight: 600, color: '#f8fafc', lineHeight: 1.3 }}>
               Синій блокнот та таємниця Балабонів
             </h2>

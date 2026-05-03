@@ -56,11 +56,6 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
               {/* Cover */}
               <div style={{ position: 'relative', flexShrink: 0 }}>
                 <img src={story.coverUrl} alt={story.title} style={{ width: '100%', height: 175, objectFit: 'cover', display: 'block' }} />
-                {story.hasAudio && (
-                  <span style={{ position: 'absolute', top: 10, right: 10, background: GOLD, color: '#081420', fontSize: 10, fontWeight: 800, fontFamily: FONT, padding: '3px 8px', borderRadius: 20 }}>
-                    🎧 Аудіо
-                  </span>
-                )}
               </div>
 
               {/* Body */}
