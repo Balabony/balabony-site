@@ -26,6 +26,18 @@ interface SeriesEntry {
   error?: string
 }
 
+interface FinalReport {
+  overallQuality:    { score: number; comment: string }
+  styleCompliance:   { compliant: number; nonCompliant: number; comment: string }
+  charactersBible:   { score: number; comment: string }
+  chronologyLogic:   { valid: boolean; issues: string[]; comment: string }
+  plotUniqueness:    { uniqueCount: number; duplicates: number; comment: string }
+  ttsReadiness:      { clean: number; needsCleaning: number; series: string[]; comment: string }
+  needsRework:       Array<{ filename: string; reasons: string[] }>
+  verdict:           'ready' | 'needs_rework'
+  verdictText:       string
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function uid() { return Math.random().toString(36).slice(2) }
@@ -61,8 +73,11 @@ export default function BatchReviewPage() {
   const [processing, setProcessing] = useState(false)
   const [progress,   setProgress]   = useState({ current: 0, total: 0 })
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [uploading,  setUploading]  = useState(false)
-  const [copied,     setCopied]     = useState(false)
+  const [uploading,     setUploading]     = useState(false)
+  const [copied,        setCopied]        = useState(false)
+  const [finalReport,   setFinalReport]   = useState<FinalReport | null>(null)
+  const [finalLoading,  setFinalLoading]  = useState(false)
+  const [finalError,    setFinalError]    = useState('')
 
   // ── File handling ──────────────────────────────────────────────────────────
 
@@ -104,13 +119,42 @@ export default function BatchReviewPage() {
     setPasteText('')
   }
 
+  // ── Final review ───────────────────────────────────────────────────────────
+
+  const runFinalReview = async (doneEntries: SeriesEntry[]) => {
+    setFinalLoading(true); setFinalError(''); setFinalReport(null)
+    try {
+      const payload = doneEntries.map(e => ({
+        filename: e.filename,
+        textSnippet: e.text.slice(0, 400),
+        report: e.report,
+      }))
+      const res = await fetch('/api/admin/final-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ series: payload }),
+      })
+      const data = await res.json() as FinalReport & { error?: string }
+      if (!res.ok || data.error) { setFinalError(data.error ?? 'Помилка фінальної перевірки'); return }
+      setFinalReport(data)
+    } catch {
+      setFinalError("Помилка з'єднання з API")
+    } finally {
+      setFinalLoading(false)
+    }
+  }
+
   // ── Batch review ───────────────────────────────────────────────────────────
 
   const runBatch = async () => {
+    const alreadyDone = entries.filter(e => e.status === 'done' && e.report)
     const pending = entries.filter(e => e.status === 'pending' || e.status === 'error')
     if (!pending.length) return
     setProcessing(true)
+    setFinalReport(null)
     setProgress({ current: 0, total: pending.length })
+
+    const newlyDone: SeriesEntry[] = []
 
     for (let i = 0; i < pending.length; i++) {
       const entry = pending[i]
@@ -127,13 +171,20 @@ export default function BatchReviewPage() {
         if (!res.ok || data.error) {
           setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, status: 'error', error: data.error ?? 'Помилка' } : e))
         } else {
-          setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, status: 'done', report: data } : e))
+          const doneEntry: SeriesEntry = { ...entry, status: 'done', report: data }
+          newlyDone.push(doneEntry)
+          setEntries(prev => prev.map(e => e.id === entry.id ? doneEntry : e))
         }
       } catch {
         setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, status: 'error', error: "Помилка з'єднання" } : e))
       }
     }
     setProcessing(false)
+
+    const allDone = [...alreadyDone, ...newlyDone]
+    if (allDone.length >= 1) {
+      await runFinalReview(allDone)
+    }
   }
 
   // ── Export summary ─────────────────────────────────────────────────────────
@@ -439,6 +490,173 @@ export default function BatchReviewPage() {
                 </div>
               )
             })()}
+          </div>
+        )}
+
+        {/* Final review loading */}
+        {finalLoading && (
+          <div style={{ marginTop: 16, background: NAVY, borderRadius: 16, padding: '24px 20px', border: '1px solid rgba(240,165,0,0.2)', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <svg width="22" height="22" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }}>
+              <circle cx="8" cy="8" r="6" stroke={GOLD} strokeWidth="2" strokeDasharray="20 18" strokeLinecap="round"/>
+            </svg>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: GOLD, fontFamily: FONT, marginBottom: 2 }}>Фінальна перевірка якості (AI)…</div>
+              <div style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>Gemini аналізує весь серіал цілісно</div>
+            </div>
+          </div>
+        )}
+
+        {/* Final review error */}
+        {finalError && (
+          <div style={{ marginTop: 16, fontSize: 13, color: '#f87171', padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>
+            {finalError}
+          </div>
+        )}
+
+        {/* Final report */}
+        {finalReport && (
+          <div style={{ marginTop: 16, background: NAVY, borderRadius: 16, border: `1px solid ${finalReport.verdict === 'ready' ? 'rgba(74,222,128,0.3)' : 'rgba(248,113,113,0.3)'}`, overflow: 'hidden' }}>
+
+            {/* Verdict banner */}
+            <div style={{
+              padding: '20px 22px',
+              background: finalReport.verdict === 'ready' ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)',
+              borderBottom: `1px solid ${finalReport.verdict === 'ready' ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)'}`,
+              display: 'flex', alignItems: 'center', gap: 16,
+            }}>
+              <div style={{
+                width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+                background: finalReport.verdict === 'ready' ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
+              }}>
+                {finalReport.verdict === 'ready' ? '✅' : '⚠️'}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#8899bb', letterSpacing: 1.5, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 4 }}>Фінальна перевірка якості</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: finalReport.verdict === 'ready' ? '#4ade80' : '#f87171', fontFamily: FONT }}>
+                  {finalReport.verdictText}
+                </div>
+              </div>
+              <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                <div style={{ fontSize: 38, fontWeight: 800, color: scoreColor(finalReport.overallQuality.score), fontFamily: FONT, lineHeight: 1 }}>{finalReport.overallQuality.score}</div>
+                <div style={{ fontSize: 11, color: '#445566', fontFamily: FONT }}>/10 серіал</div>
+              </div>
+            </div>
+
+            <div style={{ padding: '18px 20px' }}>
+
+              {/* 6 indicator cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginBottom: 16 }}>
+
+                {/* Style compliance */}
+                {(() => {
+                  const ok = finalReport.styleCompliance.compliant >= finalReport.styleCompliance.nonCompliant + finalReport.styleCompliance.compliant * 0.3
+                  return (
+                    <div style={{ background: ok ? 'rgba(74,222,128,0.07)' : 'rgba(248,113,113,0.07)', border: `1px solid ${ok ? 'rgba(74,222,128,0.2)' : 'rgba(248,113,113,0.2)'}`, borderRadius: 12, padding: '12px 14px' }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: ok ? '#4ade80' : '#f87171', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>🎭 Стиль Балабонів</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT, marginBottom: 4 }}>
+                        <span style={{ color: '#4ade80' }}>{finalReport.styleCompliance.compliant} відп.</span>
+                        {finalReport.styleCompliance.nonCompliant > 0 && <span style={{ color: '#f87171' }}> · {finalReport.styleCompliance.nonCompliant} не відп.</span>}
+                      </div>
+                      <div style={{ fontSize: 12, color: '#8899bb', lineHeight: 1.4, fontFamily: FONT }}>{finalReport.styleCompliance.comment}</div>
+                    </div>
+                  )
+                })()}
+
+                {/* Characters bible */}
+                <div style={{ background: `${scoreColor(finalReport.charactersBible.score)}11`, border: `1px solid ${scoreColor(finalReport.charactersBible.score)}33`, borderRadius: 12, padding: '12px 14px' }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: scoreColor(finalReport.charactersBible.score), letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>👥 Відповідність CHARACTERS_BIBLE</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4 }}>
+                    <span style={{ fontSize: 24, fontWeight: 800, color: scoreColor(finalReport.charactersBible.score), fontFamily: FONT, lineHeight: 1 }}>{finalReport.charactersBible.score}</span>
+                    <span style={{ fontSize: 12, color: '#445566', fontFamily: FONT }}>/10</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#8899bb', lineHeight: 1.4, fontFamily: FONT }}>{finalReport.charactersBible.comment}</div>
+                </div>
+
+                {/* Chronology */}
+                {(() => {
+                  const ok = finalReport.chronologyLogic.valid
+                  return (
+                    <div style={{ background: ok ? 'rgba(74,222,128,0.07)' : 'rgba(251,191,36,0.07)', border: `1px solid ${ok ? 'rgba(74,222,128,0.2)' : 'rgba(251,191,36,0.25)'}`, borderRadius: 12, padding: '12px 14px' }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: ok ? '#4ade80' : '#fbbf24', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>🕐 Логіка хронології</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: ok ? '#4ade80' : '#fbbf24', fontFamily: FONT, marginBottom: 4 }}>{ok ? 'Послідовність збережена' : 'Є проблеми'}</div>
+                      {finalReport.chronologyLogic.issues.length > 0 && finalReport.chronologyLogic.issues.map((iss, ii) => (
+                        <div key={ii} style={{ fontSize: 11, color: '#8899bb', fontFamily: FONT, marginBottom: 2 }}>· {iss}</div>
+                      ))}
+                      <div style={{ fontSize: 12, color: '#8899bb', lineHeight: 1.4, fontFamily: FONT, marginTop: 2 }}>{finalReport.chronologyLogic.comment}</div>
+                    </div>
+                  )
+                })()}
+
+                {/* Plot uniqueness */}
+                {(() => {
+                  const total = finalReport.plotUniqueness.uniqueCount + finalReport.plotUniqueness.duplicates
+                  const ok = finalReport.plotUniqueness.duplicates === 0
+                  return (
+                    <div style={{ background: ok ? 'rgba(74,222,128,0.07)' : 'rgba(251,191,36,0.07)', border: `1px solid ${ok ? 'rgba(74,222,128,0.2)' : 'rgba(251,191,36,0.25)'}`, borderRadius: 12, padding: '12px 14px' }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: ok ? '#4ade80' : '#fbbf24', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>✨ Унікальність сюжетів</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT, marginBottom: 4 }}>
+                        <span style={{ color: '#4ade80' }}>{finalReport.plotUniqueness.uniqueCount} унік.</span>
+                        {finalReport.plotUniqueness.duplicates > 0 && <span style={{ color: '#fbbf24' }}> · {finalReport.plotUniqueness.duplicates} кліше</span>}
+                        {total > 0 && <span style={{ fontSize: 11, color: '#445566' }}> з {total}</span>}
+                      </div>
+                      <div style={{ fontSize: 12, color: '#8899bb', lineHeight: 1.4, fontFamily: FONT }}>{finalReport.plotUniqueness.comment}</div>
+                    </div>
+                  )
+                })()}
+
+                {/* TTS readiness */}
+                {(() => {
+                  const ok = finalReport.ttsReadiness.needsCleaning === 0
+                  return (
+                    <div style={{ background: ok ? 'rgba(74,222,128,0.07)' : 'rgba(248,113,113,0.07)', border: `1px solid ${ok ? 'rgba(74,222,128,0.2)' : 'rgba(248,113,113,0.2)'}`, borderRadius: 12, padding: '12px 14px' }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: ok ? '#4ade80' : '#f87171', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>🎙️ Готовність до озвучки</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT, marginBottom: 4 }}>
+                        <span style={{ color: '#4ade80' }}>{finalReport.ttsReadiness.clean} готові</span>
+                        {finalReport.ttsReadiness.needsCleaning > 0 && <span style={{ color: '#f87171' }}> · {finalReport.ttsReadiness.needsCleaning} потреб. очищення</span>}
+                      </div>
+                      {finalReport.ttsReadiness.series.length > 0 && (
+                        <div style={{ fontSize: 11, color: '#f87171', fontFamily: FONT, marginBottom: 4 }}>{finalReport.ttsReadiness.series.join(', ')}</div>
+                      )}
+                      <div style={{ fontSize: 12, color: '#8899bb', lineHeight: 1.4, fontFamily: FONT }}>{finalReport.ttsReadiness.comment}</div>
+                    </div>
+                  )
+                })()}
+
+                {/* Overall quality detail */}
+                <div style={{ background: `${scoreColor(finalReport.overallQuality.score)}11`, border: `1px solid ${scoreColor(finalReport.overallQuality.score)}33`, borderRadius: 12, padding: '12px 14px' }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: scoreColor(finalReport.overallQuality.score), letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>📊 Загальна якість серіалу</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4 }}>
+                    <span style={{ fontSize: 24, fontWeight: 800, color: scoreColor(finalReport.overallQuality.score), fontFamily: FONT, lineHeight: 1 }}>{finalReport.overallQuality.score}</span>
+                    <span style={{ fontSize: 12, color: '#445566', fontFamily: FONT }}>/10</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#8899bb', lineHeight: 1.4, fontFamily: FONT }}>{finalReport.overallQuality.comment}</div>
+                </div>
+
+              </div>
+
+              {/* Needs rework list */}
+              {finalReport.needsRework.length > 0 && (
+                <div style={{ background: 'rgba(248,113,113,0.06)', border: '1px solid rgba(248,113,113,0.15)', borderRadius: 12, padding: '14px 16px' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#f87171', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 10 }}>
+                    🔧 Серії що потребують доопрацювання ({finalReport.needsRework.length})
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {finalReport.needsRework.map((item, i) => (
+                      <div key={i} style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: 9, border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT, marginBottom: 4 }}>{item.filename}</div>
+                        {item.reasons.map((r, ri) => (
+                          <div key={ri} style={{ display: 'flex', gap: 6, fontSize: 12, color: '#c8d4e8', lineHeight: 1.5, fontFamily: FONT }}>
+                            <span style={{ color: '#f87171', fontWeight: 700 }}>·</span>{r}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            </div>
           </div>
         )}
 
