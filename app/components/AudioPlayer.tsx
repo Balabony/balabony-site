@@ -361,107 +361,6 @@ function TelegramConnect({ storyTitle }: { storyTitle: string; fullWidth?: boole
 }
 
 
-// ============================================================
-// ТРЕКЕР НАСТРОЮ — після прослуховування
-// ============================================================
-function MoodTracker({ storyTitle }: { storyTitle: string }) {
-  const [show, setShow] = useState(false)
-  const [sent, setSent] = useState(false)
-
-  const MOODS = [
-    { emoji: '😄', label: 'Чудово', color: '#22c55e' },
-    { emoji: '🙂', label: 'Добре', color: '#84cc16' },
-    { emoji: '😐', label: 'Нейтрально', color: '#f59e0b' },
-    { emoji: '😔', label: 'Сумно', color: '#f97316' },
-    { emoji: '😰', label: 'Тривожно', color: '#ef4444' },
-  ]
-
-  const sendMood = async (mood: { emoji: string; label: string }) => {
-    trackEvent(`mood_${mood.label}`)
-    const id = typeof window !== 'undefined' ? localStorage.getItem('balabony_tg_chat_id') : null
-    const BOT_T = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN || ''
-    if (id && BOT_T) {
-      await fetch(`https://api.telegram.org/bot${BOT_T}/sendMessage`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: id,
-          text: `${mood.emoji} Бабуся щойно дослухала «${storyTitle}» і почувається: <b>${mood.label}</b>\n\nМожливо, варто подзвонити? 💙`,
-          parse_mode: 'HTML'
-        })
-      })
-    }
-    setSent(true)
-    setTimeout(() => { setSent(false); setShow(false) }, 2000)
-  }
-
-  if (!show) {
-    return (
-      <button
-        onClick={() => setShow(true)}
-        style={{
-          position: 'fixed', bottom: 90, right: 16, zIndex: 199,
-          background: 'var(--accent-gold)', color: '#fff', border: 'none',
-          borderRadius: 24, padding: '6px 12px', fontSize: 12, fontWeight: 700,
-          cursor: 'pointer', boxShadow: '0 4px 16px rgba(239,159,39,0.4)',
-          fontFamily: "'Montserrat', sans-serif",
-          display: 'flex', alignItems: 'center', gap: 6,
-        }}
-      >
-        😊 Як ви?
-      </button>
-    )
-  }
-
-  return (
-    <div style={{
-      position: 'fixed', bottom: 90, right: 16, zIndex: 199,
-      background: '#1a2332', borderRadius: 20, padding: 20,
-      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
-      minWidth: 220,
-    }}>
-      {sent ? (
-        <div style={{ fontSize: 32, textAlign: 'center' }}>
-          ✅<br/>
-          <span style={{ fontSize: 14, color: '#fff' }}>Надіслано родині!</span>
-        </div>
-      ) : (
-        <>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', textAlign: 'center' }}>
-            Як ви почуваєтеся?
-          </div>
-          <div style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center' }}>
-            Ваша відповідь піде онукам
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {MOODS.map(mood => (
-              <button
-                key={mood.label}
-                onClick={() => sendMood(mood)}
-                title={mood.label}
-                style={{
-                  fontSize: 28, background: 'rgba(255,255,255,0.07)',
-                  border: 'none', borderRadius: 12, padding: 8,
-                  cursor: 'pointer', transition: 'transform 0.1s',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.2)')}
-                onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-              >
-                {mood.emoji}
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={() => setShow(false)}
-            style={{ background: 'transparent', border: 'none', color: '#475569', fontSize: 12, cursor: 'pointer' }}
-          >
-            Закрити
-          </button>
-        </>
-      )}
-    </div>
-  )
-}
 
 // ============================================================
 // МОДУЛЬ 2: ЗВ'ЯЗОК З РОДИНОЮ (Speed Dial)
@@ -701,8 +600,6 @@ export default function AudioPlayer() {
       boxShadow: '0 -4px 24px rgba(0,0,0,0.3)', zIndex: 200,
       display: 'flex', flexDirection: 'column',
     }}>
-      <MoodTracker storyTitle={STORY_TITLE} />
-
       {/* Компактний мультифункціональний плеєр */}
       <div style={{ padding: '10px 4%', display: 'flex', alignItems: 'center', gap: 8 }}>
 
