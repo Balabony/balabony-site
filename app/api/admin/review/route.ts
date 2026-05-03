@@ -63,6 +63,34 @@ V. Господарство та Соціум
 
 25. Вадим (Фермер): Завжди розмовляє по двох телефонах одночасно і пахне дорогим тютюном та свіжоскошеною люцерною. Його особливість — дивитися на селян трохи зверхньо, але завжди першим давати гроші на ремонт церкви чи школи.`
 
+function parseGeminiJson(raw: string): Record<string, unknown> | null {
+  // Strip markdown code fences Gemini sometimes wraps the response in
+  const stripped = raw.replace(/^```(?:json)?\s*/im, '').replace(/\s*```\s*$/m, '').trim()
+
+  // Strategy 1: direct parse of the stripped text
+  try { return JSON.parse(stripped) as Record<string, unknown> } catch {}
+
+  // Strategy 2: extract the outermost {...} block
+  const m = stripped.match(/\{[\s\S]*\}/)
+  if (m) {
+    try { return JSON.parse(m[0]) as Record<string, unknown> } catch {}
+
+    // Strategy 3: fix trailing commas before } or ] then retry
+    try {
+      return JSON.parse(m[0].replace(/,(\s*[}\]])/g, '$1')) as Record<string, unknown>
+    } catch {}
+  }
+
+  // Strategy 4: slice from first { to last }
+  const start = raw.indexOf('{')
+  const end   = raw.lastIndexOf('}')
+  if (start !== -1 && end > start) {
+    try { return JSON.parse(raw.slice(start, end + 1)) as Record<string, unknown> } catch {}
+  }
+
+  return null
+}
+
 export async function POST(request: NextRequest) {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'GEMINI_API_KEY не налаштовано' }, { status: 500 })
@@ -105,12 +133,11 @@ ${text}
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' }, { apiVersion: 'v1beta' })
     const result = await model.generateContent(prompt)
-    const raw = result.response.text().trim()
+    const raw    = result.response.text().trim()
+    const parsed = parseGeminiJson(raw)
+    if (!parsed) return NextResponse.json({ error: 'Не вдалося розпарсити відповідь AI' }, { status: 500 })
 
-    const match = raw.match(/\{[\s\S]*\}/)
-    if (!match) return NextResponse.json({ error: 'Не вдалося розпарсити відповідь AI' }, { status: 500 })
-
-    return NextResponse.json(JSON.parse(match[0]))
+    return NextResponse.json(parsed)
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Помилка API'
     return NextResponse.json({ error: msg }, { status: 500 })

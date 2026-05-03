@@ -12,6 +12,28 @@ interface SeriesInput {
   }
 }
 
+function parseGeminiJson(raw: string): Record<string, unknown> | null {
+  const stripped = raw.replace(/^```(?:json)?\s*/im, '').replace(/\s*```\s*$/m, '').trim()
+
+  try { return JSON.parse(stripped) as Record<string, unknown> } catch {}
+
+  const m = stripped.match(/\{[\s\S]*\}/)
+  if (m) {
+    try { return JSON.parse(m[0]) as Record<string, unknown> } catch {}
+    try {
+      return JSON.parse(m[0].replace(/,(\s*[}\]])/g, '$1')) as Record<string, unknown>
+    } catch {}
+  }
+
+  const start = raw.indexOf('{')
+  const end   = raw.lastIndexOf('}')
+  if (start !== -1 && end > start) {
+    try { return JSON.parse(raw.slice(start, end + 1)) as Record<string, unknown> } catch {}
+  }
+
+  return null
+}
+
 export async function POST(request: NextRequest) {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'GEMINI_API_KEY не налаштовано' }, { status: 500 })
@@ -74,12 +96,11 @@ ${seriesSummary}
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' }, { apiVersion: 'v1beta' })
     const result = await model.generateContent(prompt)
-    const raw = result.response.text().trim()
+    const raw    = result.response.text().trim()
+    const parsed = parseGeminiJson(raw)
+    if (!parsed) return NextResponse.json({ error: 'Не вдалося розпарсити відповідь AI' }, { status: 500 })
 
-    const match = raw.match(/\{[\s\S]*\}/)
-    if (!match) return NextResponse.json({ error: 'Не вдалося розпарсити відповідь AI' }, { status: 500 })
-
-    return NextResponse.json(JSON.parse(match[0]))
+    return NextResponse.json(parsed)
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Помилка API'
     return NextResponse.json({ error: msg }, { status: 500 })
