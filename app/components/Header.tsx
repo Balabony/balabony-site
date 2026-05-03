@@ -43,7 +43,7 @@ export default function Header() {
   return (
     <>
     <style>{`
-      .baly-nav { display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0; justify-content: center; overflow: hidden; }
+      .baly-nav { display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0; justify-content: center; }
       .baly-nav-link { font-size: 13px; font-weight: 600; color: var(--text); text-decoration: none; padding: 6px 10px; border-radius: 8px; font-family: 'Montserrat', sans-serif; white-space: nowrap; }
       .baly-try { font-size: 12px; font-weight: 700; background: #F5A623; color: #081420; padding: 7px 14px; border-radius: 8px; text-decoration: none; font-family: 'Montserrat', sans-serif; white-space: nowrap; margin-left: 6px; }
       @media (max-width: 820px) { .baly-nav-link { font-size: 11px; padding: 5px 7px; } .baly-try { font-size: 10px; padding: 6px 9px; margin-left: 3px; } }
