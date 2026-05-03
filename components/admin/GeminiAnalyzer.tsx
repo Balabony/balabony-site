@@ -20,12 +20,34 @@ interface Props {
   title?: string
   text: string
   onApplyTeaser: (teaser: string) => void
+  onApplyImprovedText: (text: string) => void
 }
 
-export default function GeminiAnalyzer({ text, onApplyTeaser }: Props) {
-  const [loading,  setLoading]  = useState(false)
-  const [error,    setError]    = useState('')
-  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
+export default function GeminiAnalyzer({ text, onApplyTeaser, onApplyImprovedText }: Props) {
+  const [loading,         setLoading]         = useState(false)
+  const [error,           setError]           = useState('')
+  const [analysis,        setAnalysis]        = useState<AnalysisResult | null>(null)
+  const [improveLoading,  setImproveLoading]  = useState(false)
+  const [improveError,    setImproveError]    = useState('')
+
+  const improve = async () => {
+    if (!analysis) return
+    setImproveLoading(true); setImproveError('')
+    try {
+      const res = await fetch('/api/admin/improve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, recommendations: analysis.improvements }),
+      })
+      const data = await res.json() as { improvedText?: string; error?: string }
+      if (!res.ok || data.error) { setImproveError(data.error ?? 'Помилка покращення'); return }
+      onApplyImprovedText(data.improvedText ?? '')
+    } catch {
+      setImproveError("Помилка з'єднання з API")
+    } finally {
+      setImproveLoading(false)
+    }
+  }
 
   const analyze = async () => {
     setLoading(true); setError(''); setAnalysis(null)
@@ -161,6 +183,45 @@ export default function GeminiAnalyzer({ text, onApplyTeaser }: Props) {
               ))}
             </ul>
           </div>
+
+          {/* Кнопка покращення */}
+          {improveError && (
+            <div style={{ fontSize: 13, color: '#f87171', padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>
+              {improveError}
+            </div>
+          )}
+          <button
+            onClick={improve}
+            disabled={improveLoading}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
+              background: improveLoading
+                ? 'rgba(16,185,129,0.4)'
+                : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: '#fff', border: 'none', borderRadius: 12,
+              padding: '14px 18px', fontSize: 14, fontWeight: 700,
+              cursor: improveLoading ? 'wait' : 'pointer',
+              fontFamily: FONT,
+              boxShadow: improveLoading ? 'none' : '0 2px 12px rgba(16,185,129,0.3)',
+              transition: 'all 0.2s',
+            }}
+          >
+            {improveLoading ? (
+              <>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 1s linear infinite' }}>
+                  <circle cx="8" cy="8" r="6" stroke="#fff" strokeWidth="2" strokeDasharray="20 18" strokeLinecap="round"/>
+                </svg>
+                Покращую…
+              </>
+            ) : (
+              <>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 2L9.5 6H14L10.5 8.5L12 13L8 10.5L4 13L5.5 8.5L2 6H6.5Z" fill="#fff" opacity="0.9"/>
+                </svg>
+                Покращити текст (AI)
+              </>
+            )}
+          </button>
 
         </div>
       )}

@@ -357,6 +357,7 @@ export default function StoriesAdminPage() {
             title={title}
             text={text}
             onApplyTeaser={(teaser) => setSummary(teaser)}
+            onApplyImprovedText={(improved) => setText(improved)}
           />
         </SectionCard>
 
