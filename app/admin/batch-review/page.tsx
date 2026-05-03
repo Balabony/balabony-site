@@ -1,65 +1,87 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
 const GOLD      = '#f0a500'
 const NAVY      = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
+const STORAGE_KEY = 'balabony-batch-v2'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-interface ReviewScore { key: string; label: string; score: number; comment: string }
-interface ReviewReport {
-  overall: number
-  scores: ReviewScore[]
-  problems: string[]
-  recommendations: string[]
-}
+interface QCIssues { technical: string[]; stylistics: string[]; plot: string[] }
+interface QCResult { verdict: 'quality' | 'remarks' | 'poor'; issues: QCIssues; summary: string }
+
 interface SeriesEntry {
   id: string
   filename: string
   text: string
   file?: File
   status: 'pending' | 'reviewing' | 'done' | 'error'
-  report?: ReviewReport
+  qcResult?: QCResult
+  crossIssues?: string[]
+  markedForDeletion: boolean
   error?: string
 }
 
-interface FinalReport {
-  overallQuality:    { score: number; comment: string }
-  styleCompliance:   { compliant: number; nonCompliant: number; comment: string }
-  charactersBible:   { score: number; comment: string }
-  chronologyLogic:   { valid: boolean; issues: string[]; comment: string }
-  plotUniqueness:    { uniqueCount: number; duplicates: number; comment: string }
-  ttsReadiness:      { clean: number; needsCleaning: number; series: string[]; comment: string }
-  needsRework:       Array<{ filename: string; reasons: string[] }>
-  verdict:           'ready' | 'needs_rework'
-  verdictText:       string
+// ── API response shapes ──────────────────────────────────────────────────────
+
+interface QCResponse {
+  verdict?: 'quality' | 'remarks' | 'poor'
+  issues?: { technical?: string[]; stylistics?: string[]; plot?: string[] }
+  summary?: string
+  error?: string
+}
+
+interface CrossReviewResponse {
+  episodeCrossIssues?: Array<{ filename: string; issues: string[] }>
+  error?: string
+}
+
+interface ParseDocxResponse {
+  text?: string
+  filename?: string
+  error?: string
+}
+
+// ── localStorage helpers ─────────────────────────────────────────────────────
+
+function persist(entries: SeriesEntry[]) {
+  try {
+    const data = entries.map(({ file: _f, ...rest }) => rest)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  } catch {}
+}
+
+function restore(): Omit<SeriesEntry, 'file'>[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return []
+    return (JSON.parse(raw) as Omit<SeriesEntry, 'file'>[]).map(e => ({
+      ...e,
+      status: e.status === 'reviewing' ? 'pending' : e.status,
+    }))
+  } catch { return [] }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function uid() { return Math.random().toString(36).slice(2) }
 
-function scoreColor(s: number) {
-  if (s >= 8) return '#4ade80'
-  if (s >= 5) return GOLD
+function wordCount(text: string) { return text.trim().split(/\s+/).filter(Boolean).length }
+
+function verdictColor(verdict: 'quality' | 'remarks' | 'poor') {
+  if (verdict === 'quality') return '#4ade80'
+  if (verdict === 'remarks') return '#fbbf24'
   return '#f87171'
 }
 
-function ScoreCell({ s }: { s: number }) {
-  return (
-    <td style={{ textAlign: 'center', padding: '10px 8px', fontWeight: 700, fontSize: 14, color: scoreColor(s), fontFamily: FONT }}>
-      {s}
-    </td>
-  )
-}
-
-const SCORE_KEYS = ['grammar', 'style', 'characters', 'emotion', 'uniqueness']
-const SCORE_SHORT: Record<string, string> = {
-  grammar: 'Грам', style: 'Стиль', characters: 'Хар-ри', emotion: 'Емоц', uniqueness: 'Унік',
+function verdictIcon(verdict: 'quality' | 'remarks' | 'poor') {
+  if (verdict === 'quality') return '✅'
+  if (verdict === 'remarks') return '⚠️'
+  return '❌'
 }
 
 // ── Main page ────────────────────────────────────────────────────────────────
@@ -68,18 +90,147 @@ export default function BatchReviewPage() {
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const [entries,    setEntries]    = useState<SeriesEntry[]>([])
-  const [dragOver,   setDragOver]   = useState(false)
-  const [pasteText,  setPasteText]  = useState('')
-  const [processing, setProcessing] = useState(false)
-  const [progress,   setProgress]   = useState({ current: 0, total: 0 })
-  const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [uploading,     setUploading]     = useState(false)
-  const [copied,        setCopied]        = useState(false)
-  const [zipLoading,    setZipLoading]    = useState(false)
-  const [finalReport,   setFinalReport]   = useState<FinalReport | null>(null)
-  const [finalLoading,  setFinalLoading]  = useState(false)
-  const [finalError,    setFinalError]    = useState('')
+  const [entries,     setEntries]     = useState<SeriesEntry[]>([])
+  const [hydrated,    setHydrated]    = useState(false)
+  const [dragOver,    setDragOver]    = useState(false)
+  const [uploading,   setUploading]   = useState(false)
+  const [processing,  setProcessing]  = useState(false)
+  const [progress,    setProgress]    = useState({ current: 0, total: 0 })
+  const [crossLoading, setCrossLoading] = useState(false)
+  const [zipLoading,  setZipLoading]  = useState(false)
+  const [season,      setSeason]      = useState(1)
+  const [pasteText,   setPasteText]   = useState('')
+
+  const entriesRef     = useRef<SeriesEntry[]>([])
+  const processingRef  = useRef(false)
+  const crossLoadingRef = useRef(false)
+  const debounceRef    = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Keep ref in sync
+  useEffect(() => { entriesRef.current = entries }, [entries])
+
+  // Persist to localStorage on change
+  useEffect(() => {
+    if (!hydrated) return
+    persist(entries)
+  }, [entries, hydrated])
+
+  // Hydrate from localStorage on mount
+  useEffect(() => {
+    setEntries(restore() as SeriesEntry[])
+    setHydrated(true)
+  }, [])
+
+  // After hydration: if pending entries, schedule analysis
+  useEffect(() => {
+    if (!hydrated) return
+    const hasPending = entriesRef.current.some(e => e.status === 'pending')
+    if (hasPending) scheduleAnalysis()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated])
+
+  // ── Analysis ────────────────────────────────────────────────────────────────
+
+  function scheduleAnalysis() {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      if (processingRef.current) return
+      const pending = entriesRef.current.filter(e => e.status === 'pending')
+      if (pending.length) runAnalysis(pending)
+    }, 1200)
+  }
+
+  async function runAnalysis(pending: SeriesEntry[]) {
+    const alreadyDone = entriesRef.current.filter(e => e.status === 'done' && e.qcResult)
+    processingRef.current = true
+    setProcessing(true)
+    setProgress({ current: 0, total: pending.length })
+
+    const newlyDone: SeriesEntry[] = []
+
+    for (let i = 0; i < pending.length; i++) {
+      const entry = pending[i]
+      setProgress({ current: i + 1, total: pending.length })
+      setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, status: 'reviewing' } : e))
+
+      try {
+        const res = await fetch('/api/admin/quality-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: entry.text }),
+        })
+        const data = await res.json() as QCResponse
+        if (!res.ok || data.error) {
+          setEntries(prev => prev.map(e =>
+            e.id === entry.id ? { ...e, status: 'error', error: data.error ?? 'Помилка перевірки' } : e
+          ))
+        } else {
+          const qcResult: QCResult = {
+            verdict: data.verdict ?? 'poor',
+            issues: {
+              technical:  data.issues?.technical  ?? [],
+              stylistics: data.issues?.stylistics ?? [],
+              plot:       data.issues?.plot       ?? [],
+            },
+            summary: data.summary ?? '',
+          }
+          const doneEntry: SeriesEntry = {
+            ...entry,
+            status: 'done',
+            qcResult,
+            markedForDeletion: qcResult.verdict === 'poor',
+          }
+          newlyDone.push(doneEntry)
+          setEntries(prev => prev.map(e => e.id === entry.id ? doneEntry : e))
+        }
+      } catch {
+        setEntries(prev => prev.map(e =>
+          e.id === entry.id ? { ...e, status: 'error', error: "Помилка з'єднання" } : e
+        ))
+      }
+    }
+
+    processingRef.current = false
+    setProcessing(false)
+
+    const allDone = [...alreadyDone, ...newlyDone]
+    if (allDone.length >= 2) {
+      runCrossReview(allDone)
+    }
+  }
+
+  async function runCrossReview(doneEntries: SeriesEntry[]) {
+    if (crossLoadingRef.current) return
+    crossLoadingRef.current = true
+    setCrossLoading(true)
+
+    try {
+      const res = await fetch('/api/admin/cross-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          series: doneEntries.map(e => ({
+            filename: e.filename,
+            textSnippet: e.text.slice(0, 800),
+          })),
+        }),
+      })
+      const data = await res.json() as CrossReviewResponse
+      const crossIssuesMap = new Map<string, string[]>()
+      for (const item of data.episodeCrossIssues ?? []) {
+        crossIssuesMap.set(item.filename, item.issues)
+      }
+      setEntries(prev => prev.map(e => ({
+        ...e,
+        crossIssues: crossIssuesMap.has(e.filename) ? crossIssuesMap.get(e.filename) : e.crossIssues,
+      })))
+    } catch {
+      // swallow — don't fail
+    } finally {
+      crossLoadingRef.current = false
+      setCrossLoading(false)
+    }
+  }
 
   // ── File handling ──────────────────────────────────────────────────────────
 
@@ -88,17 +239,32 @@ export default function BatchReviewPage() {
     if (!docxFiles.length) return
     setUploading(true)
     for (const file of docxFiles) {
+      // Deduplicate by filename
+      if (entriesRef.current.some(e => e.filename === file.name)) continue
       const fd = new FormData()
       fd.append('file', file)
       try {
         const res = await fetch('/api/admin/parse-docx', { method: 'POST', body: fd })
-        const data = await res.json() as { text?: string; filename?: string; error?: string }
+        const data = await res.json() as ParseDocxResponse
         if (data.text) {
-          setEntries(prev => [...prev, { id: uid(), filename: data.filename ?? file.name, text: data.text!, file, status: 'pending' }])
+          const newEntry: SeriesEntry = {
+            id: uid(),
+            filename: data.filename ?? file.name,
+            text: data.text,
+            file,
+            status: 'pending',
+            markedForDeletion: false,
+          }
+          setEntries(prev => {
+            if (prev.some(e => e.filename === newEntry.filename)) return prev
+            return [...prev, newEntry]
+          })
         }
       } catch { /* skip failed file */ }
     }
     setUploading(false)
+    scheduleAnalysis()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -111,128 +277,51 @@ export default function BatchReviewPage() {
   const addFromText = () => {
     const parts = pasteText.split(/\n---+\n|\n===+\n/).map(s => s.trim()).filter(Boolean)
     if (!parts.length) return
-    const newEntries: SeriesEntry[] = parts.map((t, i) => ({
-      id: uid(),
-      filename: `Серія ${entries.length + i + 1}`,
-      text: t,
-      status: 'pending',
-    }))
+    const currentEntries = entriesRef.current
+    const newEntries: SeriesEntry[] = parts
+      .map((t, i): SeriesEntry | null => {
+        const name = `Серія ${currentEntries.length + i + 1}`
+        if (currentEntries.some(e => e.filename === name)) return null
+        return {
+          id: uid(),
+          filename: name,
+          text: t,
+          status: 'pending' as const,
+          markedForDeletion: false,
+        }
+      })
+      .filter((e): e is SeriesEntry => e !== null)
+    if (!newEntries.length) return
     setEntries(prev => [...prev, ...newEntries])
     setPasteText('')
+    scheduleAnalysis()
   }
 
-  // ── Final review ───────────────────────────────────────────────────────────
-
-  const runFinalReview = async (doneEntries: SeriesEntry[]) => {
-    setFinalLoading(true); setFinalError(''); setFinalReport(null)
-    try {
-      const payload = doneEntries.map(e => ({
-        filename: e.filename,
-        textSnippet: e.text.slice(0, 400),
-        report: e.report,
-      }))
-      const res = await fetch('/api/admin/final-review', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ series: payload }),
-      })
-      const data = await res.json() as FinalReport & { error?: string }
-      if (!res.ok || data.error) { setFinalError(data.error ?? 'Помилка фінальної перевірки'); return }
-      setFinalReport(data)
-    } catch {
-      setFinalError("Помилка з'єднання з API")
-    } finally {
-      setFinalLoading(false)
-    }
-  }
-
-  // ── Batch review ───────────────────────────────────────────────────────────
-
-  const runBatch = async () => {
-    const alreadyDone = entries.filter(e => e.status === 'done' && e.report)
-    const pending = entries.filter(e => e.status === 'pending' || e.status === 'error')
-    if (!pending.length) return
-    setProcessing(true)
-    setFinalReport(null)
-    setProgress({ current: 0, total: pending.length })
-
-    const newlyDone: SeriesEntry[] = []
-
-    for (let i = 0; i < pending.length; i++) {
-      const entry = pending[i]
-      setProgress({ current: i + 1, total: pending.length })
-      setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, status: 'reviewing' } : e))
-
-      try {
-        const res = await fetch('/api/admin/review', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: entry.text }),
-        })
-        const data = await res.json() as ReviewReport & { error?: string }
-        if (!res.ok || data.error) {
-          setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, status: 'error', error: data.error ?? 'Помилка' } : e))
-        } else {
-          const doneEntry: SeriesEntry = { ...entry, status: 'done', report: data }
-          newlyDone.push(doneEntry)
-          setEntries(prev => prev.map(e => e.id === entry.id ? doneEntry : e))
-        }
-      } catch {
-        setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, status: 'error', error: "Помилка з'єднання" } : e))
-      }
-    }
-    setProcessing(false)
-
-    const allDone = [...alreadyDone, ...newlyDone]
-    if (allDone.length >= 1) {
-      await runFinalReview(allDone)
-    }
-  }
-
-  // ── Export summary ─────────────────────────────────────────────────────────
-
-  const exportSummary = async () => {
-    const done = entries.filter(e => e.status === 'done' && e.report)
-    const lines = done.map((e, i) => {
-      const r = e.report!
-      const scores = SCORE_KEYS.map(k => {
-        const s = r.scores.find(x => x.key === k)
-        return `${SCORE_SHORT[k]}: ${s?.score ?? '—'}`
-      }).join(' | ')
-      return `${i + 1}. ${e.filename}\n   Загальна: ${r.overall}/10 | ${scores}\n   Проблеми (${r.problems.length}): ${r.problems.slice(0, 2).join('; ')}`
-    })
-    await navigator.clipboard.writeText(lines.join('\n\n'))
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2500)
-  }
+  // ── ZIP download ───────────────────────────────────────────────────────────
 
   const downloadZip = async () => {
-    const reworkSet = new Set((finalReport?.needsRework ?? []).map(r => r.filename))
-    const toExport = entries.filter(e => e.status === 'done' && !reworkSet.has(e.filename))
-    if (!toExport.length) return
-
+    const toKeep = entries.filter(e => e.status === 'done' && !e.markedForDeletion)
+    if (!toKeep.length) return
     setZipLoading(true)
     try {
       const JSZip = (await import('jszip')).default
       const zip = new JSZip()
-
-      for (let i = 0; i < toExport.length; i++) {
-        const entry = toExport[i]
+      for (let i = 0; i < toKeep.length; i++) {
+        const entry = toKeep[i]
         const num = String(i + 1).padStart(2, '0')
         const safeName = entry.filename.replace(/[/\\:*?"<>|]/g, '_').replace(/\.docx$/i, '')
-
+        const prefix = `С${season}-Серія-${num}`
         if (entry.file) {
-          zip.file(`${num}_${safeName}.docx`, await entry.file.arrayBuffer())
+          zip.file(`${prefix}_${safeName}.docx`, await entry.file.arrayBuffer())
         } else {
-          zip.file(`${num}_${safeName}.txt`, entry.text)
+          zip.file(`${prefix}_${safeName}.txt`, entry.text)
         }
       }
-
       const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = 'Балабони_серії_впорядковані.zip'
+      a.download = `Балабони_С${season}_впорядковані.zip`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
@@ -242,8 +331,19 @@ export default function BatchReviewPage() {
     }
   }
 
-  const doneCount  = entries.filter(e => e.status === 'done').length
-  const hasPending = entries.some(e => e.status === 'pending' || e.status === 'error')
+  // ── Derived state ──────────────────────────────────────────────────────────
+
+  const doneEntries   = entries.filter(e => e.status === 'done' && e.qcResult)
+  const doneCount     = doneEntries.length
+  const qualityCount  = doneEntries.filter(e => e.qcResult!.verdict === 'quality').length
+  const remarksCount  = doneEntries.filter(e => e.qcResult!.verdict === 'remarks').length
+  const poorCount     = doneEntries.filter(e => e.qcResult!.verdict === 'poor').length
+  const deletedCount  = entries.filter(e => e.markedForDeletion).length
+  const keepCount     = entries.filter(e => e.status === 'done' && !e.markedForDeletion).length
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+
+  if (!hydrated) return null
 
   return (
     <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT, padding: '24px 16px 80px' }}>
@@ -268,7 +368,7 @@ export default function BatchReviewPage() {
           </div>
         </div>
 
-        {/* Input area */}
+        {/* Upload section */}
         <div style={{ background: NAVY, borderRadius: 16, padding: '20px 18px', border: '0.5px solid rgba(255,255,255,0.07)', marginBottom: 16 }}>
 
           {/* Drop zone */}
@@ -328,381 +428,276 @@ export default function BatchReviewPage() {
           </button>
         </div>
 
-        {/* Entries list */}
+        {/* Episode list */}
         {entries.length > 0 && (
-          <div style={{ background: NAVY, borderRadius: 16, padding: '16px 18px', border: '0.5px solid rgba(255,255,255,0.07)', marginBottom: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+
+            {/* List header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 6 }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT }}>
                 Серій у черзі: {entries.length}
               </span>
               <button
-                onClick={() => setEntries([])}
+                onClick={() => {
+                  setEntries([])
+                  localStorage.removeItem(STORAGE_KEY)
+                }}
                 style={{ fontSize: 11, color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', fontFamily: FONT }}
               >
                 Очистити все
               </button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {entries.map((e, i) => (
-                <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 9, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                  <span style={{ fontSize: 11, color: '#445566', fontFamily: FONT, flexShrink: 0, width: 20, textAlign: 'right' }}>{i + 1}</span>
-                  <span style={{ flex: 1, fontSize: 13, color: '#c8d4e8', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.filename}</span>
-                  <span style={{ fontSize: 11, color: '#445566', fontFamily: FONT, flexShrink: 0 }}>{e.text.trim().split(/\s+/).length} сл.</span>
-                  <span style={{ fontSize: 12, flexShrink: 0 }}>
-                    {e.status === 'pending'   && <span style={{ color: '#8899bb' }}>⏳</span>}
-                    {e.status === 'reviewing' && <span style={{ color: GOLD }}>⚡</span>}
-                    {e.status === 'done'      && <span style={{ color: '#4ade80' }}>✓</span>}
-                    {e.status === 'error'     && <span style={{ color: '#f87171' }}>✕</span>}
-                  </span>
-                  {e.status !== 'reviewing' && (
-                    <button onClick={() => setEntries(prev => prev.filter(x => x.id !== e.id))} style={{ background: 'none', border: 'none', color: '#445566', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: 0, flexShrink: 0 }}>×</button>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Run button */}
-            <div style={{ marginTop: 14, display: 'flex', gap: 10, alignItems: 'center' }}>
-              <button
-                onClick={runBatch}
-                disabled={processing || !hasPending}
-                style={{
-                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
-                  background: processing ? 'rgba(99,102,241,0.45)' : !hasPending ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                  color: !hasPending ? '#445566' : '#fff',
-                  border: 'none', borderRadius: 12, padding: '14px 20px',
-                  fontSize: 14, fontWeight: 700, fontFamily: FONT,
-                  cursor: processing ? 'wait' : !hasPending ? 'not-allowed' : 'pointer',
-                  boxShadow: !hasPending || processing ? 'none' : '0 2px 12px rgba(99,102,241,0.3)',
-                  transition: 'all 0.2s',
-                }}
-              >
-                {processing ? (
-                  <>
-                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 1s linear infinite' }}>
-                      <circle cx="8" cy="8" r="6" stroke="#fff" strokeWidth="2" strokeDasharray="20 18" strokeLinecap="round"/>
-                    </svg>
-                    Перевіряю {progress.current} з {progress.total}…
-                  </>
-                ) : (
-                  <>
-                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-                      <circle cx="7" cy="7" r="5" stroke="#fff" strokeWidth="1.6"/>
-                      <path d="M11 11l3 3" stroke="#fff" strokeWidth="1.6" strokeLinecap="round"/>
-                    </svg>
-                    Перевірити всі ({entries.filter(e => e.status === 'pending' || e.status === 'error').length}) (AI)
-                  </>
-                )}
-              </button>
-              {doneCount > 0 && (
-                <>
-                  <button
-                    onClick={exportSummary}
-                    style={{ fontSize: 12, fontWeight: 600, color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)', borderRadius: 10, padding: '10px 14px', cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
-                  >
-                    {copied ? '✓ Скопійовано' : '📋 Копіювати звіт'}
-                  </button>
-                  <button
-                    onClick={downloadZip}
-                    disabled={zipLoading}
-                    style={{ fontSize: 12, fontWeight: 600, color: zipLoading ? '#445566' : GOLD, background: zipLoading ? 'rgba(255,255,255,0.03)' : 'rgba(240,165,0,0.1)', border: `1px solid ${zipLoading ? 'rgba(255,255,255,0.08)' : 'rgba(240,165,0,0.25)'}`, borderRadius: 10, padding: '10px 14px', cursor: zipLoading ? 'wait' : 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
-                  >
-                    {zipLoading ? '⏳ Пакую…' : '⬇️ Завантажити ZIP'}
-                  </button>
-                </>
-              )}
-            </div>
 
             {/* Progress bar */}
             {processing && (
-              <div style={{ marginTop: 10, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' }}>
-                <div style={{ height: '100%', background: '#6366f1', borderRadius: 2, width: `${(progress.current / progress.total) * 100}%`, transition: 'width 0.4s ease' }} />
+              <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  background: GOLD,
+                  borderRadius: 2,
+                  width: `${progress.total > 0 ? (progress.current / progress.total) * 100 : 0}%`,
+                  transition: 'width 0.4s ease',
+                }} />
               </div>
             )}
-          </div>
-        )}
 
-        {/* Results table */}
-        {doneCount > 0 && (
-          <div style={{ background: NAVY, borderRadius: 16, border: '0.5px solid rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-            <div style={{ padding: '16px 18px', borderBottom: '0.5px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT }}>
-                Результати — {doneCount} серій
-              </span>
-              <span style={{ fontSize: 11, color: '#445566', fontFamily: FONT }}>Клікніть рядок для деталей</span>
-            </div>
+            {/* Cross-review indicator */}
+            {crossLoading && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'rgba(240,165,0,0.07)', borderRadius: 10, border: '1px solid rgba(240,165,0,0.2)' }}>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }}>
+                  <circle cx="8" cy="8" r="6" stroke={GOLD} strokeWidth="2" strokeDasharray="20 18" strokeLinecap="round"/>
+                </svg>
+                <span style={{ fontSize: 12, color: GOLD, fontFamily: FONT }}>Крос-аналіз серій (AI)…</span>
+              </div>
+            )}
 
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
-                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#445566', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT }}>№</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#445566', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT }}>Назва</th>
-                    <th style={{ padding: '10px 8px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#445566', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT }}>Заг.</th>
-                    {SCORE_KEYS.map(k => (
-                      <th key={k} style={{ padding: '10px 8px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#445566', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT }}>{SCORE_SHORT[k]}</th>
-                    ))}
-                    <th style={{ padding: '10px 8px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#445566', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT }}>Пробл.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {entries.filter(e => e.status === 'done' && e.report).map((e, i) => (
-                    <>
-                      <tr
-                        key={e.id}
-                        onClick={() => setExpandedId(expandedId === e.id ? null : e.id)}
-                        style={{ borderBottom: '0.5px solid rgba(255,255,255,0.05)', cursor: 'pointer', background: expandedId === e.id ? 'rgba(99,102,241,0.07)' : 'transparent', transition: 'background 0.15s' }}
-                      >
-                        <td style={{ padding: '12px 12px', fontSize: 12, color: '#445566', fontFamily: FONT }}>{i + 1}</td>
-                        <td style={{ padding: '12px 12px', fontSize: 13, color: '#f5f0e8', fontFamily: FONT, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          <span style={{ marginRight: 6 }}>{expandedId === e.id ? '▼' : '▶'}</span>
-                          {e.filename}
-                        </td>
-                        <ScoreCell s={e.report!.overall} />
-                        {SCORE_KEYS.map(k => {
-                          const sc = e.report!.scores.find(x => x.key === k)
-                          return <ScoreCell key={k} s={sc?.score ?? 0} />
-                        })}
-                        <td style={{ textAlign: 'center', padding: '12px 8px', fontSize: 13, color: e.report!.problems.length > 2 ? '#f87171' : '#8899bb', fontFamily: FONT, fontWeight: 700 }}>
-                          {e.report!.problems.length}
-                        </td>
-                      </tr>
-
-                      {expandedId === e.id && (
-                        <tr key={`${e.id}-detail`}>
-                          <td colSpan={9} style={{ padding: '0 12px 16px', background: 'rgba(99,102,241,0.05)' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, paddingTop: 12 }}>
-                              {/* Score comments */}
-                              <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 10, padding: '12px 14px' }}>
-                                <div style={{ fontSize: 10, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 8 }}>Оцінки</div>
-                                {e.report!.scores.map(s => (
-                                  <div key={s.key} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
-                                    <span style={{ fontSize: 13, fontWeight: 800, color: scoreColor(s.score), fontFamily: FONT, flexShrink: 0, width: 22 }}>{s.score}</span>
-                                    <span style={{ fontSize: 12, color: '#c8d4e8', lineHeight: 1.5, fontFamily: FONT }}><b style={{ color: '#8899bb' }}>{s.label}:</b> {s.comment}</span>
-                                  </div>
-                                ))}
-                              </div>
-
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                                {/* Problems */}
-                                {e.report!.problems.length > 0 && (
-                                  <div style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 10, padding: '10px 14px' }}>
-                                    <div style={{ fontSize: 10, fontWeight: 700, color: '#f87171', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>⚠️ Проблеми</div>
-                                    {e.report!.problems.map((p, pi) => (
-                                      <div key={pi} style={{ display: 'flex', gap: 6, fontSize: 12, color: '#c8d4e8', lineHeight: 1.5, fontFamily: FONT, marginBottom: 4 }}>
-                                        <span style={{ color: '#f87171', fontWeight: 700 }}>·</span>{p}
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                                {/* Recommendations */}
-                                {e.report!.recommendations.length > 0 && (
-                                  <div style={{ background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 10, padding: '10px 14px' }}>
-                                    <div style={{ fontSize: 10, fontWeight: 700, color: '#818cf8', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>💡 Рекомендації</div>
-                                    {e.report!.recommendations.map((r, ri) => (
-                                      <div key={ri} style={{ display: 'flex', gap: 6, fontSize: 12, color: '#c8d4e8', lineHeight: 1.5, fontFamily: FONT, marginBottom: 4 }}>
-                                        <span style={{ color: '#818cf8', fontWeight: 700 }}>·</span>{r}
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Average row */}
-            {doneCount > 1 && (() => {
-              const done = entries.filter(e => e.status === 'done' && e.report)
-              const avg = (key: string) => {
-                const vals = done.map(e => e.report!.scores.find(s => s.key === key)?.score ?? 0)
-                return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length)
+            {/* Entry cards */}
+            {entries.map((entry, idx) => {
+              if (entry.status === 'pending' || entry.status === 'reviewing') {
+                const isReviewing = entry.status === 'reviewing'
+                return (
+                  <div key={entry.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '8px 14px', borderRadius: 10,
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                  }}>
+                    {isReviewing ? (
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }}>
+                        <circle cx="8" cy="8" r="6" stroke={GOLD} strokeWidth="2" strokeDasharray="20 18" strokeLinecap="round"/>
+                      </svg>
+                    ) : (
+                      <span style={{ fontSize: 13, flexShrink: 0 }}>⏳</span>
+                    )}
+                    <span style={{ flex: 1, fontSize: 13, color: isReviewing ? GOLD : '#c8d4e8', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {idx + 1}. {entry.filename}
+                    </span>
+                    <span style={{ fontSize: 11, color: '#445566', fontFamily: FONT, flexShrink: 0 }}>{wordCount(entry.text)} сл.</span>
+                    {!isReviewing && (
+                      <button onClick={() => setEntries(prev => prev.filter(x => x.id !== entry.id))} style={{ background: 'none', border: 'none', color: '#445566', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0, flexShrink: 0 }}>×</button>
+                    )}
+                  </div>
+                )
               }
-              const avgOverall = Math.round(done.reduce((a, e) => a + e.report!.overall, 0) / done.length)
+
+              if (entry.status === 'error') {
+                return (
+                  <div key={entry.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '8px 14px', borderRadius: 10,
+                    background: 'rgba(248,113,113,0.07)',
+                    border: '1px solid rgba(248,113,113,0.2)',
+                  }}>
+                    <span style={{ fontSize: 13, flexShrink: 0 }}>❌</span>
+                    <span style={{ flex: 1, fontSize: 13, color: '#f87171', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {idx + 1}. {entry.filename} — {entry.error}
+                    </span>
+                    <button
+                      onClick={() => {
+                        setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, status: 'pending', error: undefined } : e))
+                        scheduleAnalysis()
+                      }}
+                      style={{ fontSize: 11, color: GOLD, background: 'rgba(240,165,0,0.1)', border: '1px solid rgba(240,165,0,0.25)', borderRadius: 6, padding: '3px 9px', cursor: 'pointer', fontFamily: FONT, flexShrink: 0 }}
+                    >
+                      Retry
+                    </button>
+                    <button onClick={() => setEntries(prev => prev.filter(x => x.id !== entry.id))} style={{ background: 'none', border: 'none', color: '#445566', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0, flexShrink: 0 }}>×</button>
+                  </div>
+                )
+              }
+
+              // done
+              if (!entry.qcResult) return null
+              const qc = entry.qcResult
+              const vColor = verdictColor(qc.verdict)
+              const hasIssues = qc.issues.technical.length > 0 || qc.issues.stylistics.length > 0 || qc.issues.plot.length > 0
+              const hasCrossIssues = (entry.crossIssues?.length ?? 0) > 0
+
               return (
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', padding: '12px 12px', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.02)' }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: '#445566', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, width: 32 }}>СЕР.</span>
-                  <span style={{ fontSize: 11, color: '#8899bb', fontFamily: FONT, flex: 1 }}>Середній бал по всіх серіях</span>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: scoreColor(avgOverall), fontFamily: FONT, width: 40, textAlign: 'center' }}>{avgOverall}</span>
-                  {SCORE_KEYS.map(k => (
-                    <span key={k} style={{ fontSize: 14, fontWeight: 700, color: scoreColor(avg(k)), fontFamily: FONT, width: 36, textAlign: 'center' }}>{avg(k)}</span>
-                  ))}
-                  <span style={{ width: 40 }} />
+                <div key={entry.id} style={{
+                  borderRadius: 12,
+                  background: '#081420',
+                  border: `1px solid ${vColor}44`,
+                  overflow: 'hidden',
+                }}>
+                  {/* Card header */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderBottom: hasIssues || hasCrossIssues ? '1px solid rgba(255,255,255,0.05)' : undefined }}>
+                    <span style={{ fontSize: 14, flexShrink: 0 }}>{verdictIcon(qc.verdict)}</span>
+                    <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#f5f0e8', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {idx + 1}. {entry.filename}
+                    </span>
+                    <span style={{ fontSize: 11, color: '#445566', fontFamily: FONT, flexShrink: 0 }}>{wordCount(entry.text)} сл.</span>
+                    <button onClick={() => setEntries(prev => prev.filter(x => x.id !== entry.id))} style={{ background: 'none', border: 'none', color: '#445566', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0, flexShrink: 0 }}>×</button>
+                  </div>
+
+                  {/* Summary */}
+                  <div style={{ padding: '8px 14px', fontSize: 12, color: '#c8d4e8', lineHeight: 1.6, fontFamily: FONT }}>
+                    {qc.summary}
+                  </div>
+
+                  {/* Issues */}
+                  {hasIssues && (
+                    <div style={{ padding: '0 14px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {qc.issues.technical.length > 0 && (
+                        <div>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 3 }}>Технічне</div>
+                          {qc.issues.technical.map((issue, ii) => (
+                            <div key={ii} style={{ display: 'flex', gap: 6, fontSize: 12, color: '#c8d4e8', lineHeight: 1.5, fontFamily: FONT }}>
+                              <span style={{ color: '#f87171', fontWeight: 700, flexShrink: 0 }}>·</span>{issue}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {qc.issues.stylistics.length > 0 && (
+                        <div>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 3 }}>Стилістика</div>
+                          {qc.issues.stylistics.map((issue, ii) => (
+                            <div key={ii} style={{ display: 'flex', gap: 6, fontSize: 12, color: '#c8d4e8', lineHeight: 1.5, fontFamily: FONT }}>
+                              <span style={{ color: '#fbbf24', fontWeight: 700, flexShrink: 0 }}>·</span>{issue}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {qc.issues.plot.length > 0 && (
+                        <div>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 3 }}>Сюжет і персонажі</div>
+                          {qc.issues.plot.map((issue, ii) => (
+                            <div key={ii} style={{ display: 'flex', gap: 6, fontSize: 12, color: '#c8d4e8', lineHeight: 1.5, fontFamily: FONT }}>
+                              <span style={{ color: '#818cf8', fontWeight: 700, flexShrink: 0 }}>·</span>{issue}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Cross issues */}
+                  {hasCrossIssues && (
+                    <div style={{ padding: '0 14px 10px' }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#fb923c', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 3 }}>Крос-серійні:</div>
+                      {entry.crossIssues!.map((issue, ii) => (
+                        <div key={ii} style={{ display: 'flex', gap: 6, fontSize: 12, color: '#c8d4e8', lineHeight: 1.5, fontFamily: FONT }}>
+                          <span style={{ color: '#fb923c', fontWeight: 700, flexShrink: 0 }}>·</span>{issue}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Deletion toggle footer */}
+                  {(qc.verdict === 'poor' || qc.verdict === 'remarks') && (
+                    <div style={{ padding: '8px 14px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: 8 }}>
+                      {qc.verdict === 'poor' && (
+                        entry.markedForDeletion ? (
+                          <button
+                            onClick={() => setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, markedForDeletion: false } : e))}
+                            style={{ fontSize: 12, fontWeight: 600, color: '#f87171', background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 7, padding: '5px 12px', cursor: 'pointer', fontFamily: FONT }}
+                          >
+                            ❌ Буде видалена → Залишити
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, markedForDeletion: true } : e))}
+                            style={{ fontSize: 12, fontWeight: 600, color: '#8899bb', background: 'none', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 7, padding: '5px 12px', cursor: 'pointer', fontFamily: FONT }}
+                          >
+                            Залишити → Позначити для видалення
+                          </button>
+                        )
+                      )}
+                      {qc.verdict === 'remarks' && (
+                        <button
+                          onClick={() => setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, markedForDeletion: !e.markedForDeletion } : e))}
+                          style={{
+                            fontSize: 12, fontWeight: 600,
+                            color: entry.markedForDeletion ? '#f87171' : '#8899bb',
+                            background: entry.markedForDeletion ? 'rgba(248,113,113,0.1)' : 'none',
+                            border: `1px solid ${entry.markedForDeletion ? 'rgba(248,113,113,0.3)' : 'rgba(255,255,255,0.15)'}`,
+                            borderRadius: 7, padding: '5px 12px', cursor: 'pointer', fontFamily: FONT,
+                          }}
+                        >
+                          {entry.markedForDeletion ? '❌ Позначено для видалення → Скасувати' : 'Позначити для видалення'}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               )
-            })()}
+            })}
           </div>
         )}
 
-        {/* Final review loading */}
-        {finalLoading && (
-          <div style={{ marginTop: 16, background: NAVY, borderRadius: 16, padding: '24px 20px', border: '1px solid rgba(240,165,0,0.2)', display: 'flex', alignItems: 'center', gap: 14 }}>
-            <svg width="22" height="22" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }}>
-              <circle cx="8" cy="8" r="6" stroke={GOLD} strokeWidth="2" strokeDasharray="20 18" strokeLinecap="round"/>
-            </svg>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: GOLD, fontFamily: FONT, marginBottom: 2 }}>Фінальна перевірка якості (AI)…</div>
-              <div style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>Gemini аналізує весь серіал цілісно</div>
-            </div>
-          </div>
-        )}
+        {/* Stats + actions bar */}
+        {doneCount > 0 && (
+          <div style={{ background: NAVY, borderRadius: 16, border: '0.5px solid rgba(255,255,255,0.07)', padding: '16px 18px' }}>
 
-        {/* Final review error */}
-        {finalError && (
-          <div style={{ marginTop: 16, fontSize: 13, color: '#f87171', padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>
-            {finalError}
-          </div>
-        )}
-
-        {/* Final report */}
-        {finalReport && (
-          <div style={{ marginTop: 16, background: NAVY, borderRadius: 16, border: `1px solid ${finalReport.verdict === 'ready' ? 'rgba(74,222,128,0.3)' : 'rgba(248,113,113,0.3)'}`, overflow: 'hidden' }}>
-
-            {/* Verdict banner */}
-            <div style={{
-              padding: '20px 22px',
-              background: finalReport.verdict === 'ready' ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)',
-              borderBottom: `1px solid ${finalReport.verdict === 'ready' ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)'}`,
-              display: 'flex', alignItems: 'center', gap: 16,
-            }}>
-              <div style={{
-                width: 48, height: 48, borderRadius: 12, flexShrink: 0,
-                background: finalReport.verdict === 'ready' ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
-              }}>
-                {finalReport.verdict === 'ready' ? '✅' : '⚠️'}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#8899bb', letterSpacing: 1.5, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 4 }}>Фінальна перевірка якості</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: finalReport.verdict === 'ready' ? '#4ade80' : '#f87171', fontFamily: FONT }}>
-                  {finalReport.verdictText}
-                </div>
-              </div>
-              <div style={{ textAlign: 'center', flexShrink: 0 }}>
-                <div style={{ fontSize: 38, fontWeight: 800, color: scoreColor(finalReport.overallQuality.score), fontFamily: FONT, lineHeight: 1 }}>{finalReport.overallQuality.score}</div>
-                <div style={{ fontSize: 11, color: '#445566', fontFamily: FONT }}>/10 серіал</div>
-              </div>
+            {/* Stats row */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginBottom: 14, alignItems: 'center' }}>
+              <span style={{ fontSize: 13, color: '#4ade80', fontFamily: FONT }}>✅ {qualityCount} якісних</span>
+              <span style={{ fontSize: 13, color: '#fbbf24', fontFamily: FONT }}>⚠️ {remarksCount} зауважень</span>
+              <span style={{ fontSize: 13, color: '#f87171', fontFamily: FONT }}>❌ {poorCount} неякісних</span>
+              <div style={{ flex: 1 }} />
+              <span style={{ fontSize: 13, color: '#8899bb', fontFamily: FONT }}>Буде видалено: {deletedCount}</span>
             </div>
 
-            <div style={{ padding: '18px 20px' }}>
+            {/* Naming preview */}
+            <div style={{ fontSize: 11, color: '#445566', fontFamily: FONT, marginBottom: 10 }}>
+              Назва: С{season}-Серія-01, С{season}-Серія-02…
+            </div>
 
-              {/* 6 indicator cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginBottom: 16 }}>
+            {/* Season + download row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <label style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT, display: 'flex', alignItems: 'center', gap: 6 }}>
+                Сезон:
+                <input
+                  type="number" min={1} max={99} value={season}
+                  onChange={e => setSeason(Math.max(1, Math.min(99, parseInt(e.target.value) || 1)))}
+                  style={{
+                    width: 52, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: 7, color: '#f5f0e8', fontSize: 13, fontFamily: FONT,
+                    padding: '4px 8px', outline: 'none', textAlign: 'center',
+                  }}
+                />
+              </label>
+              <button
+                onClick={downloadZip}
+                disabled={zipLoading || keepCount === 0}
+                style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  background: zipLoading || keepCount === 0 ? 'rgba(255,255,255,0.04)' : 'rgba(240,165,0,0.15)',
+                  color: zipLoading || keepCount === 0 ? '#445566' : GOLD,
+                  border: `1px solid ${zipLoading || keepCount === 0 ? 'rgba(255,255,255,0.08)' : 'rgba(240,165,0,0.35)'}`,
+                  borderRadius: 10, padding: '11px 18px',
+                  fontSize: 13, fontWeight: 700, fontFamily: FONT,
+                  cursor: zipLoading || keepCount === 0 ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {zipLoading ? '⏳ Пакую…' : `⬇️ Підтвердити та скачати ZIP (${keepCount} серій)`}
+              </button>
+            </div>
 
-                {/* Style compliance */}
-                {(() => {
-                  const ok = finalReport.styleCompliance.compliant >= finalReport.styleCompliance.nonCompliant + finalReport.styleCompliance.compliant * 0.3
-                  return (
-                    <div style={{ background: ok ? 'rgba(74,222,128,0.07)' : 'rgba(248,113,113,0.07)', border: `1px solid ${ok ? 'rgba(74,222,128,0.2)' : 'rgba(248,113,113,0.2)'}`, borderRadius: 12, padding: '12px 14px' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: ok ? '#4ade80' : '#f87171', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>🎭 Стиль Балабонів</div>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT, marginBottom: 4 }}>
-                        <span style={{ color: '#4ade80' }}>{finalReport.styleCompliance.compliant} відп.</span>
-                        {finalReport.styleCompliance.nonCompliant > 0 && <span style={{ color: '#f87171' }}> · {finalReport.styleCompliance.nonCompliant} не відп.</span>}
-                      </div>
-                      <div style={{ fontSize: 12, color: '#8899bb', lineHeight: 1.4, fontFamily: FONT }}>{finalReport.styleCompliance.comment}</div>
-                    </div>
-                  )
-                })()}
-
-                {/* Characters bible */}
-                <div style={{ background: `${scoreColor(finalReport.charactersBible.score)}11`, border: `1px solid ${scoreColor(finalReport.charactersBible.score)}33`, borderRadius: 12, padding: '12px 14px' }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: scoreColor(finalReport.charactersBible.score), letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>👥 Відповідність CHARACTERS_BIBLE</div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4 }}>
-                    <span style={{ fontSize: 24, fontWeight: 800, color: scoreColor(finalReport.charactersBible.score), fontFamily: FONT, lineHeight: 1 }}>{finalReport.charactersBible.score}</span>
-                    <span style={{ fontSize: 12, color: '#445566', fontFamily: FONT }}>/10</span>
-                  </div>
-                  <div style={{ fontSize: 12, color: '#8899bb', lineHeight: 1.4, fontFamily: FONT }}>{finalReport.charactersBible.comment}</div>
-                </div>
-
-                {/* Chronology */}
-                {(() => {
-                  const ok = finalReport.chronologyLogic.valid
-                  return (
-                    <div style={{ background: ok ? 'rgba(74,222,128,0.07)' : 'rgba(251,191,36,0.07)', border: `1px solid ${ok ? 'rgba(74,222,128,0.2)' : 'rgba(251,191,36,0.25)'}`, borderRadius: 12, padding: '12px 14px' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: ok ? '#4ade80' : '#fbbf24', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>🕐 Логіка хронології</div>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: ok ? '#4ade80' : '#fbbf24', fontFamily: FONT, marginBottom: 4 }}>{ok ? 'Послідовність збережена' : 'Є проблеми'}</div>
-                      {finalReport.chronologyLogic.issues.length > 0 && finalReport.chronologyLogic.issues.map((iss, ii) => (
-                        <div key={ii} style={{ fontSize: 11, color: '#8899bb', fontFamily: FONT, marginBottom: 2 }}>· {iss}</div>
-                      ))}
-                      <div style={{ fontSize: 12, color: '#8899bb', lineHeight: 1.4, fontFamily: FONT, marginTop: 2 }}>{finalReport.chronologyLogic.comment}</div>
-                    </div>
-                  )
-                })()}
-
-                {/* Plot uniqueness */}
-                {(() => {
-                  const total = finalReport.plotUniqueness.uniqueCount + finalReport.plotUniqueness.duplicates
-                  const ok = finalReport.plotUniqueness.duplicates === 0
-                  return (
-                    <div style={{ background: ok ? 'rgba(74,222,128,0.07)' : 'rgba(251,191,36,0.07)', border: `1px solid ${ok ? 'rgba(74,222,128,0.2)' : 'rgba(251,191,36,0.25)'}`, borderRadius: 12, padding: '12px 14px' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: ok ? '#4ade80' : '#fbbf24', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>✨ Унікальність сюжетів</div>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT, marginBottom: 4 }}>
-                        <span style={{ color: '#4ade80' }}>{finalReport.plotUniqueness.uniqueCount} унік.</span>
-                        {finalReport.plotUniqueness.duplicates > 0 && <span style={{ color: '#fbbf24' }}> · {finalReport.plotUniqueness.duplicates} кліше</span>}
-                        {total > 0 && <span style={{ fontSize: 11, color: '#445566' }}> з {total}</span>}
-                      </div>
-                      <div style={{ fontSize: 12, color: '#8899bb', lineHeight: 1.4, fontFamily: FONT }}>{finalReport.plotUniqueness.comment}</div>
-                    </div>
-                  )
-                })()}
-
-                {/* TTS readiness */}
-                {(() => {
-                  const ok = finalReport.ttsReadiness.needsCleaning === 0
-                  return (
-                    <div style={{ background: ok ? 'rgba(74,222,128,0.07)' : 'rgba(248,113,113,0.07)', border: `1px solid ${ok ? 'rgba(74,222,128,0.2)' : 'rgba(248,113,113,0.2)'}`, borderRadius: 12, padding: '12px 14px' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: ok ? '#4ade80' : '#f87171', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>🎙️ Готовність до озвучки</div>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT, marginBottom: 4 }}>
-                        <span style={{ color: '#4ade80' }}>{finalReport.ttsReadiness.clean} готові</span>
-                        {finalReport.ttsReadiness.needsCleaning > 0 && <span style={{ color: '#f87171' }}> · {finalReport.ttsReadiness.needsCleaning} потреб. очищення</span>}
-                      </div>
-                      {finalReport.ttsReadiness.series.length > 0 && (
-                        <div style={{ fontSize: 11, color: '#f87171', fontFamily: FONT, marginBottom: 4 }}>{finalReport.ttsReadiness.series.join(', ')}</div>
-                      )}
-                      <div style={{ fontSize: 12, color: '#8899bb', lineHeight: 1.4, fontFamily: FONT }}>{finalReport.ttsReadiness.comment}</div>
-                    </div>
-                  )
-                })()}
-
-                {/* Overall quality detail */}
-                <div style={{ background: `${scoreColor(finalReport.overallQuality.score)}11`, border: `1px solid ${scoreColor(finalReport.overallQuality.score)}33`, borderRadius: 12, padding: '12px 14px' }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: scoreColor(finalReport.overallQuality.score), letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>📊 Загальна якість серіалу</div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4 }}>
-                    <span style={{ fontSize: 24, fontWeight: 800, color: scoreColor(finalReport.overallQuality.score), fontFamily: FONT, lineHeight: 1 }}>{finalReport.overallQuality.score}</span>
-                    <span style={{ fontSize: 12, color: '#445566', fontFamily: FONT }}>/10</span>
-                  </div>
-                  <div style={{ fontSize: 12, color: '#8899bb', lineHeight: 1.4, fontFamily: FONT }}>{finalReport.overallQuality.comment}</div>
-                </div>
-
-              </div>
-
-              {/* Needs rework list */}
-              {finalReport.needsRework.length > 0 && (
-                <div style={{ background: 'rgba(248,113,113,0.06)', border: '1px solid rgba(248,113,113,0.15)', borderRadius: 12, padding: '14px 16px' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#f87171', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 10 }}>
-                    🔧 Серії що потребують доопрацювання ({finalReport.needsRework.length})
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {finalReport.needsRework.map((item, i) => (
-                      <div key={i} style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: 9, border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT, marginBottom: 4 }}>{item.filename}</div>
-                        {item.reasons.map((r, ri) => (
-                          <div key={ri} style={{ display: 'flex', gap: 6, fontSize: 12, color: '#c8d4e8', lineHeight: 1.5, fontFamily: FONT }}>
-                            <span style={{ color: '#f87171', fontWeight: 700 }}>·</span>{r}
-                          </div>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
+            {/* Note about txt fallback */}
+            <div style={{ fontSize: 10, color: '#334455', fontFamily: FONT, marginTop: 8 }}>
+              * Після завантаження ZIP — файли без &apos;file&apos; будуть збережені як .txt
             </div>
           </div>
         )}
