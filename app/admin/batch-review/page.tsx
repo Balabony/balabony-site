@@ -21,6 +21,7 @@ interface SeriesEntry {
   id: string
   filename: string
   text: string
+  file?: File
   status: 'pending' | 'reviewing' | 'done' | 'error'
   report?: ReviewReport
   error?: string
@@ -75,6 +76,7 @@ export default function BatchReviewPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [uploading,     setUploading]     = useState(false)
   const [copied,        setCopied]        = useState(false)
+  const [zipLoading,    setZipLoading]    = useState(false)
   const [finalReport,   setFinalReport]   = useState<FinalReport | null>(null)
   const [finalLoading,  setFinalLoading]  = useState(false)
   const [finalError,    setFinalError]    = useState('')
@@ -92,7 +94,7 @@ export default function BatchReviewPage() {
         const res = await fetch('/api/admin/parse-docx', { method: 'POST', body: fd })
         const data = await res.json() as { text?: string; filename?: string; error?: string }
         if (data.text) {
-          setEntries(prev => [...prev, { id: uid(), filename: data.filename ?? file.name, text: data.text!, status: 'pending' }])
+          setEntries(prev => [...prev, { id: uid(), filename: data.filename ?? file.name, text: data.text!, file, status: 'pending' }])
         }
       } catch { /* skip failed file */ }
     }
@@ -202,6 +204,42 @@ export default function BatchReviewPage() {
     await navigator.clipboard.writeText(lines.join('\n\n'))
     setCopied(true)
     setTimeout(() => setCopied(false), 2500)
+  }
+
+  const downloadZip = async () => {
+    const reworkSet = new Set((finalReport?.needsRework ?? []).map(r => r.filename))
+    const toExport = entries.filter(e => e.status === 'done' && !reworkSet.has(e.filename))
+    if (!toExport.length) return
+
+    setZipLoading(true)
+    try {
+      const JSZip = (await import('jszip')).default
+      const zip = new JSZip()
+
+      for (let i = 0; i < toExport.length; i++) {
+        const entry = toExport[i]
+        const num = String(i + 1).padStart(2, '0')
+        const safeName = entry.filename.replace(/[/\\:*?"<>|]/g, '_').replace(/\.docx$/i, '')
+
+        if (entry.file) {
+          zip.file(`${num}_${safeName}.docx`, await entry.file.arrayBuffer())
+        } else {
+          zip.file(`${num}_${safeName}.txt`, entry.text)
+        }
+      }
+
+      const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'Балабони_серії_впорядковані.zip'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } finally {
+      setZipLoading(false)
+    }
   }
 
   const doneCount  = entries.filter(e => e.status === 'done').length
@@ -357,12 +395,21 @@ export default function BatchReviewPage() {
                 )}
               </button>
               {doneCount > 0 && (
-                <button
-                  onClick={exportSummary}
-                  style={{ fontSize: 12, fontWeight: 600, color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)', borderRadius: 10, padding: '10px 14px', cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
-                >
-                  {copied ? '✓ Скопійовано' : '📋 Копіювати звіт'}
-                </button>
+                <>
+                  <button
+                    onClick={exportSummary}
+                    style={{ fontSize: 12, fontWeight: 600, color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)', borderRadius: 10, padding: '10px 14px', cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
+                  >
+                    {copied ? '✓ Скопійовано' : '📋 Копіювати звіт'}
+                  </button>
+                  <button
+                    onClick={downloadZip}
+                    disabled={zipLoading}
+                    style={{ fontSize: 12, fontWeight: 600, color: zipLoading ? '#445566' : GOLD, background: zipLoading ? 'rgba(255,255,255,0.03)' : 'rgba(240,165,0,0.1)', border: `1px solid ${zipLoading ? 'rgba(255,255,255,0.08)' : 'rgba(240,165,0,0.25)'}`, borderRadius: 10, padding: '10px 14px', cursor: zipLoading ? 'wait' : 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
+                  >
+                    {zipLoading ? '⏳ Пакую…' : '⬇️ Завантажити ZIP'}
+                  </button>
+                </>
               )}
             </div>
 
