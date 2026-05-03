@@ -15,7 +15,7 @@ function TikTokIcon() { return <svg width="12" height="12" viewBox="0 0 24 24" f
 
 const BTNS = [
   { label: 'Facebook', bg: '#1877F2', Icon: FBIcon,    href: (u: string)              => `https://www.facebook.com/sharer/sharer.php?u=${u}` },
-  { label: 'Telegram', bg: '#2CA5E0', Icon: TGIcon,    href: (u: string, t: string)   => `https://t.me/share/url?url=${u}&text=${t}` },
+  { label: 'Telegram', bg: '#229ED9', Icon: TGIcon,    href: (u: string, t: string)   => `https://t.me/share/url?url=${u}&text=${t}` },
   { label: 'WhatsApp', bg: '#25D366', Icon: WAIcon,    href: (u: string, t: string)   => `https://wa.me/?text=${t}%20${u}` },
   { label: 'X',        bg: '#000',    Icon: XIcon,     href: (u: string, t: string)   => `https://twitter.com/intent/tweet?url=${u}&text=${t}` },
   { label: 'Viber',    bg: '#7360F2', Icon: ViberIcon,  href: (u: string, t: string)   => `viber://forward?text=${t}%20${u}` },

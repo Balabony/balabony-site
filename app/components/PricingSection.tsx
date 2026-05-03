@@ -337,7 +337,7 @@ export default function PricingSection() {
         Оберіть свій план доступу
       </h2>
 
-      <div style={{ background: 'var(--bg-deep)', color: '#f8fafc', borderRadius: 14, padding: '16px 24px', marginBottom: 28 }}>
+      <div style={{ background: 'var(--bg-deep)', color: '#f8fafc', border: '1.5px solid #f5a623', borderRadius: 14, padding: '16px 24px', marginBottom: 28 }}>
         <div style={{ fontSize: 24, fontWeight: 700, color: '#ef9f27' }}>1 Сезон = 20 Серій</div>
         <FreeViewTimer />
       </div>
@@ -352,7 +352,7 @@ export default function PricingSection() {
         {plans.map(plan => (
           <div key={plan.tier} style={{
             background: 'var(--white)',
-            border: `2px solid ${plan.featured ? 'var(--accent-gold)' : 'var(--border)'}`,
+            border: '1.5px solid #f5a623',
             borderRadius: 18, padding: '36px 28px',
             display: 'flex', flexDirection: 'column', position: 'relative'
           }}>

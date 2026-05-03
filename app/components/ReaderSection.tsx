@@ -28,7 +28,7 @@ export default function ReaderSection() {
         Синхронізований рідер
       </h2>
 
-      <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden' }}>
+      <div style={{ background: 'var(--white)', border: '1.5px solid #f5a623', borderRadius: 20, overflow: 'hidden' }}>
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 24px', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600 }}>Шрифт:</span>

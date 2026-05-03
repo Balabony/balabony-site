@@ -45,25 +45,34 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
           </div>
         </div>
 
-        {/* Horizontal scroll strip */}
-        <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'thin', scrollbarColor: `${GOLD}44 transparent` }}>
+        {/* Full-width stacked cards */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {series.map(s => (
-            <div key={s.id} style={{ flexShrink: 0, width: 195, border: `1.5px solid ${GOLD}`, borderRadius: 14, overflow: 'hidden', background: CARD_BG, display: 'flex', flexDirection: 'column' }}>
+            <div key={s.id} style={{ display: 'flex', border: `1.5px solid ${GOLD}`, borderRadius: 14, overflow: 'hidden', background: CARD_BG }}>
 
-              {/* Cover */}
-              <div style={{ position: 'relative', flexShrink: 0 }}>
-                <img src={s.coverUrl} alt={s.title} style={{ width: '100%', height: 155, objectFit: 'cover', display: 'block' }} />
-                <span style={{ position: 'absolute', top: 8, right: 8, background: s.hasAudio ? GOLD : 'rgba(0,0,0,0.6)', color: s.hasAudio ? '#081420' : '#8CA0B8', fontSize: 10, fontWeight: 800, fontFamily: FONT, padding: '3px 8px', borderRadius: 20, border: s.hasAudio ? 'none' : '1px solid #445566' }}>
-                  {s.hasAudio ? '🎧 Аудіо' : '⏳ Скоро'}
+              {/* Cover thumbnail */}
+              <div style={{ position: 'relative', flexShrink: 0, width: 100 }}>
+                <img src={s.coverUrl} alt={s.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <span style={{
+                  position: 'absolute', bottom: 6, left: 6,
+                  background: s.hasAudio ? GOLD : 'rgba(0,0,0,0.6)',
+                  color: s.hasAudio ? '#081420' : '#8CA0B8',
+                  fontSize: 9, fontWeight: 800, fontFamily: FONT, padding: '2px 6px', borderRadius: 20,
+                  border: s.hasAudio ? 'none' : '1px solid #445566',
+                }}>
+                  {s.hasAudio ? '🎧' : '⏳'}
                 </span>
               </div>
 
               {/* Info */}
-              <div style={{ padding: '10px 11px 11px', flex: 1, display: 'flex', flexDirection: 'column', gap: 7 }}>
+              <div style={{ padding: '12px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
                 <div style={{ fontSize: 10, color: GOLD, fontWeight: 600, fontFamily: FONT }}>С{s.season} · Серія {s.number}</div>
-                <a href={`https://balabony.com${s.url}`} style={{ fontSize: 13, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.35, textDecoration: 'none', flex: 1 }}>
+                <a href={`https://balabony.com${s.url}`} style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.35, textDecoration: 'none', wordBreak: 'break-word' }}>
                   {s.title}
                 </a>
+                <div style={{ fontSize: 11, color: '#8CA0B8', fontFamily: FONT, marginTop: 'auto' as const }}>
+                  {s.hasAudio ? '🎧 Аудіо доступно' : '⏳ Аудіо готується'}
+                </div>
                 <ShareButtons url={`https://balabony.com${s.url}`} title={s.title} />
               </div>
             </div>

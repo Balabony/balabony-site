@@ -65,7 +65,7 @@ export default function HomePage() {
         <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
 
         <div style={{
-          background: '#0f1e3a', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 16,
+          background: '#0f1e3a', border: '1.5px solid #f5a623', borderRadius: 16,
           padding: 28, marginBottom: 56, textAlign: 'center'
         }}>
           <h4 style={{ fontSize: 16, fontWeight: 700, color: '#f5f0e8', marginBottom: 8 }}>

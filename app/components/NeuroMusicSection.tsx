@@ -181,7 +181,7 @@ export default function NeuroMusicSection() {
     <section style={{ marginBottom: 56 }}>
       <audio ref={audioRef} />
 
-      <div style={{ background: '#0f1e3a', borderRadius: 16, padding: '22px 18px' }}>
+      <div style={{ background: '#0f1e3a', border: '1.5px solid #f5a623', borderRadius: 16, padding: '22px 18px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>

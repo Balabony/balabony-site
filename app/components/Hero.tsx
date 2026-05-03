@@ -31,14 +31,6 @@ export default function Hero() {
               background: 'var(--accent-gold)', color: '#fff', padding: '12px 22px',
               borderRadius: 10, textDecoration: 'none', fontSize: 14, fontWeight: 700
             }}>Спробувати безкоштовно</a>
-            <a href="#reader" style={{
-              color: '#fff', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
-              padding: '12px 22px', borderRadius: 10, textDecoration: 'none', fontSize: 14, fontWeight: 600
-            }}>Читайте</a>
-            <a href="#pricing" style={{
-              color: '#fff', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
-              padding: '12px 22px', borderRadius: 10, textDecoration: 'none', fontSize: 14, fontWeight: 600
-            }}>Тарифи</a>
           </div>
         </div>
       </div>

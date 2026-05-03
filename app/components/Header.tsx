@@ -48,12 +48,12 @@ export default function Header() {
       .baly-try { font-size: 12px; font-weight: 700; background: #F5A623; color: #081420; padding: 7px 14px; border-radius: 8px; text-decoration: none; font-family: 'Montserrat', sans-serif; white-space: nowrap; margin-left: 6px; }
       @media (max-width: 820px) { .baly-nav-link { font-size: 11px; padding: 5px 7px; } .baly-try { font-size: 10px; padding: 6px 9px; margin-left: 3px; } }
       @media (max-width: 640px) { .baly-nav-link { font-size: 10px; padding: 4px 5px; } .baly-try { font-size: 9px; padding: 5px 7px; margin-left: 2px; } }
+      @media (max-width: 560px) { .baly-lang { display: none !important; } .baly-eye { display: none !important; } }
     `}</style>
     <header style={{
       background: 'var(--white)', borderBottom: '1px solid var(--border)',
       padding: '0 4%', height: 56, display: 'flex', justifyContent: 'space-between',
       alignItems: 'center', position: 'sticky', top: 0, zIndex: 100,
-      overflow: 'hidden',
     }}>
       {/* Logo */}
       <a href="#" style={{
@@ -83,7 +83,7 @@ export default function Header() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, flexWrap: 'nowrap' }}>
 
         {/* Language */}
-        <div style={{ display: 'flex', gap: 2 }}>
+        <div className="baly-lang" style={{ display: 'flex', gap: 2 }}>
           {['UA', 'EN', 'DE'].map(l => (
             <button key={l} onClick={() => setLang(l)} style={{
               fontSize: 10, fontWeight: 700, padding: '4px 7px',
@@ -97,6 +97,7 @@ export default function Header() {
 
         {/* Eye Care */}
         <button
+          className="baly-eye"
           onClick={() => setEyeCare(e => !e)}
           title="Режим захисту зору"
           style={{
