@@ -45,10 +45,11 @@ export default function Header() {
     <style>{`
       .baly-nav { display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0; justify-content: center; }
       .baly-nav-link { font-size: 13px; font-weight: 600; color: var(--text); text-decoration: none; padding: 6px 10px; border-radius: 8px; font-family: 'Montserrat', sans-serif; white-space: nowrap; }
-      .baly-try { font-size: 12px; font-weight: 700; background: #F5A623; color: #081420; padding: 7px 14px; border-radius: 8px; text-decoration: none; font-family: 'Montserrat', sans-serif; white-space: nowrap; margin-left: 6px; }
-      @media (max-width: 820px) { .baly-nav-link { font-size: 11px; padding: 5px 7px; } .baly-try { font-size: 10px; padding: 6px 9px; margin-left: 3px; } }
-      @media (max-width: 640px) { .baly-nav-link { font-size: 10px; padding: 4px 5px; } .baly-try { font-size: 9px; padding: 5px 7px; margin-left: 2px; } }
-      @media (max-width: 560px) { .baly-lang { display: none !important; } .baly-eye { display: none !important; } }
+      @media (max-width: 820px) { .baly-nav-link { font-size: 11px; padding: 5px 7px; } }
+      @media (max-width: 640px) { .baly-nav-link { font-size: 10px; padding: 4px 5px; } }
+      @media (max-width: 600px) { .baly-lang { display: none !important; } .baly-eye { display: none !important; } }
+      @media (max-width: 430px) { .baly-nav { gap: 0; } .baly-nav-link { font-size: 9px; padding: 3px 5px; } }
+      @media (max-width: 360px) { .baly-nav-link { font-size: 8px; padding: 2px 4px; } .baly-logo { font-size: 18px !important; } }
     `}</style>
     <header style={{
       background: 'var(--white)', borderBottom: '1px solid var(--border)',
@@ -56,7 +57,7 @@ export default function Header() {
       alignItems: 'center', position: 'sticky', top: 0, zIndex: 100,
     }}>
       {/* Logo */}
-      <a href="#" style={{
+      <a href="#" className="baly-logo" style={{
         fontFamily: "'Comfortaa', cursive", fontSize: 22, fontWeight: 700,
         color: 'var(--accent-gold)', textDecoration: 'none', flexShrink: 0,
       }}>
