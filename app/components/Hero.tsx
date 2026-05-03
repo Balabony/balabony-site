@@ -34,7 +34,7 @@ export default function Hero() {
             <a href="#reader" style={{
               color: '#fff', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
               padding: '12px 22px', borderRadius: 10, textDecoration: 'none', fontSize: 14, fontWeight: 600
-            }}>Читати та слухати</a>
+            }}>Читайте</a>
             <a href="#pricing" style={{
               color: '#fff', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
               padding: '12px 22px', borderRadius: 10, textDecoration: 'none', fontSize: 14, fontWeight: 600

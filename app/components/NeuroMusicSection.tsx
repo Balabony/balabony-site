@@ -195,10 +195,6 @@ export default function NeuroMusicSection() {
           <div style={{ fontSize: 20, fontWeight: 500, color: '#f5f0e8' }}>Нейро-музика</div>
         </div>
 
-        <p style={{ fontSize: 16, color: '#8899bb', lineHeight: 1.7, marginBottom: 18 }}>
-          Терапевтична музика для сну, медитації та зняття стресу. Вибери категорію та насолоджуйся.
-        </p>
-
         {/* Category grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: openCat ? 16 : 0 }}>
           {CATEGORIES.map(cat => {

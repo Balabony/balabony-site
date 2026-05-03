@@ -41,6 +41,14 @@ export default function Header() {
   }, [])
 
   return (
+    <>
+    <style>{`
+      .baly-nav { display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0; justify-content: center; overflow: hidden; }
+      .baly-nav-link { font-size: 13px; font-weight: 600; color: var(--text); text-decoration: none; padding: 6px 10px; border-radius: 8px; font-family: 'Montserrat', sans-serif; white-space: nowrap; }
+      .baly-try { font-size: 12px; font-weight: 700; background: #F5A623; color: #081420; padding: 7px 14px; border-radius: 8px; text-decoration: none; font-family: 'Montserrat', sans-serif; white-space: nowrap; margin-left: 6px; }
+      @media (max-width: 820px) { .baly-nav-link { font-size: 11px; padding: 5px 7px; } .baly-try { font-size: 10px; padding: 6px 9px; margin-left: 3px; } }
+      @media (max-width: 640px) { .baly-nav-link { font-size: 10px; padding: 4px 5px; } .baly-try { font-size: 9px; padding: 5px 7px; margin-left: 2px; } }
+    `}</style>
     <header style={{
       background: 'var(--white)', borderBottom: '1px solid var(--border)',
       padding: '0 4%', height: 56, display: 'flex', justifyContent: 'space-between',
@@ -56,27 +64,17 @@ export default function Header() {
       </a>
 
       {/* Navigation */}
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, justifyContent: 'center' }}>
+      <nav className="baly-nav">
         {[
           { label: 'Історії',  href: '#reader' },
           { label: 'Серіали',  href: '#' },
           { label: 'Ігри',     href: '#' },
         ].map(item => (
-          <a key={item.label} href={item.href} style={{
-            fontSize: 13, fontWeight: 600, color: 'var(--text)',
-            textDecoration: 'none', padding: '6px 10px', borderRadius: 8,
-            fontFamily: "'Montserrat', sans-serif", whiteSpace: 'nowrap',
-          }}>
+          <a key={item.label} href={item.href} className="baly-nav-link">
             {item.label}
           </a>
         ))}
-        <a href="#pricing" style={{
-          fontSize: 12, fontWeight: 700,
-          background: '#F5A623', color: '#081420',
-          padding: '7px 14px', borderRadius: 8,
-          textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
-          whiteSpace: 'nowrap', marginLeft: 6,
-        }}>
+        <a href="#pricing" className="baly-try">
           Спробуй безкоштовно
         </a>
       </nav>
@@ -146,5 +144,6 @@ export default function Header() {
 
       </div>
     </header>
+    </>
   )
 }

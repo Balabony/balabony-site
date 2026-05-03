@@ -11,13 +11,15 @@ function XIcon()      { return <svg width="12" height="12" viewBox="0 0 24 24" f
 function ViberIcon()  { return <svg width="13" height="13" viewBox="0 0 32 32" fill="#fff"><path d="M16 1C7.7 1 1 7.7 1 16s6.7 15 15 15 15-6.7 15-15S24.3 1 16 1zm5.3 20.7c-.5.5-1 .8-1.7.9-.4.1-.8 0-1.1-.2-1.4-.7-2.7-1.6-3.8-2.7-1.1-1.1-2-2.4-2.7-3.8-.3-.6-.4-1.2-.1-1.8.2-.4.5-.8.8-1.1l1-1c.3-.3.7-.3.9 0l1.5 1.9c.2.3.2.7-.1.9l-.7.7c-.1.1-.1.3 0 .4.5.9 1.2 1.6 2 2.1.1.1.3.1.4 0l.7-.7c.3-.3.7-.3.9-.1l1.9 1.5c.3.3.3.7 0 1l-.9.9z"/></svg> }
 function LinkIcon()   { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg> }
 function CheckIcon()  { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> }
+function TikTokIcon() { return <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.16 8.16 0 004.79 1.52V6.74a4.85 4.85 0 01-1.03-.05z"/></svg> }
 
 const BTNS = [
   { label: 'Facebook', bg: '#1877F2', Icon: FBIcon,    href: (u: string)              => `https://www.facebook.com/sharer/sharer.php?u=${u}` },
   { label: 'Telegram', bg: '#2CA5E0', Icon: TGIcon,    href: (u: string, t: string)   => `https://t.me/share/url?url=${u}&text=${t}` },
   { label: 'WhatsApp', bg: '#25D366', Icon: WAIcon,    href: (u: string, t: string)   => `https://wa.me/?text=${t}%20${u}` },
   { label: 'X',        bg: '#000',    Icon: XIcon,     href: (u: string, t: string)   => `https://twitter.com/intent/tweet?url=${u}&text=${t}` },
-  { label: 'Viber',    bg: '#7360F2', Icon: ViberIcon, href: (u: string, t: string)   => `viber://forward?text=${t}%20${u}` },
+  { label: 'Viber',    bg: '#7360F2', Icon: ViberIcon,  href: (u: string, t: string)   => `viber://forward?text=${t}%20${u}` },
+  { label: 'TikTok',   bg: '#010101', Icon: TikTokIcon, href: (u: string, _t: string)  => `https://www.tiktok.com/share?url=${u}` },
 ]
 
 export default function ShareButtons({ url, title }: Props) {
