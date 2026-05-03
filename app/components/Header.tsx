@@ -57,19 +57,6 @@ export default function Header() {
 
   return (
     <>
-    <style>{`
-      .baly-nav-desktop { display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0; justify-content: center; }
-      .baly-nav-link { font-size: 13px; font-weight: 600; color: var(--text); text-decoration: none; padding: 6px 10px; border-radius: 8px; font-family: 'Montserrat', sans-serif; white-space: nowrap; }
-      .baly-nav-link:hover { background: rgba(245,166,35,0.1); }
-      .baly-burger { display: none; }
-      @media (max-width: 820px) { .baly-nav-link { font-size: 11px; padding: 5px 7px; } }
-      @media (max-width: 640px) { .baly-lang { display: none !important; } .baly-eye { display: none !important; } }
-      @media (max-width: 600px) {
-        .baly-nav-desktop { display: none !important; }
-        .baly-burger { display: flex !important; }
-      }
-    `}</style>
-
     <header style={{
       background: 'var(--white)', borderBottom: '1px solid var(--border)',
       padding: '0 4%', height: 56, display: 'flex', justifyContent: 'space-between',
@@ -163,7 +150,7 @@ export default function Header() {
           aria-label="Меню"
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            padding: '6px 4px', display: 'none',
+            padding: '6px 4px',
             flexDirection: 'column', gap: 5, flexShrink: 0,
           }}
         >
