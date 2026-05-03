@@ -43,37 +43,6 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Stats bar */}
-      <div style={{ background: 'var(--dark)', borderTop: '1px solid rgba(255,255,255,0.15)', padding: '20px 5%' }}>
-        <div style={{
-          maxWidth: 1100, margin: '0 auto', display: 'flex',
-          justifyContent: 'space-around', gap: 16, flexWrap: 'wrap'
-        }}>
-          {[
-            { num: '1',   label: 'Серія безкоштовно' },
-            { num: '4+',  label: 'Серій вийшло' },
-            { num: 'AI',  label: 'Синтез голосу' },
-            { num: '1₴',  label: 'Соціальний доступ' },
-            { num: '5',   label: 'Платформ' },
-          ].map(s => (
-            <div key={s.label} style={{ textAlign: 'center', minWidth: 90, flex: '1 1 90px' }}>
-              <span style={{ fontFamily: "'Lora', serif", fontSize: 24, fontWeight: 600, color: 'var(--amber)', display: 'block' }}>{s.num}</span>
-              <span style={{ fontSize: 10, color: '#475569', letterSpacing: 0.5, textTransform: 'uppercase', display: 'block', lineHeight: 1.4 }}>{s.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Community bar */}
-      <div style={{
-        background: 'linear-gradient(90deg,var(--bg-deep),#1e293b)', padding: '12px 5%',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16,
-        borderTop: '1px solid rgba(255,255,255,0.15)'
-      }}>
-        <span style={{ fontSize: 13, color: '#f8fafc', textAlign: 'center' }}>
-          Разом ми прослухали <b style={{ color: '#ef9f27' }}>24 831</b> годин українського контенту
-        </span>
-      </div>
     </>
   )
 }
