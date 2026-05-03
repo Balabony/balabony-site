@@ -100,8 +100,11 @@ export default function BatchReviewPage() {
   const [zipLoading,  setZipLoading]  = useState(false)
   const [season,      setSeason]      = useState(1)
   const [pasteText,   setPasteText]   = useState('')
+  const [recheckingIds, setRecheckingIds] = useState<Set<string>>(new Set())
+  const [replacingId,  setReplacingId]  = useState<string | null>(null)
 
   const entriesRef     = useRef<SeriesEntry[]>([])
+  const replaceRef     = useRef<HTMLInputElement>(null)
   const processingRef  = useRef(false)
   const crossLoadingRef = useRef(false)
   const debounceRef    = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -297,6 +300,86 @@ export default function BatchReviewPage() {
     scheduleAnalysis()
   }
 
+  // ── Per-card actions ──────────────────────────────────────────────────────
+
+  function downloadEntry(entry: SeriesEntry) {
+    if (entry.file) {
+      const url = URL.createObjectURL(entry.file)
+      const a = document.createElement('a')
+      a.href = url; a.download = entry.filename
+      document.body.appendChild(a); a.click()
+      document.body.removeChild(a); URL.revokeObjectURL(url)
+    } else {
+      const blob = new Blob([entry.text], { type: 'text/plain;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = entry.filename.replace(/\.docx$/i, '') + '.txt'
+      document.body.appendChild(a); a.click()
+      document.body.removeChild(a); URL.revokeObjectURL(url)
+    }
+  }
+
+  async function onReplaceFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !replacingId) { setReplacingId(null); return }
+    const id = replacingId
+    setReplacingId(null)
+    const fd = new FormData()
+    fd.append('file', file)
+    try {
+      const res = await fetch('/api/admin/parse-docx', { method: 'POST', body: fd })
+      const data = await res.json() as ParseDocxResponse
+      if (data.text) {
+        setEntries(prev => prev.map(e => e.id === id ? {
+          ...e, text: data.text!, file,
+          status: 'pending' as const, qcResult: undefined,
+          crossIssues: undefined, markedForDeletion: false, error: undefined,
+        } : e))
+        scheduleAnalysis()
+      }
+    } catch { /* skip */ }
+  }
+
+  async function recheckEntry(id: string) {
+    const entry = entriesRef.current.find(e => e.id === id)
+    if (!entry) return
+    setRecheckingIds(prev => new Set([...prev, id]))
+    try {
+      const res = await fetch('/api/admin/quality-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: entry.text }),
+      })
+      const data = await res.json() as QCResponse
+      if (!res.ok || data.error) {
+        setEntries(prev => prev.map(e =>
+          e.id === id ? { ...e, status: 'error', error: data.error ?? 'Помилка перевірки' } : e
+        ))
+      } else {
+        const qcResult: QCResult = {
+          verdict: data.verdict ?? 'poor',
+          issues: {
+            technical:  data.issues?.technical  ?? [],
+            stylistics: data.issues?.stylistics ?? [],
+            plot:       data.issues?.plot       ?? [],
+          },
+          summary: data.summary ?? '',
+        }
+        setEntries(prev => prev.map(e => e.id === id ? {
+          ...e, status: 'done', qcResult,
+          markedForDeletion: qcResult.verdict === 'poor', error: undefined,
+        } : e))
+      }
+    } catch {
+      setEntries(prev => prev.map(e =>
+        e.id === id ? { ...e, status: 'error', error: "Помилка з'єднання" } : e
+      ))
+    } finally {
+      setRecheckingIds(prev => { const s = new Set(prev); s.delete(id); return s })
+    }
+  }
+
   // ── ZIP download ───────────────────────────────────────────────────────────
 
   const downloadZip = async () => {
@@ -392,6 +475,10 @@ export default function BatchReviewPage() {
             <input
               ref={fileRef} type="file" accept=".docx" multiple style={{ display: 'none' }}
               onChange={e => { if (e.target.files) uploadDocx(e.target.files); e.target.value = '' }}
+            />
+            <input
+              ref={replaceRef} type="file" accept=".docx" style={{ display: 'none' }}
+              onChange={onReplaceFileChange}
             />
           </div>
 
@@ -543,6 +630,11 @@ export default function BatchReviewPage() {
                   {/* Card header */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderBottom: hasIssues || hasCrossIssues ? '1px solid rgba(255,255,255,0.05)' : undefined }}>
                     <span style={{ fontSize: 14, flexShrink: 0 }}>{verdictIcon(qc.verdict)}</span>
+                    {recheckingIds.has(entry.id) && (
+                      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }}>
+                        <circle cx="8" cy="8" r="6" stroke={GOLD} strokeWidth="2" strokeDasharray="20 18" strokeLinecap="round"/>
+                      </svg>
+                    )}
                     <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#f5f0e8', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {idx + 1}. {entry.filename}
                     </span>
@@ -603,42 +695,66 @@ export default function BatchReviewPage() {
                     </div>
                   )}
 
-                  {/* Deletion toggle footer */}
-                  {(qc.verdict === 'poor' || qc.verdict === 'remarks') && (
-                    <div style={{ padding: '8px 14px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: 8 }}>
-                      {qc.verdict === 'poor' && (
-                        entry.markedForDeletion ? (
-                          <button
-                            onClick={() => setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, markedForDeletion: false } : e))}
-                            style={{ fontSize: 12, fontWeight: 600, color: '#f87171', background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 7, padding: '5px 12px', cursor: 'pointer', fontFamily: FONT }}
-                          >
-                            ❌ Буде видалена → Залишити
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, markedForDeletion: true } : e))}
-                            style={{ fontSize: 12, fontWeight: 600, color: '#8899bb', background: 'none', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 7, padding: '5px 12px', cursor: 'pointer', fontFamily: FONT }}
-                          >
-                            Залишити → Позначити для видалення
-                          </button>
-                        )
-                      )}
-                      {qc.verdict === 'remarks' && (
+                  {/* Card footer: file actions + deletion toggle */}
+                  <div style={{ padding: '8px 14px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+
+                    {/* Download */}
+                    <button
+                      onClick={() => downloadEntry(entry)}
+                      title={entry.file ? 'Завантажити оригінал .docx' : 'Завантажити як .txt'}
+                      style={{ fontSize: 11, fontWeight: 600, color: '#8899bb', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
+                    >
+                      ⬇ Завантажити файл
+                    </button>
+
+                    {/* Replace */}
+                    <button
+                      onClick={() => { setReplacingId(entry.id); replaceRef.current?.click() }}
+                      title="Завантажити виправлену версію"
+                      style={{ fontSize: 11, fontWeight: 600, color: '#8899bb', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
+                    >
+                      ↑ Замінити файл
+                    </button>
+
+                    {/* Recheck */}
+                    <button
+                      onClick={() => recheckEntry(entry.id)}
+                      disabled={recheckingIds.has(entry.id)}
+                      title="Повторний AI-аналіз цього файлу"
+                      style={{ fontSize: 11, fontWeight: 600, color: recheckingIds.has(entry.id) ? '#445566' : '#818cf8', background: recheckingIds.has(entry.id) ? 'rgba(255,255,255,0.03)' : 'rgba(99,102,241,0.1)', border: `1px solid ${recheckingIds.has(entry.id) ? 'rgba(255,255,255,0.07)' : 'rgba(99,102,241,0.25)'}`, borderRadius: 6, padding: '4px 10px', cursor: recheckingIds.has(entry.id) ? 'wait' : 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
+                    >
+                      {recheckingIds.has(entry.id) ? '⏳ Перевіряю…' : '↺ Перевірити знову'}
+                    </button>
+
+                    <div style={{ flex: 1 }} />
+
+                    {/* Deletion toggle */}
+                    {qc.verdict === 'poor' && (
+                      entry.markedForDeletion ? (
                         <button
-                          onClick={() => setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, markedForDeletion: !e.markedForDeletion } : e))}
-                          style={{
-                            fontSize: 12, fontWeight: 600,
-                            color: entry.markedForDeletion ? '#f87171' : '#8899bb',
-                            background: entry.markedForDeletion ? 'rgba(248,113,113,0.1)' : 'none',
-                            border: `1px solid ${entry.markedForDeletion ? 'rgba(248,113,113,0.3)' : 'rgba(255,255,255,0.15)'}`,
-                            borderRadius: 7, padding: '5px 12px', cursor: 'pointer', fontFamily: FONT,
-                          }}
+                          onClick={() => setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, markedForDeletion: false } : e))}
+                          style={{ fontSize: 11, fontWeight: 600, color: '#f87171', background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
                         >
-                          {entry.markedForDeletion ? '❌ Позначено для видалення → Скасувати' : 'Позначити для видалення'}
+                          ❌ Буде видалена → Залишити
                         </button>
-                      )}
-                    </div>
-                  )}
+                      ) : (
+                        <button
+                          onClick={() => setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, markedForDeletion: true } : e))}
+                          style={{ fontSize: 11, fontWeight: 600, color: '#8899bb', background: 'none', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
+                        >
+                          Залишити → Позначити для видалення
+                        </button>
+                      )
+                    )}
+                    {qc.verdict === 'remarks' && (
+                      <button
+                        onClick={() => setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, markedForDeletion: !e.markedForDeletion } : e))}
+                        style={{ fontSize: 11, fontWeight: 600, color: entry.markedForDeletion ? '#f87171' : '#8899bb', background: entry.markedForDeletion ? 'rgba(248,113,113,0.1)' : 'none', border: `1px solid ${entry.markedForDeletion ? 'rgba(248,113,113,0.3)' : 'rgba(255,255,255,0.15)'}`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
+                      >
+                        {entry.markedForDeletion ? '❌ Позначено → Скасувати' : 'Позначити для видалення'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               )
             })}
