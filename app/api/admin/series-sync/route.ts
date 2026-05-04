@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
-export const maxDuration = 300
 
 // Called manually or via cron to generate covers for series that have none.
 // Also fired automatically by /api/admin/series on every new insert.

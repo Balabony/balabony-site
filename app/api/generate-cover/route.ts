@@ -4,7 +4,6 @@ import { join } from 'path'
 import sharp from 'sharp'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
-export const maxDuration = 300
 
 // Thin white border frame, no text
 function buildOverlaySvg(w: number, h: number): Buffer {
