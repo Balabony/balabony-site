@@ -2,6 +2,7 @@
 
 import { useTheme } from '../context/ThemeContext'
 import ShareButtons from './ShareButtons'
+import { trackStoryEvent } from '@/lib/analytics'
 
 const GOLD = '#F5A623'
 const CARD_BG = '#0f1e3a'
@@ -67,7 +68,11 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
               {/* Info */}
               <div style={{ padding: '12px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
                 <div style={{ fontSize: 10, color: GOLD, fontWeight: 600, fontFamily: FONT }}>С{s.season} · Серія {s.number}</div>
-                <a href={`https://balabony.com${s.url}`} style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.35, textDecoration: 'none', wordBreak: 'break-word', paddingLeft: 4 }}>
+                <a
+                  href={`https://balabony.com${s.url}`}
+                  onClick={() => trackStoryEvent(s.id, s.title, 'open')}
+                  style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.35, textDecoration: 'none', wordBreak: 'break-word', paddingLeft: 4 }}
+                >
                   {s.title}
                 </a>
                 <div style={{ fontSize: 11, color: '#8CA0B8', fontFamily: FONT, marginTop: 'auto' as const }}>

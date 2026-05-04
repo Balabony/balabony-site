@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { trackStoryEvent } from '@/lib/analytics'
 
 interface Props { url: string; title: string }
 
@@ -34,8 +35,15 @@ export default function ShareButtons({ url, title }: Props) {
   return (
     <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap' }}>
       {BTNS.map(({ label, bg, Icon, href }) => (
-        <a key={label} href={href(eu, et)} target="_blank" rel="noopener noreferrer" title={label}
-          style={{ width: 26, height: 26, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, textDecoration: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
+        <a
+          key={label}
+          href={href(eu, et)}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={label}
+          onClick={() => trackStoryEvent(url, title, 'share')}
+          style={{ width: 26, height: 26, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, textDecoration: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.3)' }}
+        >
           <Icon />
         </a>
       ))}

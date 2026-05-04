@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { useTheme } from '../context/ThemeContext'
+import { trackStoryEvent } from '@/lib/analytics'
 
 const TOTAL_SEC = 754
 const STORY_TITLE = 'Синій блокнот (Серія 1)'
@@ -535,6 +536,9 @@ export default function AudioPlayer() {
   const [progress, setProgress] = useState(0)
   const [speedIdx, setSpeedIdx] = useState(0)
   const rafRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const openTracked = useRef(false)
+  const readTracked = useRef(false)
+  const startTime   = useRef<number>(0)
   const { isNight, toggle: toggleNight } = useTheme()
 
   useEffect(() => {
@@ -560,6 +564,15 @@ export default function AudioPlayer() {
     setProgress(ratio * 100)
   }
 
+  // Track story completion
+  useEffect(() => {
+    if (progress >= 99.9 && !readTracked.current) {
+      readTracked.current = true
+      const elapsed = startTime.current ? Math.round((Date.now() - startTime.current) / 1000) : TOTAL_SEC
+      trackStoryEvent(STORY_TITLE, STORY_TITLE, 'read', elapsed)
+    }
+  }, [progress])
+
   const cycleSpeed = () => setSpeedIdx(i => (i + 1) % SPEEDS.length)
 
   const currentSec = progress / 100 * TOTAL_SEC
@@ -576,7 +589,16 @@ export default function AudioPlayer() {
 
         {/* 1. Кнопка відтворення */}
         <button
-          onClick={() => setPlaying(p => !p)}
+          onClick={() => {
+            setPlaying(p => {
+              if (!p && !openTracked.current) {
+                openTracked.current = true
+                startTime.current = Date.now()
+                trackStoryEvent(STORY_TITLE, STORY_TITLE, 'open')
+              }
+              return !p
+            })
+          }}
           aria-label={playing ? 'Пауза' : 'Відтворити'}
           style={{ width: 44, height: 44, background: 'var(--accent-gold)', borderRadius: '50%', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
         >

@@ -2,6 +2,7 @@
 
 import { useTheme } from '../context/ThemeContext'
 import ShareButtons from './ShareButtons'
+import { trackStoryEvent } from '@/lib/analytics'
 
 const GOLD = '#F5A623'
 const CARD_BG = '#0f1e3a'
@@ -67,8 +68,11 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
                 </div>
 
                 {/* Title */}
-                <a href={`https://balabony.com${story.url}`}
-                  style={{ fontSize: 14, fontWeight: 700, color: story.hasAudio ? '#FFFFFF' : '#8CA0B8', fontFamily: FONT, lineHeight: 1.4, textDecoration: story.hasAudio ? 'underline' : 'none', textDecorationColor: GOLD, textDecorationThickness: '2px', textUnderlineOffset: '3px', textTransform: 'uppercase', paddingLeft: 14 }}>
+                <a
+                  href={`https://balabony.com${story.url}`}
+                  onClick={() => trackStoryEvent(story.id, story.title, 'open')}
+                  style={{ fontSize: 14, fontWeight: 700, color: story.hasAudio ? '#FFFFFF' : '#8CA0B8', fontFamily: FONT, lineHeight: 1.4, textDecoration: story.hasAudio ? 'underline' : 'none', textDecorationColor: GOLD, textDecorationThickness: '2px', textUnderlineOffset: '3px', textTransform: 'uppercase', paddingLeft: 14 }}
+                >
                   {story.title}
                 </a>
 
