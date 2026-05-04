@@ -56,7 +56,7 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
 
               {/* Cover */}
               <div style={{ position: 'relative', flexShrink: 0 }}>
-                <img src={story.coverUrl} alt={story.title} style={{ width: '100%', height: 175, objectFit: 'cover', display: 'block' }} />
+                <img src={story.coverUrl} alt={story.title} onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }} style={{ width: '100%', height: 175, objectFit: 'cover', display: 'block' }} />
               </div>
 
               {/* Body */}

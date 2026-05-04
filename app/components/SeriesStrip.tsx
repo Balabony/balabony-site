@@ -53,7 +53,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
 
               {/* Cover thumbnail */}
               <div style={{ position: 'relative', flexShrink: 0, width: 100 }}>
-                <img src={s.coverUrl} alt={s.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <img src={s.coverUrl} alt={s.title} onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 <span style={{
                   position: 'absolute', bottom: 6, left: 6,
                   background: s.hasAudio ? GOLD : 'rgba(0,0,0,0.6)',

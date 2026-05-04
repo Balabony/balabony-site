@@ -16,15 +16,15 @@ import SeriesStrip, { type SeriesCard } from './components/SeriesStrip'
 import FreshStoriesGrid, { type Story } from './components/FreshStoriesGrid'
 
 const SAMPLE_SERIES: SeriesCard[] = [
-  { id: '47', number: 47, season: 3, title: 'Загублений рецепт',       coverUrl: '/covers/ep47.jpg',  hasAudio: true,  url: '/episodes/47' },
-  { id: '46', number: 46, season: 3, title: 'Велика прогулянка',        coverUrl: '/covers/ep46.jpg',  hasAudio: true,  url: '/episodes/46' },
-  { id: '45', number: 45, season: 3, title: 'Дощ у суботу',             coverUrl: '/covers/ep45.jpg',  hasAudio: false, url: '/episodes/45' },
+  { id: '47', number: 47, season: 3, title: 'Загублений рецепт',       coverUrl: '/og-image.jpg',  hasAudio: true,  url: '/episodes/47' },
+  { id: '46', number: 46, season: 3, title: 'Велика прогулянка',        coverUrl: '/og-image.jpg',  hasAudio: true,  url: '/episodes/46' },
+  { id: '45', number: 45, season: 3, title: 'Дощ у суботу',             coverUrl: '/og-image.jpg',  hasAudio: false, url: '/episodes/45' },
 ]
 
 const SAMPLE_STORIES: Story[] = [
-  { id: 's1', title: 'Рецепт від серця',  author: 'Оксана Мельник',  coverUrl: '/stories/s1.jpg', tags: ['родина', 'кухня'],   hasAudio: true,  teaser: 'Найстаріший рецепт у родині завжди передавався з рук у руки — але що відбувається, коли передати вже нікому?', url: '/stories/1' },
-  { id: 's2', title: 'Перший сніг',       author: 'Іван Коваленко',  coverUrl: '/stories/s2.jpg', tags: ['зима', 'дитинство'], hasAudio: false, teaser: 'У пам\'яті дідуся перший сніг завжди пахне мандаринами і дровами у грубці.',                                 url: '/stories/2' },
-  { id: 's3', title: 'Лист з минулого',   author: 'Марія Петренко',  coverUrl: '/stories/s3.jpg', tags: ['пам\'ять', 'листи'], hasAudio: true,  teaser: 'Розбираючи горище, Галина знайшла стос листів, перев\'язаних синьою стрічкою. Адресат — вона сама.',         url: '/stories/3' },
+  { id: 's1', title: 'Рецепт від серця',  author: 'Оксана Мельник',  coverUrl: '/og-image.jpg', tags: ['родина', 'кухня'],   hasAudio: true,  teaser: 'Найстаріший рецепт у родині завжди передавався з рук у руки — але що відбувається, коли передати вже нікому?', url: '/stories/1' },
+  { id: 's2', title: 'Перший сніг',       author: 'Іван Коваленко',  coverUrl: '/og-image.jpg', tags: ['зима', 'дитинство'], hasAudio: false, teaser: 'У пам\'яті дідуся перший сніг завжди пахне мандаринами і дровами у грубці.',                                 url: '/stories/2' },
+  { id: 's3', title: 'Лист з минулого',   author: 'Марія Петренко',  coverUrl: '/og-image.jpg', tags: ['пам\'ять', 'листи'], hasAudio: true,  teaser: 'Розбираючи горище, Галина знайшла стос листів, перев\'язаних синьою стрічкою. Адресат — вона сама.',         url: '/stories/3' },
 ]
 
 function ShareIcon() {
