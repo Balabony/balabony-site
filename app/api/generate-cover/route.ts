@@ -3,6 +3,8 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
+export const maxDuration = 300
+
 export async function POST(req: NextRequest) {
   try {
     const { seriesId, title, description } = await req.json()
