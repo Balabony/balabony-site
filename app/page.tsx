@@ -72,16 +72,17 @@ export default function HomePage() {
   useEffect(() => {
     fetch('/api/series')
       .then(r => r.ok ? r.json() : Promise.reject())
-      .then((rows: Array<{ id: string; number: number; season: number; title: string; cover_url: string | null; has_audio: boolean; url: string }>) => {
+      .then((rows: Array<{ id: string; number: number; season: number; title: string; cover_url: string | null; has_audio: boolean; url: string; description?: string }>) => {
         if (Array.isArray(rows) && rows.length > 0) {
           setSeriesData(rows.map(s => ({
-            id:       s.id,
-            number:   s.number,
-            season:   s.season,
-            title:    s.title,
-            coverUrl: s.cover_url ?? '/og-image.jpg',
-            hasAudio: s.has_audio,
-            url:      s.url,
+            id:          s.id,
+            number:      s.number,
+            season:      s.season,
+            title:       s.title,
+            coverUrl:    s.cover_url ?? '/og-image.jpg',
+            hasAudio:    s.has_audio,
+            url:         s.url,
+            description: s.description,
           })))
         }
       })

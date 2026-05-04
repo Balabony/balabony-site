@@ -6,7 +6,7 @@ export async function GET() {
     const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
       .from('series')
-      .select('id, number, season, title, cover_url, has_audio, url')
+      .select('id, number, season, title, cover_url, has_audio, url, description')
       .order('season', { ascending: true })
       .order('number', { ascending: true })
 
