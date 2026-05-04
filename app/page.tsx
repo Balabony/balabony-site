@@ -18,10 +18,12 @@ import FreshStoriesGrid, { type Story } from './components/FreshStoriesGrid'
 
 const FALLBACK_SERIES: SeriesCard[] = []
 
+const BASE_COVER = 'https://swwzsrtbfjsdsmpgfpsk.supabase.co/storage/v1/object/public/covers'
+
 const SAMPLE_STORIES: Story[] = [
-  { id: 's1', title: 'Рецепт від серця',  author: 'Оксана Мельник',  coverUrl: '/og-image.jpg', tags: ['родина', 'кухня'],   hasAudio: true,  teaser: 'Найстаріший рецепт у родині завжди передавався з рук у руки — але що відбувається, коли передати вже нікому?', url: '/stories/1' },
-  { id: 's2', title: 'Перший сніг',       author: 'Іван Коваленко',  coverUrl: '/og-image.jpg', tags: ['зима', 'дитинство'], hasAudio: false, teaser: 'У пам\'яті дідуся перший сніг завжди пахне мандаринами і дровами у грубці.',                                 url: '/stories/2' },
-  { id: 's3', title: 'Лист з минулого',   author: 'Марія Петренко',  coverUrl: '/og-image.jpg', tags: ['пам\'ять', 'листи'], hasAudio: true,  teaser: 'Розбираючи горище, Галина знайшла стос листів, перев\'язаних синьою стрічкою. Адресат — вона сама.',         url: '/stories/3' },
+  { id: 's1', title: 'Рецепт від серця',  author: 'Оксана Мельник',  coverUrl: `${BASE_COVER}/s3-ep47-1777907593975.jpg`, tags: ['родина', 'кухня'],   hasAudio: true,  teaser: 'Найстаріший рецепт у родині завжди передавався з рук у руки — але що відбувається, коли передати вже нікому?', url: '/stories/1' },
+  { id: 's2', title: 'Перший сніг',       author: 'Іван Коваленко',  coverUrl: `${BASE_COVER}/s3-ep46-1777908375713.jpg`, tags: ['зима', 'дитинство'], hasAudio: false, teaser: 'У пам\'яті дідуся перший сніг завжди пахне мандаринами і дровами у грубці.',                                 url: '/stories/2' },
+  { id: 's3', title: 'Лист з минулого',   author: 'Марія Петренко',  coverUrl: `${BASE_COVER}/s3-ep45-1777908432264.jpg`, tags: ['пам\'ять', 'листи'], hasAudio: true,  teaser: 'Розбираючи горище, Галина знайшла стос листів, перев\'язаних синьою стрічкою. Адресат — вона сама.',         url: '/stories/3' },
 ]
 
 function ShareIcon() {
