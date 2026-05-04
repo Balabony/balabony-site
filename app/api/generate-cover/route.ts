@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     // Build prompt from title/description
     const scene = description?.trim() || title
-    const prompt = `Ukrainian grandfather in embroidered shirt, ${scene}, traditional Ukrainian village background, warm artistic illustration style`
+    const prompt = `Ukrainian grandfather in embroidered shirt, ${scene}, traditional Ukrainian village background, warm artistic illustration style, correct human anatomy, exactly five fingers on each hand, natural relaxed hand pose, hands not visible or tucked behind book`
 
     // Call Replicate flux-kontext-pro with Prefer: wait (synchronous, up to 60s)
     const replicateRes = await fetch(
