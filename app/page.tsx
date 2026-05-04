@@ -75,25 +75,23 @@ export default function HomePage() {
       <Header />
       <ResumeBanner />
       <Hero />
-      <div style={{ marginBottom: 28 }}>
-        <SeriesStrip series={SAMPLE_SERIES} />
-      </div>
+      <SeriesStrip series={SAMPLE_SERIES} />
       <FreshStoriesGrid stories={SAMPLE_STORIES} />
 
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 0' }}>
 
         <ReaderSection />
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '20px 0' }} />
         <PlatformsSection />
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '20px 0' }} />
         <PricingSection />
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '20px 0' }} />
         <KaraokeSection />
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '20px 0' }} />
         <div id="neuro-music"><NeuroMusicSection /></div>
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '20px 0' }} />
         <div id="longevity-club"><LongevityClubSection /></div>
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '20px 0' }} />
 
         <div style={{
           background: '#0f1e3a', border: '1.5px solid #f5a623', borderRadius: 16,
@@ -162,7 +160,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '20px 0' }} />
 
         <div style={{
           background: '#0f1e3a', border: '1.5px solid #f5a623', borderRadius: 16,
@@ -190,7 +188,7 @@ export default function HomePage() {
           </a>
         </div>
 
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '20px 0' }} />
 
         <div style={{
           background: '#0f1e3a', border: '1.5px solid #f5a623', borderRadius: 16,
@@ -214,7 +212,7 @@ export default function HomePage() {
           </a>
         </div>
 
-        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '20px 0' }} />
 
       </main>
 

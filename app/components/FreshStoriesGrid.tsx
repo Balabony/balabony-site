@@ -4,7 +4,7 @@ import { useTheme } from '../context/ThemeContext'
 import ShareButtons from './ShareButtons'
 
 const GOLD = '#F5A623'
-const CARD_BG = '#081420'
+const CARD_BG = '#0f1e3a'
 const FONT = "'Montserrat', Arial, sans-serif"
 
 export interface Story {
@@ -34,7 +34,7 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
   const { colors } = useTheme()
 
   return (
-    <section style={{ background: colors.bg, padding: '44px 20px 60px' }}>
+    <section style={{ background: colors.bg, padding: '20px 20px 40px' }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
         {/* Section header */}

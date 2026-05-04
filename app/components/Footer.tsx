@@ -37,9 +37,12 @@ export default function Footer() {
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginTop: 4 }}>
             {[
-              { label: 'Telegram', href: 'https://t.me/balabony_bot' },
+              { label: 'Telegram',  href: 'https://t.me/balabony_bot' },
+              { label: 'Viber',     href: 'https://connect.viber.com/business/fc54c304-3c99-11f1-954e-c29e734e1403' },
               { label: 'Instagram', href: 'https://www.instagram.com/balabony_' },
-              { label: 'Facebook', href: 'https://www.facebook.com/profile.php?id=61568006368489' },
+              { label: 'TikTok',    href: 'https://www.tiktok.com/@balabony_' },
+              { label: 'Facebook',  href: 'https://www.facebook.com/profile.php?id=61568006368489' },
+              { label: 'WhatsApp',  href: 'https://wa.me/380000000000' },
             ].map(s => (
               <a key={s.label} href={s.href} target="_blank" rel="noreferrer"
                 style={{ textDecoration: 'none', color: 'rgba(255,255,255,0.8)', fontSize: 16, fontWeight: 600 }}>
@@ -90,7 +93,6 @@ export default function Footer() {
           <h4 style={{ color: '#FFFFFF', marginBottom: 16, fontSize: 18, fontWeight: 700 }}>Навігація</h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {[
-              { label: 'Відеоісторія дня', href: '#video' },
               { label: 'Рідер', href: '#reader' },
               { label: 'Тарифи', href: '#pricing' },
             ].map(item => (

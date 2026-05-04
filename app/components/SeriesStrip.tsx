@@ -4,7 +4,7 @@ import { useTheme } from '../context/ThemeContext'
 import ShareButtons from './ShareButtons'
 
 const GOLD = '#F5A623'
-const CARD_BG = '#081420'
+const CARD_BG = '#0f1e3a'
 const FONT = "'Montserrat', Arial, sans-serif"
 
 export interface SeriesCard {
@@ -31,7 +31,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
   const { colors } = useTheme()
 
   return (
-    <section style={{ background: colors.bg, padding: '44px 0' }}>
+    <section style={{ background: colors.bg, padding: '20px 0' }}>
       <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 20px' }}>
 
         {/* Section header */}

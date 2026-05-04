@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const QUESTIONS = [
   {
@@ -8,6 +8,12 @@ const QUESTIONS = [
     label: 'Скільки вам років?',
     type: 'radio',
     options: ['до 18', '18–24', '25–34', '35–44', '45–54', '55+'],
+  },
+  {
+    id: 'gender',
+    label: 'Ваша стать?',
+    type: 'radio',
+    options: ['Чоловік', 'Жінка', 'Не хочу вказувати'],
   },
   {
     id: 'frequency',
@@ -53,6 +59,37 @@ const QUESTIONS = [
 const GOLD = '#f5a623'
 const FONT = "'Montserrat', Arial, sans-serif"
 
+function ThankYouScreen() {
+  const [countdown, setCountdown] = useState(3)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCountdown(c => c - 1)
+    }, 1000)
+    const redirect = setTimeout(() => {
+      window.location.href = 'https://balabony.com'
+    }, 3000)
+    return () => { clearInterval(interval); clearTimeout(redirect) }
+  }, [])
+
+  return (
+    <main style={{ minHeight: '100vh', background: '#0a1628', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+      <div style={{ background: '#0f1e3a', border: `1.5px solid ${GOLD}`, borderRadius: 20, padding: '48px 36px', maxWidth: 500, width: '100%', textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>🎁</div>
+        <h2 style={{ fontFamily: "'Lora', serif", fontSize: 26, fontWeight: 700, color: '#f5f0e8', marginBottom: 12 }}>
+          Дякуємо!
+        </h2>
+        <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.7, marginBottom: 20 }}>
+          Твої відповіді допоможуть нам стати кращими. 50 бонусних балів вже зараховано на твій рахунок.
+        </p>
+        <p style={{ fontSize: 14, color: '#8899bb' }}>
+          Перенаправлення на головну через {countdown}…
+        </p>
+      </div>
+    </main>
+  )
+}
+
 export default function SurveyPage() {
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({})
   const [submitted, setSubmitted] = useState(false)
@@ -80,27 +117,7 @@ export default function SurveyPage() {
     setSubmitted(true)
   }
 
-  if (submitted) {
-    return (
-      <main style={{ minHeight: '100vh', background: '#0a1628', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
-        <div style={{ background: '#0f1e3a', border: `1.5px solid ${GOLD}`, borderRadius: 20, padding: '48px 36px', maxWidth: 500, width: '100%', textAlign: 'center' }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🎁</div>
-          <h2 style={{ fontFamily: "'Lora', serif", fontSize: 26, fontWeight: 700, color: '#f5f0e8', marginBottom: 12 }}>
-            Дякуємо!
-          </h2>
-          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.7, marginBottom: 24 }}>
-            Твої відповіді допоможуть нам стати кращими. 50 бонусних балів вже зараховано на твій рахунок.
-          </p>
-          <a
-            href="/"
-            style={{ display: 'inline-block', padding: '12px 28px', background: GOLD, color: '#fff', borderRadius: 9, fontWeight: 700, fontSize: 16, textDecoration: 'none', fontFamily: FONT }}
-          >
-            На головну
-          </a>
-        </div>
-      </main>
-    )
-  }
+  if (submitted) return <ThankYouScreen />
 
   return (
     <main style={{ minHeight: '100vh', background: '#0a1628', padding: '48px 20px 80px' }}>
