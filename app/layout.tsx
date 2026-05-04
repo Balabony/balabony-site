@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import UpdateBanner from './components/UpdateBanner'
+import AnalyticsTracker from './components/AnalyticsTracker'
 
 export const metadata: Metadata = {
   title: 'Balabony® — Українські аудіоісторії для дітей і дорослих',
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <UpdateBanner />
+        <AnalyticsTracker />
         <script dangerouslySetInnerHTML={{
           __html: `
 (function() {

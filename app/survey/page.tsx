@@ -156,6 +156,13 @@ function ThankYouScreen() {
   )
 }
 
+function getSessionId(): string {
+  if (typeof window === 'undefined') return ''
+  let id = sessionStorage.getItem('bly_sid')
+  if (!id) { id = crypto.randomUUID(); sessionStorage.setItem('bly_sid', id) }
+  return id
+}
+
 export default function SurveyPage() {
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({})
   const [genreOther, setGenreOther] = useState('')
@@ -179,8 +186,19 @@ export default function SurveyPage() {
     setAnswers(prev => ({ ...prev, [id]: value }))
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    // Save to Supabase (fire-and-forget — don't block on failure)
+    fetch('/api/survey/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...answers,
+        genres:     (answers.genres as string[]) ?? [],
+        genre_other: genreOther || null,
+        session_id:  getSessionId(),
+      }),
+    }).catch(() => { /* silent */ })
     setSubmitted(true)
   }
 
