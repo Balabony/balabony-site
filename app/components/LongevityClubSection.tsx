@@ -1084,7 +1084,7 @@ export default function LongevityClubSection() {
     <section style={{ marginBottom: 56 }}>
       <audio ref={audioRef} />
 
-      <div style={{ background: '#0f1e3a', borderRadius: 16, padding: '22px 18px' }}>
+      <div style={{ background: '#0f1e3a', border: '1.5px solid #f5a623', borderRadius: 16, padding: '22px 18px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
           <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <svg width="30" height="30" viewBox="0 0 56 56" fill="none">

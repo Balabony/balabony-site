@@ -1,10 +1,10 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
+import { useTheme } from '../context/ThemeContext'
 
 const TOTAL_SEC = 754
 const STORY_TITLE = 'Синій блокнот (Серія 1)'
-const STORY_URL = 'https://balabony.com'
 
 // ============================================================
 // АНАЛІТИКА — без персональних даних
@@ -34,13 +34,7 @@ function fmt(s: number) {
   return m + ':' + (sec < 10 ? '0' : '') + sec
 }
 
-function getViberUrl(title: string, url: string) {
-  const text = encodeURIComponent(`Слухаю цікаву історію на Балабонях: ${title}. Приєднуйся: ${url}`)
-  return `viber://forward?text=${text}`
-}
-
 const SPEEDS = [1.0, 1.25, 1.5, 2.0]
-const SLEEP_OPTIONS = [null, 15, 30, 60]
 
 function ViberIcon({ size = 24 }: { size?: number }) {
   return (
@@ -540,10 +534,8 @@ export default function AudioPlayer() {
   const [playing, setPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
   const [speedIdx, setSpeedIdx] = useState(0)
-  const [sleepIdx, setSleepIdx] = useState(0)
-  const [viberTooltip, setViberTooltip] = useState(false)
   const rafRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const sleepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { isNight, toggle: toggleNight } = useTheme()
 
   useEffect(() => {
     if (playing) {
@@ -569,27 +561,6 @@ export default function AudioPlayer() {
   }
 
   const cycleSpeed = () => setSpeedIdx(i => (i + 1) % SPEEDS.length)
-
-  const cycleSleep = () => {
-    trackEvent('click_sleep_timer')
-    if (sleepTimerRef.current) clearTimeout(sleepTimerRef.current)
-    const next = (sleepIdx + 1) % SLEEP_OPTIONS.length
-    setSleepIdx(next)
-    const mins = SLEEP_OPTIONS[next]
-    if (mins !== null) {
-      sleepTimerRef.current = setTimeout(() => {
-        setPlaying(false)
-        setSleepIdx(0)
-      }, mins * 60000)
-    }
-  }
-
-  const handleViber = () => {
-    trackEvent('click_viber_share')
-    window.open(getViberUrl(STORY_TITLE, STORY_URL), '_blank')
-    setViberTooltip(true)
-    setTimeout(() => setViberTooltip(false), 2000)
-  }
 
   const currentSec = progress / 100 * TOTAL_SEC
 
@@ -619,76 +590,24 @@ export default function AudioPlayer() {
           )}
         </button>
 
-        {/* 2. Іконки зв'язку — без тексту, лише кольорові іконки */}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-          {/* 💜 Viber #7360F2 */}
-          <button
-            onClick={() => {
-              const p = typeof window !== 'undefined' ? localStorage.getItem('balabony_viber_phone') : null
-              if (p) window.open(`viber://chat?number=${p}`, '_blank')
-              else alert('Додайте номер онуків у блоці Рідні')
-            }}
-            title="Viber — Подзвонити онукам"
-            style={{ width: 34, height: 34, borderRadius: '50%', background: '#7360F2', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-          >
-            <ViberIcon size={16} />
-          </button>
-
-          {/* 💚 WhatsApp #25D366 */}
-          <button
-            onClick={() => {
-              const wa = typeof window !== 'undefined' ? localStorage.getItem('balabony_wa_phone') : null
-              if (wa) window.open(`https://wa.me/${wa}`, '_blank')
-              else alert('Додайте номер у блоці Рідні')
-            }}
-            title="WhatsApp — Написати дітям"
-            style={{ width: 34, height: 34, borderRadius: '50%', background: '#25D366', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-          >
-            <WhatsAppIcon size={16} />
-          </button>
-
-          {/* 💙 Telegram #229ED9 */}
-          <button
-            onClick={() => {
-              const id = typeof window !== 'undefined' ? localStorage.getItem('balabony_tg_chat_id') : null
-              const BOT_T = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN || ''
-              if (id && BOT_T) {
-                fetch(`https://api.telegram.org/bot${BOT_T}/sendMessage`, {
-                  method: 'POST', headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ chat_id: id, text: `🎧 Бабуся слухає «${STORY_TITLE}» на Балабонях! Зателефонуй? ❤️`, parse_mode: 'HTML' })
-                }).then(() => alert('✅ Надіслано!'))
-              } else alert('Підключіть Telegram у блоці Рідні')
-            }}
-            title="Telegram — Написати онуку"
-            style={{ width: 34, height: 34, borderRadius: '50%', background: '#229ED9', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.17 13.667l-2.94-.92c-.64-.203-.658-.64.136-.954l11.49-4.43c.533-.194 1.002.13.838.858z"/>
-            </svg>
-          </button>
-
-          {/* 🆘 SOS #DC2626 */}
-          <button
-            onClick={() => {
-              const sos = typeof window !== 'undefined' ? localStorage.getItem('balabony_viber_phone') : null
-              window.location.href = sos ? `tel:${sos}` : 'tel:112'
-            }}
-            title="SOS — збережений контакт або 112"
-            style={{ width: 34, height: 34, borderRadius: '50%', background: '#DC2626', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18 }}
-          >
-            🆘
-          </button>
-        </div>
-
-        {/* 5. Швидкість */}
+        {/* 2. Швидкість */}
         <button onClick={cycleSpeed} style={{ fontSize: 11, fontWeight: 700, border: '1px solid #475569', color: '#94a3b8', padding: '6px 8px', borderRadius: 8, cursor: 'pointer', background: 'transparent', fontFamily: "'Montserrat', sans-serif", flexShrink: 0 }}>
           {SPEEDS[speedIdx].toFixed(1)}×
         </button>
 
-        {/* 6. Таймер сну */}
-        <button onClick={cycleSleep} style={{ fontSize: 11, fontWeight: 700, border: '1px solid #475569', color: '#94a3b8', padding: '6px 8px', borderRadius: 8, cursor: 'pointer', background: 'transparent', fontFamily: "'Montserrat', sans-serif", flexShrink: 0 }}>
-          {SLEEP_OPTIONS[sleepIdx] === null ? '🌙' : `${SLEEP_OPTIONS[sleepIdx]}хв`}
+        {/* 3. Нічний режим */}
+        <button
+          onClick={toggleNight}
+          title={isNight ? 'Денний режим' : 'Нічний режим'}
+          style={{ width: 36, height: 36, borderRadius: 10, border: `1px solid ${isNight ? 'rgba(245,166,35,0.5)' : '#475569'}`, background: isNight ? 'rgba(245,166,35,0.15)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}
+        >
+          {isNight ? '🌙' : '☀️'}
         </button>
+
+        {/* 4. Читати */}
+        <a href="#reader" style={{ fontSize: 11, fontWeight: 700, color: '#f5a623', border: '1px solid rgba(245,166,35,0.5)', padding: '6px 10px', borderRadius: 8, textDecoration: 'none', fontFamily: "'Montserrat', sans-serif", flexShrink: 0, whiteSpace: 'nowrap' }}>
+          Читати
+        </a>
 
       </div>
     </div>

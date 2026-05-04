@@ -12,6 +12,19 @@ export default function Hero() {
         }} />
 
         <div style={{ position: 'relative', maxWidth: 960, margin: '0 auto' }}>
+          <div style={{ display: 'flex', gap: 20, marginBottom: 24, flexWrap: 'wrap', alignItems: 'center' }}>
+            {[
+              { label: 'ІСТОРІЇ', href: '#reader' },
+              { label: 'СЕРІАЛИ', href: '#series' },
+              { label: 'ІГРИ',    href: '#longevity-club' },
+            ].map((item, i) => (
+              <span key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                {i > 0 && <span style={{ color: '#f5a623', opacity: 0.4, fontSize: 16 }}>·</span>}
+                <a href={item.href} style={{ color: '#f5a623', fontWeight: 700, fontSize: 13, textDecoration: 'none', fontFamily: "'Montserrat', sans-serif", letterSpacing: 1.5 }}>{item.label}</a>
+              </span>
+            ))}
+          </div>
+
           <h1 style={{
             fontFamily: "'Lora', serif",
             fontSize: 'clamp(32px, 8vw, 60px)',

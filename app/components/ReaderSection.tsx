@@ -28,11 +28,8 @@ export default function ReaderSection() {
             <line x1="28" y1="22" x2="28" y2="41" stroke="#f5a623" strokeWidth="1.5" strokeDasharray="3,2.5"/>
           </svg>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div>
           <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Montserrat', Arial, sans-serif" }}>ЧИТАЙТЕ</div>
-          <a href="#reader" style={{ fontSize: 13, fontWeight: 700, color: '#f5a623', textDecoration: 'none', padding: '4px 14px', borderRadius: 8, border: '1.5px solid rgba(245,166,35,0.4)', fontFamily: "'Montserrat', Arial, sans-serif" }}>
-            Читати →
-          </a>
         </div>
       </div>
 
