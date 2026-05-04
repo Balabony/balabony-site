@@ -103,6 +103,11 @@ export default function StoriesAdminPage() {
   // export
   const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle')
 
+  // publish
+  const [hasAudio,     setHasAudio]     = useState(false)
+  const [publishState, setPublishState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+  const [publishMsg,   setPublishMsg]   = useState('')
+
   const fileRef  = useRef<HTMLInputElement>(null)
   const musicRef = useRef<HTMLAudioElement>(null)
 
@@ -190,6 +195,28 @@ export default function StoriesAdminPage() {
       setAiError("Помилка з'єднання з API")
     } finally {
       setAiLoading(false)
+    }
+  }
+
+  // ── Publish ──────────────────────────────────────────────────────────────
+
+  const handlePublish = async () => {
+    if (!title || !season || !episode) {
+      setPublishMsg('Заповніть назву, сезон і номер серії'); setPublishState('error'); return
+    }
+    setPublishState('loading'); setPublishMsg('')
+    try {
+      const res = await fetch('/api/admin/series', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ title, season, episode, description: summary, hasAudio }),
+      })
+      const data = await res.json() as { message?: string; error?: string }
+      if (!res.ok) { setPublishMsg(data.error ?? 'Помилка'); setPublishState('error'); return }
+      setPublishMsg(data.message ?? 'Опубліковано!')
+      setPublishState('done')
+    } catch {
+      setPublishMsg("Помилка з'єднання"); setPublishState('error')
     }
   }
 
@@ -584,6 +611,37 @@ export default function StoriesAdminPage() {
                 <div style={{ textAlign: 'center', padding: '16px 0', color: '#334455', fontSize: 13, fontFamily: FONT }}>Заповніть Секцію 1, щоб побачити превʼю</div>
               ) : null}
             </div>
+          </div>
+
+          {/* Publish to site */}
+          <div style={{ marginBottom: 16, padding: '16px 18px', background: 'rgba(240,165,0,0.06)', border: '1px solid rgba(240,165,0,0.2)', borderRadius: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12, fontFamily: FONT }}>Опублікувати на сайті</div>
+
+            {/* hasAudio toggle */}
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, cursor: 'pointer' }}>
+              <div
+                onClick={() => setHasAudio(v => !v)}
+                style={{ width: 40, height: 22, borderRadius: 11, background: hasAudio ? GOLD : 'rgba(255,255,255,0.1)', border: `1px solid ${hasAudio ? GOLD : 'rgba(255,255,255,0.15)'}`, position: 'relative', flexShrink: 0, transition: 'background 0.2s', cursor: 'pointer' }}
+              >
+                <div style={{ position: 'absolute', top: 2, left: hasAudio ? 20 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
+              </div>
+              <span style={{ fontSize: 13, color: hasAudio ? '#f5f0e8' : '#8899bb', fontFamily: FONT }}>🎧 Аудіо готове</span>
+            </label>
+
+            <button
+              onClick={handlePublish}
+              disabled={publishState === 'loading'}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: publishState === 'done' ? 'rgba(74,222,128,0.15)' : publishState === 'error' ? 'rgba(248,113,113,0.15)' : 'rgba(240,165,0,0.15)', color: publishState === 'done' ? '#4ade80' : publishState === 'error' ? '#f87171' : GOLD, border: `1px solid ${publishState === 'done' ? 'rgba(74,222,128,0.4)' : publishState === 'error' ? 'rgba(248,113,113,0.4)' : 'rgba(240,165,0,0.4)'}`, borderRadius: 12, padding: '13px 18px', fontSize: 14, fontWeight: 700, cursor: publishState === 'loading' ? 'wait' : 'pointer', fontFamily: FONT, transition: 'all 0.2s' }}
+            >
+              {publishState === 'loading' ? (
+                <><svg width="16" height="16" viewBox="0 0 16 16" style={{ animation: 'spin 1s linear infinite' }}><circle cx="8" cy="8" r="6" stroke={GOLD} strokeWidth="2" fill="none" strokeDasharray="24" strokeDashoffset="8"/></svg> Публікую…</>
+              ) : publishState === 'done' ? '✓ Опубліковано' : publishState === 'error' ? '✕ Помилка' : (
+                <><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2 L8 10" stroke={GOLD} strokeWidth="1.6" strokeLinecap="round"/><path d="M5 7.5 L8 4 L11 7.5" stroke={GOLD} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><path d="M2.5 13.5 L13.5 13.5" stroke={GOLD} strokeWidth="1.6" strokeLinecap="round"/></svg> Опублікувати серію</>
+              )}
+            </button>
+            {publishMsg && (
+              <div style={{ marginTop: 8, fontSize: 12, color: publishState === 'error' ? '#f87171' : '#4ade80', fontFamily: FONT }}>{publishMsg}</div>
+            )}
           </div>
 
           {/* Export buttons */}

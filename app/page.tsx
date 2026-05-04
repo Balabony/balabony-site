@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Header from './components/Header'
 import Hero from './components/Hero'
 import ReaderSection from './components/ReaderSection'
@@ -15,11 +16,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import SeriesStrip, { type SeriesCard } from './components/SeriesStrip'
 import FreshStoriesGrid, { type Story } from './components/FreshStoriesGrid'
 
-const SAMPLE_SERIES: SeriesCard[] = [
-  { id: '47', number: 47, season: 3, title: 'Загублений рецепт',       coverUrl: '/og-image.jpg',  hasAudio: true,  url: '/episodes/47' },
-  { id: '46', number: 46, season: 3, title: 'Велика прогулянка',        coverUrl: '/og-image.jpg',  hasAudio: true,  url: '/episodes/46' },
-  { id: '45', number: 45, season: 3, title: 'Дощ у суботу',             coverUrl: '/og-image.jpg',  hasAudio: false, url: '/episodes/45' },
-]
+const FALLBACK_SERIES: SeriesCard[] = []
 
 const SAMPLE_STORIES: Story[] = [
   { id: 's1', title: 'Рецепт від серця',  author: 'Оксана Мельник',  coverUrl: '/og-image.jpg', tags: ['родина', 'кухня'],   hasAudio: true,  teaser: 'Найстаріший рецепт у родині завжди передавався з рук у руки — але що відбувається, коли передати вже нікому?', url: '/stories/1' },
@@ -70,12 +67,33 @@ const IPHONE_STEPS: React.ReactNode[] = [
 ]
 
 export default function HomePage() {
+  const [seriesData, setSeriesData] = useState<SeriesCard[]>(FALLBACK_SERIES)
+
+  useEffect(() => {
+    fetch('/api/series')
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then((rows: Array<{ id: string; number: number; season: number; title: string; cover_url: string | null; has_audio: boolean; url: string }>) => {
+        if (Array.isArray(rows) && rows.length > 0) {
+          setSeriesData(rows.map(s => ({
+            id:       s.id,
+            number:   s.number,
+            season:   s.season,
+            title:    s.title,
+            coverUrl: s.cover_url ?? '/og-image.jpg',
+            hasAudio: s.has_audio,
+            url:      s.url,
+          })))
+        }
+      })
+      .catch(() => {})
+  }, [])
+
   return (
     <ThemeProvider>
       <Header />
       <ResumeBanner />
       <Hero />
-      <SeriesStrip series={SAMPLE_SERIES} />
+      <SeriesStrip series={seriesData} />
       <FreshStoriesGrid stories={SAMPLE_STORIES} />
 
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 0' }}>
