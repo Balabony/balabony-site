@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 // In-memory rate limit: IP → [timestamps]
 const rateMap = new Map<string, number[]>()
 const RATE_LIMIT = 3
@@ -52,6 +50,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    const resend = new Resend(process.env.RESEND_API_KEY)
     await resend.emails.send({
       from: 'Balabony Contact <contact@balabony.com>',
       to: 'nazar@balabony.com',

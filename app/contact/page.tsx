@@ -78,7 +78,7 @@ export default function ContactPage() {
         setSubmitted(true)
       }
     } catch {
-      setError('Помилка з'єднання. Спробуйте ще раз.')
+      setError('Помилка з’єднання. Спробуйте ще раз.')
     } finally {
       setLoading(false)
     }
