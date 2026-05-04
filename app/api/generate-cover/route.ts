@@ -6,47 +6,13 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 export const maxDuration = 300
 
-// Parse season/episode from seriesId like "s3-ep47" → { season: 3, episode: 47 }
-function parseSeriesId(id: string): { season: number | null; episode: number | null } {
-  const m = id.match(/s(\d+)[_-]ep(\d+)/i)
-  if (!m) return { season: null, episode: null }
-  return { season: parseInt(m[1], 10), episode: parseInt(m[2], 10) }
-}
-
-function buildOverlaySvg(w: number, h: number, season: number | null, episode: number | null): Buffer {
-  const label = season && episode ? `С${season} · СЕРІЯ ${episode}` : ''
-  const gradY = Math.round(h * 0.52)
-  const gradH = h - gradY
-  const lineY = h - 76
-  const titleY = h - 40
-  const subtitleY = h - 16
-
+// Thin white border frame, no text
+function buildOverlaySvg(w: number, h: number): Buffer {
+  const inset = Math.round(Math.min(w, h) * 0.018) // ~1.8% inset
   const svg = `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%"   stop-color="#0a0a1a" stop-opacity="0"/>
-      <stop offset="45%"  stop-color="#0a0a1a" stop-opacity="0.78"/>
-      <stop offset="100%" stop-color="#0a0a1a" stop-opacity="0.97"/>
-    </linearGradient>
-  </defs>
-  <rect x="0" y="${gradY}" width="${w}" height="${gradH}" fill="url(#bg)"/>
-  <line x1="${Math.round(w * 0.18)}" y1="${lineY}" x2="${Math.round(w * 0.82)}" y2="${lineY}" stroke="#FFD700" stroke-width="0.8" opacity="0.55"/>
-  <text x="${Math.round(w / 2)}" y="${titleY}"
-    text-anchor="middle"
-    font-family="Georgia, 'Times New Roman', serif"
-    font-size="${Math.round(w * 0.072)}"
-    font-weight="bold"
-    fill="#FFD700"
-    letter-spacing="${Math.round(w * 0.012)}">БАЛАБОНИ</text>
-  ${label ? `<text x="${Math.round(w / 2)}" y="${subtitleY}"
-    text-anchor="middle"
-    font-family="Georgia, 'Times New Roman', serif"
-    font-size="${Math.round(w * 0.034)}"
-    fill="#FFD700"
-    opacity="0.75"
-    letter-spacing="${Math.round(w * 0.006)}">${label}</text>` : ''}
+  <rect x="${inset}" y="${inset}" width="${w - inset * 2}" height="${h - inset * 2}"
+    fill="none" stroke="white" stroke-width="1.5" opacity="0.82"/>
 </svg>`
-
   return Buffer.from(svg)
 }
 
@@ -68,16 +34,10 @@ export async function POST(req: NextRequest) {
     const imageBuffer = readFileSync(imagePath)
     const base64Image = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
 
-    // Build prompt — scene/atmosphere FIRST, then character, then style
+    // Use description as-is (caller controls the full scene prompt)
     const scene = description?.trim() || title
     const seed  = Math.floor(Math.random() * 2_000_000)
-    const prompt = [
-      scene + ',',
-      'Ukrainian folk illustration style, cinematic lighting,',
-      'oil painting texture, book cover art quality, professional publishing design,',
-      'in Balabony platform style: dark dramatic background, golden accents, rich deep colors,',
-      `unique composition seed ${seed}`,
-    ].join(' ')
+    const prompt = `${scene}, seed_${seed}`
 
     // Call Replicate flux-kontext-pro
     const replicateRes = await fetch(
@@ -129,7 +89,7 @@ export async function POST(req: NextRequest) {
 
     // Composite Balabony text overlay using sharp
     const { width = 1024, height = 1024 } = await sharp(rawBuffer).metadata()
-    const overlaySvg = buildOverlaySvg(width, height, ...Object.values(parseSeriesId(seriesId)) as [number | null, number | null])
+    const overlaySvg = buildOverlaySvg(width, height)
 
     const composited = await sharp(rawBuffer)
       .composite([{ input: overlaySvg, blend: 'over' }])
