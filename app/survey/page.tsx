@@ -2,7 +2,25 @@
 
 import { useState, useEffect } from 'react'
 
-const QUESTIONS = [
+const GOLD = '#f5a623'
+const FONT = "'Montserrat', Arial, sans-serif"
+
+const GENRES = [
+  'Драма', 'Гумор', 'Казка', 'Детектив', 'Романтика',
+  'Трилер', 'Пригоди', 'Фантастика', 'Містика',
+  'Історична проза', 'Сімейна історія', 'Бойовик',
+  'Жахи', 'Психологія', 'Біографія',
+]
+
+interface Question {
+  id: string
+  label: string
+  type: 'radio' | 'checkbox' | 'textarea' | 'text'
+  options?: string[]
+  hasOther?: boolean
+}
+
+const QUESTIONS: Question[] = [
   {
     id: 'age',
     label: 'Скільки вам років?',
@@ -16,16 +34,52 @@ const QUESTIONS = [
     options: ['Чоловік', 'Жінка', 'Не хочу вказувати'],
   },
   {
-    id: 'frequency',
-    label: 'Як часто ви читаєте художню літературу?',
+    id: 'location',
+    label: 'Де ви проживаєте?',
+    type: 'text',
+  },
+  {
+    id: 'device',
+    label: 'З якого пристрою читаєте?',
     type: 'radio',
-    options: ['Щодня', 'Кілька разів на тиждень', 'Кілька разів на місяць', 'Рідко', 'Майже ніколи'],
+    options: ['Телефон', 'Планшет', 'Комп\'ютер'],
+  },
+  {
+    id: 'reading_time',
+    label: 'Коли зазвичай читаєте?',
+    type: 'radio',
+    options: ['Вранці', 'Вдень', 'Ввечері', 'Вночі'],
+  },
+  {
+    id: 'frequency',
+    label: 'Як часто читаєте художню літературу?',
+    type: 'radio',
+    options: ['Щодня', 'Кілька разів на тиждень', 'Рідше'],
+  },
+  {
+    id: 'format',
+    label: 'Що більше до вподоби?',
+    type: 'radio',
+    options: ['Окремі історії', 'Серіали з продовженням', 'Однаково'],
+  },
+  {
+    id: 'audio',
+    label: 'Чи слухаєте аудіоверсії?',
+    type: 'radio',
+    options: ['Так', 'Ні', 'Інколи'],
+  },
+  {
+    id: 'duration',
+    label: 'Скільки часу на день готові читати?',
+    type: 'radio',
+    options: ['До 15 хв', '15–30 хв', '30–60 хв', 'Більше години'],
   },
   {
     id: 'genres',
-    label: 'Які жанри вам найбільше подобаються?',
+    label: 'Які жанри подобаються?',
     type: 'checkbox',
-    options: ['Романтика', 'Детектив', 'Фантастика', 'Драма', 'Пригоди', 'Гумор', 'Психологія', 'Інше'],
+    options: GENRES,
+    hasOther: true,
   },
   {
     id: 'plan',
@@ -34,41 +88,53 @@ const QUESTIONS = [
   },
   {
     id: 'source',
-    label: 'Звідки ви дізнались про Balabony?',
+    label: 'Звідки дізнались про Balabony?',
     type: 'radio',
-    options: ['Соціальні мережі', 'Від друга/знайомого', 'Реклама', 'Пошукові системи', 'Telegram', 'Інше'],
+    options: ['Соцмережі', 'Друзі', 'Пошук', 'Реклама', 'Інше'],
   },
   {
     id: 'attraction',
-    label: 'Що вас найбільше приваблює на платформі?',
+    label: 'Що найбільше приваблює на платформі?',
     type: 'textarea',
   },
   {
     id: 'missing',
-    label: 'Чого вам не вистачає?',
+    label: 'Чого не вистачає?',
     type: 'textarea',
   },
   {
-    id: 'recommend',
-    label: 'Чи порекомендували б ви Balabony другу?',
+    id: 'budget',
+    label: 'Яку суму комфортно витрачати щомісяця?',
     type: 'radio',
-    options: ['Так, однозначно', 'Скоріше так', 'Не впевнений/а', 'Скоріше ні', 'Ні'],
+    options: ['До 50 грн', '50–100 грн', '100–200 грн', 'Більше 200 грн'],
+  },
+  {
+    id: 'sharing',
+    label: 'Чи ділитесь історіями з друзями?',
+    type: 'radio',
+    options: ['Так', 'Ні', 'Інколи'],
+  },
+  {
+    id: 'recommend',
+    label: 'Чи порекомендували б Balabony другу?',
+    type: 'radio',
+    options: ['Так', 'Ні', 'Можливо'],
   },
 ]
 
-const GOLD = '#f5a623'
-const FONT = "'Montserrat', Arial, sans-serif"
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '10px 14px', borderRadius: 10,
+  border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)',
+  color: '#f5f0e8', fontSize: 15, fontFamily: FONT, lineHeight: 1.6,
+  outline: 'none', boxSizing: 'border-box',
+}
 
 function ThankYouScreen() {
   const [countdown, setCountdown] = useState(3)
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCountdown(c => c - 1)
-    }, 1000)
-    const redirect = setTimeout(() => {
-      window.location.href = 'https://balabony.com'
-    }, 3000)
+    const interval = setInterval(() => setCountdown(c => c - 1), 1000)
+    const redirect = setTimeout(() => { window.location.href = 'https://balabony.com' }, 3000)
     return () => { clearInterval(interval); clearTimeout(redirect) }
   }, [])
 
@@ -92,6 +158,7 @@ function ThankYouScreen() {
 
 export default function SurveyPage() {
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({})
+  const [genreOther, setGenreOther] = useState('')
   const [submitted, setSubmitted] = useState(false)
 
   function handleRadio(id: string, value: string) {
@@ -108,7 +175,7 @@ export default function SurveyPage() {
     })
   }
 
-  function handleTextarea(id: string, value: string) {
+  function handleText(id: string, value: string) {
     setAnswers(prev => ({ ...prev, [id]: value }))
   }
 
@@ -140,7 +207,7 @@ export default function SurveyPage() {
           {QUESTIONS.map((q, i) => (
             <div
               key={q.id}
-              style={{ background: '#0f1e3a', border: `1.5px solid rgba(245,166,35,0.3)`, borderRadius: 14, padding: '24px 22px', marginBottom: 16 }}
+              style={{ background: '#0f1e3a', border: '1.5px solid rgba(245,166,35,0.3)', borderRadius: 14, padding: '24px 22px', marginBottom: 16 }}
             >
               <p style={{ fontSize: 15, fontWeight: 700, color: '#f5f0e8', marginBottom: 16, fontFamily: FONT }}>
                 {i + 1}. {q.label}
@@ -165,46 +232,62 @@ export default function SurveyPage() {
               )}
 
               {q.type === 'checkbox' && q.options && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                  {q.options.map(opt => {
-                    const checked = ((answers[q.id] as string[]) ?? []).includes(opt)
-                    return (
-                      <label
-                        key={opt}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-                          padding: '6px 14px', borderRadius: 20,
-                          border: `1.5px solid ${checked ? GOLD : 'rgba(255,255,255,0.2)'}`,
-                          background: checked ? `${GOLD}22` : 'transparent',
-                          transition: 'all 0.15s',
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          value={opt}
-                          checked={checked}
-                          onChange={() => handleCheckbox(q.id, opt)}
-                          style={{ accentColor: GOLD, width: 14, height: 14 }}
-                        />
-                        <span style={{ fontSize: 14, color: checked ? GOLD : 'rgba(255,255,255,0.8)', fontFamily: FONT, fontWeight: checked ? 700 : 400 }}>{opt}</span>
-                      </label>
-                    )
-                  })}
-                </div>
+                <>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: q.hasOther ? 16 : 0 }}>
+                    {q.options.map(opt => {
+                      const checked = ((answers[q.id] as string[]) ?? []).includes(opt)
+                      return (
+                        <label
+                          key={opt}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+                            padding: '6px 14px', borderRadius: 20,
+                            border: `1.5px solid ${checked ? GOLD : 'rgba(255,255,255,0.2)'}`,
+                            background: checked ? `${GOLD}22` : 'transparent',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            value={opt}
+                            checked={checked}
+                            onChange={() => handleCheckbox(q.id, opt)}
+                            style={{ accentColor: GOLD, width: 14, height: 14 }}
+                          />
+                          <span style={{ fontSize: 14, color: checked ? GOLD : 'rgba(255,255,255,0.8)', fontFamily: FONT, fontWeight: checked ? 700 : 400 }}>{opt}</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                  {q.hasOther && (
+                    <input
+                      type="text"
+                      value={genreOther}
+                      onChange={e => setGenreOther(e.target.value)}
+                      placeholder="Інше — впишіть свій жанр"
+                      style={inputStyle}
+                    />
+                  )}
+                </>
+              )}
+
+              {q.type === 'text' && (
+                <input
+                  type="text"
+                  value={(answers[q.id] as string) ?? ''}
+                  onChange={e => handleText(q.id, e.target.value)}
+                  placeholder="Місто або область..."
+                  style={inputStyle}
+                />
               )}
 
               {q.type === 'textarea' && (
                 <textarea
                   rows={3}
                   value={(answers[q.id] as string) ?? ''}
-                  onChange={e => handleTextarea(q.id, e.target.value)}
+                  onChange={e => handleText(q.id, e.target.value)}
                   placeholder="Ваша відповідь..."
-                  style={{
-                    width: '100%', padding: '10px 14px', borderRadius: 10,
-                    border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)',
-                    color: '#f5f0e8', fontSize: 15, fontFamily: FONT, lineHeight: 1.6, resize: 'vertical',
-                    outline: 'none', boxSizing: 'border-box',
-                  }}
+                  style={{ ...inputStyle, resize: 'vertical' }}
                 />
               )}
             </div>
