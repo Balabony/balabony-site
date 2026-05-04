@@ -68,15 +68,15 @@ export async function POST(req: NextRequest) {
     const imageBuffer = readFileSync(imagePath)
     const base64Image = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
 
-    // Build prompt with Balabony platform style
+    // Build prompt — scene/atmosphere FIRST, then character, then style
     const scene = description?.trim() || title
+    const seed  = Math.floor(Math.random() * 2_000_000)
     const prompt = [
-      `Ukrainian grandfather in embroidered shirt, ${scene},`,
-      'traditional Ukrainian village background, warm artistic illustration style,',
-      'portrait shot, face and upper chest only, no hands visible, no arms, close-up portrait,',
+      scene + ',',
+      'Ukrainian folk illustration style, cinematic lighting,',
+      'oil painting texture, book cover art quality, professional publishing design,',
       'in Balabony platform style: dark dramatic background, golden accents, rich deep colors,',
-      'Ukrainian folk illustration style, cinematic lighting, book cover art quality,',
-      'professional publishing design',
+      `unique composition seed ${seed}`,
     ].join(' ')
 
     // Call Replicate flux-kontext-pro
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
           'Content-Type': 'application/json',
           Prefer: 'wait',
         },
-        body: JSON.stringify({ input: { prompt, input_image: base64Image } }),
+        body: JSON.stringify({ input: { prompt, input_image: base64Image, seed } }),
       }
     )
 
