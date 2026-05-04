@@ -185,14 +185,14 @@ export default function NeuroMusicSection() {
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(239,159,39,0.1)', border: '0.5px solid rgba(239,159,39,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-              <path d="M7 20V8l14-3v12" stroke="#ef9f27" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="5" cy="20" r="2.5" stroke="#ef9f27" strokeWidth="1.5"/>
-              <circle cx="19" cy="17" r="2.5" stroke="#ef9f27" strokeWidth="1.5"/>
+          <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="30" height="30" viewBox="0 0 26 26" fill="none">
+              <path d="M7 20V8l14-3v12" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="5" cy="20" r="2.5" stroke="#f5a623" strokeWidth="1.5"/>
+              <circle cx="19" cy="17" r="2.5" stroke="#f5a623" strokeWidth="1.5"/>
             </svg>
           </div>
-          <div style={{ fontSize: 20, fontWeight: 500, color: '#f5f0e8' }}>Нейро-музика</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Montserrat', Arial, sans-serif" }}>НЕЙРО-МУЗИКА</div>
         </div>
 
         {/* Category grid */}

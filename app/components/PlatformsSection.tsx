@@ -64,12 +64,21 @@ const platforms = [
 export default function PlatformsSection() {
   return (
     <section id="platforms" style={{ marginBottom: 56 }}>
-      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent-gold)', display: 'block', marginBottom: 8 }}>
-        Де читати
-      </span>
-      <h2 style={{ fontFamily: "'Lora', serif", fontSize: 28, fontWeight: 700, color: '#FFFFFF', marginBottom: 28 }}>
-        Доступно на шести платформах
-      </h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+        <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <svg width="30" height="30" viewBox="0 0 56 56" fill="none">
+            <rect x="6" y="12" width="32" height="22" rx="3" stroke="#f5a623" strokeWidth="2" fill="none"/>
+            <line x1="22" y1="34" x2="22" y2="40" stroke="#f5a623" strokeWidth="2" strokeLinecap="round"/>
+            <line x1="15" y1="40" x2="29" y2="40" stroke="#f5a623" strokeWidth="2" strokeLinecap="round"/>
+            <rect x="38" y="22" width="12" height="18" rx="3" stroke="#f5a623" strokeWidth="1.5" fill="none"/>
+            <line x1="41" y1="37" x2="47" y2="37" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent-gold)', fontFamily: "'Montserrat', Arial, sans-serif", marginBottom: 3 }}>Де читати</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Montserrat', Arial, sans-serif" }}>Доступно на шести платформах</div>
+        </div>
+      </div>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         {platforms.map(p => (
           <a key={p.name} href={p.href} target="_blank" rel="noreferrer" style={{

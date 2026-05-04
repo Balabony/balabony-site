@@ -584,15 +584,15 @@ export default function KaraokeSection() {
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(239,159,39,0.1)', border: '0.5px solid rgba(239,159,39,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <rect x="9" y="2" width="6" height="11" rx="3" stroke="#ef9f27" strokeWidth="1.5"/>
-              <path d="M5 11a7 7 0 0014 0" stroke="#ef9f27" strokeWidth="1.5" strokeLinecap="round"/>
-              <line x1="12" y1="18" x2="12" y2="22" stroke="#ef9f27" strokeWidth="1.5" strokeLinecap="round"/>
-              <line x1="9" y1="22" x2="15" y2="22" stroke="#ef9f27" strokeWidth="1.5" strokeLinecap="round"/>
+          <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+              <rect x="9" y="2" width="6" height="11" rx="3" stroke="#f5a623" strokeWidth="1.5"/>
+              <path d="M5 11a7 7 0 0014 0" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round"/>
+              <line x1="12" y1="18" x2="12" y2="22" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round"/>
+              <line x1="9" y1="22" x2="15" y2="22" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
           </div>
-          <div style={{ fontSize: 20, fontWeight: 500, color: '#f5f0e8' }}>КАРАОКЕ</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Montserrat', Arial, sans-serif" }}>КАРАОКЕ</div>
           <div style={{ marginLeft: 'auto', fontSize: 12, color: '#8899bb' }}>
             {song.id} / {SONGS.length}
           </div>

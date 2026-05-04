@@ -343,12 +343,20 @@ export default function PricingSection() {
 
   return (
     <section id="pricing" style={{ marginBottom: 56 }}>
-      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent-gold)', display: 'block', marginBottom: 8 }}>
-        Підписки
-      </span>
-      <h2 style={{ fontFamily: "'Lora', serif", fontSize: 28, fontWeight: 700, color: '#FFFFFF', marginBottom: 28 }}>
-        Оберіть свій план доступу
-      </h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+        <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <svg width="30" height="30" viewBox="0 0 56 56" fill="none">
+            <rect x="8" y="16" width="40" height="26" rx="5" stroke="#f5a623" strokeWidth="2" fill="none"/>
+            <line x1="8" y1="25" x2="48" y2="25" stroke="#f5a623" strokeWidth="2"/>
+            <rect x="14" y="33" width="10" height="4" rx="2" fill="#f5a623"/>
+            <rect x="28" y="33" width="6" height="4" rx="2" fill="rgba(245,166,35,0.45)"/>
+          </svg>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent-gold)', fontFamily: "'Montserrat', Arial, sans-serif", marginBottom: 3 }}>Підписки</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Montserrat', Arial, sans-serif" }}>Оберіть свій план</div>
+        </div>
+      </div>
 
       <div style={{ background: 'var(--bg-deep)', color: '#f8fafc', border: '1.5px solid #f5a623', borderRadius: 14, padding: '16px 24px', marginBottom: 28 }}>
         <FreeViewTimer />

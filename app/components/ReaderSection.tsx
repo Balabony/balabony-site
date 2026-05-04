@@ -21,9 +21,20 @@ export default function ReaderSection() {
 
   return (
     <section id="reader" style={{ marginBottom: 56 }}>
-      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent-gold)', display: 'block', marginBottom: 28 }}>
-        Читайте
-      </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+        <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <svg width="30" height="30" viewBox="0 0 56 56" fill="none">
+            <path d="M14 38 L14 18 Q28 13 28 22 Q28 13 42 18 L42 38 Q28 33 28 41 Q28 33 14 38 Z" stroke="#f5a623" strokeWidth="2.5" fill="none" strokeLinejoin="round"/>
+            <line x1="28" y1="22" x2="28" y2="41" stroke="#f5a623" strokeWidth="1.5" strokeDasharray="3,2.5"/>
+          </svg>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Montserrat', Arial, sans-serif" }}>ЧИТАЙТЕ</div>
+          <a href="#reader" style={{ fontSize: 13, fontWeight: 700, color: '#f5a623', textDecoration: 'none', padding: '4px 14px', borderRadius: 8, border: '1.5px solid rgba(245,166,35,0.4)', fontFamily: "'Montserrat', Arial, sans-serif" }}>
+            Читати →
+          </a>
+        </div>
+      </div>
 
       <div style={{ background: 'var(--white)', border: '1.5px solid #f5a623', borderRadius: 20, overflow: 'hidden' }}>
         {/* Toolbar */}

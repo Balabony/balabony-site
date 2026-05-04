@@ -97,9 +97,18 @@ export default function HomePage() {
           background: '#0f1e3a', border: '1.5px solid #f5a623', borderRadius: 16,
           padding: 28, marginBottom: 40
         }}>
-          <h4 style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', marginBottom: 20, textAlign: 'center' }}>
-            🎁 Бонусна програма
-          </h4>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+            <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="28" height="28" viewBox="0 0 56 56" fill="none">
+                <rect x="8" y="24" width="40" height="24" rx="3" stroke="#f5a623" strokeWidth="2" fill="none"/>
+                <rect x="8" y="15" width="40" height="11" rx="3" stroke="#f5a623" strokeWidth="2" fill="none"/>
+                <line x1="28" y1="15" x2="28" y2="48" stroke="#f5a623" strokeWidth="2"/>
+                <path d="M28 15 C28 15 20 13 19 9 C18 6 22 5 24 7 C26 9 28 15 28 15" stroke="#f5a623" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                <path d="M28 15 C28 15 36 13 37 9 C38 6 34 5 32 7 C30 9 28 15 28 15" stroke="#f5a623" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Montserrat', Arial, sans-serif" }}>Бонусна програма</div>
+          </div>
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: 24 }}>
             {[
               'Запроси друга — ви обидва отримаєте по 50 бонусів',
@@ -166,9 +175,17 @@ export default function HomePage() {
           background: '#0f1e3a', border: '1.5px solid #f5a623', borderRadius: 16,
           padding: 28, marginBottom: 40
         }}>
-          <h4 style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', marginBottom: 12 }}>
-            Стань автором Balabony
-          </h4>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+            <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="28" height="28" viewBox="0 0 56 56" fill="none">
+                <path d="M36 10 L46 20 L20 46 L10 46 L10 36 Z" stroke="#f5a623" strokeWidth="2" fill="none" strokeLinejoin="round"/>
+                <line x1="30" y1="16" x2="40" y2="26" stroke="#f5a623" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="10" y1="40" x2="10" y2="46" stroke="#f5a623" strokeWidth="1" strokeLinecap="round"/>
+                <line x1="10" y1="46" x2="16" y2="46" stroke="#f5a623" strokeWidth="1" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Montserrat', Arial, sans-serif" }}>Стань автором Balabony</div>
+          </div>
           <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.7, marginBottom: 16 }}>
             Пишеш історії? Публікуй їх на Balabony і отримуй гонорар з кожного прочитання. Ми ділимо доходи чесно:
           </p>
@@ -194,9 +211,18 @@ export default function HomePage() {
           background: '#0f1e3a', border: '1.5px solid #f5a623', borderRadius: 16,
           padding: 28, marginBottom: 40
         }}>
-          <h4 style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', marginBottom: 8 }}>
-            Пройди опитування — отримай 50 бонусів
-          </h4>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
+            <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="28" height="28" viewBox="0 0 56 56" fill="none">
+                <rect x="12" y="10" width="32" height="38" rx="4" stroke="#f5a623" strokeWidth="2" fill="none"/>
+                <rect x="20" y="6" width="16" height="9" rx="3" stroke="#f5a623" strokeWidth="1.5" fill="none"/>
+                <line x1="20" y1="26" x2="36" y2="26" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round"/>
+                <line x1="20" y1="33" x2="36" y2="33" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round"/>
+                <line x1="20" y1="40" x2="30" y2="40" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Montserrat', Arial, sans-serif" }}>Пройди опитування — отримай 50 бонусів</div>
+          </div>
           <p style={{ fontSize: 15, color: '#8899bb', marginBottom: 14 }}>
             Допоможи нам стати кращими — це займе 3 хвилини
           </p>

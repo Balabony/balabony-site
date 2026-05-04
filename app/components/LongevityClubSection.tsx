@@ -1085,24 +1085,18 @@ export default function LongevityClubSection() {
       <audio ref={audioRef} />
 
       <div style={{ background: '#0f1e3a', borderRadius: 16, padding: '22px 18px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(239,159,39,0.1)', border: '0.5px solid rgba(239,159,39,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-              <path d="M13 23 Q9 23 8 19 Q6 18 6 15 Q5 13 7 11 Q7 8 10 7 Q11 5 13 5 Q15 5 16 7 Q19 8 19 11 Q21 13 20 15 Q20 18 18 19 Q17 23 13 23Z" stroke="#ef9f27" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
-              <path d="M10 11 Q13 9 16 11" stroke="#ef9f27" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-              <path d="M10 14 Q13 12 16 14" stroke="#ef9f27" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-              <path d="M15 6 L16 3 L17 6" stroke="#ef9f27" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="30" height="30" viewBox="0 0 56 56" fill="none">
+              <path d="M9 26 C9 20 13 18 18 18 L22 18 L26 14 L30 14 L34 18 L38 18 C43 18 47 20 47 26 L47 34 C47 38 44 40 40 40 L37 40 L33 36 L23 36 L19 40 L16 40 C12 40 9 38 9 34 Z" stroke="#f5a623" strokeWidth="2.5" fill="none" strokeLinejoin="round"/>
+              <line x1="16" y1="25" x2="16" y2="33" stroke="#f5a623" strokeWidth="2.5" strokeLinecap="round"/>
+              <line x1="12" y1="29" x2="20" y2="29" stroke="#f5a623" strokeWidth="2.5" strokeLinecap="round"/>
+              <circle cx="37" cy="26" r="2.5" fill="#f5a623"/>
+              <circle cx="42" cy="30" r="2.5" fill="#f5a623"/>
+              <circle cx="33" cy="30" r="2.5" fill="#f5a623"/>
             </svg>
           </div>
-          <div style={{ fontSize: 20, fontWeight: 500, color: '#f5f0e8' }}>Клуб Довголіття</div>
-        </div>
-
-        <p style={{ fontSize: 16, color: '#8899bb', lineHeight: 1.7, marginBottom: 18 }}>
-          Ігри для розуму після кожної серії. Профілактика деменції та Альцгеймера.
-        </p>
-
-        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#ef9f27', marginBottom: 12 }}>
-          🎮 Ігри для мозку
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Montserrat', Arial, sans-serif" }}>ІГРИ</div>
         </div>
 
         {activeView === null && (
