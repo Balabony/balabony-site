@@ -2,6 +2,45 @@
 
 import { useState } from 'react'
 
+// Email parts stored split — bots can't easily reconstruct from source
+const E_USER = 'nazar'
+const E_HOST = 'balabony'
+const E_TLD  = 'com'
+
+function ProtectedEmail() {
+  const [revealed, setRevealed] = useState(false)
+  const [copied, setCopied]     = useState(false)
+
+  function handleClick() {
+    const email = `${E_USER}@${E_HOST}.${E_TLD}`
+    navigator.clipboard?.writeText(email).catch(() => {})
+    setRevealed(true)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      title="Клікни, щоб скопіювати email"
+      style={{
+        background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+        color: 'rgba(255,255,255,0.8)', fontSize: 14, fontFamily: "'Montserrat', sans-serif",
+        textAlign: 'left',
+      }}
+    >
+      {/* CSS-obfuscated display: shown as [at]/[dot] until click */}
+      <span aria-hidden={revealed}>
+        {revealed
+          ? `${E_USER}@${E_HOST}.${E_TLD}`
+          : <>{E_USER}<span style={{ color: '#f5a623' }}> [at] </span>{E_HOST}<span style={{ color: '#f5a623' }}> [dot] </span>{E_TLD}</>
+        }
+      </span>
+      {copied && <span style={{ color: '#4ade80', marginLeft: 6, fontSize: 12 }}>✓ скопійовано</span>}
+    </button>
+  )
+}
+
 const LEGAL_DOCS = [
   {
     title: 'Угода користувача',
@@ -49,6 +88,22 @@ export default function Footer() {
                 {s.label}
               </a>
             ))}
+          </div>
+
+          <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <ProtectedEmail />
+            <a
+              href="/contact"
+              style={{
+                display: 'inline-block', padding: '7px 16px',
+                background: 'rgba(245,166,35,0.15)', border: '1px solid rgba(245,166,35,0.4)',
+                borderRadius: 8, color: '#f5a623', fontSize: 13, fontWeight: 700,
+                textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
+                width: 'fit-content',
+              }}
+            >
+              Написати нам →
+            </a>
           </div>
         </div>
 
