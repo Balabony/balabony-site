@@ -65,10 +65,10 @@ export default function PlatformsSection() {
   return (
     <section id="platforms" style={{ marginBottom: 56 }}>
       <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent-gold)', display: 'block', marginBottom: 8 }}>
-        Де слухати
+        Де читати
       </span>
       <h2 style={{ fontFamily: "'Lora', serif", fontSize: 28, fontWeight: 700, color: '#FFFFFF', marginBottom: 28 }}>
-        Доступно на п&apos;яти платформах
+        Доступно на шести платформах
       </h2>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         {platforms.map(p => (

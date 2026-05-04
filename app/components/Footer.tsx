@@ -68,22 +68,6 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4 style={{ color: '#FFFFFF', marginBottom: 16, fontSize: 18, fontWeight: 700 }}>🎁 Бонусна програма</h4>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {[
-              'Запроси друга — ти і друг отримаєте по 50 бонусних балів.',
-              'Купи підписку — отримай 10% від суми балами.',
-              '100 балів = 1 місяць Місячного плану.',
-              'Бали можна витратити на будь-який план або подарувати рідним.',
-            ].map(line => (
-              <li key={line} style={{ marginBottom: 10, fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.6 }}>
-                {line}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
           <h4 style={{ color: '#FFFFFF', marginBottom: 16, fontSize: 18, fontWeight: 700 }}>Документи</h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {LEGAL_DOCS.map(d => (

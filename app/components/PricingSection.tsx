@@ -289,6 +289,19 @@ export default function PricingSection() {
 
   const plans = [
     {
+      badge: 'БЕЗ ПІДПИСКИ', badgeBg: '#4a5568',
+      tier: 'peritem', tierLabel: 'Поштучно',
+      price: '5', unit: '₴/шт',
+      note: 'Одна історія або одна серія — 5 грн',
+      features: [
+        { ok: true,  text: 'Купуй без підписки' },
+        { ok: true,  text: 'Ідеально, щоб спробувати перед підпискою' },
+        { ok: false, text: 'Необмежений доступ' },
+      ],
+      btnLabel: 'Спробувати',
+      btnBg: '#4a5568', featured: false
+    },
+    {
       badge: 'УБД / ІНВАЛІДНІСТЬ', badgeBg: 'var(--accent-gold)',
       tier: 'inclusive', tierLabel: 'Пільговий',
       price: '1', unit: '₴/рік',
@@ -338,7 +351,6 @@ export default function PricingSection() {
       </h2>
 
       <div style={{ background: 'var(--bg-deep)', color: '#f8fafc', border: '1.5px solid #f5a623', borderRadius: 14, padding: '16px 24px', marginBottom: 28 }}>
-        <div style={{ fontSize: 24, fontWeight: 700, color: '#ef9f27' }}>1 Сезон = 20 Серій</div>
         <FreeViewTimer />
       </div>
 

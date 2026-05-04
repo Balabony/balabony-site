@@ -75,7 +75,9 @@ export default function HomePage() {
       <Header />
       <ResumeBanner />
       <Hero />
-      <SeriesStrip series={SAMPLE_SERIES} />
+      <div style={{ marginBottom: 28 }}>
+        <SeriesStrip series={SAMPLE_SERIES} />
+      </div>
       <FreshStoriesGrid stories={SAMPLE_STORIES} />
 
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 0' }}>
@@ -95,25 +97,39 @@ export default function HomePage() {
 
         <div style={{
           background: '#0f1e3a', border: '1.5px solid #f5a623', borderRadius: 16,
-          padding: 28, marginBottom: 56, textAlign: 'center'
+          padding: 28, marginBottom: 40
         }}>
-          <h4 style={{ fontSize: 16, fontWeight: 700, color: '#f5f0e8', marginBottom: 8 }}>
-            Реферальна програма
+          <h4 style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', marginBottom: 20, textAlign: 'center' }}>
+            🎁 Бонусна програма
           </h4>
-          <p style={{ fontSize: 14, color: '#8899bb', marginBottom: 16 }}>
-            Запроси друга — отримайте обидва по 50 бонусних балів на рахунок.
-          </p>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <input
-              type="text" readOnly defaultValue="balabony.com/ref?user123"
-              onClick={e => (e.target as HTMLInputElement).select()}
-              style={{ padding: '8px 14px', borderRadius: 8, border: '0.5px solid rgba(255,255,255,0.15)', fontSize: 13, width: 220, background: 'rgba(255,255,255,0.06)', color: '#f5f0e8', fontFamily: "'Montserrat', sans-serif" }}
-            />
-            <button
-              onClick={() => navigator.clipboard?.writeText('balabony.com/ref?user123')}
-              style={{ padding: '8px 16px', background: 'var(--accent-gold)', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontFamily: "'Montserrat', sans-serif", fontSize: 13 }}>
-              Скопіювати
-            </button>
+          <ul style={{ listStyle: 'none', padding: 0, marginBottom: 24 }}>
+            {[
+              'Запроси друга — ви обидва отримаєте по 50 бонусів',
+              'Поділись історією — 10 бонусів за кожен шерінг',
+              'Залиш відгук — 10 бонусів за кожен коментар',
+              'Пройди опитування — 50 бонусів',
+            ].map(line => (
+              <li key={line} style={{ fontSize: 16, color: 'rgba(255,255,255,0.85)', marginBottom: 10, lineHeight: 1.6, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ color: '#f5a623', fontWeight: 700, flexShrink: 0 }}>✓</span>{line}
+              </li>
+            ))}
+          </ul>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 20 }}>
+            <p style={{ fontSize: 14, color: '#8899bb', marginBottom: 16, textAlign: 'center' }}>
+              Запроси друга — отримайте обидва по 50 бонусних балів на рахунок.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <input
+                type="text" readOnly defaultValue="balabony.com/ref?user123"
+                onClick={e => (e.target as HTMLInputElement).select()}
+                style={{ padding: '8px 14px', borderRadius: 8, border: '0.5px solid rgba(255,255,255,0.15)', fontSize: 13, width: 220, background: 'rgba(255,255,255,0.06)', color: '#f5f0e8', fontFamily: "'Montserrat', sans-serif" }}
+              />
+              <button
+                onClick={() => navigator.clipboard?.writeText('balabony.com/ref?user123')}
+                style={{ padding: '8px 16px', background: 'var(--accent-gold)', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontFamily: "'Montserrat', sans-serif", fontSize: 13 }}>
+                Скопіювати
+              </button>
+            </div>
           </div>
         </div>
 
@@ -144,6 +160,58 @@ export default function HomePage() {
               ))}
             </div>
           </div>
+        </div>
+
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
+
+        <div style={{
+          background: '#0f1e3a', border: '1.5px solid #f5a623', borderRadius: 16,
+          padding: 28, marginBottom: 40
+        }}>
+          <h4 style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', marginBottom: 12 }}>
+            Стань автором Balabony
+          </h4>
+          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.7, marginBottom: 16 }}>
+            Пишеш історії? Публікуй їх на Balabony і отримуй гонорар з кожного прочитання. Ми ділимо доходи чесно:
+          </p>
+          <ul style={{ listStyle: 'none', padding: 0, marginBottom: 24 }}>
+            <li style={{ fontSize: 15, color: 'rgba(255,255,255,0.85)', marginBottom: 10, lineHeight: 1.6 }}>
+              <span style={{ color: '#f5a623', fontWeight: 700 }}>50/50</span> — для авторів-ФОП
+            </li>
+            <li style={{ fontSize: 15, color: 'rgba(255,255,255,0.85)', marginBottom: 10, lineHeight: 1.6 }}>
+              <span style={{ color: '#f5a623', fontWeight: 700 }}>60/40</span> — для інших авторів (60% — платформі, 40% — автору; платформа сплачує податки за автора)
+            </li>
+          </ul>
+          <a
+            href="/become-author"
+            style={{ display: 'inline-block', padding: '12px 28px', background: 'var(--accent-gold)', color: '#fff', borderRadius: 9, fontWeight: 700, fontSize: 16, textDecoration: 'none', fontFamily: "'Montserrat', sans-serif" }}
+          >
+            Подати заявку →
+          </a>
+        </div>
+
+        <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
+
+        <div style={{
+          background: '#0f1e3a', border: '1.5px solid #f5a623', borderRadius: 16,
+          padding: 28, marginBottom: 40
+        }}>
+          <h4 style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', marginBottom: 8 }}>
+            Пройди опитування — отримай 50 бонусів
+          </h4>
+          <p style={{ fontSize: 15, color: '#8899bb', marginBottom: 14 }}>
+            Допоможи нам стати кращими — це займе 3 хвилини
+          </p>
+          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.8)', lineHeight: 1.7, marginBottom: 24 }}>
+            Ми хочемо краще розуміти тебе як читача. Пройди коротке анонімне опитування і отримай 50 бонусних балів на рахунок одразу після завершення.
+          </p>
+          <a
+            href="/survey"
+            target="_blank"
+            style={{ display: 'inline-block', padding: '12px 28px', background: 'var(--accent-gold)', color: '#fff', borderRadius: 9, fontWeight: 700, fontSize: 16, textDecoration: 'none', fontFamily: "'Montserrat', sans-serif" }}
+          >
+            Пройти опитування →
+          </a>
         </div>
 
         <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />

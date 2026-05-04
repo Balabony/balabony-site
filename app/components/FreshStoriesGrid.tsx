@@ -68,7 +68,7 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
 
                 {/* Title */}
                 <a href={`https://balabony.com${story.url}`}
-                  style={{ fontSize: 14, fontWeight: 700, color: story.hasAudio ? '#FFFFFF' : '#8CA0B8', fontFamily: FONT, lineHeight: 1.4, textDecoration: story.hasAudio ? 'underline' : 'none', textDecorationColor: GOLD, textDecorationThickness: '2px', textUnderlineOffset: '3px' }}>
+                  style={{ fontSize: 14, fontWeight: 700, color: story.hasAudio ? '#FFFFFF' : '#8CA0B8', fontFamily: FONT, lineHeight: 1.4, textDecoration: story.hasAudio ? 'underline' : 'none', textDecorationColor: GOLD, textDecorationThickness: '2px', textUnderlineOffset: '3px', textTransform: 'uppercase', paddingLeft: 14 }}>
                   {story.title}
                 </a>
 

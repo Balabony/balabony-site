@@ -10,9 +10,9 @@ const FONT_SIZES = [
 ]
 
 const NAV_ITEMS = [
-  { label: 'Історії', href: '#reader' },
-  { label: 'Серіали', href: '#' },
-  { label: 'Ігри',    href: '#longevity-club' },
+  { label: 'ІСТОРІЇ', href: '#reader' },
+  { label: 'СЕРІАЛИ', href: '#' },
+  { label: 'ІГРИ',    href: '#longevity-club' },
 ]
 
 export default function Header() {
