@@ -25,7 +25,8 @@ export async function POST(req: NextRequest) {
     }
 
     const seed = Math.floor(Math.random() * 2_000_000)
-    const prompt = `Illustrated book cover artwork, ${genre} story titled "${title}", painterly style, cinematic lighting, all faces fully visible and not cropped, no text, no watermarks, no borders, square composition, seed_${seed}`
+    const prompt = `Illustrated book cover artwork, ${genre} story titled "${title}", painterly style, cinematic lighting, all faces fully visible and not cropped, square composition, seed_${seed}`
+    const negative_prompt = `text, letters, words, typography, captions, titles, subtitles, watermark, logo, signature, label, writing, font, alphabet, numbers, digits, inscription`
 
     const replicateRes = await fetch(
       'https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions',
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
           'Content-Type': 'application/json',
           Prefer: 'wait',
         },
-        body: JSON.stringify({ input: { prompt, input_image: photoBase64, seed } }),
+        body: JSON.stringify({ input: { prompt, negative_prompt, input_image: photoBase64, seed } }),
       }
     )
 

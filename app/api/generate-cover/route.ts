@@ -33,10 +33,10 @@ export async function POST(req: NextRequest) {
     const imageBuffer = readFileSync(imagePath)
     const base64Image = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
 
-    // Use description as-is (caller controls the full scene prompt)
     const scene = description?.trim() || title
     const seed  = Math.floor(Math.random() * 2_000_000)
     const prompt = `${scene}, seed_${seed}`
+    const negative_prompt = `text, letters, words, typography, captions, titles, subtitles, watermark, logo, signature, label, writing, font, alphabet, numbers, digits, inscription`
 
     // Call Replicate flux-kontext-pro
     const replicateRes = await fetch(
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
           'Content-Type': 'application/json',
           Prefer: 'wait',
         },
-        body: JSON.stringify({ input: { prompt, input_image: base64Image, seed } }),
+        body: JSON.stringify({ input: { prompt, negative_prompt, input_image: base64Image, seed } }),
       }
     )
 
