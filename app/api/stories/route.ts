@@ -7,7 +7,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from('stories')
-      .select('id, title, author_name, genre, text, cover_url, published_version, corrected_text, humanized_text, approved_at')
+      .select('id, title, author_name, genre, text, cover_url, published_version, corrected_text, humanized_text, approved_at, duration_minutes, category')
       .eq('status', 'approved')
       .order('approved_at', { ascending: false })
       .limit(9)
@@ -15,14 +15,17 @@ export async function GET() {
     if (error) throw error
 
     const stories = (data ?? []).map(s => ({
-      id:       s.id,
-      title:    s.title,
-      author:   s.author_name,
-      coverUrl: s.cover_url ?? '/og-image.jpg',
-      tags:     [s.genre],
-      hasAudio: false,
-      teaser:   buildTeaser(pickPublishedText(s)),
-      url:      `/stories/${s.id}`,
+      id:               s.id,
+      title:            s.title,
+      author:           s.author_name,
+      coverUrl:         s.cover_url ?? '/og-image.jpg',
+      tags:             [s.genre],
+      hasAudio:         false,
+      teaser:           buildTeaser(pickPublishedText(s)),
+      url:              `/stories/${s.id}`,
+      genre:            s.genre ?? undefined,
+      duration_minutes: s.duration_minutes ?? undefined,
+      category:         s.category ?? undefined,
     }))
 
     return NextResponse.json(stories)

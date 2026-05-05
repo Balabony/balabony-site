@@ -2,18 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
-function buildOverlaySvg(w: number, h: number): Buffer {
-  const inset = Math.round(Math.min(w, h) * 0.018)
-  const svg = `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
-  <rect x="${inset}" y="${inset}" width="${w - inset * 2}" height="${h - inset * 2}"
-    fill="none" stroke="white" stroke-width="1.5" opacity="0.82"/>
-</svg>`
-  return Buffer.from(svg)
-}
-
 export async function POST(req: NextRequest) {
   try {
-    const { storyId, title, genre, photoBase64 } = await req.json()
+    const { storyId, title, genre, category, photoBase64 } = await req.json()
 
     if (!storyId || !photoBase64) {
       return NextResponse.json({ error: 'storyId and photoBase64 required' }, { status: 400 })
@@ -25,8 +16,9 @@ export async function POST(req: NextRequest) {
     }
 
     const seed = Math.floor(Math.random() * 2_000_000)
-    const prompt = `Illustrated book cover artwork, ${genre} story titled "${title}", painterly style, cinematic lighting, all faces fully visible and not cropped, square composition, seed_${seed}`
-    const negative_prompt = `text, letters, words, typography, captions, titles, subtitles, watermark, logo, signature, label, writing, font, alphabet, numbers, digits, inscription`
+    const scene = [category, genre].filter(Boolean).join(', ') || 'people in a quiet moment'
+    const prompt = `Realistic photographic portrait, ${scene} mood, natural lighting, candid moment, documentary photography style, full faces visible, centered composition, no text, no signs, no posters, no labels, no titles on the image, seed_${seed}`
+    const negative_prompt = `text, letters, words, captions, logos, watermarks, signatures, typography, written words, BALABONI, БАЛАБОНИ, titles, subtitles, label, writing, font, alphabet, numbers, digits, inscription`
 
     const replicateRes = await fetch(
       'https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions',
@@ -73,14 +65,8 @@ export async function POST(req: NextRequest) {
     }
     const rawBuffer = Buffer.from(await imgRes.arrayBuffer())
 
-    // Resize to 1024×1024 square, add white frame overlay
-    const squareBuffer = await sharp(rawBuffer)
-      .resize(1024, 1024, { fit: 'cover', position: 'centre' })
-      .toBuffer()
-
-    const overlaySvg = buildOverlaySvg(1024, 1024)
-    const composited = await sharp(squareBuffer)
-      .composite([{ input: overlaySvg, blend: 'over' }])
+    const finalBuffer = await sharp(rawBuffer)
+      .resize(1024, 1024, { fit: 'cover', position: 'attention' })
       .jpeg({ quality: 92 })
       .toBuffer()
 
@@ -89,7 +75,7 @@ export async function POST(req: NextRequest) {
 
     const { error: uploadError } = await supabase.storage
       .from('covers')
-      .upload(fileName, composited, { contentType: 'image/jpeg', upsert: true })
+      .upload(fileName, finalBuffer, { contentType: 'image/jpeg', upsert: true })
 
     if (uploadError) {
       return NextResponse.json({ error: `Storage error: ${uploadError.message}` }, { status: 500 })

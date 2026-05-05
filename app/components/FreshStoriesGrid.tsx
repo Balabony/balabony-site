@@ -17,6 +17,9 @@ export interface Story {
   hasAudio: boolean
   teaser: string
   url: string
+  genre?: string
+  duration_minutes?: number
+  category?: string
 }
 
 function DropShieldIcon() {
@@ -71,7 +74,7 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
                 <a
                   href={`https://balabony.com${story.url}`}
                   onClick={() => trackStoryEvent(story.id, story.title, 'open')}
-                  style={{ fontSize: 14, fontWeight: 700, color: story.hasAudio ? '#FFFFFF' : '#8CA0B8', fontFamily: FONT, lineHeight: 1.4, textDecoration: story.hasAudio ? 'underline' : 'none', textDecorationColor: GOLD, textDecorationThickness: '2px', textUnderlineOffset: '3px', textTransform: 'uppercase', paddingLeft: 14 }}
+                  style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.4, textDecoration: 'none', textTransform: 'uppercase', paddingLeft: 14 }}
                 >
                   {story.title}
                 </a>
@@ -82,15 +85,23 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
                 </p>
 
                 {/* Tags */}
-                {story.tags.length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                    {story.tags.map(tag => (
-                      <span key={tag} style={{ fontSize: 10, fontWeight: 600, color: GOLD, fontFamily: FONT, border: `1px solid ${GOLD}`, padding: '2px 8px', borderRadius: 20 }}>
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {(() => {
+                  const displayTags = [
+                    story.genre,
+                    story.duration_minutes ? `${story.duration_minutes} хв` : null,
+                    story.category,
+                  ].filter(Boolean) as string[]
+                  if (!displayTags.length) return null
+                  return (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                      {displayTags.map(tag => (
+                        <span key={tag} style={{ fontSize: 10, fontWeight: 600, color: GOLD, fontFamily: FONT, border: `1px solid ${GOLD}`, padding: '2px 8px', borderRadius: 20 }}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )
+                })()}
 
                 {/* Share */}
                 <ShareButtons url={`https://balabony.com${story.url}`} title={story.title} />

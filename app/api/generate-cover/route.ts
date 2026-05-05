@@ -4,17 +4,6 @@ import { join } from 'path'
 import sharp from 'sharp'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
-
-// Thin white border frame, no text
-function buildOverlaySvg(w: number, h: number): Buffer {
-  const inset = Math.round(Math.min(w, h) * 0.018) // ~1.8% inset
-  const svg = `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
-  <rect x="${inset}" y="${inset}" width="${w - inset * 2}" height="${h - inset * 2}"
-    fill="none" stroke="white" stroke-width="1.5" opacity="0.82"/>
-</svg>`
-  return Buffer.from(svg)
-}
-
 export async function POST(req: NextRequest) {
   try {
     const { seriesId, title, description } = await req.json()
@@ -33,10 +22,10 @@ export async function POST(req: NextRequest) {
     const imageBuffer = readFileSync(imagePath)
     const base64Image = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
 
-    const scene = description?.trim() || title
+    const scene = description?.trim() || 'people in a quiet moment'
     const seed  = Math.floor(Math.random() * 2_000_000)
-    const prompt = `${scene}, seed_${seed}`
-    const negative_prompt = `text, letters, words, typography, captions, titles, subtitles, watermark, logo, signature, label, writing, font, alphabet, numbers, digits, inscription`
+    const prompt = `Realistic photographic portrait, ${scene}, natural lighting, candid moment, documentary photography style, full faces visible, centered composition, no text, no signs, no posters, no labels, no titles on the image, seed_${seed}`
+    const negative_prompt = `text, letters, words, captions, logos, watermarks, signatures, typography, written words, BALABONI, БАЛАБОНИ, titles, subtitles, label, writing, font, alphabet, numbers, digits, inscription`
 
     // Call Replicate flux-kontext-pro
     const replicateRes = await fetch(
@@ -86,12 +75,7 @@ export async function POST(req: NextRequest) {
     }
     const rawBuffer = Buffer.from(await imgRes.arrayBuffer())
 
-    // Composite Balabony text overlay using sharp
-    const { width = 1024, height = 1024 } = await sharp(rawBuffer).metadata()
-    const overlaySvg = buildOverlaySvg(width, height)
-
-    const composited = await sharp(rawBuffer)
-      .composite([{ input: overlaySvg, blend: 'over' }])
+    const finalBuffer = await sharp(rawBuffer)
       .jpeg({ quality: 92 })
       .toBuffer()
 
@@ -101,7 +85,7 @@ export async function POST(req: NextRequest) {
 
     const { error: uploadError } = await supabase.storage
       .from('covers')
-      .upload(fileName, composited, { contentType: 'image/jpeg', upsert: true })
+      .upload(fileName, finalBuffer, { contentType: 'image/jpeg', upsert: true })
 
     if (uploadError) {
       return NextResponse.json({ error: `Storage error: ${uploadError.message}` }, { status: 500 })

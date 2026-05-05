@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import PuzzleGame from './PuzzleGame'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -13,7 +14,7 @@ interface QuizItem {
   hint?: string
 }
 
-type ActiveView = null | 'voice' | 'text' | 'memory' | 'leaderboard' | 'connections' | 'tictactoe' | 'chess' | 'checkers' | 'durak' | 'poker'
+type ActiveView = null | 'voice' | 'text' | 'memory' | 'puzzles' | 'connections' | 'tictactoe' | 'chess' | 'checkers' | 'durak' | 'poker'
 type ChessBoard = (string | null)[][]
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -128,6 +129,13 @@ function ConnectionsGame({ onBack }: { onBack: () => void }) {
 
   return (
     <div style={{ fontFamily: FONT }}>
+      <style>{`
+        .conn-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+        @media (max-width: 479px) {
+          .conn-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+          .conn-word { font-size: clamp(9px, 2.5vw, 12px) !important; padding: 10px 4px !important; min-height: 44px !important; }
+        }
+      `}</style>
       <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8899bb', fontSize: 14, marginBottom: 16, fontFamily: FONT }}>← Назад</button>
       <div style={{ textAlign: 'center', marginBottom: 6 }}>
         <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8' }}>Зв&apos;язки · {puzzle.title}</div>
@@ -154,10 +162,10 @@ function ConnectionsGame({ onBack }: { onBack: () => void }) {
       ))}
 
       {!done && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 14, animation: shake ? 'shake 0.4s' : undefined }}>
+        <div className="conn-grid" style={{ animation: shake ? 'shake 0.4s' : undefined }}>
           {shuffled.filter(w => !solved.some(ci => puzzle.categories[ci].words.includes(w))).map(word => (
-            <button key={word} onClick={() => toggle(word)}
-              style={{ ...cardStyle(word), borderRadius: 12, padding: '14px 8px', fontSize: 18, fontWeight: 700, cursor: 'pointer', fontFamily: FONT, textAlign: 'center', transition: 'all 0.15s', minHeight: 56 }}>
+            <button key={word} onClick={() => toggle(word)} className="conn-word"
+              style={{ ...cardStyle(word), borderRadius: 12, padding: '10px 4px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FONT, textAlign: 'center', transition: 'all 0.15s', minHeight: 48, wordBreak: 'break-word', lineHeight: 1.15 }}>
               {word}
             </button>
           ))}
@@ -531,8 +539,8 @@ function ChessGame({ onBack }: { onBack: () => void }) {
   }
 
   const backBtn: React.CSSProperties = {
-    background: GOLD, border: 'none', cursor: 'pointer', color: '#fff',
-    fontSize: 16, fontWeight: 700, padding: '10px 22px', borderRadius: 12, fontFamily: FONT,
+    background: 'none', border: 'none', cursor: 'pointer', color: '#8899bb',
+    fontSize: 14, fontWeight: 600, padding: 0, fontFamily: FONT, whiteSpace: 'nowrap',
   }
 
   if (level===null) return (
@@ -550,49 +558,39 @@ function ChessGame({ onBack }: { onBack: () => void }) {
 
   const statusText = status==='won'?'🎉 Ви виграли!':status==='lost'?'😔 Ви програли!':status==='draw'?'🤝 Нічия!':thinking?'Комп\'ютер думає...':playerTurn?'Ваш хід (білі ♔)':'...'
 
+  const BOARD_PX = 'min(calc(100vw - 80px), 460px)'
+  const CELL_PX  = 'calc(min(calc(100vw - 80px), 460px) / 8)'
+
   return (
     <div style={{fontFamily:FONT}}>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
         <button onClick={onBack} style={backBtn}>← Назад</button>
-        <div style={{fontSize:24,fontWeight:700,color:GOLD,letterSpacing:3,fontVariantNumeric:'tabular-nums',fontFamily:'monospace'}}>{fmtTime(elapsed)}</div>
-        <div style={{width:100}} />
+        <div style={{fontSize:24,fontWeight:700,color:GOLD,letterSpacing:3,fontVariantNumeric:'tabular-nums',fontFamily:'monospace',whiteSpace:'nowrap'}}>{fmtTime(elapsed)}</div>
       </div>
       <div style={{textAlign:'center',fontSize:13,fontWeight:600,color:status!=='playing'?GOLD:'#8899bb',marginBottom:8}}>{statusText}</div>
-      <div style={{overflowX:'auto',marginBottom:10}}>
-        <div style={{width:'fit-content',margin:'0 auto',background:'#8B6914',borderRadius:8,padding:6}}>
-          <div style={{display:'flex',flexDirection:'column'}}>
-            <div style={{display:'flex',alignItems:'stretch'}}>
-              {/* Rank labels — left */}
-              <div style={{display:'flex',flexDirection:'column',width:22,marginRight:3}}>
-                {[8,7,6,5,4,3,2,1].map(rank=>(
-                  <div key={rank} style={{height:100,display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#F0D9B5',fontFamily:'monospace',flexShrink:0}}>{rank}</div>
-                ))}
-              </div>
-              {/* 8×8 board grid */}
-              <div style={{display:'grid',gridTemplateColumns:'repeat(8,100px)',width:800,height:800}}>
-                {board.map((row,r)=>row.map((piece,c)=>{
-                  const light=(r+c)%2===0
-                  const isSel=sel?.[0]===r&&sel?.[1]===c
-                  const isValid=validMoves.some(([mr,mc])=>mr===r&&mc===c)
-                  const bg = isSel ? '#FFE600' : isValid ? (light ? 'rgba(34,197,94,0.45)' : 'rgba(34,197,94,0.65)') : light ? '#F0D9B5' : '#B58863'
-                  return (
-                    <div key={`${r}-${c}`} onClick={()=>handleSquare(r,c)}
-                      style={{width:100,height:100,background:bg,display:'flex',alignItems:'center',justifyContent:'center',cursor:status==='playing'&&playerTurn&&!thinking?'pointer':'default',userSelect:'none',position:'relative',transition:'background 0.1s'}}>
-                      {piece
-                        // eslint-disable-next-line @next/next/no-img-element
-                        ? <img src={PIECE_IMG[piece]} width={88} height={88} alt={piece} style={{display:'block',pointerEvents:'none',objectFit:'contain'}} />
-                        : isValid&&!board[r][c]?<div style={{width:28,height:28,borderRadius:'50%',background:'rgba(0,0,0,0.28)'}}/>:''}
-                    </div>
-                  )
-                }))}
-              </div>
-            </div>
-            {/* File labels — bottom */}
-            <div style={{display:'flex',marginTop:3,marginLeft:25}}>
-              {['a','b','c','d','e','f','g','h'].map(file=>(
-                <div key={file} style={{width:100,height:18,display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#F0D9B5',fontFamily:'monospace',flexShrink:0}}>{file}</div>
-              ))}
-            </div>
+      <div style={{marginBottom:10}}>
+        <div style={{width:BOARD_PX,margin:'0 auto',borderRadius:4,overflow:'hidden'}}>
+          <div style={{display:'grid',gridTemplateColumns:`repeat(8,${CELL_PX})`}}>
+            {board.map((row,r)=>row.map((piece,c)=>{
+              const light=(r+c)%2===0
+              const isSel=sel?.[0]===r&&sel?.[1]===c
+              const isValid=validMoves.some(([mr,mc])=>mr===r&&mc===c)
+              const bg = isSel ? '#FFE600' : isValid ? (light ? 'rgba(34,197,94,0.45)' : 'rgba(34,197,94,0.65)') : light ? '#F0D9B5' : '#B58863'
+              const coordColor = light ? '#B58863' : '#F0D9B5'
+              const rankLabel = c === 0 ? String(8 - r) : null
+              const fileLabel = r === 7 ? 'abcdefgh'[c] : null
+              return (
+                <div key={`${r}-${c}`} onClick={()=>handleSquare(r,c)}
+                  style={{width:CELL_PX,height:CELL_PX,background:bg,display:'flex',alignItems:'center',justifyContent:'center',cursor:status==='playing'&&playerTurn&&!thinking?'pointer':'default',userSelect:'none',position:'relative',transition:'background 0.1s'}}>
+                  {piece
+                    // eslint-disable-next-line @next/next/no-img-element
+                    ? <img src={PIECE_IMG[piece]} alt={piece} style={{width:'85%',height:'85%',display:'block',pointerEvents:'none',objectFit:'contain'}} />
+                    : isValid&&!board[r][c]?<div style={{width:28,height:28,borderRadius:'50%',background:'rgba(0,0,0,0.28)'}}/>:''}
+                  {rankLabel && <span style={{position:'absolute',top:2,left:3,fontSize:9,fontWeight:600,color:coordColor,lineHeight:1,pointerEvents:'none'}}>{rankLabel}</span>}
+                  {fileLabel && <span style={{position:'absolute',bottom:2,right:3,fontSize:9,fontWeight:600,color:coordColor,lineHeight:1,pointerEvents:'none'}}>{fileLabel}</span>}
+                </div>
+              )
+            }))}
           </div>
         </div>
       </div>
@@ -826,8 +824,8 @@ function DurakGame({ onBack }: { onBack: () => void }) {
     faceDown
       ? <div style={{width:48,height:66,borderRadius:8,background:'#1e3a5f',border:'1px solid rgba(255,255,255,0.15)',flexShrink:0}}/>
       : card ? <div onClick={onClick} style={{background:selected?'rgba(240,165,0,0.12)':'rgba(255,255,255,0.97)',border:`1.5px solid ${selected?GOLD:card.suit===trump?GOLD:'rgba(0,0,0,0.15)'}`,borderRadius:8,padding:'4px 7px 6px',cursor:onClick?'pointer':'default',textAlign:'center',minWidth:48,width:48,flexShrink:0,fontFamily:FONT,boxShadow:card.suit===trump?`0 0 0 2px ${GOLD}`:'0 1px 4px rgba(0,0,0,0.3)'}}>
-        <div style={{fontSize:13,fontWeight:800,color:cardColor(card.suit),lineHeight:1}}>{card.rank}</div>
-        <div style={{fontSize:24,color:cardColor(card.suit),lineHeight:1.1}}>{card.suit}</div>
+        <div style={{fontSize:13,fontWeight:800,color:cardColor(card.suit),lineHeight:1,textShadow:(card.suit==='♣'||card.suit==='♠')?'0 0 4px rgba(255,255,255,0.85)':'none'}}>{card.rank}</div>
+        <div style={{fontSize:24,color:cardColor(card.suit),lineHeight:1.1,textShadow:(card.suit==='♣'||card.suit==='♠')?'0 0 4px rgba(255,255,255,0.85)':'none'}}>{card.suit}</div>
       </div> : null
   )
 
@@ -837,7 +835,7 @@ function DurakGame({ onBack }: { onBack: () => void }) {
     <div style={{fontFamily:FONT}}>
       <button onClick={onBack} style={{background:'none',border:'none',cursor:'pointer',color:'#8899bb',fontSize:14,marginBottom:8,fontFamily:FONT}}>← Назад</button>
       <div style={{textAlign:'center',fontSize:16,fontWeight:700,color:'#f5f0e8',marginBottom:2}}>Дурак 🃏</div>
-      <div style={{textAlign:'center',fontSize:12,color:'#8899bb',marginBottom:10}}>Козир: <span style={{color:cardColor(trump),fontWeight:700}}>{trump}</span> · Колода: {deck.length}</div>
+      <div style={{textAlign:'center',fontSize:13,color:'#8899bb',marginBottom:10}}>Козир: <span style={{fontSize:32,fontWeight:800,color:(trump==='♥'||trump==='♦')?'#ff2222':'#ffffff',textShadow:(trump==='♥'||trump==='♦')?'0 0 10px #ff4444':'0 0 10px rgba(255,255,255,0.9)'}}>{trump}</span> · Колода: {deck.length}</div>
 
       <div style={{marginBottom:8}}>
         <div style={{fontSize:11,color:'#8899bb',marginBottom:4,textAlign:'center'}}>Комп&apos;ютер ({aiHand.length})</div>
@@ -1025,6 +1023,8 @@ function PokerGame({ onBack }: { onBack: () => void }) {
 
 export default function LongevityClubSection() {
   const [activeView, setActiveView] = useState<ActiveView>(null)
+  const [puzzlePick, setPuzzlePick] = useState<{ seed: string; level: number } | null>(null)
+  const [hoveredLevel, setHoveredLevel] = useState<string | null>(null)
   const [quizType, setQuizType] = useState<'voice' | 'text'>('voice')
   const [quizIdx, setQuizIdx] = useState(0)
   const [answered, setAnswered] = useState<number | null>(null)
@@ -1067,24 +1067,27 @@ export default function LongevityClubSection() {
     return { bg: 'rgba(255,255,255,0.03)', border: 'rgba(255,255,255,0.06)', color: '#556688' }
   }
 
+  const PUZZLE_LIST = Array.from({ length: 50 }, (_, i) => ({ seed: `puzzle${i + 1}` }))
+
   const GAME_GRID = [
     { id: 'voice', label: 'Вгадай голос', desc: 'Слухай і вгадуй', svg: <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="13" y="4" width="14" height="20" rx="7" fill="rgba(212,160,23,0.15)" stroke="#D4A017" strokeWidth="1.2"/><path d="M20 15 L20 18" stroke="#F5F3EE" strokeWidth="1.5" strokeLinecap="round"/><path d="M7 20 Q7 30 20 30 Q33 30 33 20" stroke="#D4A017" strokeWidth="1.5" fill="none" strokeLinecap="round"/><line x1="20" y1="30" x2="20" y2="36" stroke="#D4A017" strokeWidth="1.5" strokeLinecap="round"/><line x1="14" y1="36" x2="26" y2="36" stroke="#D4A017" strokeWidth="1.5" strokeLinecap="round"/></svg> },
     { id: 'text', label: 'Вікторина', desc: '3 питання', svg: <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="17" r="13" fill="rgba(212,160,23,0.15)" stroke="#D4A017" strokeWidth="1.2"/><text x="20" y="24" textAnchor="middle" fill="#D4A017" fontSize="20" fontWeight="800">?</text><rect x="2" y="34" width="36" height="3" rx="1.5" fill="rgba(245,243,238,0.1)"/><rect x="2" y="34" width="22" height="3" rx="1.5" fill="#D4A017" opacity="0.8"/></svg> },
     { id: 'memory', label: 'Пам\'ять', desc: 'Запам\'ятай слова', svg: <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="2" y="2" width="17" height="17" rx="3" fill="rgba(212,160,23,0.2)" stroke="#D4A017" strokeWidth="1"/><text x="10.5" y="14.5" textAnchor="middle" fill="#D4A017" fontSize="10" fontWeight="700">А</text><rect x="21" y="2" width="17" height="17" rx="3" fill="rgba(212,160,23,0.2)" stroke="#D4A017" strokeWidth="1"/><text x="29.5" y="14.5" textAnchor="middle" fill="#D4A017" fontSize="10" fontWeight="700">А</text><rect x="2" y="21" width="17" height="17" rx="3" fill="rgba(245,243,238,0.06)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/><text x="10.5" y="33.5" textAnchor="middle" fill="#F5F3EE" fontSize="10" fontWeight="700">Б</text><rect x="21" y="21" width="17" height="17" rx="3" fill="rgba(245,243,238,0.06)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/><text x="29.5" y="33.5" textAnchor="middle" fill="#F5F3EE" fontSize="12" fontWeight="700">?</text></svg> },
     { id: 'connections', label: "Зв'язки", desc: '4 групи слів', svg: <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="2" y="2" width="17" height="17" rx="4" fill="rgba(212,160,23,0.9)" stroke="#b8860b" strokeWidth="1"/><rect x="21" y="2" width="17" height="17" rx="4" fill="rgba(59,130,246,0.9)" stroke="#1d4ed8" strokeWidth="1"/><rect x="2" y="21" width="17" height="17" rx="4" fill="rgba(34,197,94,0.85)" stroke="#16a34a" strokeWidth="1"/><rect x="21" y="21" width="17" height="17" rx="4" fill="rgba(168,85,247,0.85)" stroke="#7e22ce" strokeWidth="1"/></svg> },
     { id: 'tictactoe', label: 'Хрестики-нулики', desc: 'Проти комп\'ютера', svg: <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><line x1="14" y1="2" x2="14" y2="38" stroke="rgba(245,243,238,0.25)" strokeWidth="1.5" strokeLinecap="round"/><line x1="26" y1="2" x2="26" y2="38" stroke="rgba(245,243,238,0.25)" strokeWidth="1.5" strokeLinecap="round"/><line x1="2" y1="14" x2="38" y2="14" stroke="rgba(245,243,238,0.25)" strokeWidth="1.5" strokeLinecap="round"/><line x1="2" y1="26" x2="38" y2="26" stroke="rgba(245,243,238,0.25)" strokeWidth="1.5" strokeLinecap="round"/><text x="7" y="12" textAnchor="middle" fill="#D4A017" fontSize="9" fontWeight="900">Х</text><circle cx="32" cy="8" r="4" stroke="#60a5fa" strokeWidth="1.5" fill="none"/><text x="7" y="24" textAnchor="middle" fill="#D4A017" fontSize="9" fontWeight="900">Х</text><circle cx="20" cy="20" r="4" stroke="#60a5fa" strokeWidth="1.5" fill="none"/><text x="32" y="36" textAnchor="middle" fill="#D4A017" fontSize="9" fontWeight="900">Х</text></svg> },
-    { id: 'chess', label: 'Шахи', desc: '3 рівні складності', svg: <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="18" y="2" width="4" height="12" rx="2" fill="#D4A017"/><rect x="13" y="6" width="14" height="4" rx="2" fill="#D4A017"/><circle cx="20" cy="17" r="4.5" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1.5"/><rect x="17" y="21" width="6" height="4" fill="rgba(212,160,23,0.2)" stroke="#D4A017" strokeWidth="1"/><path d="M12 25 L28 25 L30 32 L10 32 Z" fill="rgba(212,160,23,0.2)" stroke="#D4A017" strokeWidth="1.2" strokeLinejoin="round"/><rect x="8" y="32" width="24" height="5.5" rx="2" fill="rgba(212,160,23,0.35)" stroke="#D4A017" strokeWidth="1.2"/></svg> },
+    { id: 'chess', label: 'Шахи', desc: '3 рівні складності', svg: <svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 40 L36 40 L38 44 L10 44 Z" fill="rgba(212,160,23,0.35)" stroke="#D4A017" strokeWidth="1.2" strokeLinejoin="round"/><path d="M16 40 L16 30 Q16 24 20 22 Q18 18 18 14 Q22 16 24 12 Q26 16 30 14 Q30 18 28 22 Q32 24 32 30 L32 40 Z" fill="rgba(212,160,23,0.25)" stroke="#D4A017" strokeWidth="1.2"/><circle cx="18" cy="14" r="1.5" fill="#D4A017"/><circle cx="24" cy="11" r="1.5" fill="#D4A017"/><circle cx="30" cy="14" r="1.5" fill="#D4A017"/></svg> },
     { id: 'checkers', label: 'Шашки', desc: 'Класичні шашки', svg: <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="25" cy="19" r="11" fill="#e8dcc8" stroke="#D4A017" strokeWidth="1.8"/><circle cx="25" cy="19" r="7.5" fill="none" stroke="rgba(212,160,23,0.5)" strokeWidth="1.2"/><ellipse cx="22" cy="16" rx="3.5" ry="2" fill="rgba(255,255,255,0.65)"/><circle cx="16" cy="23" r="11" fill="#c0392b" stroke="#922b21" strokeWidth="1.8"/><circle cx="16" cy="23" r="7.5" fill="none" stroke="rgba(255,150,150,0.4)" strokeWidth="1.2"/><ellipse cx="13" cy="20" rx="3.5" ry="2" fill="rgba(255,210,210,0.45)"/></svg> },
     { id: 'durak', label: 'Дурак', desc: 'Карткова гра', svg: <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><g transform="rotate(-15 20 34)"><rect x="12" y="8" width="16" height="24" rx="2.5" fill="rgba(212,160,23,0.15)" stroke="#D4A017" strokeWidth="1.2"/><text x="20" y="24" textAnchor="middle" fill="#ef4444" fontSize="14">♥</text></g><g transform="rotate(10 20 34)"><rect x="12" y="8" width="16" height="24" rx="2.5" fill="rgba(20,30,50,0.92)" stroke="rgba(245,243,238,0.3)" strokeWidth="1.2"/><text x="20" y="24" textAnchor="middle" fill="#D4A017" fontSize="14">♠</text></g></svg> },
     { id: 'poker', label: 'Покер', desc: 'П\'ять карт', svg: <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><g transform="rotate(-20 20 34)"><rect x="13" y="9" width="14" height="21" rx="2" fill="rgba(212,160,23,0.15)" stroke="#D4A017" strokeWidth="1.1"/><text x="20" y="23" textAnchor="middle" fill="#ef4444" fontSize="12">♦</text></g><rect x="13" y="9" width="14" height="21" rx="2" fill="rgba(212,160,23,0.22)" stroke="#D4A017" strokeWidth="1.2"/><text x="20" y="23" textAnchor="middle" fill="#D4A017" fontSize="12">♠</text><g transform="rotate(20 20 34)"><rect x="13" y="9" width="14" height="21" rx="2" fill="rgba(212,160,23,0.15)" stroke="#D4A017" strokeWidth="1.1"/><text x="20" y="23" textAnchor="middle" fill="#ef4444" fontSize="12">♥</text></g></svg> },
-    { id: 'leaderboard', label: 'Рейтинг', desc: 'Незабаром', svg: <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="13" y="16" width="14" height="22" rx="2" fill="#D4A017" opacity="0.9"/><rect x="2" y="22" width="11" height="16" rx="2" fill="rgba(245,243,238,0.25)" stroke="rgba(245,243,238,0.4)" strokeWidth="1"/><rect x="27" y="26" width="11" height="12" rx="2" fill="rgba(245,243,238,0.15)" stroke="rgba(245,243,238,0.3)" strokeWidth="1"/><text x="20" y="12" textAnchor="middle" fill="#D4A017" fontSize="9" fontWeight="700">1</text><text x="7.5" y="20" textAnchor="middle" fill="#F5F3EE" fontSize="9">2</text><text x="32.5" y="24" textAnchor="middle" fill="#F5F3EE" fontSize="9">3</text></svg> },
+    { id: 'puzzles', label: 'Пазли', desc: '50 картинок', svg: <svg width="40" height="40" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="6" width="36" height="36" rx="3" fill="none" stroke="#D4A017" strokeWidth="1.5" strokeDasharray="2 2" opacity="0.5"/><path d="M8 8 L18 8 L18 11 Q18 14 21 14 Q24 14 24 11 L24 8 L24 22 L21 22 Q18 22 18 19 L8 19 Z" fill="#D4A017"/><path d="M26 8 L40 8 L40 19 L37 19 Q34 19 34 22 L26 22 Z" fill="#D4A017" opacity="0.85"/><path d="M8 21 L18 21 Q18 24 21 24 Q24 24 24 21 L24 38 Q24 40 22 40 L8 40 Z" fill="#D4A017" opacity="0.7"/><g transform="translate(28 26) rotate(15)"><path d="M0 0 L12 0 L12 4 Q12 7 15 7 Q18 7 18 4 L18 0 L18 14 L15 14 Q12 14 12 11 L0 11 Z" fill="#D4A017" opacity="0.95"/></g></svg> },
   ]
 
   return (
     <section style={{ marginBottom: 56 }}>
       <audio ref={audioRef} />
+      <style>{`.pzl-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}@media(max-width:500px){.pzl-grid{grid-template-columns:1fr}}`}</style>
 
-      <div style={{ background: '#0f1e3a', border: '1.5px solid #f5a623', borderRadius: 16, padding: '22px 18px' }}>
+      <div style={{ background: '#0f1e3a', border: '1.5px solid #f5a623', borderRadius: 16, padding: '22px 18px', minHeight: 420 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
           <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <svg width="30" height="30" viewBox="0 0 56 56" fill="none">
@@ -1106,7 +1109,7 @@ export default function LongevityClubSection() {
                 onClick={() => {
                   if (g.id === 'voice') { setQuizType('voice'); setActiveView('voice') }
                   else if (g.id === 'text') { setQuizType('text'); setActiveView('text') }
-                  else setActiveView(g.id as ActiveView)
+                  else { if (g.id === 'puzzles') setPuzzlePick(null); setActiveView(g.id as ActiveView) }
                 }}
                 style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: '18px 12px', cursor: 'pointer', textAlign: 'center' }}
               >
@@ -1125,6 +1128,50 @@ export default function LongevityClubSection() {
         {activeView === 'checkers'    && <CheckersGame     onBack={() => setActiveView(null)} />}
         {activeView === 'durak'       && <DurakGame        onBack={() => setActiveView(null)} />}
         {activeView === 'poker'       && <PokerGame        onBack={() => setActiveView(null)} />}
+        {activeView === 'puzzles' && !puzzlePick && (
+          <div>
+            <div style={{ position: 'sticky', top: 0, background: '#0f1e3a', zIndex: 1, paddingBottom: 12 }}>
+              <button
+                onClick={() => setActiveView(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8899bb', fontSize: 14, fontFamily: FONT, padding: 0, marginBottom: 10, display: 'block' }}
+              >← Назад</button>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT }}>Пазли</div>
+              <div style={{ fontSize: 13, color: '#8899bb', fontFamily: FONT, marginTop: 4 }}>Обери картинку та рівень</div>
+            </div>
+            <div style={{ maxHeight: 440, overflowY: 'auto' }}>
+              <div className="pzl-grid">
+                {PUZZLE_LIST.map(p => (
+                  <div key={p.seed} style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+                    <img
+                      src={`https://picsum.photos/seed/${p.seed}/400/400`}
+                      alt={p.seed}
+                      onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }}
+                      style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: 8, display: 'block', maxHeight: 200 }}
+                    />
+                    <div style={{ display: 'flex', gap: 4, minWidth: 0 }}>
+                      {(['Легко', 'Середньо', 'Важко'] as const).map(lvl => {
+                        const key = `${p.seed}-${lvl}`
+                        const hot = hoveredLevel === key
+                        return (
+                          <button
+                            key={lvl}
+                            onMouseEnter={() => setHoveredLevel(key)}
+                            onMouseLeave={() => setHoveredLevel(null)}
+                            onClick={() => setPuzzlePick({ seed: p.seed, level: lvl === 'Легко' ? 3 : lvl === 'Середньо' ? 4 : 5 })}
+                            style={{ flex: 1, minWidth: 0, padding: '6px 4px', fontSize: 11, borderRadius: 6, border: `1px solid ${hot ? '#D4A017' : '#8899bb'}`, background: 'transparent', color: hot ? '#D4A017' : '#8899bb', fontFamily: FONT, cursor: 'pointer' }}
+                          >{lvl}</button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        {activeView === 'puzzles' && puzzlePick && (
+          <PuzzleGame seed={puzzlePick.seed} level={puzzlePick.level} onBack={() => setPuzzlePick(null)} />
+        )}
 
         {(activeView === 'voice' || activeView === 'text') && !done && (
           <div>
@@ -1180,15 +1227,6 @@ export default function LongevityClubSection() {
           </div>
         )}
 
-        {activeView === 'leaderboard' && (
-          <div>
-            <button onClick={() => setActiveView(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#8899bb', fontSize: 14, marginBottom: 20 }}>← Назад</button>
-            <div style={{ textAlign: 'center', padding: '30px 0', color: '#8899bb', fontSize: 16 }}>
-              <div style={{ fontSize: 18, color: '#f5f0e8', marginBottom: 8 }}>Незабаром</div>
-              <div style={{ fontSize: 14 }}>Рейтинг гравців у розробці</div>
-            </div>
-          </div>
-        )}
       </div>
     </section>
   )

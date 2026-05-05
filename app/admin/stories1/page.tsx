@@ -11,6 +11,7 @@ const VIOLET    = '#818cf8'
 const TEAL      = '#2dd4bf'
 
 const GENRES = ['оповідання', 'гумор', 'драма', 'казка', 'пригода', 'історична проза']
+const CATEGORIES = ['', 'З життя', 'Містика', 'Любов', 'Воєнні', 'Історичні', 'Родинні', 'Гумор', 'Детектив', 'Психологічні', 'Дитячі']
 
 const inputBase: React.CSSProperties = {
   width: '100%', background: 'rgba(255,255,255,0.05)',
@@ -149,6 +150,7 @@ export default function Stories1Page() {
   const [authorName, setAuthorName] = useState('')
   const [title,      setTitle]      = useState('')
   const [genre,      setGenre]      = useState(GENRES[0])
+  const [category,   setCategory]   = useState('')
   const [text,       setText]       = useState('')
 
   // Photo
@@ -273,6 +275,7 @@ export default function Stories1Page() {
           humanizedText:   humanizedText  || null,
           humanizeSummary: humanizeSummary.length ? humanizeSummary : null,
           publishedVersion: publishedVersion ?? 'original',
+          category:        category || '',
         }),
       })
       const data = await res.json() as { message?: string; error?: string; status?: string; coverGenerating?: boolean }
@@ -283,7 +286,7 @@ export default function Stories1Page() {
   }
 
   const handleReset = () => {
-    setAuthorName(''); setTitle(''); setGenre(GENRES[0]); setText('')
+    setAuthorName(''); setTitle(''); setGenre(GENRES[0]); setCategory(''); setText('')
     setImgSrc(''); setPhotoB64(''); setReport(null)
     setCheckPhase('idle'); setCheckError('')
     setCorrectPhase('idle'); setCorrectError(''); setCorrectedText(''); setCorrections([])
@@ -389,6 +392,12 @@ export default function Stories1Page() {
             <Field label="Жанр">
               <select style={selectStyle} value={genre} onChange={e => setGenre(e.target.value)}>
                 {GENRES.map(g => <option key={g} value={g} style={{ background: NAVY }}>{g}</option>)}
+              </select>
+            </Field>
+            <Field label="Категорія">
+              <select style={selectStyle} value={category} onChange={e => setCategory(e.target.value)}>
+                <option value="" style={{ background: NAVY }}>— Визначити автоматично (Claude) —</option>
+                {CATEGORIES.filter(c => c).map(c => <option key={c} value={c} style={{ background: NAVY }}>{c}</option>)}
               </select>
             </Field>
           </div>

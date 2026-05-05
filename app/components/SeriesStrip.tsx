@@ -93,8 +93,6 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                       onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }}
                       style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                     />
-                    {/* white border frame over photo */}
-                    <div style={{ position: 'absolute', inset: 5, border: '1.5px solid rgba(255,255,255,0.75)', borderRadius: 2, pointerEvents: 'none' }} />
                     {/* audio badge */}
                     <span style={{
                       position: 'absolute', bottom: 6, left: 6,
