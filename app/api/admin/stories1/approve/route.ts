@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { authorName, title, genre, text, photoBase64, aiReport, action, adminNotes } = await req.json()
+    const { authorName, title, genre, text, photoBase64, aiReport, action, adminNotes, correctedText, changes, publishedVersion } = await req.json()
 
     if (!title || !genre || !text || !action) {
       return NextResponse.json({ error: 'title, genre, text, action required' }, { status: 400 })
@@ -38,16 +38,19 @@ export async function POST(req: NextRequest) {
     const storyId  = crypto.randomUUID()
 
     const { error: insertError } = await supabase.from('stories').insert({
-      id:          storyId,
-      author_name: authorName || '',
+      id:                storyId,
+      author_name:       authorName || '',
       title,
       genre,
       text,
       status,
-      ai_report:   aiReport ?? null,
-      ai_score:    aiReport?.overall?.recommendation ?? null,
-      admin_notes: adminNotes || null,
-      approved_at: status === 'approved' ? new Date().toISOString() : null,
+      ai_report:         aiReport ?? null,
+      ai_score:          aiReport?.overall?.recommendation ?? null,
+      admin_notes:       adminNotes || null,
+      corrected_text:    correctedText || null,
+      changes:           changes ?? null,
+      published_version: publishedVersion ?? 'original',
+      approved_at:       status === 'approved' ? new Date().toISOString() : null,
     })
 
     if (insertError) throw insertError
