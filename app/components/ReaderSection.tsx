@@ -16,7 +16,6 @@ export default function ReaderSection() {
   const [fontSize, setFontSize] = useState(24)
   const [isSerif, setIsSerif] = useState(true)
   const [zenMode, setZenMode] = useState(false)
-  const [activeP, setActiveP] = useState('p1')
   const [currentEp, setCurrentEp] = useState(1)
 
   return (
@@ -124,22 +123,12 @@ export default function ReaderSection() {
             lineHeight: 2.0,
             fontFamily: isSerif ? "'Lora', serif" : "'Montserrat', sans-serif"
           }}
-          onClick={(e) => {
-            const el = (e.target as HTMLElement).closest('p')
-            if (el?.id) setActiveP(el.id)
-          }}
         >
           {PARAGRAPHS.map(p => (
             <p
               key={p.id}
               id={p.id}
-              style={{
-                marginBottom: 18, padding: '6px 10px', borderRadius: 6,
-                background: activeP === p.id ? 'var(--highlight)' : 'transparent',
-                color: activeP === p.id ? '#1a1a1a' : 'inherit',
-                fontWeight: activeP === p.id ? 500 : 400,
-                cursor: 'pointer'
-              }}
+              style={{ marginBottom: 18 }}
             >
               {p.text}
             </p>

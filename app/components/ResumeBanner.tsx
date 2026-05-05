@@ -57,39 +57,42 @@ export default function ResumeBanner() {
 
   return (
     <div style={{
-      background: 'linear-gradient(90deg, rgba(239,159,39,0.12) 0%, rgba(239,159,39,0.05) 100%)',
-      borderBottom: '1px solid rgba(239,159,39,0.25)',
+      background: '#1a2845',
+      borderBottom: '1px solid rgba(255,255,255,0.08)',
       padding: '10px 5%',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 12,
       flexWrap: 'wrap',
+      opacity: 0.95,
+      boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
     }}>
       {/* Icon + text */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {/* Play icon */}
         <div style={{
           width: 38, height: 38, borderRadius: '50%',
-          background: '#ef9f27',
+          background: 'rgba(255,184,0,0.12)',
+          border: '1.5px solid #FFB800',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           flexShrink: 0,
         }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFB800">
             <polygon points="5,3 19,12 5,21"/>
           </svg>
         </div>
 
         <div>
-          <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 2 }}>
+          <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 2 }}>
             Ви зупинились на
           </div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#f1f5f9' }}>
             {progress.title}
             <span style={{
               marginLeft: 8, fontSize: 11,
-              background: 'rgba(239,159,39,0.15)',
-              color: '#ef9f27', borderRadius: 4,
+              background: 'rgba(255,184,0,0.12)',
+              color: '#FFB800', borderRadius: 4,
               padding: '2px 7px',
             }}>
               {moodLabel}
@@ -100,7 +103,7 @@ export default function ResumeBanner() {
 
       {/* Right side */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-        <span style={{ fontSize: 13, color: 'var(--muted)' }}>
+        <span style={{ fontSize: 13, color: '#94a3b8' }}>
           Зупинка: {timeStr}
         </span>
         <a
@@ -110,8 +113,8 @@ export default function ResumeBanner() {
             setDismissed(true)
           }}
           style={{
-            background: '#ef9f27', color: '#fff',
-            border: 'none', borderRadius: 8,
+            background: 'transparent', color: '#FFB800',
+            border: '1.5px solid #FFB800', borderRadius: 8,
             padding: '8px 18px', fontSize: 13,
             fontWeight: 700, cursor: 'pointer',
             textDecoration: 'none',
