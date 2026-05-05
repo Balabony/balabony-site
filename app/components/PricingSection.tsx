@@ -42,7 +42,7 @@ function FreeViewTimer() {
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginTop: 12 }}>
       <span style={{ fontSize: 18, color: '#FFFFFF' }}>
-        Кожні 8 годин — нова історія безкоштовно. Без реєстрації. 🕐 Наступна оновиться через:
+        Нові історії та серії щодня. 🕐 Наступна оновиться через:
       </span>
       <span style={{
         fontSize: 18, fontWeight: 700, color: '#FFB800',
@@ -96,7 +96,7 @@ async function initiateInstallment(provider: 'privat' | 'oschadbank') {
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: 891, package: 'Річний', currency: 'UAH' }),
+      body: JSON.stringify({ amount: 890, package: 'Річний', currency: 'UAH' }),
     })
     const data = await res.json()
     if (data.redirectUrl) {
@@ -291,8 +291,8 @@ export default function PricingSection() {
     {
       badge: 'БЕЗ ПІДПИСКИ', badgeBg: '#4a5568',
       tier: 'peritem', tierLabel: 'Поштучно',
-      price: '5', unit: '₴/шт',
-      note: 'Одна історія або одна серія — 5 грн',
+      price: '9', unit: '₴/шт',
+      note: 'Одна історія або одна серія — 9 грн',
       features: [
         { ok: true,  text: 'Купуй без підписки' },
         { ok: true,  text: 'Ідеально, щоб спробувати перед підпискою' },
@@ -317,26 +317,26 @@ export default function PricingSection() {
     {
       badge: 'ПОПУЛЯРНИЙ', badgeBg: 'var(--accent-gold)',
       tier: 'standard', tierLabel: 'Місячний',
-      price: '99', unit: '₴/міс',
-      note: 'Скасування в будь-який час в один клік',
+      price: '129', unit: '₴/міс',
+      note: 'Перший місяць — 49 ₴ · потім 129 ₴/міс · Скасування в будь-який час',
       features: [
         { ok: true, text: 'Весь контент без обмежень' },
         { ok: true, text: 'Жодної реклами' },
       ],
-      btnLabel: 'Оформити за 99 ₴',
+      btnLabel: 'Оформити за 129 ₴',
       btnBg: 'var(--accent-gold)', featured: true
     },
     {
-      badge: '25% ВИГОДИ', badgeBg: 'var(--accent-gold)',
+      badge: '42% ВИГОДИ', badgeBg: 'var(--accent-gold)',
       tier: 'annual', tierLabel: 'Річний',
-      price: '891', unit: '₴/рік',
-      note: 'Всього 74 ₴/міс · Економія 297 ₴',
+      price: '890', unit: '₴/рік',
+      note: 'Всього 74 ₴/міс · Економія 658 ₴',
       features: [
         { ok: true, text: 'Весь контент без обмежень' },
         { ok: true, text: 'Жодної реклами' },
         { ok: true, text: 'Офлайн-завантаження' },
       ],
-      btnLabel: 'Отримати рік за ціною шести місяців',
+      btnLabel: 'Економте 658 ₴ на рік',
       btnBg: 'var(--accent-gold)', featured: false
     },
   ]
@@ -457,7 +457,7 @@ export default function PricingSection() {
                 }}
                 style={{ fontSize: 10, color: 'var(--muted)', marginBottom: 10, lineHeight: 1.5, cursor: 'pointer', textAlign: 'center' }}
               >
-                ⚠️ Дострокове скасування з поверненням залишку неможливе.
+                Підписку можна скасувати в будь-який момент. Доступ зберігається до кінця оплаченого періоду.
               </p>
             )}
             <button
