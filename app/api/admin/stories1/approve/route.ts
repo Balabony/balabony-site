@@ -23,7 +23,11 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { authorName, title, genre, text, photoBase64, aiReport, action, adminNotes, correctedText, changes, publishedVersion } = await req.json()
+    const {
+      authorName, title, genre, text, photoBase64, aiReport, action, adminNotes,
+      correctedText, changes, publishedVersion,
+      humanizedText, humanizeSummary,
+    } = await req.json()
 
     if (!title || !genre || !text || !action) {
       return NextResponse.json({ error: 'title, genre, text, action required' }, { status: 400 })
@@ -47,8 +51,10 @@ export async function POST(req: NextRequest) {
       ai_report:         aiReport ?? null,
       ai_score:          aiReport?.overall?.recommendation ?? null,
       admin_notes:       adminNotes || null,
-      corrected_text:    correctedText || null,
-      changes:           changes ?? null,
+      corrected_text:    correctedText  || null,
+      changes:           changes        ?? null,
+      humanized_text:    humanizedText  || null,
+      humanize_summary:  humanizeSummary ?? null,
       published_version: publishedVersion ?? 'original',
       approved_at:       status === 'approved' ? new Date().toISOString() : null,
     })

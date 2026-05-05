@@ -7,7 +7,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from('stories')
-      .select('id, title, author_name, genre, text, cover_url, published_version, corrected_text, approved_at')
+      .select('id, title, author_name, genre, text, cover_url, published_version, corrected_text, humanized_text, approved_at')
       .eq('status', 'approved')
       .order('approved_at', { ascending: false })
       .limit(9)
@@ -21,7 +21,7 @@ export async function GET() {
       coverUrl: s.cover_url ?? '/og-image.jpg',
       tags:     [s.genre],
       hasAudio: false,
-      teaser:   buildTeaser(s.published_version === 'corrected' && s.corrected_text ? s.corrected_text : s.text),
+      teaser:   buildTeaser(pickPublishedText(s)),
       url:      `/stories/${s.id}`,
     }))
 
@@ -29,6 +29,13 @@ export async function GET() {
   } catch {
     return NextResponse.json([], { status: 500 })
   }
+}
+
+function pickPublishedText(s: { text: string; corrected_text: string | null; humanized_text: string | null; published_version: string | null }): string {
+  const v = s.published_version ?? 'original'
+  if ((v === 'humanized' || v === 'corrected_humanized') && s.humanized_text) return s.humanized_text
+  if (v === 'corrected' && s.corrected_text) return s.corrected_text
+  return s.text
 }
 
 function buildTeaser(text: string): string {

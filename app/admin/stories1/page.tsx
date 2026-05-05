@@ -7,6 +7,8 @@ const FONT      = "'Montserrat', Arial, sans-serif"
 const GOLD      = '#f0a500'
 const NAVY      = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
+const VIOLET    = '#818cf8'
+const TEAL      = '#2dd4bf'
 
 const GENRES = ['оповідання', 'гумор', 'драма', 'казка', 'пригода', 'історична проза']
 
@@ -78,6 +80,19 @@ function RecommendationBadge({ text }: { text: string }) {
   )
 }
 
+// ── Para diff helper ──────────────────────────────────────────────────────────
+
+function buildParaDiff(original: string, humanized: string) {
+  const origLines = original.split('\n')
+  const humLines  = humanized.split('\n')
+  const origNorm  = new Set(origLines.map(l => l.trim()))
+  const humNorm   = new Set(humLines.map(l => l.trim()))
+  return {
+    orig: origLines.map(l => ({ text: l, changed: l.trim() !== '' && !humNorm.has(l.trim()) })),
+    hum:  humLines.map(l => ({ text: l, changed: l.trim() !== '' && !origNorm.has(l.trim()) })),
+  }
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface AIReport {
@@ -88,61 +103,40 @@ interface AIReport {
   overall:      { recommendation: string; summary: string; suggestions?: string[] }
 }
 
-interface Change {
-  id:        number
-  original:  string
-  corrected: string
-  reason:    string
-}
+interface Change { id: number; original: string; corrected: string; reason: string }
 
-type Segment =
-  | { type: 'text';   content: string }
-  | { type: 'change'; content: string; change: Change }
+type Segment = { type: 'text'; content: string } | { type: 'change'; content: string; change: Change }
+type Phase   = 'idle' | 'loading' | 'done' | 'error'
 
-type Phase = 'idle' | 'loading' | 'done' | 'error'
-
-// ── Diff builder ──────────────────────────────────────────────────────────────
+// ── Correction diff builder ───────────────────────────────────────────────────
 
 function buildSegments(correctedText: string, changes: Change[]): Segment[] {
   if (!changes.length) return [{ type: 'text', content: correctedText }]
-
-  // Find first unused occurrence of each change.corrected in correctedText
   const usedRanges: Array<[number, number]> = []
-
   const positioned: Array<{ change: Change; start: number; end: number }> = []
-
   for (const change of changes) {
     if (!change.corrected) continue
-    let searchFrom = 0
-    while (searchFrom < correctedText.length) {
-      const pos = correctedText.indexOf(change.corrected, searchFrom)
+    let from = 0
+    while (from < correctedText.length) {
+      const pos = correctedText.indexOf(change.corrected, from)
       if (pos === -1) break
       const end = pos + change.corrected.length
-      // Check no overlap with already-used ranges
-      const overlaps = usedRanges.some(([s, e]) => pos < e && end > s)
-      if (!overlaps) {
-        usedRanges.push([pos, end])
-        positioned.push({ change, start: pos, end })
-        break
+      if (!usedRanges.some(([s, e]) => pos < e && end > s)) {
+        usedRanges.push([pos, end]); positioned.push({ change, start: pos, end }); break
       }
-      searchFrom = pos + 1
+      from = pos + 1
     }
   }
-
   positioned.sort((a, b) => a.start - b.start)
-
   const segments: Segment[] = []
   let cursor = 0
-
   for (const { change, start, end } of positioned) {
     if (start < cursor) continue
     if (start > cursor) segments.push({ type: 'text', content: correctedText.slice(cursor, start) })
     segments.push({ type: 'change', content: change.corrected, change })
     cursor = end
   }
-
   if (cursor < correctedText.length) segments.push({ type: 'text', content: correctedText.slice(cursor) })
-
   return segments
 }
 
@@ -151,26 +145,38 @@ function buildSegments(correctedText: string, changes: Change[]): Segment[] {
 export default function Stories1Page() {
   const router = useRouter()
 
+  // Form
   const [authorName, setAuthorName] = useState('')
   const [title,      setTitle]      = useState('')
   const [genre,      setGenre]      = useState(GENRES[0])
   const [text,       setText]       = useState('')
 
+  // Photo
   const [imgSrc,   setImgSrc]   = useState('')
   const [photoB64, setPhotoB64] = useState('')
   const [dragOver, setDragOver] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
+  // AI check
   const [checkPhase, setCheckPhase] = useState<Phase>('idle')
   const [checkError, setCheckError] = useState('')
   const [report,     setReport]     = useState<AIReport | null>(null)
 
-  const [correctPhase,   setCorrectPhase]   = useState<Phase>('idle')
-  const [correctError,   setCorrectError]   = useState('')
-  const [correctedText,  setCorrectedText]  = useState('')
-  const [corrections,    setCorrections]    = useState<Change[]>([])
+  // Editorial correction
+  const [correctPhase,  setCorrectPhase]  = useState<Phase>('idle')
+  const [correctError,  setCorrectError]  = useState('')
+  const [correctedText, setCorrectedText] = useState('')
+  const [corrections,   setCorrections]   = useState<Change[]>([])
   const segments = correctedText ? buildSegments(correctedText, corrections) : []
 
+  // Humanize
+  const [humanizePhase,   setHumanizePhase]   = useState<Phase>('idle')
+  const [humanizeError,   setHumanizeError]   = useState('')
+  const [humanizedText,   setHumanizedText]   = useState('')
+  const [humanizeSummary, setHumanizeSummary] = useState<string[]>([])
+  const paraDiff = (humanizePhase === 'done' && humanizedText) ? buildParaDiff(text, humanizedText) : null
+
+  // Decision
   const [adminNotes,   setAdminNotes]   = useState('')
   const [actionPhase,  setActionPhase]  = useState<Phase>('idle')
   const [actionMsg,    setActionMsg]    = useState('')
@@ -179,15 +185,15 @@ export default function Stories1Page() {
   const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
   const readMin   = Math.ceil(wordCount / 180) || 0
 
+  const hasCorrected = correctPhase === 'done' && correctedText && corrections.length > 0
+  const hasHumanized = humanizePhase === 'done' && humanizedText
+
   // ── Photo ────────────────────────────────────────────────────────────────
 
   const loadFile = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) return
     const reader = new FileReader()
-    reader.onload = ev => {
-      const r = ev.target?.result as string
-      setImgSrc(r); setPhotoB64(r)
-    }
+    reader.onload = ev => { const r = ev.target?.result as string; setImgSrc(r); setPhotoB64(r) }
     reader.readAsDataURL(file)
   }, [])
 
@@ -202,6 +208,7 @@ export default function Stories1Page() {
     if (!title || !genre || !text) { setCheckError('Заповніть назву, жанр та текст'); setCheckPhase('error'); return }
     setCheckPhase('loading'); setCheckError(''); setReport(null)
     setCorrectPhase('idle'); setCorrectedText(''); setCorrections([])
+    setHumanizePhase('idle'); setHumanizedText(''); setHumanizeSummary([])
     try {
       const res  = await fetch('/api/admin/stories1/check', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ authorName, title, genre, text }) })
       const data = await res.json() as { report?: AIReport; error?: string }
@@ -210,7 +217,7 @@ export default function Stories1Page() {
     } catch { setCheckError("Помилка з'єднання"); setCheckPhase('error') }
   }
 
-  // ── Editorial Correction ──────────────────────────────────────────────────
+  // ── Editorial Correction ─────────────────────────────────────────────────
 
   const handleCorrect = async () => {
     setCorrectPhase('loading'); setCorrectError(''); setCorrectedText(''); setCorrections([])
@@ -218,31 +225,42 @@ export default function Stories1Page() {
       const res  = await fetch('/api/admin/stories1/correct', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, genre }) })
       const data = await res.json() as { corrected_text?: string; changes?: Change[]; error?: string }
       if (!res.ok || data.error) { setCorrectError(data.error ?? 'Помилка'); setCorrectPhase('error'); return }
-      setCorrectedText(data.corrected_text ?? text)
-      setCorrections(data.changes ?? [])
-      setCorrectPhase('done')
+      setCorrectedText(data.corrected_text ?? text); setCorrections(data.changes ?? []); setCorrectPhase('done')
     } catch { setCorrectError("Помилка з'єднання"); setCorrectPhase('error') }
+  }
+
+  // ── Humanize ─────────────────────────────────────────────────────────────
+
+  const handleHumanize = async () => {
+    setHumanizePhase('loading'); setHumanizeError(''); setHumanizedText(''); setHumanizeSummary([])
+    try {
+      const res  = await fetch('/api/admin/stories1/humanize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, genre }) })
+      const data = await res.json() as { humanized_text?: string; changes_summary?: string[]; error?: string }
+      if (!res.ok || data.error) { setHumanizeError(data.error ?? 'Помилка'); setHumanizePhase('error'); return }
+      setHumanizedText(data.humanized_text ?? text); setHumanizeSummary(data.changes_summary ?? []); setHumanizePhase('done')
+    } catch { setHumanizeError("Помилка з'єднання"); setHumanizePhase('error') }
   }
 
   // ── Publish ───────────────────────────────────────────────────────────────
 
-  const handleAction = async (action: 'approve' | 'reject' | 'revision', publishedVersion?: 'original' | 'corrected') => {
+  const handleAction = async (action: 'approve' | 'reject' | 'revision', publishedVersion?: string) => {
     setActionPhase('loading'); setActionMsg('')
     try {
       const res  = await fetch('/api/admin/stories1/approve', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           authorName, title, genre, text, photoBase64: photoB64, aiReport: report, action, adminNotes,
-          correctedText: correctedText || null,
-          changes:       corrections.length ? corrections : null,
+          correctedText:   correctedText  || null,
+          changes:         corrections.length ? corrections : null,
+          humanizedText:   humanizedText  || null,
+          humanizeSummary: humanizeSummary.length ? humanizeSummary : null,
           publishedVersion: publishedVersion ?? 'original',
         }),
       })
       const data = await res.json() as { message?: string; error?: string; status?: string; coverGenerating?: boolean }
       if (!res.ok || data.error) { setActionMsg(data.error ?? 'Помилка'); setActionPhase('error'); return }
       setActionMsg((data.message ?? 'Готово') + (data.coverGenerating ? ' Обкладинка генерується у фоні (~60 с).' : ''))
-      setActionStatus(data.status as typeof actionStatus)
-      setActionPhase('done')
+      setActionStatus(data.status as typeof actionStatus); setActionPhase('done')
     } catch { setActionMsg("Помилка з'єднання"); setActionPhase('error') }
   }
 
@@ -251,13 +269,71 @@ export default function Stories1Page() {
     setImgSrc(''); setPhotoB64(''); setReport(null)
     setCheckPhase('idle'); setCheckError('')
     setCorrectPhase('idle'); setCorrectError(''); setCorrectedText(''); setCorrections([])
+    setHumanizePhase('idle'); setHumanizeError(''); setHumanizedText(''); setHumanizeSummary([])
     setActionPhase('idle'); setActionMsg(''); setActionStatus(''); setAdminNotes('')
   }
 
   const selectStyle: React.CSSProperties = { ...inputBase, appearance: 'none', cursor: 'pointer' }
-  const hasCorrected = correctPhase === 'done' && correctedText
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  // ── Publish button grid ───────────────────────────────────────────────────
+
+  function PublishButtons() {
+    const disabled = actionPhase === 'loading'
+    if (!hasCorrected && !hasHumanized) {
+      return (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <button onClick={() => handleAction('approve', 'original')}  disabled={disabled} style={actionBtn('#4ade80', 'rgba(74,222,128,0.12)',   'rgba(74,222,128,0.35)',   disabled)}><span>✓</span><span>Схвалити</span></button>
+          <button onClick={() => handleAction('revision')}             disabled={disabled} style={actionBtn('#fbbf24', 'rgba(251,191,36,0.1)',    'rgba(251,191,36,0.3)',    disabled)}><span>⟳</span><span>Доопрацювання</span></button>
+          <button onClick={() => handleAction('reject')}               disabled={disabled} style={actionBtn('#f87171', 'rgba(248,113,113,0.1)',   'rgba(248,113,113,0.3)',   disabled)}><span>✕</span><span>Відхилити</span></button>
+        </div>
+      )
+    }
+    if (hasCorrected && !hasHumanized) {
+      return (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+            <button onClick={() => handleAction('approve', 'original')}  disabled={disabled} style={actionBtn('#4ade80', 'rgba(74,222,128,0.12)', 'rgba(74,222,128,0.35)', disabled)}><span>✓</span><span>Опублікувати оригінал</span></button>
+            <button onClick={() => handleAction('approve', 'corrected')} disabled={disabled} style={actionBtn(VIOLET,   'rgba(129,140,248,0.12)', 'rgba(129,140,248,0.4)',  disabled)}><span>✍</span><span>З редакторською правкою</span></button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <button onClick={() => handleAction('revision')} disabled={disabled} style={actionBtn('#fbbf24', 'rgba(251,191,36,0.1)',  'rgba(251,191,36,0.3)',  disabled)}><span>⟳</span><span>Доопрацювання</span></button>
+            <button onClick={() => handleAction('reject')}   disabled={disabled} style={actionBtn('#f87171', 'rgba(248,113,113,0.1)', 'rgba(248,113,113,0.3)', disabled)}><span>✕</span><span>Відхилити</span></button>
+          </div>
+        </>
+      )
+    }
+    if (!hasCorrected && hasHumanized) {
+      return (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+            <button onClick={() => handleAction('approve', 'original')}  disabled={disabled} style={actionBtn('#4ade80', 'rgba(74,222,128,0.12)', 'rgba(74,222,128,0.35)', disabled)}><span>✓</span><span>Опублікувати оригінал</span></button>
+            <button onClick={() => handleAction('approve', 'humanized')} disabled={disabled} style={actionBtn(TEAL,     'rgba(45,212,191,0.12)',  'rgba(45,212,191,0.4)',  disabled)}><span>✨</span><span>Природніший варіант</span></button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <button onClick={() => handleAction('revision')} disabled={disabled} style={actionBtn('#fbbf24', 'rgba(251,191,36,0.1)',  'rgba(251,191,36,0.3)',  disabled)}><span>⟳</span><span>Доопрацювання</span></button>
+            <button onClick={() => handleAction('reject')}   disabled={disabled} style={actionBtn('#f87171', 'rgba(248,113,113,0.1)', 'rgba(248,113,113,0.3)', disabled)}><span>✕</span><span>Відхилити</span></button>
+          </div>
+        </>
+      )
+    }
+    // Both available
+    return (
+      <>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+          <button onClick={() => handleAction('approve', 'original')}           disabled={disabled} style={actionBtn('#4ade80', 'rgba(74,222,128,0.12)', 'rgba(74,222,128,0.35)', disabled)}><span>✓</span><span>Оригінал</span></button>
+          <button onClick={() => handleAction('approve', 'corrected')}          disabled={disabled} style={actionBtn(VIOLET,   'rgba(129,140,248,0.12)', 'rgba(129,140,248,0.4)',  disabled)}><span>✍</span><span>З правкою</span></button>
+          <button onClick={() => handleAction('approve', 'humanized')}          disabled={disabled} style={actionBtn(TEAL,     'rgba(45,212,191,0.12)',  'rgba(45,212,191,0.4)',  disabled)}><span>✨</span><span>Природніший</span></button>
+          <button onClick={() => handleAction('approve', 'corrected_humanized')} disabled={disabled} style={actionBtn(GOLD,    'rgba(240,165,0,0.12)',   'rgba(240,165,0,0.4)',   disabled)}><span>⚡</span><span>Правка + Природній</span></button>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <button onClick={() => handleAction('revision')} disabled={disabled} style={actionBtn('#fbbf24', 'rgba(251,191,36,0.1)',  'rgba(251,191,36,0.3)',  disabled)}><span>⟳</span><span>Доопрацювання</span></button>
+          <button onClick={() => handleAction('reject')}   disabled={disabled} style={actionBtn('#f87171', 'rgba(248,113,113,0.1)', 'rgba(248,113,113,0.3)', disabled)}><span>✕</span><span>Відхилити</span></button>
+        </div>
+      </>
+    )
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT, padding: '24px 16px 80px' }}>
@@ -283,7 +359,7 @@ export default function Stories1Page() {
           </div>
         </div>
 
-        {/* ━━━ 1 — Завантаження ━━━ */}
+        {/* ━━━ 1 — Форма ━━━ */}
         <SectionCard n={1} title="Завантаження історії">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <Field label="Ім'я автора">
@@ -295,23 +371,14 @@ export default function Stories1Page() {
               </select>
             </Field>
           </div>
-
           <Field label="Назва історії">
             <input style={inputBase} value={title} onChange={e => setTitle(e.target.value)} placeholder="Назва твору" />
           </Field>
-
           <Field label="Текст історії" right={wordCount > 0 ? `${wordCount} слів · ~${readMin} хв` : undefined}>
             <textarea style={{ ...inputBase, height: 280, resize: 'vertical', lineHeight: 1.75 }} placeholder="Вставте або введіть повний текст..." value={text} onChange={e => setText(e.target.value)} />
           </Field>
-
           <Field label="Фото для обкладинки">
-            <div
-              onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={handleDrop}
-              onClick={() => fileRef.current?.click()}
-              style={{ border: `1.5px dashed ${dragOver ? GOLD : 'rgba(255,255,255,0.15)'}`, borderRadius: 12, padding: '22px 20px', textAlign: 'center', cursor: 'pointer', background: dragOver ? 'rgba(240,165,0,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.2s', marginBottom: imgSrc ? 10 : 0 }}
-            >
+            <div onDragOver={e => { e.preventDefault(); setDragOver(true) }} onDragLeave={() => setDragOver(false)} onDrop={handleDrop} onClick={() => fileRef.current?.click()} style={{ border: `1.5px dashed ${dragOver ? GOLD : 'rgba(255,255,255,0.15)'}`, borderRadius: 12, padding: '22px 20px', textAlign: 'center', cursor: 'pointer', background: dragOver ? 'rgba(240,165,0,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.2s', marginBottom: imgSrc ? 10 : 0 }}>
               <div style={{ fontSize: 26, marginBottom: 6 }}>🖼</div>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#f5f0e8', marginBottom: 3, fontFamily: FONT }}>Перетягніть фото або клікніть</div>
               <div style={{ fontSize: 11, color: '#445566', fontFamily: FONT }}>PNG · JPG · WEBP · Обличчя не будуть обрізані</div>
@@ -326,33 +393,20 @@ export default function Stories1Page() {
               </div>
             )}
           </Field>
-
-          <button
-            onClick={handleCheck}
-            disabled={checkPhase === 'loading'}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, background: checkPhase === 'loading' ? 'rgba(240,165,0,0.45)' : 'linear-gradient(135deg,#f0a500,#e8920a)', color: NAVY_DEEP, border: 'none', borderRadius: 12, padding: '15px 18px', fontSize: 15, fontWeight: 800, cursor: checkPhase === 'loading' ? 'wait' : 'pointer', fontFamily: FONT, boxShadow: checkPhase === 'loading' ? 'none' : '0 2px 14px rgba(240,165,0,0.3)', transition: 'all 0.2s', letterSpacing: 0.3 }}
-          >
-            {checkPhase === 'loading'
-              ? <><svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ animation: 'spin 1s linear infinite' }}><circle cx="9" cy="9" r="7" stroke={NAVY_DEEP} strokeWidth="2.5" strokeDasharray="22 20" strokeLinecap="round"/></svg> Claude аналізує…</>
-              : <><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2 L11 7 L16 7 L12 10.5 L13.5 15.5 L9 12.5 L4.5 15.5 L6 10.5 L2 7 L7 7 Z" fill={NAVY_DEEP}/></svg> Перевірити через Claude AI</>
-            }
+          <button onClick={handleCheck} disabled={checkPhase === 'loading'} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, background: checkPhase === 'loading' ? 'rgba(240,165,0,0.45)' : 'linear-gradient(135deg,#f0a500,#e8920a)', color: NAVY_DEEP, border: 'none', borderRadius: 12, padding: '15px 18px', fontSize: 15, fontWeight: 800, cursor: checkPhase === 'loading' ? 'wait' : 'pointer', fontFamily: FONT, boxShadow: checkPhase === 'loading' ? 'none' : '0 2px 14px rgba(240,165,0,0.3)', transition: 'all 0.2s' }}>
+            {checkPhase === 'loading' ? <><Spinner color={NAVY_DEEP} /> Claude аналізує…</> : <><StarIcon /> Перевірити через Claude AI</>}
           </button>
-
-          {checkPhase === 'error' && (
-            <div style={{ marginTop: 10, fontSize: 13, color: '#f87171', padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>{checkError}</div>
-          )}
+          {checkPhase === 'error' && <ErrorBox>{checkError}</ErrorBox>}
         </SectionCard>
 
         {/* ━━━ 2 — AI Report ━━━ */}
         {report && (
           <SectionCard n={2} title="Результат перевірки Claude AI">
-
             <div style={{ textAlign: 'center', marginBottom: 24, padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: 12 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12, fontFamily: FONT }}>Загальна оцінка</div>
               <RecommendationBadge text={report.overall.recommendation} />
               <p style={{ fontSize: 14, color: '#c8d4e8', lineHeight: 1.7, margin: '16px 0 0', fontFamily: FONT, textAlign: 'left' }}>{report.overall.summary}</p>
             </div>
-
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
               {([
                 { label: 'Плагіат',      icon: '🔍', data: report.plagiarism,   inv: true  },
@@ -374,7 +428,6 @@ export default function Stories1Page() {
                 )
               })}
             </div>
-
             {report.grammar.errors && report.grammar.errors.length > 0 && (
               <div style={{ marginBottom: 16, padding: '14px 16px', background: 'rgba(248,113,113,0.06)', border: '0.5px solid rgba(248,113,113,0.2)', borderRadius: 12 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#f87171', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10, fontFamily: FONT }}>Знайдені помилки</div>
@@ -383,7 +436,6 @@ export default function Stories1Page() {
                 </ul>
               </div>
             )}
-
             {report.overall.suggestions && report.overall.suggestions.length > 0 && (
               <div style={{ marginBottom: 20, padding: '14px 16px', background: 'rgba(240,165,0,0.05)', border: '0.5px solid rgba(240,165,0,0.2)', borderRadius: 12 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10, fontFamily: FONT }}>Рекомендації редактора</div>
@@ -392,81 +444,113 @@ export default function Stories1Page() {
                 </ul>
               </div>
             )}
-
-            {/* Editorial correction trigger */}
-            <button
-              onClick={handleCorrect}
-              disabled={correctPhase === 'loading'}
-              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, background: correctPhase === 'loading' ? 'rgba(129,140,248,0.3)' : 'rgba(129,140,248,0.15)', color: '#818cf8', border: '1.5px solid rgba(129,140,248,0.4)', borderRadius: 12, padding: '13px 18px', fontSize: 14, fontWeight: 700, cursor: correctPhase === 'loading' ? 'wait' : 'pointer', fontFamily: FONT, transition: 'all 0.2s' }}
-            >
-              {correctPhase === 'loading'
-                ? <><svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 1s linear infinite' }}><circle cx="8" cy="8" r="6" stroke="#818cf8" strokeWidth="2" strokeDasharray="20 18" strokeLinecap="round"/></svg> Claude редагує…</>
-                : <>✍️ Отримати редакторську правку</>
-              }
+            <button onClick={handleCorrect} disabled={correctPhase === 'loading'} style={triggerBtn(VIOLET, correctPhase === 'loading')}>
+              {correctPhase === 'loading' ? <><Spinner color={VIOLET} /> Claude редагує…</> : <>✍️ Отримати редакторську правку</>}
             </button>
-            {correctPhase === 'error' && (
-              <div style={{ marginTop: 10, fontSize: 13, color: '#f87171', padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>{correctError}</div>
-            )}
+            {correctPhase === 'error' && <ErrorBox>{correctError}</ErrorBox>}
           </SectionCard>
         )}
 
-        {/* ━━━ 2.5 — Editorial correction ━━━ */}
+        {/* ━━━ 2.5 — Editorial Correction ━━━ */}
         {hasCorrected && (
-          <SectionCard n="✍" title="Редакторська правка" accent="#818cf8">
-
-            {corrections.length === 0 && (
-              <p style={{ fontSize: 14, color: '#8899bb', fontFamily: FONT, textAlign: 'center', padding: '10px 0' }}>Суттєвих правок не знайдено. Текст якісний.</p>
-            )}
-
-            {corrections.length > 0 && (
-              <>
-                {/* Summary badge */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, padding: '10px 14px', background: 'rgba(129,140,248,0.08)', border: '0.5px solid rgba(129,140,248,0.25)', borderRadius: 10 }}>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: '#818cf8', fontFamily: FONT }}>{corrections.length}</span>
-                  <span style={{ fontSize: 13, color: '#c8d4e8', fontFamily: FONT }}>правок · наведіть на підкреслений текст щоб побачити деталі</span>
-                </div>
-
-                {/* Corrected text with highlights */}
-                <div style={{ background: 'rgba(255,255,255,0.02)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '18px 20px', marginBottom: 20, lineHeight: 1.85, fontSize: 14, color: '#c8d4e8', fontFamily: FONT, whiteSpace: 'pre-wrap' }}>
-                  {segments.map((seg, i) => {
-                    if (seg.type === 'text') return <span key={i}>{seg.content}</span>
-                    return (
-                      <span key={i} className="correction">
-                        {seg.content}<span className="cnum">{seg.change.id}</span>
-                        <span className="tip">
-                          <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#8899bb', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6 }}>Правка #{seg.change.id}</span>
-                          <span style={{ display: 'block', marginBottom: 4 }}>
-                            <span style={{ color: '#8899bb', fontSize: 11 }}>було: </span>
-                            <em style={{ color: '#f87171', fontSize: 12 }}>&ldquo;{seg.change.original}&rdquo;</em>
-                          </span>
-                          <span style={{ display: 'block', marginBottom: 6 }}>
-                            <span style={{ color: '#8899bb', fontSize: 11 }}>стало: </span>
-                            <em style={{ color: '#4ade80', fontSize: 12 }}>&ldquo;{seg.change.corrected}&rdquo;</em>
-                          </span>
-                          <span style={{ display: 'block', borderTop: '0.5px solid rgba(255,255,255,0.1)', paddingTop: 6, fontSize: 11, color: '#c8d4e8', lineHeight: 1.5 }}>{seg.change.reason}</span>
-                        </span>
-                      </span>
-                    )
-                  })}
-                </div>
-
-                {/* Changes list */}
-                <div style={{ background: 'rgba(255,255,255,0.02)', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: 12, overflow: 'hidden' }}>
-                  <div style={{ padding: '12px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.06)', fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT }}>Всі правки</div>
-                  {corrections.map((c, i) => (
-                    <div key={c.id} style={{ padding: '12px 16px', borderBottom: i < corrections.length - 1 ? '0.5px solid rgba(255,255,255,0.05)' : 'none', display: 'grid', gridTemplateColumns: '22px 1fr', gap: 12, alignItems: 'start' }}>
-                      <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(129,140,248,0.2)', border: '1px solid rgba(129,140,248,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: '#818cf8', flexShrink: 0, fontFamily: FONT }}>{c.id}</div>
-                      <div>
-                        <div style={{ fontSize: 13, marginBottom: 4, fontFamily: FONT }}>
-                          <span style={{ color: '#f87171' }}>&ldquo;{c.original}&rdquo;</span>
-                          <span style={{ color: '#445566', margin: '0 6px' }}>→</span>
-                          <span style={{ color: '#4ade80' }}>&ldquo;{c.corrected}&rdquo;</span>
-                        </div>
-                        <div style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>{c.reason}</div>
-                      </div>
+          <SectionCard n="✍" title="Редакторська правка" accent={VIOLET}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, padding: '10px 14px', background: 'rgba(129,140,248,0.08)', border: '0.5px solid rgba(129,140,248,0.25)', borderRadius: 10 }}>
+              <span style={{ fontSize: 20, fontWeight: 800, color: VIOLET, fontFamily: FONT }}>{corrections.length}</span>
+              <span style={{ fontSize: 13, color: '#c8d4e8', fontFamily: FONT }}>правок · наведіть на підкреслений текст для деталей</span>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.02)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '18px 20px', marginBottom: 20, lineHeight: 1.85, fontSize: 14, color: '#c8d4e8', fontFamily: FONT, whiteSpace: 'pre-wrap' }}>
+              {segments.map((seg, i) => {
+                if (seg.type === 'text') return <span key={i}>{seg.content}</span>
+                return (
+                  <span key={i} className="correction">
+                    {seg.content}<span className="cnum">{seg.change.id}</span>
+                    <span className="tip">
+                      <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#8899bb', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6 }}>Правка #{seg.change.id}</span>
+                      <span style={{ display: 'block', marginBottom: 4 }}><span style={{ color: '#8899bb', fontSize: 11 }}>було: </span><em style={{ color: '#f87171', fontSize: 12 }}>&ldquo;{seg.change.original}&rdquo;</em></span>
+                      <span style={{ display: 'block', marginBottom: 6 }}><span style={{ color: '#8899bb', fontSize: 11 }}>стало: </span><em style={{ color: '#4ade80', fontSize: 12 }}>&ldquo;{seg.change.corrected}&rdquo;</em></span>
+                      <span style={{ display: 'block', borderTop: '0.5px solid rgba(255,255,255,0.1)', paddingTop: 6, fontSize: 11, color: '#c8d4e8', lineHeight: 1.5 }}>{seg.change.reason}</span>
+                    </span>
+                  </span>
+                )
+              })}
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.02)', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: 12, overflow: 'hidden' }}>
+              <div style={{ padding: '12px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.06)', fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT }}>Всі правки</div>
+              {corrections.map((c, i) => (
+                <div key={c.id} style={{ padding: '12px 16px', borderBottom: i < corrections.length - 1 ? '0.5px solid rgba(255,255,255,0.05)' : 'none', display: 'grid', gridTemplateColumns: '22px 1fr', gap: 12 }}>
+                  <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(129,140,248,0.2)', border: `1px solid rgba(129,140,248,0.4)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: VIOLET, flexShrink: 0, fontFamily: FONT }}>{c.id}</div>
+                  <div>
+                    <div style={{ fontSize: 13, marginBottom: 4, fontFamily: FONT }}>
+                      <span style={{ color: '#f87171' }}>&ldquo;{c.original}&rdquo;</span>
+                      <span style={{ color: '#445566', margin: '0 6px' }}>→</span>
+                      <span style={{ color: '#4ade80' }}>&ldquo;{c.corrected}&rdquo;</span>
                     </div>
-                  ))}
+                    <div style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>{c.reason}</div>
+                  </div>
                 </div>
+              ))}
+            </div>
+          </SectionCard>
+        )}
+
+        {/* ━━━ 2.7 — Humanize ━━━ */}
+        {report && (
+          <SectionCard n="✨" title="Природність стилю" accent={TEAL}>
+            <p style={{ fontSize: 13, color: '#8899bb', lineHeight: 1.6, margin: '0 0 16px', fontFamily: FONT }}>
+              Переписує текст так, щоб він звучав живіше — варіює речення, прибирає ШІ-патерни, додає природну нерівність. Працює з оригінальним текстом.
+            </p>
+            <button onClick={handleHumanize} disabled={humanizePhase === 'loading'} style={triggerBtn(TEAL, humanizePhase === 'loading')}>
+              {humanizePhase === 'loading' ? <><Spinner color={TEAL} /> Claude переписує…</> : <>✨ Зробити стиль природнішим</>}
+            </button>
+            {humanizePhase === 'error' && <ErrorBox>{humanizeError}</ErrorBox>}
+
+            {paraDiff && (
+              <>
+                {/* Two-column diff */}
+                <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, borderRadius: 12, overflow: 'hidden', border: '0.5px solid rgba(255,255,255,0.08)' }}>
+                  {/* Header */}
+                  <div style={{ background: 'rgba(255,255,255,0.05)', padding: '10px 14px', fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, borderRight: '0.5px solid rgba(255,255,255,0.06)' }}>Оригінал</div>
+                  <div style={{ background: `rgba(45,212,191,0.08)`, padding: '10px 14px', fontSize: 11, fontWeight: 700, color: TEAL, letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT }}>Природніший варіант</div>
+                  {/* Content */}
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px 14px', fontSize: 13, lineHeight: 1.8, color: '#8899bb', fontFamily: FONT, borderRight: '0.5px solid rgba(255,255,255,0.06)', maxHeight: 420, overflowY: 'auto' }}>
+                    {paraDiff.orig.map((line, i) => (
+                      <div key={i} style={{ borderLeft: line.changed ? `3px solid ${GOLD}` : '3px solid transparent', paddingLeft: line.changed ? 8 : 8, marginBottom: line.text === '' ? 8 : 2, color: line.changed ? '#dde6f0' : '#8899bb', transition: 'all 0.2s', minHeight: line.text === '' ? 8 : 'auto' }}>
+                        {line.text || ' '}
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ background: `rgba(45,212,191,0.04)`, padding: '16px 14px', fontSize: 13, lineHeight: 1.8, color: '#c8d4e8', fontFamily: FONT, maxHeight: 420, overflowY: 'auto' }}>
+                    {paraDiff.hum.map((line, i) => (
+                      <div key={i} style={{ borderLeft: line.changed ? `3px solid ${TEAL}` : '3px solid transparent', paddingLeft: line.changed ? 8 : 8, marginBottom: line.text === '' ? 8 : 2, color: line.changed ? '#f5f0e8' : '#c8d4e8', fontWeight: line.changed ? 500 : 400, transition: 'all 0.2s', minHeight: line.text === '' ? 8 : 'auto' }}>
+                        {line.text || ' '}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Legend */}
+                <div style={{ display: 'flex', gap: 16, marginTop: 8, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#8899bb', fontFamily: FONT }}>
+                    <div style={{ width: 12, height: 12, borderLeft: `3px solid ${GOLD}`, flexShrink: 0 }} />
+                    Змінено в оригіналі
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#8899bb', fontFamily: FONT }}>
+                    <div style={{ width: 12, height: 12, borderLeft: `3px solid ${TEAL}`, flexShrink: 0 }} />
+                    Нова версія
+                  </div>
+                </div>
+
+                {/* Changes summary */}
+                {humanizeSummary.length > 0 && (
+                  <div style={{ marginTop: 16, padding: '14px 16px', background: `rgba(45,212,191,0.06)`, border: `0.5px solid rgba(45,212,191,0.2)`, borderRadius: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: TEAL, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10, fontFamily: FONT }}>Що змінено і чому</div>
+                    <ol style={{ margin: 0, paddingLeft: 20 }}>
+                      {humanizeSummary.map((s, i) => (
+                        <li key={i} style={{ fontSize: 13, color: '#c8d4e8', lineHeight: 1.7, marginBottom: 6, fontFamily: FONT }}>{s}</li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
               </>
             )}
           </SectionCard>
@@ -475,64 +559,21 @@ export default function Stories1Page() {
         {/* ━━━ 3 — Рішення адміна ━━━ */}
         {report && actionPhase !== 'done' && (
           <SectionCard n={3} title="Рішення адміна">
-
             <Field label="Коментар для автора (необов'язково)">
               <textarea style={{ ...inputBase, height: 80, resize: 'vertical', lineHeight: 1.6 }} placeholder="Пояснення для автора..." value={adminNotes} onChange={e => setAdminNotes(e.target.value)} />
             </Field>
-
             {imgSrc && (
               <div style={{ fontSize: 12, color: '#8899bb', marginBottom: 14, padding: '8px 12px', background: 'rgba(240,165,0,0.06)', borderRadius: 8, fontFamily: FONT }}>
                 🎨 Після схвалення фото буде оброблено через Replicate (~60 с)
               </div>
             )}
-
-            {/* Publish buttons — differ if corrections available */}
-            {hasCorrected ? (
-              <>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-                  <button onClick={() => handleAction('approve', 'original')} disabled={actionPhase === 'loading'} style={actionBtn('#4ade80', 'rgba(74,222,128,0.12)', 'rgba(74,222,128,0.35)', actionPhase === 'loading')}>
-                    <span style={{ fontSize: 16 }}>✓</span>
-                    <span>Опублікувати оригінал</span>
-                  </button>
-                  <button onClick={() => handleAction('approve', 'corrected')} disabled={actionPhase === 'loading'} style={actionBtn('#818cf8', 'rgba(129,140,248,0.12)', 'rgba(129,140,248,0.4)', actionPhase === 'loading')}>
-                    <span style={{ fontSize: 16 }}>✍</span>
-                    <span>Опублікувати виправлений</span>
-                  </button>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <button onClick={() => handleAction('revision')} disabled={actionPhase === 'loading'} style={actionBtn('#fbbf24', 'rgba(251,191,36,0.1)', 'rgba(251,191,36,0.3)', actionPhase === 'loading')}>
-                    <span style={{ fontSize: 16 }}>⟳</span>
-                    <span>Доопрацювання</span>
-                  </button>
-                  <button onClick={() => handleAction('reject')} disabled={actionPhase === 'loading'} style={actionBtn('#f87171', 'rgba(248,113,113,0.1)', 'rgba(248,113,113,0.3)', actionPhase === 'loading')}>
-                    <span style={{ fontSize: 16 }}>✕</span>
-                    <span>Відхилити</span>
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-                <button onClick={() => handleAction('approve', 'original')} disabled={actionPhase === 'loading'} style={actionBtn('#4ade80', 'rgba(74,222,128,0.12)', 'rgba(74,222,128,0.35)', actionPhase === 'loading')}>
-                  <span style={{ fontSize: 18 }}>✓</span><span>Схвалити</span>
-                </button>
-                <button onClick={() => handleAction('revision')} disabled={actionPhase === 'loading'} style={actionBtn('#fbbf24', 'rgba(251,191,36,0.1)', 'rgba(251,191,36,0.3)', actionPhase === 'loading')}>
-                  <span style={{ fontSize: 18 }}>⟳</span><span>Доопрацювання</span>
-                </button>
-                <button onClick={() => handleAction('reject')} disabled={actionPhase === 'loading'} style={actionBtn('#f87171', 'rgba(248,113,113,0.1)', 'rgba(248,113,113,0.3)', actionPhase === 'loading')}>
-                  <span style={{ fontSize: 18 }}>✕</span><span>Відхилити</span>
-                </button>
-              </div>
-            )}
-
+            <PublishButtons />
             {actionPhase === 'loading' && (
               <div style={{ marginTop: 12, textAlign: 'center', fontSize: 13, color: '#8899bb', fontFamily: FONT }}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 1s linear infinite', verticalAlign: 'middle', marginRight: 6 }}><circle cx="8" cy="8" r="6" stroke={GOLD} strokeWidth="2" strokeDasharray="20 18" strokeLinecap="round"/></svg>
-                Зберігаємо…
+                <Spinner color={GOLD} /> Зберігаємо…
               </div>
             )}
-            {actionPhase === 'error' && (
-              <div style={{ marginTop: 12, fontSize: 13, color: '#f87171', padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>{actionMsg}</div>
-            )}
+            {actionPhase === 'error' && <ErrorBox>{actionMsg}</ErrorBox>}
           </SectionCard>
         )}
 
@@ -540,13 +581,9 @@ export default function Stories1Page() {
         {actionPhase === 'done' && (
           <div style={{ background: NAVY, borderRadius: 16, padding: '32px 20px', textAlign: 'center', border: '0.5px solid rgba(255,255,255,0.07)' }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>{actionStatus === 'approved' ? '🎉' : actionStatus === 'rejected' ? '🚫' : '✏️'}</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#f5f0e8', marginBottom: 8, fontFamily: FONT }}>
-              {actionStatus === 'approved' ? 'Схвалено!' : actionStatus === 'rejected' ? 'Відхилено' : 'На доопрацювання'}
-            </div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#f5f0e8', marginBottom: 8, fontFamily: FONT }}>{actionStatus === 'approved' ? 'Схвалено!' : actionStatus === 'rejected' ? 'Відхилено' : 'На доопрацювання'}</div>
             <div style={{ fontSize: 14, color: '#8899bb', lineHeight: 1.6, marginBottom: 24, fontFamily: FONT }}>{actionMsg}</div>
-            <button onClick={handleReset} style={{ background: GOLD, color: NAVY_DEEP, border: 'none', borderRadius: 12, padding: '12px 28px', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: FONT }}>
-              + Нова Історія
-            </button>
+            <button onClick={handleReset} style={{ background: GOLD, color: NAVY_DEEP, border: 'none', borderRadius: 12, padding: '12px 28px', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: FONT }}>+ Нова Історія</button>
           </div>
         )}
 
@@ -555,31 +592,38 @@ export default function Stories1Page() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg) } }
         .correction { border-bottom: 2px solid #f0a500; cursor: help; position: relative; display: inline; }
-        .correction .tip {
-          display: none; position: absolute; bottom: calc(100% + 10px); left: 50%;
-          transform: translateX(-50%); width: 270px; background: #0b1729;
-          border: 1px solid rgba(240,165,0,0.45); border-radius: 11px;
-          padding: 12px 14px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.75);
-          white-space: normal; pointer-events: none; font-style: normal;
-        }
+        .correction .tip { display: none; position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); width: 270px; background: #0b1729; border: 1px solid rgba(240,165,0,0.45); border-radius: 11px; padding: 12px 14px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.75); white-space: normal; pointer-events: none; font-style: normal; }
         .correction:hover .tip { display: block; }
-        .cnum {
-          display: inline-flex; align-items: center; justify-content: center;
-          width: 15px; height: 15px; border-radius: 50%; background: #f0a500;
-          color: #0a1628; font-size: 9px; font-weight: 800; vertical-align: super;
-          margin-left: 1px; font-family: Montserrat, Arial, sans-serif;
-        }
+        .cnum { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: #f0a500; color: #0a1628; font-size: 9px; font-weight: 800; vertical-align: super; margin-left: 1px; font-family: Montserrat, Arial, sans-serif; }
       `}</style>
     </div>
   )
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Small components ──────────────────────────────────────────────────────────
+
+function Spinner({ color }: { color: string }) {
+  return <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 1s linear infinite', verticalAlign: 'middle', marginRight: 6, display: 'inline-block' }}><circle cx="8" cy="8" r="6" stroke={color} strokeWidth="2" strokeDasharray="20 18" strokeLinecap="round"/></svg>
+}
+
+function StarIcon() {
+  return <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ verticalAlign: 'middle', marginRight: 6 }}><path d="M9 2 L11 7 L16 7 L12 10.5 L13.5 15.5 L9 12.5 L4.5 15.5 L6 10.5 L2 7 L7 7 Z" fill="#0a1628"/></svg>
+}
+
+function ErrorBox({ children }: { children: React.ReactNode }) {
+  return <div style={{ marginTop: 10, fontSize: 13, color: '#f87171', padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: "'Montserrat', Arial, sans-serif" }}>{children}</div>
+}
+
+// ── Style helpers ─────────────────────────────────────────────────────────────
 
 function navBtn(color: string): React.CSSProperties {
   return { fontSize: 12, fontWeight: 600, color, background: `${color}18`, border: `1px solid ${color}44`, borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: "'Montserrat', Arial, sans-serif", whiteSpace: 'nowrap' as const }
 }
 
+function triggerBtn(color: string, disabled: boolean): React.CSSProperties {
+  return { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, background: disabled ? `${color}30` : `${color}18`, color, border: `1.5px solid ${color}55`, borderRadius: 12, padding: '13px 18px', fontSize: 14, fontWeight: 700, cursor: disabled ? 'wait' : 'pointer', fontFamily: "'Montserrat', Arial, sans-serif", transition: 'all 0.2s' }
+}
+
 function actionBtn(color: string, bg: string, border: string, disabled: boolean): React.CSSProperties {
-  return { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: 4, padding: '14px 10px', borderRadius: 12, border: `1.5px solid ${border}`, background: bg, color, fontFamily: "'Montserrat', Arial, sans-serif", fontSize: 13, fontWeight: 700, cursor: disabled ? 'wait' : 'pointer', transition: 'all 0.15s', opacity: disabled ? 0.6 : 1 }
+  return { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: 4, padding: '14px 10px', borderRadius: 12, border: `1.5px solid ${border}`, background: bg, color, fontFamily: "'Montserrat', Arial, sans-serif", fontSize: 12, fontWeight: 700, cursor: disabled ? 'wait' : 'pointer', transition: 'all 0.15s', opacity: disabled ? 0.6 : 1 }
 }

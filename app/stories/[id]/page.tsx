@@ -14,6 +14,7 @@ interface StoryRow {
   genre:             string
   text:              string
   corrected_text:    string | null
+  humanized_text:    string | null
   published_version: string | null
   cover_url:         string | null
   approved_at:       string
@@ -23,7 +24,7 @@ async function getStory(id: string): Promise<StoryRow | null> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('stories')
-    .select('id, title, author_name, genre, text, corrected_text, published_version, cover_url, approved_at')
+    .select('id, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, approved_at')
     .eq('id', id)
     .eq('status', 'approved')
     .single()
@@ -51,9 +52,12 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
   const story = await getStory(id)
   if (!story) notFound()
 
-  const body = story.published_version === 'corrected' && story.corrected_text
-    ? story.corrected_text
-    : story.text
+  const v    = story.published_version ?? 'original'
+  const body = (v === 'humanized' || v === 'corrected_humanized') && story.humanized_text
+    ? story.humanized_text
+    : v === 'corrected' && story.corrected_text
+      ? story.corrected_text
+      : story.text
 
   const wordCount = body.trim().split(/\s+/).length
   const readMin   = Math.ceil(wordCount / 180)
