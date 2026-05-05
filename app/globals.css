@@ -33,6 +33,7 @@ html, body {
   overflow-x: hidden;
   width: 100%;
   max-width: 100%;
+  background: #0f172a;
 }
 body {
   font-family: 'Montserrat', sans-serif;
