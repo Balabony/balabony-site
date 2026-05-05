@@ -176,6 +176,20 @@ export default function Stories1Page() {
   const [humanizeSummary, setHumanizeSummary] = useState<string[]>([])
   const paraDiff = (humanizePhase === 'done' && humanizedText) ? buildParaDiff(text, humanizedText) : null
 
+  // Claude originals (for "reset to Claude" buttons)
+  const [claudeCorrectedText, setClaudeCorrectedText] = useState('')
+  const [claudeHumanizedText, setClaudeHumanizedText] = useState('')
+
+  // Correction edit mode
+  const [correctEditMode,       setCorrectEditMode]       = useState(false)
+  const [correctDraft,          setCorrectDraft]          = useState('')
+  const [correctManuallyEdited, setCorrectManuallyEdited] = useState(false)
+
+  // Humanize edit mode
+  const [humanizeEditMode,       setHumanizeEditMode]       = useState(false)
+  const [humanizeDraft,          setHumanizeDraft]          = useState('')
+  const [humanizeManuallyEdited, setHumanizeManuallyEdited] = useState(false)
+
   // Decision
   const [adminNotes,   setAdminNotes]   = useState('')
   const [actionPhase,  setActionPhase]  = useState<Phase>('idle')
@@ -225,7 +239,9 @@ export default function Stories1Page() {
       const res  = await fetch('/api/admin/stories1/correct', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, genre }) })
       const data = await res.json() as { corrected_text?: string; changes?: Change[]; error?: string }
       if (!res.ok || data.error) { setCorrectError(data.error ?? 'Помилка'); setCorrectPhase('error'); return }
-      setCorrectedText(data.corrected_text ?? text); setCorrections(data.changes ?? []); setCorrectPhase('done')
+      const ct = data.corrected_text ?? text
+      setCorrectedText(ct); setClaudeCorrectedText(ct); setCorrections(data.changes ?? [])
+      setCorrectPhase('done'); setCorrectManuallyEdited(false)
     } catch { setCorrectError("Помилка з'єднання"); setCorrectPhase('error') }
   }
 
@@ -237,7 +253,9 @@ export default function Stories1Page() {
       const res  = await fetch('/api/admin/stories1/humanize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, genre }) })
       const data = await res.json() as { humanized_text?: string; changes_summary?: string[]; error?: string }
       if (!res.ok || data.error) { setHumanizeError(data.error ?? 'Помилка'); setHumanizePhase('error'); return }
-      setHumanizedText(data.humanized_text ?? text); setHumanizeSummary(data.changes_summary ?? []); setHumanizePhase('done')
+      const ht = data.humanized_text ?? text
+      setHumanizedText(ht); setClaudeHumanizedText(ht); setHumanizeSummary(data.changes_summary ?? [])
+      setHumanizePhase('done'); setHumanizeManuallyEdited(false)
     } catch { setHumanizeError("Помилка з'єднання"); setHumanizePhase('error') }
   }
 
@@ -270,6 +288,9 @@ export default function Stories1Page() {
     setCheckPhase('idle'); setCheckError('')
     setCorrectPhase('idle'); setCorrectError(''); setCorrectedText(''); setCorrections([])
     setHumanizePhase('idle'); setHumanizeError(''); setHumanizedText(''); setHumanizeSummary([])
+    setClaudeCorrectedText(''); setClaudeHumanizedText('')
+    setCorrectEditMode(false); setCorrectDraft(''); setCorrectManuallyEdited(false)
+    setHumanizeEditMode(false); setHumanizeDraft(''); setHumanizeManuallyEdited(false)
     setActionPhase('idle'); setActionMsg(''); setActionStatus(''); setAdminNotes('')
   }
 
@@ -456,40 +477,77 @@ export default function Stories1Page() {
           <SectionCard n="✍" title="Редакторська правка" accent={VIOLET}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, padding: '10px 14px', background: 'rgba(129,140,248,0.08)', border: '0.5px solid rgba(129,140,248,0.25)', borderRadius: 10 }}>
               <span style={{ fontSize: 20, fontWeight: 800, color: VIOLET, fontFamily: FONT }}>{corrections.length}</span>
-              <span style={{ fontSize: 13, color: '#c8d4e8', fontFamily: FONT }}>правок · наведіть на підкреслений текст для деталей</span>
+              <span style={{ fontSize: 13, color: '#c8d4e8', fontFamily: FONT }}>
+                {correctEditMode ? 'правок' : 'правок · наведіть на підкреслений текст для деталей'}
+              </span>
+              {correctManuallyEdited && !correctEditMode && (
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#4ade80', background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 6, padding: '2px 8px', fontFamily: FONT, whiteSpace: 'nowrap' }}>✓ Відредаговано</span>
+              )}
+              {!correctEditMode && (
+                <button
+                  onClick={() => { setCorrectDraft(correctedText); setCorrectEditMode(true) }}
+                  style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 700, color: VIOLET, background: `${VIOLET}18`, border: `1px solid ${VIOLET}44`, borderRadius: 8, padding: '4px 12px', cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
+                >✏️ Редагувати</button>
+              )}
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.02)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '18px 20px', marginBottom: 20, lineHeight: 1.85, fontSize: 14, color: '#c8d4e8', fontFamily: FONT, whiteSpace: 'pre-wrap' }}>
-              {segments.map((seg, i) => {
-                if (seg.type === 'text') return <span key={i}>{seg.content}</span>
-                return (
-                  <span key={i} className="correction">
-                    {seg.content}<span className="cnum">{seg.change.id}</span>
-                    <span className="tip">
-                      <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#8899bb', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6 }}>Правка #{seg.change.id}</span>
-                      <span style={{ display: 'block', marginBottom: 4 }}><span style={{ color: '#8899bb', fontSize: 11 }}>було: </span><em style={{ color: '#f87171', fontSize: 12 }}>&ldquo;{seg.change.original}&rdquo;</em></span>
-                      <span style={{ display: 'block', marginBottom: 6 }}><span style={{ color: '#8899bb', fontSize: 11 }}>стало: </span><em style={{ color: '#4ade80', fontSize: 12 }}>&ldquo;{seg.change.corrected}&rdquo;</em></span>
-                      <span style={{ display: 'block', borderTop: '0.5px solid rgba(255,255,255,0.1)', paddingTop: 6, fontSize: 11, color: '#c8d4e8', lineHeight: 1.5 }}>{seg.change.reason}</span>
-                    </span>
-                  </span>
-                )
-              })}
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.02)', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: 12, overflow: 'hidden' }}>
-              <div style={{ padding: '12px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.06)', fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT }}>Всі правки</div>
-              {corrections.map((c, i) => (
-                <div key={c.id} style={{ padding: '12px 16px', borderBottom: i < corrections.length - 1 ? '0.5px solid rgba(255,255,255,0.05)' : 'none', display: 'grid', gridTemplateColumns: '22px 1fr', gap: 12 }}>
-                  <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(129,140,248,0.2)', border: `1px solid rgba(129,140,248,0.4)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: VIOLET, flexShrink: 0, fontFamily: FONT }}>{c.id}</div>
-                  <div>
-                    <div style={{ fontSize: 13, marginBottom: 4, fontFamily: FONT }}>
-                      <span style={{ color: '#f87171' }}>&ldquo;{c.original}&rdquo;</span>
-                      <span style={{ color: '#445566', margin: '0 6px' }}>→</span>
-                      <span style={{ color: '#4ade80' }}>&ldquo;{c.corrected}&rdquo;</span>
-                    </div>
-                    <div style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>{c.reason}</div>
-                  </div>
+            {correctEditMode ? (
+              <>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => { setCorrectedText(correctDraft); setCorrectManuallyEdited(true); setCorrectEditMode(false) }}
+                    style={{ fontSize: 12, fontWeight: 700, color: '#4ade80', background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.35)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontFamily: FONT }}
+                  >✓ Зберегти зміни</button>
+                  <button
+                    onClick={() => setCorrectEditMode(false)}
+                    style={{ fontSize: 12, fontWeight: 700, color: '#8899bb', background: 'rgba(136,153,187,0.1)', border: '1px solid rgba(136,153,187,0.3)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontFamily: FONT }}
+                  >✕ Скасувати</button>
+                  <button
+                    onClick={() => setCorrectDraft(claudeCorrectedText)}
+                    style={{ fontSize: 12, fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontFamily: FONT }}
+                  >↺ Скинути до варіанту Claude</button>
                 </div>
-              ))}
-            </div>
+                <textarea
+                  value={correctDraft}
+                  onChange={e => setCorrectDraft(e.target.value)}
+                  style={{ ...inputBase, height: 320, resize: 'vertical', lineHeight: 1.8, marginBottom: 20 }}
+                />
+              </>
+            ) : (
+              <div style={{ background: 'rgba(255,255,255,0.02)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '18px 20px', marginBottom: 20, lineHeight: 1.85, fontSize: 14, color: '#c8d4e8', fontFamily: FONT, whiteSpace: 'pre-wrap' }}>
+                {segments.map((seg, i) => {
+                  if (seg.type === 'text') return <span key={i}>{seg.content}</span>
+                  return (
+                    <span key={i} className="correction">
+                      {seg.content}<span className="cnum">{seg.change.id}</span>
+                      <span className="tip">
+                        <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#8899bb', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6 }}>Правка #{seg.change.id}</span>
+                        <span style={{ display: 'block', marginBottom: 4 }}><span style={{ color: '#8899bb', fontSize: 11 }}>було: </span><em style={{ color: '#f87171', fontSize: 12 }}>&ldquo;{seg.change.original}&rdquo;</em></span>
+                        <span style={{ display: 'block', marginBottom: 6 }}><span style={{ color: '#8899bb', fontSize: 11 }}>стало: </span><em style={{ color: '#4ade80', fontSize: 12 }}>&ldquo;{seg.change.corrected}&rdquo;</em></span>
+                        <span style={{ display: 'block', borderTop: '0.5px solid rgba(255,255,255,0.1)', paddingTop: 6, fontSize: 11, color: '#c8d4e8', lineHeight: 1.5 }}>{seg.change.reason}</span>
+                      </span>
+                    </span>
+                  )
+                })}
+              </div>
+            )}
+            {!correctEditMode && (
+              <div style={{ background: 'rgba(255,255,255,0.02)', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: 12, overflow: 'hidden' }}>
+                <div style={{ padding: '12px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.06)', fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT }}>Всі правки</div>
+                {corrections.map((c, i) => (
+                  <div key={c.id} style={{ padding: '12px 16px', borderBottom: i < corrections.length - 1 ? '0.5px solid rgba(255,255,255,0.05)' : 'none', display: 'grid', gridTemplateColumns: '22px 1fr', gap: 12 }}>
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(129,140,248,0.2)', border: `1px solid rgba(129,140,248,0.4)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: VIOLET, flexShrink: 0, fontFamily: FONT }}>{c.id}</div>
+                    <div>
+                      <div style={{ fontSize: 13, marginBottom: 4, fontFamily: FONT }}>
+                        <span style={{ color: '#f87171' }}>&ldquo;{c.original}&rdquo;</span>
+                        <span style={{ color: '#445566', margin: '0 6px' }}>→</span>
+                        <span style={{ color: '#4ade80' }}>&ldquo;{c.corrected}&rdquo;</span>
+                      </div>
+                      <div style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>{c.reason}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </SectionCard>
         )}
 
@@ -506,50 +564,88 @@ export default function Stories1Page() {
 
             {paraDiff && (
               <>
-                {/* Two-column diff */}
-                <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, borderRadius: 12, overflow: 'hidden', border: '0.5px solid rgba(255,255,255,0.08)' }}>
-                  {/* Header */}
-                  <div style={{ background: 'rgba(255,255,255,0.05)', padding: '10px 14px', fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, borderRight: '0.5px solid rgba(255,255,255,0.06)' }}>Оригінал</div>
-                  <div style={{ background: `rgba(45,212,191,0.08)`, padding: '10px 14px', fontSize: 11, fontWeight: 700, color: TEAL, letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT }}>Природніший варіант</div>
-                  {/* Content */}
-                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px 14px', fontSize: 13, lineHeight: 1.8, color: '#8899bb', fontFamily: FONT, borderRight: '0.5px solid rgba(255,255,255,0.06)', maxHeight: 420, overflowY: 'auto' }}>
-                    {paraDiff.orig.map((line, i) => (
-                      <div key={i} style={{ borderLeft: line.changed ? `3px solid ${GOLD}` : '3px solid transparent', paddingLeft: line.changed ? 8 : 8, marginBottom: line.text === '' ? 8 : 2, color: line.changed ? '#dde6f0' : '#8899bb', transition: 'all 0.2s', minHeight: line.text === '' ? 8 : 'auto' }}>
-                        {line.text || ' '}
+                {humanizeEditMode ? (
+                  /* ── Edit mode ── */
+                  <div style={{ marginTop: 20 }}>
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+                      <button
+                        onClick={() => { setHumanizedText(humanizeDraft); setHumanizeManuallyEdited(true); setHumanizeEditMode(false) }}
+                        style={{ fontSize: 12, fontWeight: 700, color: '#4ade80', background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.35)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontFamily: FONT }}
+                      >✓ Зберегти зміни</button>
+                      <button
+                        onClick={() => setHumanizeEditMode(false)}
+                        style={{ fontSize: 12, fontWeight: 700, color: '#8899bb', background: 'rgba(136,153,187,0.1)', border: '1px solid rgba(136,153,187,0.3)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontFamily: FONT }}
+                      >✕ Скасувати</button>
+                      <button
+                        onClick={() => setHumanizeDraft(claudeHumanizedText)}
+                        style={{ fontSize: 12, fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontFamily: FONT }}
+                      >↺ Скинути до варіанту Claude</button>
+                    </div>
+                    <textarea
+                      value={humanizeDraft}
+                      onChange={e => setHumanizeDraft(e.target.value)}
+                      style={{ ...inputBase, height: 360, resize: 'vertical', lineHeight: 1.8 }}
+                    />
+                  </div>
+                ) : (
+                  /* ── Normal two-column diff ── */
+                  <>
+                    <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, borderRadius: 12, overflow: 'hidden', border: '0.5px solid rgba(255,255,255,0.08)' }}>
+                      {/* Header */}
+                      <div style={{ background: 'rgba(255,255,255,0.05)', padding: '10px 14px', fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, borderRight: '0.5px solid rgba(255,255,255,0.06)' }}>Оригінал</div>
+                      <div style={{ background: `rgba(45,212,191,0.08)`, padding: '10px 14px', fontSize: 11, fontWeight: 700, color: TEAL, letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          Природніший варіант
+                          {humanizeManuallyEdited && (
+                            <span style={{ fontSize: 10, fontWeight: 700, color: '#4ade80', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 5, padding: '1px 6px', textTransform: 'none', letterSpacing: 0 }}>✓ Відредаговано</span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => { setHumanizeDraft(humanizedText); setHumanizeEditMode(true) }}
+                          style={{ fontSize: 11, fontWeight: 700, color: TEAL, background: `${TEAL}18`, border: `1px solid ${TEAL}44`, borderRadius: 6, padding: '3px 10px', cursor: 'pointer', fontFamily: FONT, flexShrink: 0 }}
+                        >✏️ Ред.</button>
                       </div>
-                    ))}
-                  </div>
-                  <div style={{ background: `rgba(45,212,191,0.04)`, padding: '16px 14px', fontSize: 13, lineHeight: 1.8, color: '#c8d4e8', fontFamily: FONT, maxHeight: 420, overflowY: 'auto' }}>
-                    {paraDiff.hum.map((line, i) => (
-                      <div key={i} style={{ borderLeft: line.changed ? `3px solid ${TEAL}` : '3px solid transparent', paddingLeft: line.changed ? 8 : 8, marginBottom: line.text === '' ? 8 : 2, color: line.changed ? '#f5f0e8' : '#c8d4e8', fontWeight: line.changed ? 500 : 400, transition: 'all 0.2s', minHeight: line.text === '' ? 8 : 'auto' }}>
-                        {line.text || ' '}
+                      {/* Content */}
+                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px 14px', fontSize: 13, lineHeight: 1.8, color: '#8899bb', fontFamily: FONT, borderRight: '0.5px solid rgba(255,255,255,0.06)', maxHeight: 420, overflowY: 'auto' }}>
+                        {paraDiff.orig.map((line, i) => (
+                          <div key={i} style={{ borderLeft: line.changed ? `3px solid ${GOLD}` : '3px solid transparent', paddingLeft: 8, marginBottom: line.text === '' ? 8 : 2, color: line.changed ? '#dde6f0' : '#8899bb', transition: 'all 0.2s', minHeight: line.text === '' ? 8 : 'auto' }}>
+                            {line.text || ' '}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                      <div style={{ background: `rgba(45,212,191,0.04)`, padding: '16px 14px', fontSize: 13, lineHeight: 1.8, color: '#c8d4e8', fontFamily: FONT, maxHeight: 420, overflowY: 'auto' }}>
+                        {paraDiff.hum.map((line, i) => (
+                          <div key={i} style={{ borderLeft: line.changed ? `3px solid ${TEAL}` : '3px solid transparent', paddingLeft: 8, marginBottom: line.text === '' ? 8 : 2, color: line.changed ? '#f5f0e8' : '#c8d4e8', fontWeight: line.changed ? 500 : 400, transition: 'all 0.2s', minHeight: line.text === '' ? 8 : 'auto' }}>
+                            {line.text || ' '}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
-                {/* Legend */}
-                <div style={{ display: 'flex', gap: 16, marginTop: 8, flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#8899bb', fontFamily: FONT }}>
-                    <div style={{ width: 12, height: 12, borderLeft: `3px solid ${GOLD}`, flexShrink: 0 }} />
-                    Змінено в оригіналі
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#8899bb', fontFamily: FONT }}>
-                    <div style={{ width: 12, height: 12, borderLeft: `3px solid ${TEAL}`, flexShrink: 0 }} />
-                    Нова версія
-                  </div>
-                </div>
+                    {/* Legend */}
+                    <div style={{ display: 'flex', gap: 16, marginTop: 8, flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#8899bb', fontFamily: FONT }}>
+                        <div style={{ width: 12, height: 12, borderLeft: `3px solid ${GOLD}`, flexShrink: 0 }} />
+                        Змінено в оригіналі
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#8899bb', fontFamily: FONT }}>
+                        <div style={{ width: 12, height: 12, borderLeft: `3px solid ${TEAL}`, flexShrink: 0 }} />
+                        Нова версія
+                      </div>
+                    </div>
 
-                {/* Changes summary */}
-                {humanizeSummary.length > 0 && (
-                  <div style={{ marginTop: 16, padding: '14px 16px', background: `rgba(45,212,191,0.06)`, border: `0.5px solid rgba(45,212,191,0.2)`, borderRadius: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: TEAL, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10, fontFamily: FONT }}>Що змінено і чому</div>
-                    <ol style={{ margin: 0, paddingLeft: 20 }}>
-                      {humanizeSummary.map((s, i) => (
-                        <li key={i} style={{ fontSize: 13, color: '#c8d4e8', lineHeight: 1.7, marginBottom: 6, fontFamily: FONT }}>{s}</li>
-                      ))}
-                    </ol>
-                  </div>
+                    {/* Changes summary */}
+                    {humanizeSummary.length > 0 && (
+                      <div style={{ marginTop: 16, padding: '14px 16px', background: `rgba(45,212,191,0.06)`, border: `0.5px solid rgba(45,212,191,0.2)`, borderRadius: 12 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: TEAL, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10, fontFamily: FONT }}>Що змінено і чому</div>
+                        <ol style={{ margin: 0, paddingLeft: 20 }}>
+                          {humanizeSummary.map((s, i) => (
+                            <li key={i} style={{ fontSize: 13, color: '#c8d4e8', lineHeight: 1.7, marginBottom: 6, fontFamily: FONT }}>{s}</li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                  </>
                 )}
               </>
             )}
