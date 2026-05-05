@@ -69,7 +69,8 @@ const IPHONE_STEPS: React.ReactNode[] = [
 ]
 
 export default function HomePage() {
-  const [seriesData, setSeriesData] = useState<SeriesCard[]>(FALLBACK_SERIES)
+  const [seriesData,   setSeriesData]   = useState<SeriesCard[]>(FALLBACK_SERIES)
+  const [freshStories, setFreshStories] = useState<Story[]>(SAMPLE_STORIES)
 
   useEffect(() => {
     fetch('/api/series')
@@ -89,6 +90,13 @@ export default function HomePage() {
         }
       })
       .catch(() => {})
+
+    fetch('/api/stories')
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then((rows: Story[]) => {
+        if (Array.isArray(rows) && rows.length > 0) setFreshStories(rows)
+      })
+      .catch(() => {})
   }, [])
 
   return (
@@ -97,7 +105,7 @@ export default function HomePage() {
       <ResumeBanner />
       <Hero />
       <SeriesStrip series={seriesData} />
-      <FreshStoriesGrid stories={SAMPLE_STORIES} />
+      <FreshStoriesGrid stories={freshStories} />
 
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 0' }}>
 
