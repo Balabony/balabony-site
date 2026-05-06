@@ -17,11 +17,11 @@ export async function POST(req: NextRequest) {
 
     const seed = Math.floor(Math.random() * 2_000_000)
     const scene = [category, genre].filter(Boolean).join(', ') || 'people in a quiet moment'
-    const prompt = `Realistic photographic portrait, ${scene} mood, natural lighting, candid moment, documentary photography style, full faces visible, centered composition, no text, no signs, no posters, no labels, no titles on the image, seed_${seed}`
-    const negative_prompt = `text, letters, words, captions, logos, watermarks, signatures, typography, written words, BALABONI, БАЛАБОНИ, titles, subtitles, label, writing, font, alphabet, numbers, digits, inscription`
+    const prompt = `Close-up portrait photograph, ${scene} mood, face and shoulders framing, face fills the frame, tight composition, natural lighting, headshot style, no text, no signs, no posters, no labels, no titles on the image, seed_${seed}`
+    const negative_prompt = `text, letters, words, captions, logos, watermarks, signatures, typography, written words, BALABONI, БАЛАБОНИ, titles, subtitles, label, writing, font, alphabet, numbers, digits, inscription, cyrillic letters, latin letters, foreign script, gibberish, ornamental text, decorative lettering, handwriting, graffiti, book pages, newspaper, poster text, overlaid text, burned-in text, banner, headline`
 
     const replicateRes = await fetch(
-      'https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions',
+      'https://api.replicate.com/v1/models/black-forest-labs/flux-dev/predictions',
       {
         method: 'POST',
         headers: {
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
           'Content-Type': 'application/json',
           Prefer: 'wait',
         },
-        body: JSON.stringify({ input: { prompt, negative_prompt, input_image: photoBase64, seed } }),
+        body: JSON.stringify({ input: { prompt, negative_prompt, image: photoBase64, prompt_strength: 0.55, guidance_scale: 7.5, num_inference_steps: 28, width: 1024, height: 1024, seed } }),
       }
     )
 
