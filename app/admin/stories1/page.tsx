@@ -408,12 +408,12 @@ export default function Stories1Page() {
             <textarea style={{ ...inputBase, height: 280, resize: 'vertical', lineHeight: 1.75 }} placeholder="Вставте або введіть повний текст..." value={text} onChange={e => setText(e.target.value)} />
           </Field>
           <Field label="Фото для обкладинки">
-            <div onDragOver={e => { e.preventDefault(); setDragOver(true) }} onDragLeave={() => setDragOver(false)} onDrop={handleDrop} onClick={() => fileRef.current?.click()} style={{ border: `1.5px dashed ${dragOver ? GOLD : 'rgba(255,255,255,0.15)'}`, borderRadius: 12, padding: '22px 20px', textAlign: 'center', cursor: 'pointer', background: dragOver ? 'rgba(240,165,0,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.2s', marginBottom: imgSrc ? 10 : 0 }}>
+            <label htmlFor="cover-file-input" onDragOver={e => { e.preventDefault(); setDragOver(true) }} onDragLeave={() => setDragOver(false)} onDrop={handleDrop} style={{ display: 'block', border: `1.5px dashed ${dragOver ? GOLD : 'rgba(255,255,255,0.15)'}`, borderRadius: 12, padding: '22px 20px', textAlign: 'center', cursor: 'pointer', background: dragOver ? 'rgba(240,165,0,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.2s', marginBottom: imgSrc ? 10 : 0 }}>
               <div style={{ fontSize: 26, marginBottom: 6 }}>🖼</div>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#f5f0e8', marginBottom: 3, fontFamily: FONT }}>Перетягніть фото або клікніть</div>
               <div style={{ fontSize: 11, color: '#445566', fontFamily: FONT }}>PNG · JPG · WEBP · Обличчя не будуть обрізані</div>
-              <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) loadFile(f) }} />
-            </div>
+            </label>
+            <input id="cover-file-input" ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) loadFile(f) }} />
             {imgSrc && (
               <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
