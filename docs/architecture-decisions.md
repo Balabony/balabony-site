@@ -99,3 +99,18 @@ Old routes redirect: `/episodes/*` → `/read/*` and `/stories/*` → `/read/*`.
 **Migration files:**
 - `supabase/migrations/20260506_001_content_table.sql` — DDL
 - `supabase/migrations/20260506_002_migrate_data.sql` — data migration + integrity check
+
+---
+
+### Migration Status — 2026-05-06 EOD
+
+| Step | Status | Notes |
+|------|--------|-------|
+| `ALTER TABLE stories ADD COLUMN slug TEXT` | Done | Executed in Supabase SQL Editor |
+| `scripts/generate-story-slugs.mjs` | Done | 12 slugs written (UA→Latin transliteration) |
+| `all-migration.sql` (DDL + data) | **Pending** | Blocked on type error: `ai_score` was NUMERIC, fixed to TEXT. Ready to run tomorrow. |
+
+**Fixes applied before next run:**
+- `ai_score NUMERIC` → `ai_score TEXT` (column contains mixed values: "Рекомендовано" + numeric strings)
+- Cast removed from INSERT in `002`
+- `all-migration.sql` regenerated (commit `7cf74dd`)
