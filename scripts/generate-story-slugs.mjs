@@ -14,6 +14,7 @@ import slugify from 'slugify'
 import { createInterface } from 'readline'
 
 const DRY_RUN = process.argv.includes('--dry-run')
+const YES     = process.argv.includes('--yes')
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -69,13 +70,16 @@ if (DRY_RUN) {
 }
 
 // ── Confirm ───────────────────────────────────────────────────────────────────
-const rl = createInterface({ input: process.stdin, output: process.stdout })
-const answer = await new Promise(res => rl.question('\nWrite these slugs to DB? [y/N] ', res))
-rl.close()
-
-if (answer.trim().toLowerCase() !== 'y') {
-  console.log('Aborted.')
-  process.exit(0)
+if (!YES) {
+  const rl = createInterface({ input: process.stdin, output: process.stdout })
+  const answer = await new Promise(res => rl.question('\nWrite these slugs to DB? [y/N] ', res))
+  rl.close()
+  if (answer.trim().toLowerCase() !== 'y') {
+    console.log('Aborted.')
+    process.exit(0)
+  }
+} else {
+  console.log('\n[--yes] Skipping confirmation, writing to DB...')
 }
 
 // ── Write ─────────────────────────────────────────────────────────────────────
