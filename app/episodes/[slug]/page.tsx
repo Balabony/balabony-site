@@ -64,7 +64,9 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
 
   const wordCount = body.trim().split(/\s+/).length
   const readMin   = Math.ceil(wordCount / 180)
-  const date      = new Date(episode.approved_at).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' })
+  const date      = episode.approved_at
+    ? new Date(episode.approved_at).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' })
+    : ''
 
   return (
     <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT }}>
@@ -101,7 +103,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           {/* Meta row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: GOLD, fontFamily: FONT }}>Балабони</span>
-            <span style={{ fontSize: 12, color: '#445566', fontFamily: FONT }}>{date}</span>
+            {date && <span style={{ fontSize: 12, color: '#445566', fontFamily: FONT }}>{date}</span>}
             <span style={{ fontSize: 12, color: '#445566', fontFamily: FONT }}>{wordCount} слів · ~{readMin} хв</span>
           </div>
         </div>
