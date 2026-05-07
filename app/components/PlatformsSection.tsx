@@ -76,7 +76,7 @@ export default function PlatformsSection() {
         </div>
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent-gold)', fontFamily: "'Montserrat', Arial, sans-serif", marginBottom: 3 }}>Де читати</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Montserrat', Arial, sans-serif" }}>Доступно на шести платформах</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Montserrat', Arial, sans-serif" }}>Шість каналів. Один досвід.</div>
         </div>
       </div>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
