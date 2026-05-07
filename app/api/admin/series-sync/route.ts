@@ -15,8 +15,9 @@ export async function POST(req: NextRequest) {
 
   // Find all series without a cover
   const { data: rows, error } = await supabase
-    .from('series')
-    .select('id, title, description')
+    .from('content')
+    .select('slug, title, description')
+    .eq('type', 'balabony')
     .is('cover_url', null)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -30,21 +31,21 @@ export async function POST(req: NextRequest) {
       const res = await fetch(`${baseUrl}/api/generate-cover`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ seriesId: row.id, title: row.title, description: row.description }),
+        body:    JSON.stringify({ seriesId: row.slug, title: row.title, description: row.description }),
       })
 
       if (!res.ok) {
-        results.push({ id: row.id, status: 'error' })
+        results.push({ id: row.slug, status: 'error' })
         continue
       }
 
       const { url: coverUrl } = await res.json() as { url?: string }
       if (coverUrl) {
-        await supabase.from('series').update({ cover_url: coverUrl }).eq('id', row.id)
-        results.push({ id: row.id, status: 'ok', url: coverUrl })
+        await supabase.from('content').update({ cover_url: coverUrl }).eq('slug', row.slug)
+        results.push({ id: row.slug, status: 'ok', url: coverUrl })
       }
     } catch {
-      results.push({ id: row.id, status: 'error' })
+      results.push({ id: row.slug, status: 'error' })
     }
   }
 

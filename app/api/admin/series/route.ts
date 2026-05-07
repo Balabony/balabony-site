@@ -22,16 +22,17 @@ export async function POST(req: NextRequest) {
     const supabase = getSupabaseAdmin()
 
     // Insert series without cover first — page shows placeholder immediately
-    const { error: insertError } = await supabase.from('series').upsert({
-      id,
-      number:      parseInt(String(episode), 10),
-      season:      parseInt(String(season), 10),
+    const { error: insertError } = await supabase.from('content').upsert({
+      type:           'balabony',
+      slug:           id,
+      status:         'draft',
       title,
-      cover_url:   null,
-      has_audio:   hasAudio ?? false,
-      url,
-      description: description || null,
-    })
+      description:    description ?? null,
+      episode_number: parseInt(String(episode), 10),
+      season_number:  parseInt(String(season), 10),
+      cover_url:      null,
+      audio_status:   hasAudio ? 'ready' : 'pending',
+    }, { onConflict: 'slug' })
 
     if (insertError) throw insertError
 
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
         if (!r.ok) return
         const { url: coverUrl } = await r.json() as { url?: string }
         if (coverUrl) {
-          await supabase.from('series').update({ cover_url: coverUrl }).eq('id', id)
+          await supabase.from('content').update({ cover_url: coverUrl }).eq('slug', id)
         }
       })
       .catch(() => {})

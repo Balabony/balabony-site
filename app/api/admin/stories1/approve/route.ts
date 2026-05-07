@@ -69,19 +69,25 @@ export async function POST(req: NextRequest) {
     const supabase = getSupabaseAdmin()
     const storyId  = crypto.randomUUID()
 
-    const { error: insertError } = await supabase.from('stories').insert({
+    const slug = title
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}]+/gu, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 80) || storyId
+
+    const { error: insertError } = await supabase.from('content').insert({
       id:                storyId,
-      author_name:       authorName || '',
+      type:              'story',
+      slug,
+      author_name:       authorName ?? '',
       title,
       genre,
       text,
       status,
       ai_report:         aiReport ?? null,
       ai_score:          aiReport?.overall?.recommendation ?? null,
-      admin_notes:       adminNotes || null,
-      corrected_text:    correctedText  || null,
-      changes:           changes        ?? null,
-      humanized_text:    humanizedText  || null,
+      corrected_text:    correctedText ?? null,
+      humanized_text:    humanizedText ?? null,
       humanize_summary:  humanizeSummary ?? null,
       published_version: publishedVersion ?? 'original',
       approved_at:       status === 'approved' ? new Date().toISOString() : null,
@@ -103,7 +109,7 @@ export async function POST(req: NextRequest) {
           if (!r.ok) return
           const { url: coverUrl } = await r.json() as { url?: string }
           if (coverUrl) {
-            await supabase.from('stories').update({ cover_url: coverUrl }).eq('id', storyId)
+            await supabase.from('content').update({ cover_url: coverUrl }).eq('id', storyId)
           }
         })
         .catch(() => {})

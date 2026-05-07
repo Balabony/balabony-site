@@ -23,11 +23,12 @@ interface StoryRow {
 async function getStory(id: string): Promise<StoryRow | null> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
-    .from('stories')
-    .select('id, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, approved_at')
-    .eq('id', id)
-    .eq('status', 'approved')
-    .single()
+    .from('content')
+    .select('id, slug, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, approved_at')
+    .eq('type', 'story')
+    .eq('slug', id)
+    .in('status', ['approved', 'published'])
+    .maybeSingle()
 
   if (error || !data) return null
   return data as StoryRow

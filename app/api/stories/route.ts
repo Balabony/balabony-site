@@ -6,10 +6,11 @@ export async function GET() {
     const supabase = getSupabaseAdmin()
 
     const { data, error } = await supabase
-      .from('stories')
-      .select('id, title, author_name, genre, text, cover_url, published_version, corrected_text, humanized_text, approved_at, duration_minutes, category')
-      .eq('status', 'approved')
-      .order('approved_at', { ascending: false })
+      .from('content')
+      .select('id, slug, title, author_name, genre, text, cover_url, published_version, corrected_text, humanized_text, approved_at, duration_minutes, category')
+      .eq('type', 'story')
+      .in('status', ['approved', 'published'])
+      .order('approved_at', { ascending: false, nullsFirst: false })
       .limit(9)
 
     if (error) throw error
@@ -22,7 +23,7 @@ export async function GET() {
       tags:             [s.genre],
       hasAudio:         false,
       teaser:           buildTeaser(pickPublishedText(s)),
-      url:              `/stories/${s.id}`,
+      url:              `/stories/${s.slug ?? s.id}`,
       genre:            s.genre ?? undefined,
       duration_minutes: s.duration_minutes ?? undefined,
       category:         s.category ?? undefined,
