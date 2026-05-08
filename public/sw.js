@@ -45,7 +45,7 @@ self.addEventListener('message', (event) => {
   if (event.data?.type === 'CACHE_AUDIO' && event.data.url) {
     caches.open(CACHE_AUDIO).then((cache) => {
       fetch(event.data.url).then((res) => {
-        if (res.ok) cache.put(event.data.url, res)
+        if (res.ok && res.status !== 206) cache.put(event.data.url, res)
       }).catch(() => {})
     })
   }
@@ -69,7 +69,7 @@ self.addEventListener('fetch', (event) => {
         if (cached) return cached
         try {
           const response = await fetch(event.request)
-          if (response.ok) cache.put(event.request, response.clone())
+          if (response.ok && response.status !== 206) cache.put(event.request, response.clone())
           return response
         } catch {
           return new Response('Аудіо недоступне офлайн', { status: 503 })
