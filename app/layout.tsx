@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import UpdateBanner from './components/UpdateBanner'
 import AnalyticsTracker from './components/AnalyticsTracker'
+import ServiceWorkerRegistration from './components/ServiceWorkerRegistration'
 
 export const metadata: Metadata = {
   title: 'Balabony® — Українські аудіоісторії для дітей і дорослих',
@@ -56,47 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <UpdateBanner />
         <AnalyticsTracker />
-        <script dangerouslySetInnerHTML={{
-          __html: `
-(function() {
-  if (!('serviceWorker' in navigator)) return;
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/sw.js').then(function(reg) {
-
-      function notifyUpdate() {
-        window.__swUpdateAvailable = true;
-        window.dispatchEvent(new CustomEvent('sw-update'));
-      }
-
-      // Already a waiting worker on page load (e.g. user refreshed)
-      if (reg.waiting && navigator.serviceWorker.controller) notifyUpdate();
-
-      reg.addEventListener('updatefound', function() {
-        var nw = reg.installing;
-        if (!nw) return;
-        nw.addEventListener('statechange', function() {
-          // New SW installed and there's an existing controller = real update
-          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
-            notifyUpdate();
-          }
-        });
-      });
-
-      // When SKIP_WAITING takes effect, reload once
-      var reloading = false;
-      navigator.serviceWorker.addEventListener('controllerchange', function() {
-        if (reloading) return;
-        reloading = true;
-        window.location.reload();
-      });
-
-    }).catch(function(err) {
-      console.warn('SW registration failed:', err);
-    });
-  });
-})();
-          `
-        }} />
+        <ServiceWorkerRegistration />
       </body>
     </html>
   )
