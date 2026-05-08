@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import GeminiAnalyzer from '@/components/admin/GeminiAnalyzer'
+import type { AnalysisResult } from '@/components/admin/GeminiAnalyzer'
 
 const FONT       = "'Montserrat', Arial, sans-serif"
 const GOLD       = '#f0a500'
@@ -107,7 +108,7 @@ export default function StoriesAdminPage() {
   const [hasAudio,     setHasAudio]     = useState(false)
   const [publishState, setPublishState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [publishMsg,   setPublishMsg]   = useState('')
-  const [analysisData, setAnalysisData] = useState<any>(null)
+  const [analysisData, setAnalysisData] = useState<AnalysisResult | null>(null)
 
   const fileRef  = useRef<HTMLInputElement>(null)
   const musicRef = useRef<HTMLAudioElement>(null)

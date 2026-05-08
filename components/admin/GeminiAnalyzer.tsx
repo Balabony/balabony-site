@@ -6,7 +6,7 @@ const FONT     = "'Montserrat', Arial, sans-serif"
 const GOLD     = '#f0a500'
 const NAVY     = '#0f1e3a'
 
-interface AnalysisResult {
+export interface AnalysisResult {
   rating: number
   emotion: string
   complexity: string
