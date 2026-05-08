@@ -306,6 +306,12 @@ export default function StoriesAdminPage() {
               ✍️ Редактор
             </button>
             <button
+              onClick={() => router.push('/admin/series-list')}
+              style={{ fontSize: 12, fontWeight: 600, color: '#c8d4e8', background: 'rgba(200,212,232,0.07)', border: '1px solid rgba(200,212,232,0.2)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: FONT }}
+            >
+              📄 Список
+            </button>
+            <button
               onClick={() => router.push('/admin/reviews')}
               style={{ fontSize: 12, fontWeight: 600, color: GOLD, background: 'rgba(240,165,0,0.1)', border: '1px solid rgba(240,165,0,0.25)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: FONT }}
             >
