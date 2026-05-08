@@ -2,6 +2,24 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
+export async function GET() {
+  const cookieStore = await cookies()
+  if (cookieStore.get('admin_session')?.value !== process.env.ADMIN_PASSWORD) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const supabase = getSupabaseAdmin()
+  const { data, error } = await supabase
+    .from('content')
+    .select('slug, title, season_number, episode_number, created_at, audio_status, cover_url, analyze_report')
+    .eq('type', 'balabony')
+    .order('season_number', { ascending: false })
+    .order('episode_number', { ascending: false })
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ series: data })
+}
+
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies()
   if (cookieStore.get('admin_session')?.value !== process.env.ADMIN_PASSWORD) {
