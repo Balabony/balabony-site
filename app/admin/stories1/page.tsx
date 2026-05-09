@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
 const GOLD      = '#f0a500'
@@ -144,8 +143,6 @@ function buildSegments(correctedText: string, changes: Change[]): Segment[] {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function Stories1Page() {
-  const router = useRouter()
-
   // Form
   const [authorName, setAuthorName] = useState('')
   const [title,      setTitle]      = useState('')
@@ -362,26 +359,6 @@ export default function Stories1Page() {
   return (
     <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT, padding: '24px 16px 80px' }}>
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
-
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28, paddingBottom: 20, borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
-          <div style={{ width: 38, height: 38, borderRadius: 10, background: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M4 4 L4 16 L10 13 L16 16 L16 4 Z" stroke={NAVY_DEEP} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <line x1="7" y1="8" x2="13" y2="8" stroke={NAVY_DEEP} strokeWidth="1.4" strokeLinecap="round"/>
-              <line x1="7" y1="11" x2="11" y2="11" stroke={NAVY_DEEP} strokeWidth="1.4" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <div>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: GOLD, textTransform: 'uppercase', marginBottom: 2, fontFamily: FONT }}>Адмін панель</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT }}>Нові Історії · Рецензія</div>
-          </div>
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            <button onClick={() => router.push('/admin/stories')} style={navBtn('#8899bb')}>📖 Серії</button>
-            <button onClick={() => router.push('/admin/reviews')} style={navBtn(GOLD)}>⭐ Відгуки</button>
-            <button onClick={async () => { await fetch('/api/admin/logout', { method: 'POST' }); router.push('/admin/login') }} style={navBtn('#556677')}>Вийти</button>
-          </div>
-        </div>
 
         {/* ━━━ 1 — Форма ━━━ */}
         <SectionCard n={1} title="Завантаження історії">
