@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
 const GOLD      = '#f0a500'
@@ -32,7 +31,6 @@ function formatDate(iso: string) {
 }
 
 export default function AdminReviewsPage() {
-  const router    = useRouter()
   const [reviews,    setReviews]    = useState<Review[]>([])
   const [localRevs,  setLocalRevs]  = useState<Review[]>([])
   const [loading,    setLoading]    = useState(true)
@@ -73,11 +71,6 @@ export default function AdminReviewsPage() {
     })()
   }, [])
 
-  const handleLogout = async () => {
-    await fetch('/api/admin/logout', { method: 'POST' })
-    router.push('/admin/login')
-  }
-
   const allReviews = [...reviews, ...localRevs]
   const filtered   = allReviews.filter(r => {
     if (filterType !== 'all' && r.content_type !== filterType) return false
@@ -94,28 +87,6 @@ export default function AdminReviewsPage() {
   return (
     <div style={{ minHeight: '100vh', background: NAVY_DEEP, fontFamily: FONT, padding: '24px 20px' }}>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
-
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: GOLD, textTransform: 'uppercase', marginBottom: 4 }}>Адмін панель</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#f5f0e8' }}>⭐ Відгуки</div>
-          </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button
-              onClick={() => router.push('/admin/stories')}
-              style={{ background: 'rgba(255,255,255,0.07)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 16px', color: '#f5f0e8', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: FONT }}
-            >
-              ← Редактор
-            </button>
-            <button
-              onClick={handleLogout}
-              style={{ background: 'rgba(255,255,255,0.07)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 16px', color: '#8899bb', fontSize: 13, cursor: 'pointer', fontFamily: FONT }}
-            >
-              Вийти
-            </button>
-          </div>
-        </div>
 
         {/* No DB warning */}
         {noDb && (
