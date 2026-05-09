@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 
 const FONT = "'Montserrat', Arial, sans-serif"
 const GOLD = '#f0a500'
@@ -72,7 +71,6 @@ function wordCount(text: string | null) {
 }
 
 export default function EditorialPage() {
-  const router = useRouter()
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedRevisions, setExpandedRevisions] = useState<Set<number>>(new Set())
@@ -154,40 +152,6 @@ export default function EditorialPage() {
   return (
     <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT, padding: '24px 16px 80px' }}>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
-
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28, paddingBottom: 20, borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
-          <div style={{ width: 38, height: 38, borderRadius: 10, background: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="2" y="3" width="16" height="14" rx="2" stroke="#0a1628" strokeWidth="1.6"/>
-              <path d="M5 7h10M5 10h7M5 13h5" stroke="#0a1628" strokeWidth="1.4" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <div>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: GOLD, textTransform: 'uppercase', marginBottom: 2 }}>Адмін панель</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8' }}>Редакційні погодження</div>
-          </div>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
-            <button
-              onClick={() => router.push('/admin/editors')}
-              style={{ fontSize: 12, fontWeight: 600, color: '#c8d4e8', background: 'rgba(200,212,232,0.07)', border: '1px solid rgba(200,212,232,0.2)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: FONT }}
-            >
-              ← Редактори
-            </button>
-            <button
-              onClick={() => router.push('/admin/batch-review')}
-              style={{ fontSize: 12, fontWeight: 600, color: GOLD, background: 'rgba(240,165,0,0.1)', border: '1px solid rgba(240,165,0,0.25)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: FONT }}
-            >
-              ← Пакетна перевірка
-            </button>
-            <button
-              onClick={async () => { await fetch('/api/admin/logout', { method: 'POST' }); router.push('/admin/login') }}
-              style={{ fontSize: 12, fontWeight: 600, color: '#8899bb', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: FONT }}
-            >
-              Вийти
-            </button>
-          </div>
-        </div>
 
         {loading && (
           <div style={{ textAlign: 'center', padding: '40px', fontSize: 14, color: '#445566' }}>
