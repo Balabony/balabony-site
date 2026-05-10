@@ -72,8 +72,10 @@ body {
 /* Platforms cards mobile adaptation */
 @media (max-width: 480px) {
   .platforms-card {
-    padding: 12px 14px !important;
-    min-width: 120px !important;
-    gap: 8px !important;
+    flex-direction: column !important;
+    text-align: center !important;
+    padding: 14px 10px !important;
+    min-width: 130px !important;
+    gap: 10px !important;
   }
 }
