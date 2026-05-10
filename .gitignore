@@ -21,3 +21,6 @@ public/games/assets/.env
 
 .claude/
 .font-cache/
+
+admin_roadmap.md
+handoff_*.md
