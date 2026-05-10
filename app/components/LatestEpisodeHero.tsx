@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useTheme } from '../context/ThemeContext'
 import ShareButtons from './ShareButtons'
@@ -38,7 +38,7 @@ export default function LatestEpisodeHero({ episode }: { episode: Episode }) {
             <img src={episode.coverUrl} alt={episode.title}
               style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', display: 'block' }} />
             <div style={{ position: 'absolute', top: 14, left: 14, background: GOLD, color: '#081420', fontSize: 11, fontWeight: 800, fontFamily: FONT, padding: '4px 11px', borderRadius: 20, letterSpacing: 0.5 }}>
-              С{episode.season} · Серія {episode.number}
+              Сезон {episode.season} · Серія {episode.number}
             </div>
           </div>
 

@@ -26,3 +26,13 @@ admin_roadmap.md
 handoff_*.md
 
 tsconfig.tsbuildinfo
+
+# backups (local only)
+*.bak
+*_backup.*
+
+# Next.js auto-generated (do not commit)
+next-env.d.ts
+
+# local test scripts (not for prod)
+scripts/test-parse-balabony.mjs

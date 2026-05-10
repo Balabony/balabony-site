@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useTheme } from '../context/ThemeContext'
@@ -108,7 +108,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                   {/* Info */}
                   <div style={{ padding: '12px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
                     <div style={{ fontSize: 10, color: GOLD, fontWeight: 600, fontFamily: FONT }}>
-                      {label || `С${s.season} · Серія ${s.number}`}
+                      {label || `Сезон ${s.season} · Серія ${s.number}`}
                     </div>
                     <div
                       onClick={() => toggle(s.id)}
