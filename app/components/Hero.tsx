@@ -12,16 +12,16 @@ export default function Hero() {
         }} />
 
         <div style={{ position: 'relative', maxWidth: 960, margin: '0 auto' }}>
-          <div style={{ display: 'flex', gap: 20, marginBottom: 24, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div className="hero-nav" style={{ display: 'flex', gap: 20, marginBottom: 24, flexWrap: 'wrap', alignItems: 'center' }}>
             {[
               { label: 'ІСТОРІЇ', href: '#reader' },
               { label: 'СЕРІАЛИ', href: '#series' },
               { label: 'ІГРИ',    href: '#longevity-club' },
       { label: 'КАЗКИ', href: '#fairytales' },
             ].map((item, i) => (
-              <span key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                {i > 0 && <span style={{ color: '#f5a623', opacity: 0.4, fontSize: 16 }}>·</span>}
-                <a href={item.href} style={{ color: '#f5a623', fontWeight: 700, fontSize: 13, textDecoration: 'none', fontFamily: "'Montserrat', sans-serif", letterSpacing: 1.5 }}>{item.label}</a>
+              <span key={item.label} className="hero-nav-item" style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                {i > 0 && <span className="hero-nav-divider" style={{ color: '#f5a623', opacity: 0.4, fontSize: 16 }}>·</span>}
+                <a href={item.href} className="hero-nav-link" style={{ color: '#f5a623', fontWeight: 700, fontSize: 13, textDecoration: 'none', fontFamily: "'Montserrat', sans-serif", letterSpacing: 1.5 }}>{item.label}</a>
               </span>
             ))}
           </div>

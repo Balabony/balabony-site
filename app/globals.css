@@ -59,3 +59,11 @@ body {
   .baly-nav-desktop { display: none !important; }
   .baly-burger { display: flex !important; }
 }
+
+/* Hero nav mobile adaptation */
+@media (max-width: 480px) {
+  .hero-nav { gap: 12px !important; }
+  .hero-nav-item { gap: 12px !important; }
+  .hero-nav-divider { display: none !important; }
+  .hero-nav-link { font-size: 11px !important; letter-spacing: 1.2px !important; }
+}
