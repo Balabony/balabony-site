@@ -87,3 +87,11 @@ body {
     padding: 32px 5% !important;
   }
 }
+
+
+/* Longevity section mobile spacing */
+@media (max-width: 480px) {
+  .longevity-section {
+    margin-bottom: 24px !important;
+  }
+}

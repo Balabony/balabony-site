@@ -1083,7 +1083,7 @@ export default function LongevityClubSection() {
   ]
 
   return (
-    <section style={{ marginBottom: 56 }}>
+    <section className="longevity-section" style={{ marginBottom: 56 }}>
       <audio ref={audioRef} />
       <style>{`.pzl-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}@media(max-width:500px){.pzl-grid{grid-template-columns:1fr}}`}</style>
 
