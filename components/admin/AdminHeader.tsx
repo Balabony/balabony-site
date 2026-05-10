@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
 const GOLD      = '#f0a500'
@@ -15,6 +15,13 @@ const navBtnStyle: React.CSSProperties = {
   textDecoration: 'none', display: 'inline-flex', alignItems: 'center',
 }
 
+const activeNavBtnStyle: React.CSSProperties = {
+  ...navBtnStyle,
+  background: 'rgba(240,165,0,0.12)',
+  border: '1px solid rgba(240,165,0,0.5)',
+  color: GOLD,
+}
+
 const logoutBtnStyle: React.CSSProperties = {
   background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
   borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 600,
@@ -25,11 +32,22 @@ export interface AdminHeaderProps { icon: ReactNode; title: string }
 
 export default function AdminHeader({ icon, title }: AdminHeaderProps) {
   const router = useRouter()
+  const pathname = usePathname()
 
   async function handleLogout() {
     await fetch('/api/admin/logout', { method: 'POST' })
     router.push('/admin/login')
   }
+
+  const navItems = [
+    { href: '/admin/stories',      label: 'Редактор серій' },
+    { href: '/admin/series-list',  label: 'Список серій' },
+    { href: '/admin/reviews',      label: 'Відгуки' },
+    { href: '/admin/editors',      label: 'Редактори' },
+    { href: '/admin/batch-review', label: 'Пакет перегляд' },
+    { href: '/admin/review',       label: 'AI-Перегляд' },
+    { href: '/admin/analytics',    label: 'Аналітика' },
+  ]
 
   return (
     <div style={{
@@ -57,14 +75,16 @@ export default function AdminHeader({ icon, title }: AdminHeaderProps) {
       </div>
 
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <Link href="/admin/stories"      style={navBtnStyle}>Редактор серій</Link>
-        <Link href="/admin/series-list"  style={navBtnStyle}>Список серій</Link>
-        <Link href="/admin/reviews"      style={navBtnStyle}>Відгуки</Link>
-        <Link href="/admin/editors"      style={navBtnStyle}>Редактори</Link>
-        <Link href="/admin/batch-review" style={navBtnStyle}>Пакетна перевірка</Link>
-        <Link href="/admin/review"       style={navBtnStyle}>AI-рецензія</Link>
-        <Link href="/admin/analytics"    style={navBtnStyle}>Аналітика</Link>
-        <button onClick={handleLogout}   style={logoutBtnStyle}>Вийти</button>
+        {navItems.map(item => (
+          <Link
+            key={item.href}
+            href={item.href}
+            style={pathname === item.href ? activeNavBtnStyle : navBtnStyle}
+          >
+            {item.label}
+          </Link>
+        ))}
+        <button onClick={handleLogout} style={logoutBtnStyle}>Вийти</button>
       </div>
     </div>
   )
