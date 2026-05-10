@@ -1,6 +1,6 @@
 export default function FairytalesSection() {
   return (
-    <section style={{ background: 'var(--dark)', padding: '64px 5%', position: 'relative' }}>
+    <section className="fairytales-section" style={{ background: 'var(--dark)', padding: '64px 5%', position: 'relative' }}>
       <div style={{ maxWidth: 960, margin: '0 auto', textAlign: 'center' }}>
         <div style={{
           display: 'inline-block',

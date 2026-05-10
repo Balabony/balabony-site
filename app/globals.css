@@ -79,3 +79,11 @@ body {
     gap: 10px !important;
   }
 }
+
+
+/* Fairytales section mobile spacing */
+@media (max-width: 480px) {
+  .fairytales-section {
+    padding: 32px 5% !important;
+  }
+}
