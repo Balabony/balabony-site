@@ -24,3 +24,5 @@ public/games/assets/.env
 
 admin_roadmap.md
 handoff_*.md
+
+tsconfig.tsbuildinfo
