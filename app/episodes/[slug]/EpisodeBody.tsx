@@ -16,17 +16,26 @@ export default function EpisodeBody({ html, fontFamily }: Props) {
   useEffect(() => {
     const el = articleRef.current
     if (!el) return
-    const onCopy = (e: ClipboardEvent) => { e.preventDefault(); showToast() }
-    const onCut = (e: ClipboardEvent) => { e.preventDefault(); showToast() }
+    const selectionTouchesArticle = () => {
+      const sel = window.getSelection()
+      if (!sel || sel.isCollapsed || sel.rangeCount === 0) return false
+      for (let i = 0; i < sel.rangeCount; i++) {
+        const range = sel.getRangeAt(i)
+        if (range.intersectsNode(el)) return true
+      }
+      return false
+    }
+    const onCopy = (e: ClipboardEvent) => { if (selectionTouchesArticle()) { e.preventDefault(); showToast() } }
+    const onCut = (e: ClipboardEvent) => { if (selectionTouchesArticle()) { e.preventDefault(); showToast() } }
     const onContextMenu = (e: MouseEvent) => { e.preventDefault(); showToast() }
     const onDragStart = (e: DragEvent) => { e.preventDefault() }
-    el.addEventListener('copy', onCopy)
-    el.addEventListener('cut', onCut)
+    document.addEventListener('copy', onCopy)
+    document.addEventListener('cut', onCut)
     el.addEventListener('contextmenu', onContextMenu)
     el.addEventListener('dragstart', onDragStart)
     return () => {
-      el.removeEventListener('copy', onCopy)
-      el.removeEventListener('cut', onCut)
+      document.removeEventListener('copy', onCopy)
+      document.removeEventListener('cut', onCut)
       el.removeEventListener('contextmenu', onContextMenu)
       el.removeEventListener('dragstart', onDragStart)
       if (timerRef.current) clearTimeout(timerRef.current)
