@@ -1,6 +1,7 @@
-import { notFound } from 'next/navigation'
+﻿import { notFound } from 'next/navigation'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
+import EpisodeBody from './EpisodeBody'
 
 const GOLD      = '#f0a500'
 const NAVY_DEEP = '#0a1628'
@@ -39,9 +40,9 @@ async function getEpisode(slug: string): Promise<EpisodeRow | null> {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const episode = await getEpisode(slug)
-  if (!episode) return { title: 'Епізод не знайдено' }
+  if (!episode) return { title: 'Р•РїС–Р·РѕРґ РЅРµ Р·РЅР°Р№РґРµРЅРѕ' }
   return {
-    title:       `${episode.title} · Балабони`,
+    title:       `${episode.title} В· Р‘Р°Р»Р°Р±РѕРЅРё`,
     description: episode.description ?? episode.text.replace(/\s+/g, ' ').slice(0, 160),
     openGraph: {
       title:  episode.title,
@@ -85,14 +86,14 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         {/* Back link */}
         <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#8899bb', textDecoration: 'none', marginBottom: 28, fontFamily: FONT }}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2 L4 7 L9 12" stroke="#8899bb" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          На головну
+          РќР° РіРѕР»РѕРІРЅСѓ
         </a>
 
         {/* Header */}
         <div style={{ marginBottom: 36 }}>
           {/* Season/episode tag */}
           <span style={{ fontSize: 11, fontWeight: 700, color: GOLD, background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 20, padding: '3px 10px', textTransform: 'capitalize', fontFamily: FONT, letterSpacing: 0.4 }}>
-            Сезон {episode.season_number} · Серія {episode.episode_number}
+            РЎРµР·РѕРЅ {episode.season_number} В· РЎРµСЂС–СЏ {episode.episode_number}
           </span>
 
           {/* Title */}
@@ -102,9 +103,9 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
 
           {/* Meta row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: GOLD, fontFamily: FONT }}>Балабони</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: GOLD, fontFamily: FONT }}>Р‘Р°Р»Р°Р±РѕРЅРё</span>
             {date && <span style={{ fontSize: 12, color: '#445566', fontFamily: FONT }}>{date}</span>}
-            <span style={{ fontSize: 12, color: '#445566', fontFamily: FONT }}>{wordCount} слів · ~{readMin} хв</span>
+            <span style={{ fontSize: 12, color: '#445566', fontFamily: FONT }}>{wordCount} СЃР»С–РІ В· ~{readMin} С…РІ</span>
           </div>
         </div>
 
@@ -112,21 +113,18 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         <div style={{ height: 1, background: 'linear-gradient(to right, transparent, rgba(240,165,0,0.4), transparent)', marginBottom: 36 }} />
 
         {/* Episode body */}
-        <article
-          style={{ fontSize: 16, lineHeight: 1.9, color: '#dde6f0', fontFamily: FONT, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
-          dangerouslySetInnerHTML={{ __html: escapeHtml(body) }}
-        />
+        <EpisodeBody html={escapeHtml(body)} fontFamily={FONT} />
 
         {/* Footer */}
         <div style={{ marginTop: 52, paddingTop: 24, borderTop: '0.5px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div style={{ fontSize: 13, color: '#8899bb', fontFamily: FONT }}>
-            Сезон {episode.season_number} · Серія {episode.episode_number}
+            РЎРµР·РѕРЅ {episode.season_number} В· РЎРµСЂС–СЏ {episode.episode_number}
           </div>
           <a
             href="/"
             style={{ fontSize: 13, fontWeight: 700, color: GOLD, background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 10, padding: '8px 18px', textDecoration: 'none', fontFamily: FONT }}
           >
-            Більше епізодів →
+            Р‘С–Р»СЊС€Рµ РµРїС–Р·РѕРґС–РІ в†’
           </a>
         </div>
 
