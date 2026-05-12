@@ -40,3 +40,6 @@ scripts/test-parse-balabony.mjs
 scripts/audit-cache/
 scripts/audit-sequence-report.md
 scripts/audit-sequence-report.json
+
+scripts/cleanup-dry-run/
+scripts/cleanup-apply/
