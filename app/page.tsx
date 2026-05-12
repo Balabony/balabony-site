@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import Header from './components/Header'
 import Hero from './components/Hero'
 import ReaderSection from './components/ReaderSection'
@@ -67,12 +68,31 @@ const IPHONE_STEPS: React.ReactNode[] = [
   'Натисни "Додати" у правому верхньому куті',
 ]
 
+const viewAllLinkStyle: React.CSSProperties = {
+  display: 'inline-block',
+  padding: '10px 20px',
+  border: '1px solid #f5a623',
+  borderRadius: 8,
+  color: '#f5a623',
+  textDecoration: 'none',
+  fontSize: 14,
+  fontWeight: 600,
+  fontFamily: "'Montserrat', sans-serif",
+}
+
+const viewAllWrapperStyle: React.CSSProperties = {
+  maxWidth: 1100,
+  margin: '0 auto',
+  padding: '0 20px 24px',
+  textAlign: 'right',
+}
+
 export default function HomePage() {
   const [seriesData,   setSeriesData]   = useState<SeriesCard[]>(FALLBACK_SERIES)
   const [freshStories, setFreshStories] = useState<Story[]>(SAMPLE_STORIES)
 
   useEffect(() => {
-    fetch('/api/series')
+    fetch('/api/series?limit=3&order=desc')
       .then(r => r.ok ? r.json() : Promise.reject())
       .then((rows: Array<{ id: string; number: number; season: number; title: string; cover_url: string | null; has_audio: boolean; url: string; description?: string }>) => {
         if (Array.isArray(rows) && rows.length > 0) {
@@ -93,7 +113,7 @@ export default function HomePage() {
     fetch('/api/stories')
       .then(r => r.ok ? r.json() : Promise.reject())
       .then((rows: Story[]) => {
-        if (Array.isArray(rows) && rows.length > 0) setFreshStories(rows)
+        if (Array.isArray(rows) && rows.length > 0) setFreshStories(rows.slice(0, 3))
       })
       .catch(() => {})
   }, [])
@@ -104,7 +124,13 @@ export default function HomePage() {
       <ResumeBanner />
       <Hero />
       <SeriesStrip series={seriesData} />
+      <div style={viewAllWrapperStyle}>
+        <Link href="/series" style={viewAllLinkStyle}>Усі серії →</Link>
+      </div>
       <FreshStoriesGrid stories={freshStories} />
+      <div style={viewAllWrapperStyle}>
+        <Link href="/stories" style={viewAllLinkStyle}>Усі історії →</Link>
+      </div>
 
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 0' }}>
 

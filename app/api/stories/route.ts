@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url)
+    const limitParam = searchParams.get('limit')
+    const parsed = limitParam ? parseInt(limitParam, 10) : NaN
+    const limit = Number.isFinite(parsed) ? Math.max(1, Math.min(500, parsed)) : 9
+
     const supabase = getSupabaseAdmin()
 
     const { data, error } = await supabase
@@ -11,22 +16,22 @@ export async function GET() {
       .eq('type', 'story')
       .in('status', ['approved', 'published'])
       .order('approved_at', { ascending: false, nullsFirst: false })
-      .limit(9)
+      .limit(limit)
 
     if (error) throw error
 
     const stories = (data ?? []).map(s => ({
-      id:               s.id,
-      title:            s.title,
-      author:           s.author_name,
-      coverUrl:         s.cover_url ?? '/og-image.jpg',
-      tags:             [s.genre],
-      hasAudio:         false,
-      teaser:           buildTeaser(pickPublishedText(s)),
-      url:              `/stories/${s.slug ?? s.id}`,
-      genre:            s.genre ?? undefined,
+      id:              s.id,
+      title:           s.title,
+      author:          s.author_name,
+      coverUrl:        s.cover_url ?? '/og-image.jpg',
+      tags:            [s.genre],
+      hasAudio:        false,
+      teaser:          buildTeaser(pickPublishedText(s)),
+      url:             `/stories/${s.slug ?? s.id}`,
+      genre:           s.genre ?? undefined,
       duration_minutes: s.duration_minutes ?? undefined,
-      category:         s.category ?? undefined,
+      category:        s.category ?? undefined,
     }))
 
     return NextResponse.json(stories)
