@@ -85,7 +85,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                   {/* Cover — clickable, clean photo + white border via CSS outline */}
                   <div
                     onClick={() => toggle(s.id)}
-                    style={{ position: 'relative', flexShrink: 0, width: 100, aspectRatio: '1 / 1', cursor: 'pointer' }}
+                    style={{ position: 'relative', flexShrink: 0, width: 130, alignSelf: 'stretch', cursor: 'pointer' }}
                   >
                     <img
                       src={s.coverUrl}
@@ -93,16 +93,6 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                       onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }}
                       style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                     />
-                    {/* audio badge */}
-                    <span style={{
-                      position: 'absolute', bottom: 6, left: 6,
-                      background: s.hasAudio ? GOLD : 'rgba(0,0,0,0.6)',
-                      color: s.hasAudio ? '#081420' : '#8CA0B8',
-                      fontSize: 9, fontWeight: 800, fontFamily: FONT, padding: '2px 6px', borderRadius: 20,
-                      border: s.hasAudio ? 'none' : '1px solid #445566',
-                    }}>
-                      {s.hasAudio ? '🎧' : '⏳'}
-                    </span>
                   </div>
 
                   {/* Info */}
