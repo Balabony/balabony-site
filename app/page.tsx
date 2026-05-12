@@ -68,24 +68,9 @@ const IPHONE_STEPS: React.ReactNode[] = [
   'Натисни "Додати" у правому верхньому куті',
 ]
 
-const viewAllLinkStyle: React.CSSProperties = {
-  display: 'inline-block',
-  padding: '10px 20px',
-  border: '1px solid #f5a623',
-  borderRadius: 8,
-  color: '#f5a623',
-  textDecoration: 'none',
-  fontSize: 14,
-  fontWeight: 600,
-  fontFamily: "'Montserrat', sans-serif",
-}
+const viewAllLinkStyle: React.CSSProperties = { display: 'block', padding: '14px 20px', border: '1px solid #f5a623', borderRadius: 12, color: '#f5a623', textDecoration: 'none', fontSize: 15, fontWeight: 600, fontFamily: "'Montserrat', sans-serif", textAlign: 'center' }
 
-const viewAllWrapperStyle: React.CSSProperties = {
-  maxWidth: 1100,
-  margin: '0 auto',
-  padding: '0 20px 24px',
-  textAlign: 'center',
-}
+const viewAllWrapperStyle: React.CSSProperties = { maxWidth: 1100, margin: '0 auto', padding: '0 20px 24px' }
 
 export default function HomePage() {
   const [seriesData,   setSeriesData]   = useState<SeriesCard[]>(FALLBACK_SERIES)
