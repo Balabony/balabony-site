@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
 import { useTheme } from '../context/ThemeContext'
@@ -626,7 +626,12 @@ export default function AudioPlayer() {
           {isNight ? '🌙' : '☀️'}
         </button>
 
-        {/* 4. Читати */}
+        {/* 4. Головна */}
+        <a href="/" style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', border: '1px solid #475569', padding: '6px 10px', borderRadius: 8, textDecoration: 'none', fontFamily: '"Montserrat", sans-serif', flexShrink: 0, whiteSpace: 'nowrap' }}>
+          Головна
+        </a>
+
+        {/* 5. Читати */}
         <a href="#reader" style={{ fontSize: 11, fontWeight: 700, color: '#f5a623', border: '1px solid rgba(245,166,35,0.5)', padding: '6px 10px', borderRadius: 8, textDecoration: 'none', fontFamily: "'Montserrat', sans-serif", flexShrink: 0, whiteSpace: 'nowrap' }}>
           Читати
         </a>
