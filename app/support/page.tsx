@@ -4,15 +4,17 @@ import { useState, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 
 /**
- * Сторінка підтримки /support — v3
+ * Сторінка підтримки /support — v6
  * Розташування: app/support/page.tsx
  *
- * Зміни v3 vs v2:
- *  - Назва ГО в UA: «ЛОГО „Інститут громадянського суспільства"» (коротка)
- *  - Темний фон як на головній сайту (#0f172a) у дефолтній темі
- *  - Збільшений базовий розмір шрифту (17-18px)
- *  - QR-код для швидкого переказу (на UA для UAH; для EN/DE для USD/EUR)
- *  - В EN/DE прибрано переклад назви ГО в дужках, залишена тільки транслітерація
+ * v6 vs v5:
+ *  - ВИПРАВЛЕНО: пріоритет ?lang=en/de над localStorage стабільно працює.
+ *  - Мова більше НЕ зберігається в localStorage (тільки fontScale і theme).
+ *  - Це гарантує: відкрив /support?lang=en — побачив EN; /support?lang=de — DE;
+ *    /support — UA. Без сюрпризів від попередніх сесій.
+ *  - Кнопки UA/EN/DE в тулбарі тепер міняють window.location (повний reload з
+ *    новим query-параметром), а не лише локальний state — це робить URL і
+ *    контент завжди узгодженими.
  */
 
 // ============================================================================
@@ -32,7 +34,6 @@ interface AccountInfo {
 interface SupportSettings {
   fontScale: number;
   theme: Theme;
-  lang: Lang;
 }
 
 const ACCOUNTS: AccountInfo[] = [
@@ -54,22 +55,9 @@ const PURPOSE_UA = 'Благодійний внесок на статутну д
 const PURPOSE_EN = 'Charitable contribution to support the statutory activities of Instytut Hromadyanskoho Suspilstva — accessibility and inclusion development.';
 const CONTACT_EMAIL = 'nazar@balabony.com';
 
-const DEFAULTS: SupportSettings = {
-  fontScale: 1,
-  theme: 'default',
-  lang: 'ua',
-};
-
 // ============================================================================
-// ГЕНЕРАЦІЯ QR-РЯДКА
+// EPC QR
 // ============================================================================
-/**
- * EPC QR Code (SEPA) — формат European Payments Council для миттєвих переказів.
- * Працює у всіх банківських додатках Європи. Українські банки (Приват, Моно)
- * також сканують і автоматично заповнюють реквізити.
- *
- * Документація: https://en.wikipedia.org/wiki/EPC_QR_code
- */
 function buildEpcQr(opts: {
   beneficiary: string;
   iban: string;
@@ -79,19 +67,30 @@ function buildEpcQr(opts: {
 }): string {
   const { beneficiary, iban, amount, currency = 'EUR', purpose } = opts;
   const lines = [
-    'BCD',                      // Service tag
-    '002',                      // Version
-    '1',                        // Character set: 1 = UTF-8
-    'SCT',                      // Identification: SEPA Credit Transfer
-    SWIFT,                      // BIC (SWIFT)
-    beneficiary.slice(0, 70),   // Name (max 70 chars)
-    iban,                       // IBAN
-    amount ? `${currency}${amount.toFixed(2)}` : '',  // Amount (optional)
-    '',                         // Purpose code (empty)
-    '',                         // Remittance reference (empty)
-    purpose.slice(0, 140),      // Remittance info (max 140 chars)
+    'BCD', '002', '1', 'SCT',
+    SWIFT,
+    beneficiary.slice(0, 70),
+    iban,
+    amount ? `${currency}${amount.toFixed(2)}` : '',
+    '', '',
+    purpose.slice(0, 140),
   ];
   return lines.join('\n');
+}
+
+// ============================================================================
+// ВИЗНАЧЕННЯ МОВИ З URL
+// ============================================================================
+function getInitialLang(): Lang {
+  if (typeof window === 'undefined') return 'ua';
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get('lang');
+    if (urlLang === 'en' || urlLang === 'de') return urlLang as Lang;
+    return 'ua';
+  } catch {
+    return 'ua';
+  }
 }
 
 // ============================================================================
@@ -110,32 +109,19 @@ export default function SupportPage() {
 
   const activeAccount = ACCOUNTS.find(a => a.currency === activeCurrency)!;
 
-  // INIT
+  // Мова визначається ВИКЛЮЧНО з URL. Тільки шрифт і тема з localStorage.
   useEffect(() => {
+    setLang(getInitialLang());
     try {
-      // Priority: URL parameter ?lang=en/de > localStorage > default 'ua'
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlLang = urlParams.get('lang');
-      let initialLang: Lang = 'ua';
-
-      if (urlLang === 'en' || urlLang === 'de' || urlLang === 'ua') {
-        initialLang = urlLang as Lang;
-      }
-
       const saved = localStorage.getItem('balabony_support');
       if (saved) {
         const s: SupportSettings = JSON.parse(saved);
-        setFontScale(s.fontScale || 1);
-        setTheme(s.theme || 'default');
-        // URL param has priority over saved lang
-        setLang(urlLang ? initialLang : (s.lang || 'ua'));
-      } else {
-        setLang(initialLang);
+        if (typeof s.fontScale === 'number') setFontScale(s.fontScale);
+        if (s.theme) setTheme(s.theme);
       }
     } catch {}
   }, []);
 
-  // APPLY ATTRS
   useEffect(() => {
     document.documentElement.setAttribute('data-support-theme', theme);
     document.documentElement.style.setProperty('--support-fs', String(fontScale));
@@ -143,13 +129,9 @@ export default function SupportPage() {
 
   const save = (next: Partial<SupportSettings>) => {
     try {
-      const settings: SupportSettings = { fontScale, theme, lang, ...next };
+      const settings: SupportSettings = { fontScale, theme, ...next };
       localStorage.setItem('balabony_support', JSON.stringify(settings));
     } catch {}
-  };
-
-  const announce = (msg: string) => {
-    if (liveRegionRef.current) liveRegionRef.current.textContent = msg;
   };
 
   const incFont = () => {
@@ -159,7 +141,6 @@ export default function SupportPage() {
       save({ fontScale: next });
     }
   };
-
   const decFont = () => {
     if (fontScale > 1) {
       const next = Math.max(1, fontScale - 0.25);
@@ -167,12 +148,14 @@ export default function SupportPage() {
       save({ fontScale: next });
     }
   };
-
   const applyTheme = (next: Theme) => { setTheme(next); save({ theme: next }); };
+
+  // Перемикання мови = повний перехід за URL. URL і контент завжди узгоджені.
   const applyLang = (next: Lang) => {
-    setLang(next); save({ lang: next });
-    announce(next === 'en' ? 'English' : next === 'de' ? 'Deutsch' : 'Українська');
+    const url = next === 'ua' ? '/support' : `/support?lang=${next}`;
+    window.location.href = url;
   };
+
   const reset = () => {
     setFontScale(1); setTheme('default');
     save({ fontScale: 1, theme: 'default' });
@@ -188,7 +171,6 @@ export default function SupportPage() {
     }
   };
 
-  // i18n
   const T = {
     ua: { reset: 'Скинути', skip: 'Перейти до основного контенту' },
     en: { reset: 'Reset', skip: 'Skip to main content' },
@@ -201,7 +183,6 @@ export default function SupportPage() {
     de: { default: 'Standard', dark: 'Dunkel', 'high-contrast': 'Hoher Kontrast', dyslexic: 'Legasthenie' },
   };
 
-  // Full bank details for copying
   const fullDetailsByLang = {
     ua: `Отримувач: ${ORG_NAME_UA_FULL}
 ЄДРПОУ: ${EDRPOU}
@@ -225,7 +206,6 @@ Filiale: ${BRANCH_ADDR_EN}
 Verwendungszweck: ${PURPOSE_EN}`,
   };
 
-  // QR-code string
   const qrString = buildEpcQr({
     beneficiary: ORG_NAME_TRANS,
     iban: activeAccount.iban,
@@ -237,11 +217,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
   return (
     <>
       <style jsx global>{`
-        /* ====================================================== */
-        /*  THEMES (default = dark like main site)                  */
-        /* ====================================================== */
-
-        /* DEFAULT — темний як на головній сайту */
         html[data-support-theme="default"] .support-page {
           --sup-bg: #0f172a;
           --sup-bg-2: #131c33;
@@ -259,7 +234,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           --sup-warn-text: #ffd54f;
           --sup-focus: #ef9f27;
         }
-        /* DARK — ще темніший */
         html[data-support-theme="dark"] .support-page {
           --sup-bg: #000000;
           --sup-bg-2: #0a0a0a;
@@ -318,7 +292,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           line-height: 1.85 !important;
         }
 
-        /* BASE */
         .support-page {
           --support-fs: 1;
           background: var(--sup-bg);
@@ -345,7 +318,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           }
         }
 
-        /* SKIP & SR */
         .sup-skip {
           position: absolute;
           top: -100px; left: 0;
@@ -366,7 +338,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           white-space: nowrap;
         }
 
-        /* TOOLBAR */
         .sup-toolbar {
           position: sticky; top: 0; z-index: 50;
           background: var(--sup-bg-2);
@@ -439,7 +410,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           font-variant-numeric: tabular-nums;
         }
 
-        /* HERO */
         .sup-hero {
           max-width: 900px; margin: 0 auto;
           padding: 70px 24px 48px;
@@ -475,7 +445,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           padding: 0 24px;
         }
 
-        /* WARN */
         .sup-warn {
           padding: 24px 28px;
           background: var(--sup-warn-bg);
@@ -502,7 +471,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           margin: 0;
         }
 
-        /* MISSION */
         .sup-mission {
           padding: 32px;
           background: var(--sup-surface);
@@ -528,7 +496,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
         }
         .sup-mission li strong { color: var(--sup-text); }
 
-        /* SECTION */
         .sup-section { margin-bottom: 52px; }
         .sup-section h2 {
           font-size: calc(30px * var(--support-fs));
@@ -545,7 +512,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
         .sup-section-lead p { margin: 0 0 12px 0; }
         .sup-section-lead p:last-child { margin-bottom: 0; }
 
-        /* TABS */
         .sup-tabs {
           display: flex; gap: 8px;
           margin-bottom: 22px;
@@ -570,7 +536,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           border-color: var(--sup-accent);
         }
 
-        /* DETAILS */
         .sup-details {
           background: var(--sup-surface);
           border: 1px solid var(--sup-border);
@@ -648,55 +613,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           color: white;
         }
 
-        /* QR */
-        .sup-qr-section {
-          margin-top: 30px;
-          padding: 28px;
-          background: var(--sup-surface);
-          border: 1px solid var(--sup-border);
-          border-radius: 14px;
-        }
-        .sup-qr-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 28px;
-          align-items: center;
-        }
-        @media (min-width: 640px) {
-          .sup-qr-grid { grid-template-columns: auto 1fr; }
-        }
-        .sup-qr-box {
-          background: white;
-          padding: 18px;
-          border-radius: 12px;
-          width: 232px; height: 232px;
-          display: flex; align-items: center; justify-content: center;
-          margin: 0 auto;
-        }
-        .sup-qr-text h3 {
-          font-size: calc(22px * var(--support-fs));
-          font-weight: 700;
-          margin-bottom: 10px;
-        }
-        .sup-qr-text p {
-          color: var(--sup-text-muted);
-          line-height: 1.65;
-          font-size: calc(15px * var(--support-fs));
-          margin: 0 0 10px 0;
-        }
-        .sup-qr-amount {
-          display: inline-block;
-          margin-top: 6px;
-          padding: 6px 14px;
-          background: rgba(239, 159, 39, 0.15);
-          border: 1.5px solid var(--sup-accent);
-          border-radius: 8px;
-          font-weight: 700;
-          color: var(--sup-accent);
-          font-size: 15px;
-        }
-
-        /* BANK ACTION BUTTONS (UA) */
         .sup-bank-actions {
           margin-top: 30px;
           padding: 28px;
@@ -746,7 +662,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           background: var(--sup-surface-2);
         }
         .sup-bank-privat:hover { border-color: #007a3d; }
-        .sup-bank-mono:hover { border-color: #000000; }
         .sup-bank-btn-icon {
           font-size: 30px;
           line-height: 1;
@@ -769,7 +684,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           font-weight: 600;
         }
 
-        /* AMOUNTS */
         .sup-amounts {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
@@ -852,7 +766,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           margin-left: -8px;
         }
 
-        /* FAQ */
         .sup-faq-item {
           padding: 22px 26px;
           background: var(--sup-surface);
@@ -882,7 +795,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
         .sup-faq-item li { margin-bottom: 8px; }
         .sup-faq-item strong { color: var(--sup-text); }
 
-        /* INTL APPEAL */
         .sup-intl {
           padding: 36px;
           background: var(--sup-surface);
@@ -972,7 +884,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           font-size: calc(14px * var(--support-fs));
         }
 
-        /* BACK */
         .sup-back {
           padding: 36px;
           background: var(--sup-surface);
@@ -992,7 +903,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           font-size: calc(15px * var(--support-fs));
         }
 
-        /* TOAST */
         .sup-toast {
           position: fixed;
           bottom: 28px; left: 50%;
@@ -1012,7 +922,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
         <a href="#sup-main" className="sup-skip">{T.skip}</a>
         <div ref={liveRegionRef} className="sup-sr-only" aria-live="polite" aria-atomic="true" />
 
-        {/* TOOLBAR */}
         <header className="sup-toolbar" role="banner">
           <div className="sup-toolbar-inner">
             <a href="/" className="sup-brand" aria-label="Балабони">
@@ -1052,7 +961,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           </div>
         </header>
 
-        {/* CONTENT */}
         {lang === 'ua' && <UkrainianContent
           activeCurrency={activeCurrency}
           setActiveCurrency={setActiveCurrency}
@@ -1094,8 +1002,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
 }
 
 // ============================================================================
-// UKRAINIAN
-// ============================================================================
 function UkrainianContent({
   activeCurrency, setActiveCurrency, activeAccount,
   copiedField, copyToClipboard,
@@ -1136,7 +1042,6 @@ function UkrainianContent({
 
       <main id="sup-main" className="sup-container">
 
-        {/* WARNING */}
         <div className="sup-warn" role="status">
           <div className="sup-warn-icon" aria-hidden="true">🚧</div>
           <div className="sup-warn-content">
@@ -1150,7 +1055,6 @@ function UkrainianContent({
           </div>
         </div>
 
-        {/* MISSION */}
         <section className="sup-mission" aria-labelledby="mission-ua">
           <h2 id="mission-ua">На що підуть кошти</h2>
           <ul>
@@ -1162,7 +1066,6 @@ function UkrainianContent({
           </ul>
         </section>
 
-        {/* BANK DETAILS */}
         <section className="sup-section" aria-labelledby="bank-ua">
           <h2 id="bank-ua">Реквізити для переказу</h2>
           <div className="sup-section-lead">
@@ -1196,7 +1099,6 @@ function UkrainianContent({
             {copiedField === 'all-ua' ? '✓ Усі реквізити скопійовано!' : '📋 Копіювати всі реквізити одним блоком'}
           </button>
 
-          {/* BANK BUTTONS — quick action */}
           <div className="sup-bank-actions" aria-labelledby="bank-actions-ua">
             <h3 id="bank-actions-ua" className="sup-bank-actions-title">💳 Швидко перейти до оплати</h3>
             <p className="sup-bank-actions-lead">
@@ -1228,7 +1130,6 @@ function UkrainianContent({
           </div>
         </section>
 
-        {/* AMOUNTS */}
         {activeCurrency === 'UAH' && (
           <section className="sup-section" aria-labelledby="amounts-ua">
             <h2 id="amounts-ua">Орієнтовні суми</h2>
@@ -1265,7 +1166,6 @@ function UkrainianContent({
           </section>
         )}
 
-        {/* FAQ */}
         <section className="sup-section" aria-labelledby="faq-ua">
           <h2 id="faq-ua">Часті питання</h2>
 
@@ -1309,8 +1209,6 @@ function UkrainianContent({
   );
 }
 
-// ============================================================================
-// ENGLISH
 // ============================================================================
 function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails, qrString }: {
   activeAccount: AccountInfo;
@@ -1383,7 +1281,6 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
           {copiedField === 'all-en' ? '✓ All details copied!' : '📋 Copy all bank details'}
         </button>
 
-        {/* QR */}
         <h3>📱 Quick payment via QR code</h3>
         <div className="sup-intl-qr">
           <div className="sup-intl-qr-box">
@@ -1428,8 +1325,6 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
   );
 }
 
-// ============================================================================
-// GERMAN
 // ============================================================================
 function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails, qrString }: {
   activeAccount: AccountInfo;
@@ -1505,7 +1400,6 @@ function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails
           {copiedField === 'all-de' ? '✓ Alle Daten kopiert!' : '📋 Alle Bankdaten kopieren'}
         </button>
 
-        {/* QR */}
         <h3>📱 Schnelle Zahlung per QR-Code</h3>
         <div className="sup-intl-qr">
           <div className="sup-intl-qr-box">
