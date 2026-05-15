@@ -26,6 +26,7 @@ export default function Hero() {
             ))}
           </div>
 
+          <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#f5a623', background: 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.4)', borderRadius: 20, padding: '4px 12px', marginBottom: 18, letterSpacing: 1.2, textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>Автор: Назар Колодій · Гумор</span>
           <h1 style={{
             fontFamily: "'Lora', serif",
             fontSize: 'clamp(32px, 8vw, 60px)',
