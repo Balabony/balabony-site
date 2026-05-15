@@ -113,12 +113,24 @@ export default function SupportPage() {
   // INIT
   useEffect(() => {
     try {
+      // Priority: URL parameter ?lang=en/de > localStorage > default 'ua'
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlLang = urlParams.get('lang');
+      let initialLang: Lang = 'ua';
+
+      if (urlLang === 'en' || urlLang === 'de' || urlLang === 'ua') {
+        initialLang = urlLang as Lang;
+      }
+
       const saved = localStorage.getItem('balabony_support');
       if (saved) {
         const s: SupportSettings = JSON.parse(saved);
         setFontScale(s.fontScale || 1);
         setTheme(s.theme || 'default');
-        setLang(s.lang || 'ua');
+        // URL param has priority over saved lang
+        setLang(urlLang ? initialLang : (s.lang || 'ua'));
+      } else {
+        setLang(initialLang);
       }
     } catch {}
   }, []);
@@ -715,9 +727,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           grid-template-columns: 1fr;
           gap: 12px;
         }
-        @media (min-width: 640px) {
-          .sup-bank-buttons { grid-template-columns: 1fr 1fr; }
-        }
         .sup-bank-btn {
           display: flex;
           align-items: center;
@@ -1209,23 +1218,12 @@ function UkrainianContent({
                   <span>IBAN скопійовано →</span>
                 </span>
               </a>
-              <a
-                href="https://send.monobank.ua/"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => copyToClipboard(activeAccount.iban, 'iban-mono')}
-                className="sup-bank-btn sup-bank-mono"
-              >
-                <span className="sup-bank-btn-icon" aria-hidden="true">🐱</span>
-                <span className="sup-bank-btn-text">
-                  <strong>Відкрити Monobank</strong>
-                  <span>IBAN скопійовано →</span>
-                </span>
-              </a>
             </div>
             <p className="sup-bank-actions-note">
               💡 Підказка: у банку оберіть «Переказ за реквізитами» або «Платіж за IBAN»,
               вставте IBAN з буфера, введіть суму і призначення «Благодійний внесок».
+              Якщо у вас Monobank або інший банк — просто скопіюйте IBAN із реквізитів вище
+              і вставте у вашому банківському додатку.
             </p>
           </div>
         </section>
@@ -1234,7 +1232,7 @@ function UkrainianContent({
         {activeCurrency === 'UAH' && (
           <section className="sup-section" aria-labelledby="amounts-ua">
             <h2 id="amounts-ua">Орієнтовні суми</h2>
-            <p className="sup-section-lead">Виберіть суму, щоб додати її до QR-коду. Або введіть свою.</p>
+            <p className="sup-section-lead">Виберіть зручну для вас суму, або введіть свою.</p>
 
             <div className="sup-amounts">
               <button className={`sup-amount ${selectedAmount === 100 ? 'is-selected' : ''}`}
