@@ -697,7 +697,7 @@ export default function AccessibilityPage() {
                 Розширений доступ включає: усі 60 шортів у HD-якості, додаткові мовні
                 картки, етимологічні довідки, повний архів сценаріїв, ранній доступ до нового матеріалу.
               </p>
-              <a href="mailto:hello@balabony.com?subject=Заявка на пільговий доступ" className="a11y-cta">
+              <a href="mailto:nazar@balabony.com?subject=Заявка на пільговий доступ (УБД/інвалідність)" className="a11y-cta">
                 Подати заявку →
               </a>
             </div>
@@ -737,8 +737,8 @@ export default function AccessibilityPage() {
               Доступність — це постійна робота. Якщо ви побачили щось, що працює не як треба,
               напишіть нам — виправимо протягом 48 годин.
             </p>
-            <a href="mailto:a11y@balabony.com" className="a11y-mail">
-              a11y@balabony.com
+            <a href="mailto:nazar@balabony.com?subject=Доступність balabony.com — знайдено бар'єр" className="a11y-mail">
+              nazar@balabony.com
             </a>
           </section>
         </main>
