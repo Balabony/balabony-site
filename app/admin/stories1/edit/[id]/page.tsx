@@ -11,7 +11,26 @@ const NAVY_DEEP = '#0a1628'
 
 const CARD_ASPECT = 275 / 175
 
-const GENRES = ['оповідання', 'гумор', 'драма', 'казка', 'пригода', 'історична проза']
+// 16 жанрів, з великої букви
+const GENRES = [
+  'Драма',
+  'Гумор',
+  'Казка',
+  'Детектив',
+  'Романтика',
+  'Трилер',
+  'Пригоди',
+  'Фантастика',
+  'Містика',
+  'Історична проза',
+  'Сімейна історія',
+  'Бойовик',
+  'Жахи',
+  'Психологія',
+  'Біографія',
+  'Життєві історії',
+]
+
 const CATEGORIES = ['', 'З життя', 'Містика', 'Любов', 'Воєнні', 'Історичні', 'Родинні', 'Гумор', 'Детектив', 'Психологічні', 'Дитячі']
 
 const inputBase: React.CSSProperties = {
@@ -50,11 +69,7 @@ export default function EditStoryPage() {
   const [text,          setText]          = useState('')
   const [coverUrl,      setCoverUrl]      = useState('')
 
-  // Оригінал (з якого кропуємо). Це може бути той самий що coverUrl,
-  // або щойно завантажене нове фото
   const [sourceUrl, setSourceUrl] = useState<string | null>(null)
-
-  // react-easy-crop state
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedPixels, setCroppedPixels] = useState<Area | null>(null)
@@ -76,10 +91,10 @@ export default function EditStoryPage() {
         const s = data.story
         setTitle(s.title ?? '')
         setAuthorName(s.author_name ?? '')
-        setGenre(s.genre ?? GENRES[0])
+        // Якщо жанр з БД є у списку — використовуємо його, інакше беремо перший
+        setGenre(GENRES.includes(s.genre ?? '') ? s.genre : GENRES[0])
         setCategory(s.category ?? '')
         setCoverUrl(s.cover_url ?? '')
-        // sourceUrl за замовчуванням не вмикаємо — щоб не перекадрувати випадково
         setText(s.text ?? '')
         setPhase('idle')
       })
@@ -90,7 +105,6 @@ export default function EditStoryPage() {
     setCroppedPixels(areaPx)
   }, [])
 
-  // ─── Завантажити нове фото ───────────────────────────────────────
   const handleFilePick = () => fileRef.current?.click()
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,9 +126,7 @@ export default function EditStoryPage() {
       if (!res.ok || data.error) {
         setUploadError(data.error ?? 'Помилка завантаження')
       } else {
-        // Зберігаємо як sourceUrl — оригінал для подальшого crop
         setSourceUrl(data.url)
-        // Поки що cover_url ставимо в той самий — він зміниться після Save
         setCoverUrl(data.url)
         setCrop({ x: 0, y: 0 })
         setZoom(1)
@@ -127,13 +139,11 @@ export default function EditStoryPage() {
     }
   }
 
-  // ─── Зберегти (можливо з обрізкою) ───────────────────────────────
   const handleSave = async () => {
     setPhase('saving'); setSavedMessage('')
     try {
       let finalCoverUrl = coverUrl
 
-      // Якщо є sourceUrl і croppedPixels — обрізаємо
       if (sourceUrl && croppedPixels) {
         setPhase('cropping')
         const cropRes = await fetch('/api/admin/stories1/crop-cover', {
@@ -169,15 +179,14 @@ export default function EditStoryPage() {
           category: category || null,
           text,
           cover_url: finalCoverUrl || null,
-          cover_position: 'center', // вже не використовуємо для нових кропів
+          cover_position: 'center',
         }),
       })
       const data = await res.json()
       if (!res.ok || data.error) { setError(data.error ?? 'Помилка'); setPhase('error'); return }
 
-      // Оновлюємо локальний стан
       setCoverUrl(finalCoverUrl)
-      setSourceUrl(null) // більше не потрібен — фото вже обрізане
+      setSourceUrl(null)
       setCroppedPixels(null)
       setSavedMessage('Збережено!')
       setPhase('done')
@@ -187,8 +196,6 @@ export default function EditStoryPage() {
     }
   }
 
-  // ─── Кнопка: перекадрувати наявне фото ───────────────────────────
-  // Натиснувши, користувач вмикає sourceUrl = coverUrl і починає кадрування
   const startRecrop = () => {
     if (coverUrl) {
       setSourceUrl(coverUrl)
@@ -260,7 +267,6 @@ export default function EditStoryPage() {
             </select>
           </div>
 
-          {/* Обкладинка */}
           <div style={{ marginBottom: 14 }}>
             <label style={{ fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, display: 'block', marginBottom: 6 }}>Обкладинка історії</label>
 
@@ -271,7 +277,6 @@ export default function EditStoryPage() {
               {uploadingPhoto ? '⏳ Завантажую…' : '📷 Завантажити нове фото'}
             </button>
 
-            {/* Поточна обкладинка */}
             {coverUrl && !showCropper && (
               <div style={{ marginBottom: 8 }}>
                 <div style={{ position: 'relative', width: '100%', maxWidth: 275, margin: '6px auto', borderRadius: 10, overflow: 'hidden', border: '0.5px solid rgba(255,255,255,0.1)', aspectRatio: '275 / 175', background: '#000' }}>
@@ -290,7 +295,6 @@ export default function EditStoryPage() {
             )}
           </div>
 
-          {/* Кадрування — тільки коли є sourceUrl */}
           {showCropper && sourceUrl && (
             <div style={{ marginBottom: 16, padding: 14, background: 'rgba(255,255,255,0.03)', borderRadius: 12, border: '0.5px solid rgba(255,255,255,0.06)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
