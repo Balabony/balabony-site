@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { ReactNode } from 'react'
 import Link from 'next/link'
@@ -40,6 +40,7 @@ export default function AdminHeader({ icon, title }: AdminHeaderProps) {
   }
 
   const navItems = [
+    { href: '/admin/content/stories', label: 'Історії'        },
     { href: '/admin/stories',      label: 'Редактор серій' },
     { href: '/admin/series-list',  label: 'Список серій' },
     { href: '/admin/reviews',      label: 'Відгуки' },
@@ -91,3 +92,4 @@ export default function AdminHeader({ icon, title }: AdminHeaderProps) {
     </div>
   )
 }
+
