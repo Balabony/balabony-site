@@ -71,9 +71,9 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
       {/* Cover */}
       {story.cover_url && (
-        <div style={{ position: 'relative', height: 200, overflow: 'hidden' }}>
+        <div style={{ position: 'relative', height: 280, overflow: 'hidden' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={story.cover_url} alt={story.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
+          <img src={story.cover_url} alt={story.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%', display: 'block' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #0a1628 0%, rgba(10,22,40,0.4) 60%, transparent 100%)' }} />
         </div>
       )}
