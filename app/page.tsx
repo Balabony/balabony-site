@@ -95,7 +95,7 @@ export default function HomePage() {
       })
       .catch(() => {})
 
-    fetch('/api/stories')
+    fetch('/api/stories?exclude_genre=' + encodeURIComponent('Казка'))
       .then(r => r.ok ? r.json() : Promise.reject())
       .then((rows: Story[]) => {
         if (Array.isArray(rows) && rows.length > 0) setFreshStories(rows.slice(0, 3))

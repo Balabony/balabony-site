@@ -17,7 +17,7 @@ async function autoClassify(text: string): Promise<string> {
   try {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
     const msg = await client.messages.create({
-      model: 'claude-haiku-4-5',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 20,
       messages: [{ role: 'user', content:
         `Обери ОДНУ категорію зі списку, яка найкраще описує цю історію. Поверни ТІЛЬКИ назву категорії без пояснень.\nСписок: ${CATEGORIES.join(', ')}\nТекст:\n${text.slice(0, 2000)}`

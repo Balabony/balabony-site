@@ -8,9 +8,12 @@ export async function GET(req: Request) {
     const parsed = limitParam ? parseInt(limitParam, 10) : NaN
     const limit = Number.isFinite(parsed) ? Math.max(1, Math.min(500, parsed)) : 9
 
+    const genreFilter        = searchParams.get('genre')         // показати тільки цей жанр
+    const excludeGenreFilter = searchParams.get('exclude_genre') // приховати цей жанр
+
     const supabase = getSupabaseAdmin()
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('content')
       .select('id, slug, title, author_name, genre, text, cover_url, cover_position, published_version, corrected_text, humanized_text, approved_at, duration_minutes, category')
       .eq('type', 'story')
@@ -18,21 +21,29 @@ export async function GET(req: Request) {
       .order('approved_at', { ascending: false, nullsFirst: false })
       .limit(limit)
 
+    if (genreFilter) {
+      query = query.eq('genre', genreFilter)
+    } else if (excludeGenreFilter) {
+      query = query.neq('genre', excludeGenreFilter)
+    }
+
+    const { data, error } = await query
+
     if (error) throw error
 
     const stories = (data ?? []).map(s => ({
-      id:              s.id,
-      title:           s.title,
-      author:          s.author_name,
-      coverUrl:        s.cover_url ?? '/og-image.jpg',
-      coverPosition:   s.cover_position ?? 'center',
-      tags:            [s.genre],
-      hasAudio:        false,
-      teaser:          buildTeaser(pickPublishedText(s)),
-      url:             `/stories/${s.slug ?? s.id}`,
-      genre:           s.genre ?? undefined,
+      id:               s.id,
+      title:            s.title,
+      author:           s.author_name,
+      coverUrl:         s.cover_url ?? '/og-image.jpg',
+      coverPosition:    s.cover_position ?? 'center',
+      tags:             [s.genre],
+      hasAudio:         false,
+      teaser:           buildTeaser(pickPublishedText(s)),
+      url:              `/stories/${s.slug ?? s.id}`,
+      genre:            s.genre ?? undefined,
       duration_minutes: s.duration_minutes ?? undefined,
-      category:        s.category ?? undefined,
+      category:         s.category ?? undefined,
     }))
 
     return NextResponse.json(stories)
