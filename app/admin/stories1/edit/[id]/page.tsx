@@ -1,24 +1,18 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams } from 'next/navigation'
+import Cropper, { Area, Point } from 'react-easy-crop'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
 const GOLD      = '#f0a500'
 const NAVY      = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 
+const CARD_ASPECT = 275 / 175
+
 const GENRES = ['оповідання', 'гумор', 'драма', 'казка', 'пригода', 'історична проза']
 const CATEGORIES = ['', 'З життя', 'Містика', 'Любов', 'Воєнні', 'Історичні', 'Родинні', 'Гумор', 'Детектив', 'Психологічні', 'Дитячі']
-
-// Варіанти зсуву обкладинки (фокус видимої частини при кропі)
-const COVER_POSITIONS: { value: string, label: string }[] = [
-  { value: 'top',          label: 'Верх (обличчя зверху)' },
-  { value: 'center 25%',   label: 'Верхня чверть' },
-  { value: 'center',       label: 'Центр (за замовч.)' },
-  { value: 'center 75%',   label: 'Нижня чверть' },
-  { value: 'bottom',       label: 'Низ' },
-]
 
 const inputBase: React.CSSProperties = {
   width: '100%', background: 'rgba(255,255,255,0.05)',
@@ -39,27 +33,36 @@ interface StoryFull {
   cover_position:  string | null
 }
 
-type Phase = 'idle' | 'loading' | 'saving' | 'done' | 'error'
+type Phase = 'idle' | 'loading' | 'cropping' | 'saving' | 'done' | 'error'
 
 export default function EditStoryPage() {
   const params = useParams<{ id: string }>()
   const id = params?.id
 
-  // Стан
   const [phase, setPhase] = useState<Phase>('loading')
   const [error, setError] = useState('')
   const [savedMessage, setSavedMessage] = useState('')
 
-  // Поля форми
   const [title,         setTitle]         = useState('')
   const [authorName,    setAuthorName]    = useState('')
   const [genre,         setGenre]         = useState(GENRES[0])
   const [category,      setCategory]      = useState('')
   const [text,          setText]          = useState('')
   const [coverUrl,      setCoverUrl]      = useState('')
-  const [coverPosition, setCoverPosition] = useState('center')
 
-  // Завантаження поточних даних
+  // Оригінал (з якого кропуємо). Це може бути той самий що coverUrl,
+  // або щойно завантажене нове фото
+  const [sourceUrl, setSourceUrl] = useState<string | null>(null)
+
+  // react-easy-crop state
+  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [croppedPixels, setCroppedPixels] = useState<Area | null>(null)
+
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+
   useEffect(() => {
     if (!id) return
     fetch(`/api/admin/stories1/update?id=${encodeURIComponent(id)}`, { method: 'GET' })
@@ -76,17 +79,85 @@ export default function EditStoryPage() {
         setGenre(s.genre ?? GENRES[0])
         setCategory(s.category ?? '')
         setCoverUrl(s.cover_url ?? '')
-        setCoverPosition(s.cover_position ?? 'center')
+        // sourceUrl за замовчуванням не вмикаємо — щоб не перекадрувати випадково
         setText(s.text ?? '')
         setPhase('idle')
       })
       .catch(() => { setError("Помилка з'єднання"); setPhase('error') })
   }, [id])
 
-  // Збереження
+  const onCropComplete = useCallback((_areaPct: Area, areaPx: Area) => {
+    setCroppedPixels(areaPx)
+  }, [])
+
+  // ─── Завантажити нове фото ───────────────────────────────────────
+  const handleFilePick = () => fileRef.current?.click()
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingPhoto(true)
+    setUploadError('')
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      if (id) fd.append('storyId', id)
+
+      const res = await fetch('/api/admin/stories1/upload-cover', {
+        method: 'POST',
+        body: fd,
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) {
+        setUploadError(data.error ?? 'Помилка завантаження')
+      } else {
+        // Зберігаємо як sourceUrl — оригінал для подальшого crop
+        setSourceUrl(data.url)
+        // Поки що cover_url ставимо в той самий — він зміниться після Save
+        setCoverUrl(data.url)
+        setCrop({ x: 0, y: 0 })
+        setZoom(1)
+      }
+    } catch {
+      setUploadError('Помилка з\'єднання')
+    } finally {
+      setUploadingPhoto(false)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
+  // ─── Зберегти (можливо з обрізкою) ───────────────────────────────
   const handleSave = async () => {
     setPhase('saving'); setSavedMessage('')
     try {
+      let finalCoverUrl = coverUrl
+
+      // Якщо є sourceUrl і croppedPixels — обрізаємо
+      if (sourceUrl && croppedPixels) {
+        setPhase('cropping')
+        const cropRes = await fetch('/api/admin/stories1/crop-cover', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sourceUrl,
+            crop: {
+              x:      croppedPixels.x,
+              y:      croppedPixels.y,
+              width:  croppedPixels.width,
+              height: croppedPixels.height,
+            },
+            storyId: id,
+          }),
+        })
+        const cropData = await cropRes.json()
+        if (!cropRes.ok || cropData.error) {
+          setError(cropData.error ?? 'Не вдалось обрізати'); setPhase('error'); return
+        }
+        finalCoverUrl = cropData.url
+      }
+
+      setPhase('saving')
       const res = await fetch('/api/admin/stories1/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -97,37 +168,32 @@ export default function EditStoryPage() {
           genre,
           category: category || null,
           text,
-          cover_url: coverUrl || null,
-          cover_position: coverPosition,
+          cover_url: finalCoverUrl || null,
+          cover_position: 'center', // вже не використовуємо для нових кропів
         }),
       })
       const data = await res.json()
       if (!res.ok || data.error) { setError(data.error ?? 'Помилка'); setPhase('error'); return }
+
+      // Оновлюємо локальний стан
+      setCoverUrl(finalCoverUrl)
+      setSourceUrl(null) // більше не потрібен — фото вже обрізане
+      setCroppedPixels(null)
       setSavedMessage('Збережено!')
       setPhase('done')
-      setTimeout(() => setPhase('idle'), 2000)
+      setTimeout(() => setPhase('idle'), 2500)
     } catch {
       setError("Помилка з'єднання"); setPhase('error')
     }
   }
 
-  // Завантаження фото
-  const fileRef = useRef<HTMLInputElement>(null)
-  const [uploadingPhoto, setUploadingPhoto] = useState(false)
-
-  const handlePhotoUpload = async (file: File) => {
-    setUploadingPhoto(true)
-    try {
-      const reader = new FileReader()
-      reader.onload = ev => {
-        const base64 = ev.target?.result as string
-        setCoverUrl(base64)
-        setUploadingPhoto(false)
-      }
-      reader.readAsDataURL(file)
-    } catch {
-      alert("Помилка завантаження")
-      setUploadingPhoto(false)
+  // ─── Кнопка: перекадрувати наявне фото ───────────────────────────
+  // Натиснувши, користувач вмикає sourceUrl = coverUrl і починає кадрування
+  const startRecrop = () => {
+    if (coverUrl) {
+      setSourceUrl(coverUrl)
+      setCrop({ x: 0, y: 0 })
+      setZoom(1)
     }
   }
 
@@ -142,11 +208,16 @@ export default function EditStoryPage() {
     )
   }
 
+  const showCropper = !!sourceUrl
+  const saveButtonLabel =
+    phase === 'cropping' ? 'Обрізаю фото…' :
+    phase === 'saving'   ? 'Збереження…' :
+    '💾 Зберегти зміни'
+
   return (
     <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT, padding: '24px 16px 80px' }}>
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
 
-        {/* Header */}
         <div style={{ background: NAVY, borderRadius: 16, padding: '20px 18px', marginBottom: 20, border: '0.5px solid rgba(255,255,255,0.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <div>
             <div style={{ fontSize: 11, color: '#8899bb', letterSpacing: 1, textTransform: 'uppercase', fontFamily: FONT }}>Admin · Edit</div>
@@ -161,16 +232,13 @@ export default function EditStoryPage() {
           </div>
         )}
 
-        {/* Форма */}
         <div style={{ background: NAVY, borderRadius: 16, padding: '20px 18px', marginBottom: 20, border: '0.5px solid rgba(255,255,255,0.07)' }}>
 
-          {/* Title */}
           <div style={{ marginBottom: 14 }}>
             <label style={{ fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, display: 'block', marginBottom: 6 }}>Назва історії</label>
             <input style={inputBase} value={title} onChange={e => setTitle(e.target.value)} placeholder="Назва твору" />
           </div>
 
-          {/* Author + Genre */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
             <div>
               <label style={{ fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, display: 'block', marginBottom: 6 }}>Автор</label>
@@ -192,33 +260,79 @@ export default function EditStoryPage() {
             </select>
           </div>
 
-          {/* Cover URL */}
+          {/* Обкладинка */}
           <div style={{ marginBottom: 14 }}>
-            <label style={{ fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, display: 'block', marginBottom: 6 }}>URL обкладинки</label>
-            <input style={inputBase} value={coverUrl} onChange={e => setCoverUrl(e.target.value)} placeholder="https://..." />
-            {coverUrl && (
-              <div style={{ marginTop: 10, borderRadius: 10, overflow: 'hidden', border: '0.5px solid rgba(255,255,255,0.1)' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={coverUrl} alt="preview" style={{ width: '100%', height: 200, objectFit: 'cover', objectPosition: coverPosition, display: 'block' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, display: 'block', marginBottom: 6 }}>Обкладинка історії</label>
+
+            <input type="file" ref={fileRef} accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+
+            <button type="button" onClick={handleFilePick} disabled={uploadingPhoto}
+              style={{ width: '100%', background: uploadingPhoto ? 'rgba(240,165,0,0.45)' : GOLD, color: NAVY_DEEP, border: 'none', borderRadius: 10, padding: '11px 14px', fontSize: 13, fontWeight: 800, cursor: uploadingPhoto ? 'wait' : 'pointer', fontFamily: FONT, marginBottom: 8 }}>
+              {uploadingPhoto ? '⏳ Завантажую…' : '📷 Завантажити нове фото'}
+            </button>
+
+            {/* Поточна обкладинка */}
+            {coverUrl && !showCropper && (
+              <div style={{ marginBottom: 8 }}>
+                <div style={{ position: 'relative', width: '100%', maxWidth: 275, margin: '6px auto', borderRadius: 10, overflow: 'hidden', border: '0.5px solid rgba(255,255,255,0.1)', aspectRatio: '275 / 175', background: '#000' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={coverUrl} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                </div>
+                <button type="button" onClick={startRecrop}
+                  style={{ width: '100%', background: 'transparent', border: `1px solid ${GOLD}55`, color: GOLD, borderRadius: 8, padding: '8px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: FONT, marginTop: 6 }}>
+                  ✂ Перекадрувати наявне фото
+                </button>
               </div>
             )}
-            <div style={{ fontSize: 11, color: '#445566', marginTop: 6, fontFamily: FONT }}>
-              Завантажте файл у Supabase Storage → covers, потім скопіюйте Public URL сюди
-            </div>
+
+            {uploadError && (
+              <div style={{ marginTop: 8, padding: '8px 12px', background: 'rgba(239,68,68,0.09)', borderRadius: 8, color: '#f87171', fontFamily: FONT, fontSize: 12 }}>{uploadError}</div>
+            )}
           </div>
 
-          {/* Cover Position */}
-          <div style={{ marginBottom: 14 }}>
-            <label style={{ fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, display: 'block', marginBottom: 6 }}>Зсув обкладинки (де фокус)</label>
-            <select style={{ ...inputBase, appearance: 'none', cursor: 'pointer' }} value={coverPosition} onChange={e => setCoverPosition(e.target.value)}>
-              {COVER_POSITIONS.map(p => <option key={p.value} value={p.value} style={{ background: NAVY }}>{p.label}</option>)}
-            </select>
-            <div style={{ fontSize: 11, color: '#445566', marginTop: 6, fontFamily: FONT }}>
-              Як кадрувати фото на картці. Для портретів обличчя зверху — обирай «Верх» або «Верхня чверть».
-            </div>
-          </div>
+          {/* Кадрування — тільки коли є sourceUrl */}
+          {showCropper && sourceUrl && (
+            <div style={{ marginBottom: 16, padding: 14, background: 'rgba(255,255,255,0.03)', borderRadius: 12, border: '0.5px solid rgba(255,255,255,0.06)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT }}>
+                  Виберіть область для картки
+                </div>
+                <button type="button" onClick={() => { setSourceUrl(null); setCroppedPixels(null) }}
+                  style={{ background: 'transparent', border: `1px solid ${GOLD}55`, color: GOLD, borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 600, fontFamily: FONT, cursor: 'pointer' }}>
+                  ✕ Скасувати
+                </button>
+              </div>
 
-          {/* Text */}
+              <div style={{ position: 'relative', width: '100%', height: 280, borderRadius: 10, overflow: 'hidden', background: '#000', marginBottom: 10 }}>
+                <Cropper
+                  image={sourceUrl}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={CARD_ASPECT}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={onCropComplete}
+                  minZoom={1}
+                  maxZoom={3}
+                  zoomSpeed={0.5}
+                  showGrid={true}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <span style={{ fontSize: 11, color: '#8899bb', fontFamily: FONT }}>🔍 Масштаб</span>
+                <span style={{ fontSize: 11, color: GOLD, fontFamily: FONT, fontWeight: 700 }}>{Math.round(zoom * 100)}%</span>
+              </div>
+              <input type="range" min={1} max={3} step={0.01} value={zoom}
+                onChange={e => setZoom(parseFloat(e.target.value))}
+                style={{ width: '100%', accentColor: GOLD }} />
+
+              <div style={{ fontSize: 11, color: '#445566', marginTop: 10, fontFamily: FONT, lineHeight: 1.5 }}>
+                Тягни фото мишкою. Та область, що в рамці — і є картка. Натисни «Зберегти зміни» внизу, щоб обрізати на сервері.
+              </div>
+            </div>
+          )}
+
           <div style={{ marginBottom: 18 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 6 }}>
               <label style={{ fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT }}>Текст історії</label>
@@ -227,9 +341,8 @@ export default function EditStoryPage() {
             <textarea style={{ ...inputBase, height: 360, resize: 'vertical', lineHeight: 1.75 }} value={text} onChange={e => setText(e.target.value)} placeholder="Повний текст історії..." />
           </div>
 
-          {/* Save */}
-          <button onClick={handleSave} disabled={phase === 'saving'} style={{ width: '100%', background: phase === 'saving' ? 'rgba(240,165,0,0.45)' : GOLD, color: NAVY_DEEP, border: 'none', borderRadius: 12, padding: '14px 18px', fontSize: 15, fontWeight: 800, cursor: phase === 'saving' ? 'wait' : 'pointer', fontFamily: FONT }}>
-            {phase === 'saving' ? 'Збереження…' : '💾 Зберегти зміни'}
+          <button onClick={handleSave} disabled={phase === 'saving' || phase === 'cropping'} style={{ width: '100%', background: (phase === 'saving' || phase === 'cropping') ? 'rgba(240,165,0,0.45)' : GOLD, color: NAVY_DEEP, border: 'none', borderRadius: 12, padding: '14px 18px', fontSize: 15, fontWeight: 800, cursor: (phase === 'saving' || phase === 'cropping') ? 'wait' : 'pointer', fontFamily: FONT }}>
+            {saveButtonLabel}
           </button>
 
           {phase === 'done' && savedMessage && (

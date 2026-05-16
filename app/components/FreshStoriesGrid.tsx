@@ -13,7 +13,7 @@ export interface Story {
   title: string
   author: string
   coverUrl: string
-  coverPosition?: string   // нове поле: 'top' | 'center 25%' | 'center' | 'center 75%' | 'bottom'
+  coverPosition?: string  // лишаємо для зворотної сумісності зі старими записами
   tags: string[]
   hasAudio: boolean
   teaser: string
@@ -26,13 +26,46 @@ export interface Story {
 function DropShieldIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      {/* teardrop-shield outline */}
       <path d="M12 2C12 2 3.5 6.5 3.5 13C3.5 17.7 7.3 21.3 12 22C16.7 21.3 20.5 17.7 20.5 13C20.5 6.5 12 2 12 2Z"
         stroke={GOLD} strokeWidth="1.6" strokeLinejoin="round"/>
-      {/* checkmark inside */}
       <path d="M8.5 13l2.5 2.5 4.5-5" stroke={GOLD} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   )
+}
+
+/**
+ * Для нового підходу (server-side crop) фото вже прийшло обрізаним — просто показуємо його cover.
+ * Для старих записів з cover_position типу "scale:X x:Y y:Z" або "70% 30%" — підтримуємо fallback.
+ */
+function getCoverStyle(coverPosition: string | undefined): React.CSSProperties {
+  const base: React.CSSProperties = {
+    width: '100%',
+    height: 175,
+    objectFit: 'cover',
+    display: 'block',
+  }
+
+  if (!coverPosition || coverPosition === 'center') return { ...base, objectPosition: 'center' }
+
+  // Старі формати - fallback (не для нових записів)
+  const transformM = coverPosition.match(/scale:(-?\d+)\s+x:(-?\d+)\s+y:(-?\d+)/)
+  if (transformM) {
+    const scale = Math.max(100, Math.min(400, parseInt(transformM[1], 10)))
+    const tx    = Math.max(-200, Math.min(200, parseInt(transformM[2], 10)))
+    const ty    = Math.max(-200, Math.min(200, parseInt(transformM[3], 10)))
+    return {
+      ...base,
+      transform: `translate(${tx}%, ${ty}%) scale(${scale / 100})`,
+      transformOrigin: 'center center',
+    }
+  }
+
+  // Дуже старий object-position
+  if (/^\s*[\d.]+%/.test(coverPosition) || /^(left|right|center|top|bottom)/.test(coverPosition)) {
+    return { ...base, objectPosition: coverPosition }
+  }
+
+  return { ...base, objectPosition: 'center' }
 }
 
 export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
@@ -42,7 +75,6 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
     <section style={{ background: colors.bg, padding: '20px 20px 40px' }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
-        {/* Section header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 26 }}>
           <div style={{ width: 42, height: 42, borderRadius: 11, background: `${GOLD}1A`, border: `1px solid ${GOLD}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <DropShieldIcon />
@@ -53,36 +85,23 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
           </div>
         </div>
 
-        {/* Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(275px, 1fr))', gap: 20 }}>
           {stories.map(story => (
             <div key={story.id} style={{ border: `1.5px solid ${GOLD}`, borderRadius: 16, overflow: 'hidden', background: CARD_BG, display: 'flex', flexDirection: 'column' }}>
 
-              {/* Cover */}
-              <div style={{ position: 'relative', flexShrink: 0 }}>
+              <div style={{ position: 'relative', flexShrink: 0, width: '100%', height: 175, overflow: 'hidden', background: '#000' }}>
                 <img
                   src={story.coverUrl}
                   alt={story.title}
                   onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }}
-                  style={{
-                    width: '100%',
-                    height: 175,
-                    objectFit: 'cover',
-                    objectPosition: story.coverPosition || 'center',
-                    display: 'block',
-                  }}
+                  style={getCoverStyle(story.coverPosition)}
                 />
               </div>
 
-              {/* Body */}
               <div style={{ padding: '13px 13px 13px', flex: 1, display: 'flex', flexDirection: 'column', gap: 7 }}>
-
-                {/* Author */}
                 <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, fontFamily: FONT, letterSpacing: 0.3 }}>
                   {story.author}
                 </div>
-
-                {/* Title */}
                 <a
                   href={`https://balabony.com${story.url}`}
                   onClick={() => trackStoryEvent(story.id, story.title, 'open')}
@@ -90,13 +109,9 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
                 >
                   {story.title}
                 </a>
-
-                {/* Teaser */}
                 <p style={{ fontSize: 12, color: '#7A90A8', fontFamily: FONT, lineHeight: 1.65, margin: 0, flexGrow: 1 }}>
                   {story.teaser}
                 </p>
-
-                {/* Tags */}
                 {(() => {
                   const displayTags = [
                     story.genre,
@@ -114,8 +129,6 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
                     </div>
                   )
                 })()}
-
-                {/* Share */}
                 <ShareButtons url={`https://balabony.com${story.url}`} title={story.title} />
               </div>
             </div>
