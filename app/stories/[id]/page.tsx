@@ -68,17 +68,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT }}>
-
-      {/* Cover */}
-      {story.cover_url && (
-        <div style={{ position: 'relative', height: 280, overflow: 'hidden' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={story.cover_url} alt={story.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%', display: 'block' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #0a1628 0%, rgba(10,22,40,0.4) 60%, transparent 100%)' }} />
-        </div>
-      )}
-
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: story.cover_url ? '0 20px 80px' : '60px 20px 80px' }}>
+            <div style={{ maxWidth: 720, margin: '0 auto', padding: story.cover_url ? '0 20px 80px' : '60px 20px 80px' }}>
 
         {/* Back link */}
         <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#8899bb', textDecoration: 'none', marginBottom: 28, marginTop: story.cover_url ? 0 : 0, fontFamily: FONT }}>
