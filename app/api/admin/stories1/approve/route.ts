@@ -1,6 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import Anthropic from '@anthropic-ai/sdk'
+
+function transliterate(s: string): string {
+  const map: Record<string, string> = {
+    а:'a',б:'b',в:'v',г:'h',ґ:'g',д:'d',е:'e',є:'ye',ж:'zh',з:'z',и:'y',і:'i',ї:'yi',й:'y',
+    к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'kh',ц:'ts',
+    ч:'ch',ш:'sh',щ:'shch',ь:'',ю:'yu',я:'ya',"'":'',"’":'',"`":'',
+  }
+  return s.toLowerCase().split('').map(ch => map[ch] ?? ch).join('')
+}
 
 const CATEGORIES = ['З життя','Містика','Любов','Воєнні','Історичні','Родинні','Гумор','Детектив','Психологічні','Дитячі']
 
@@ -69,9 +78,9 @@ export async function POST(req: NextRequest) {
     const supabase = getSupabaseAdmin()
     const storyId  = crypto.randomUUID()
 
-    const slug = title
+    const slug = transliterate(title)
       .toLowerCase()
-      .replace(/[^\p{L}\p{N}]+/gu, '-')
+      .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
       .slice(0, 80) || storyId
 
