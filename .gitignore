@@ -43,3 +43,12 @@ scripts/audit-sequence-report.json
 
 scripts/cleanup-dry-run/
 scripts/cleanup-apply/
+
+
+# === Working files (session v12) ===
+Generate-Covers.ps1
+generate-covers.log
+covers-progress.json
+update-covers.sql
+episodes-export/
+*.backup
