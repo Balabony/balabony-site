@@ -11,6 +11,15 @@ const NAVY_DEEP = '#0a1628'
 const GENRES = ['оповідання', 'гумор', 'драма', 'казка', 'пригода', 'історична проза']
 const CATEGORIES = ['', 'З життя', 'Містика', 'Любов', 'Воєнні', 'Історичні', 'Родинні', 'Гумор', 'Детектив', 'Психологічні', 'Дитячі']
 
+// Варіанти зсуву обкладинки (фокус видимої частини при кропі)
+const COVER_POSITIONS: { value: string, label: string }[] = [
+  { value: 'top',          label: 'Верх (обличчя зверху)' },
+  { value: 'center 25%',   label: 'Верхня чверть' },
+  { value: 'center',       label: 'Центр (за замовч.)' },
+  { value: 'center 75%',   label: 'Нижня чверть' },
+  { value: 'bottom',       label: 'Низ' },
+]
+
 const inputBase: React.CSSProperties = {
   width: '100%', background: 'rgba(255,255,255,0.05)',
   border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10,
@@ -19,14 +28,15 @@ const inputBase: React.CSSProperties = {
 }
 
 interface StoryFull {
-  id:           string
-  slug:         string
-  title:        string
-  author_name:  string
-  genre:        string
-  category:     string | null
-  text:         string
-  cover_url:    string | null
+  id:              string
+  slug:            string
+  title:           string
+  author_name:     string
+  genre:           string
+  category:        string | null
+  text:            string
+  cover_url:       string | null
+  cover_position:  string | null
 }
 
 type Phase = 'idle' | 'loading' | 'saving' | 'done' | 'error'
@@ -41,14 +51,15 @@ export default function EditStoryPage() {
   const [savedMessage, setSavedMessage] = useState('')
 
   // Поля форми
-  const [title,      setTitle]      = useState('')
-  const [authorName, setAuthorName] = useState('')
-  const [genre,      setGenre]      = useState(GENRES[0])
-  const [category,   setCategory]   = useState('')
-  const [text,       setText]       = useState('')
-  const [coverUrl,   setCoverUrl]   = useState('')
+  const [title,         setTitle]         = useState('')
+  const [authorName,    setAuthorName]    = useState('')
+  const [genre,         setGenre]         = useState(GENRES[0])
+  const [category,      setCategory]      = useState('')
+  const [text,          setText]          = useState('')
+  const [coverUrl,      setCoverUrl]      = useState('')
+  const [coverPosition, setCoverPosition] = useState('center')
 
-  // Завантаження поточних даних — один запит з ?id=
+  // Завантаження поточних даних
   useEffect(() => {
     if (!id) return
     fetch(`/api/admin/stories1/update?id=${encodeURIComponent(id)}`, { method: 'GET' })
@@ -65,6 +76,7 @@ export default function EditStoryPage() {
         setGenre(s.genre ?? GENRES[0])
         setCategory(s.category ?? '')
         setCoverUrl(s.cover_url ?? '')
+        setCoverPosition(s.cover_position ?? 'center')
         setText(s.text ?? '')
         setPhase('idle')
       })
@@ -86,6 +98,7 @@ export default function EditStoryPage() {
           category: category || null,
           text,
           cover_url: coverUrl || null,
+          cover_position: coverPosition,
         }),
       })
       const data = await res.json()
@@ -98,7 +111,7 @@ export default function EditStoryPage() {
     }
   }
 
-  // Завантаження фото (через base64 поки що)
+  // Завантаження фото
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
 
@@ -186,11 +199,22 @@ export default function EditStoryPage() {
             {coverUrl && (
               <div style={{ marginTop: 10, borderRadius: 10, overflow: 'hidden', border: '0.5px solid rgba(255,255,255,0.1)' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={coverUrl} alt="preview" style={{ width: '100%', maxHeight: 200, objectFit: 'cover', display: 'block' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                <img src={coverUrl} alt="preview" style={{ width: '100%', height: 200, objectFit: 'cover', objectPosition: coverPosition, display: 'block' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
               </div>
             )}
             <div style={{ fontSize: 11, color: '#445566', marginTop: 6, fontFamily: FONT }}>
               Завантажте файл у Supabase Storage → covers, потім скопіюйте Public URL сюди
+            </div>
+          </div>
+
+          {/* Cover Position */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, display: 'block', marginBottom: 6 }}>Зсув обкладинки (де фокус)</label>
+            <select style={{ ...inputBase, appearance: 'none', cursor: 'pointer' }} value={coverPosition} onChange={e => setCoverPosition(e.target.value)}>
+              {COVER_POSITIONS.map(p => <option key={p.value} value={p.value} style={{ background: NAVY }}>{p.label}</option>)}
+            </select>
+            <div style={{ fontSize: 11, color: '#445566', marginTop: 6, fontFamily: FONT }}>
+              Як кадрувати фото на картці. Для портретів обличчя зверху — обирай «Верх» або «Верхня чверть».
             </div>
           </div>
 

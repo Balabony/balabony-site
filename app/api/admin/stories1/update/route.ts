@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     if (id) {
       const { data, error } = await supabase
         .from('content')
-        .select('id, slug, title, author_name, genre, category, cover_url, status, approved_at, text')
+        .select('id, slug, title, author_name, genre, category, cover_url, cover_position, status, approved_at, text')
         .eq('id', id)
         .single()
 
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     // ── Режим 2: список усіх (без повного тексту) ──
     const { data, error } = await supabase
       .from('content')
-      .select('id, slug, title, author_name, genre, category, cover_url, status, approved_at, text')
+      .select('id, slug, title, author_name, genre, category, cover_url, cover_position, status, approved_at, text')
       .eq('type', 'story')
       .in('status', ['approved', 'published'])
       .order('approved_at', { ascending: false })
@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
       category?: string | null
       text?: string
       cover_url?: string | null
+      cover_position?: string
     }
 
     if (!body.id) {
@@ -73,16 +74,17 @@ export async function POST(req: NextRequest) {
     }
 
     const update: Record<string, unknown> = {}
-    if (body.title       !== undefined) update.title       = body.title
-    if (body.author_name !== undefined) update.author_name = body.author_name
-    if (body.genre       !== undefined) update.genre       = body.genre
-    if (body.category    !== undefined) update.category    = body.category
-    if (body.text        !== undefined) {
+    if (body.title          !== undefined) update.title          = body.title
+    if (body.author_name    !== undefined) update.author_name    = body.author_name
+    if (body.genre          !== undefined) update.genre          = body.genre
+    if (body.category       !== undefined) update.category       = body.category
+    if (body.text           !== undefined) {
       update.text = body.text
       const wc = body.text.trim().split(/\s+/).length
       update.duration_minutes = Math.max(1, Math.round(wc / 200))
     }
-    if (body.cover_url   !== undefined) update.cover_url   = body.cover_url
+    if (body.cover_url      !== undefined) update.cover_url      = body.cover_url
+    if (body.cover_position !== undefined) update.cover_position = body.cover_position
 
     if (Object.keys(update).length === 0) {
       return NextResponse.json({ error: 'nothing to update' }, { status: 400 })

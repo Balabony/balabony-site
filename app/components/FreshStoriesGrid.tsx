@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useTheme } from '../context/ThemeContext'
 import ShareButtons from './ShareButtons'
@@ -13,6 +13,7 @@ export interface Story {
   title: string
   author: string
   coverUrl: string
+  coverPosition?: string   // нове поле: 'top' | 'center 25%' | 'center' | 'center 75%' | 'bottom'
   tags: string[]
   hasAudio: boolean
   teaser: string
@@ -59,7 +60,18 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
 
               {/* Cover */}
               <div style={{ position: 'relative', flexShrink: 0 }}>
-                <img src={story.coverUrl} alt={story.title} onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }} style={{ width: '100%', height: 175, objectFit: 'cover', objectPosition: 'center 25%', display: 'block' }} />
+                <img
+                  src={story.coverUrl}
+                  alt={story.title}
+                  onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }}
+                  style={{
+                    width: '100%',
+                    height: 175,
+                    objectFit: 'cover',
+                    objectPosition: story.coverPosition || 'center',
+                    display: 'block',
+                  }}
+                />
               </div>
 
               {/* Body */}
