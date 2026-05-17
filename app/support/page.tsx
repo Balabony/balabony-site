@@ -557,6 +557,9 @@ Verwendungszweck: ${PURPOSE_EN}`,
           .sup-row { padding: 14px 16px; }
           .sup-row-value { min-width: 0; overflow-wrap: anywhere; }
           .sup-hero { padding: 50px 18px 36px; }
+          .sup-toolbar { padding: 12px 14px; }
+          .sup-toolbar-inner { gap: 8px; }
+          .sup-toolbar-group { flex-wrap: wrap; }
           .sup-hero h1, .sup-hero h2, .sup-hero p,
           .sup-section h2, .sup-section h3, .sup-section p, .sup-section li,
           .sup-intl h1, .sup-intl h2, .sup-intl h3, .sup-intl p, .sup-intl li {
