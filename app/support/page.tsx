@@ -553,6 +553,17 @@ Verwendungszweck: ${PURPOSE_EN}`,
         @media (min-width: 640px) {
           .sup-row { flex-direction: row; align-items: center; gap: 18px; }
         }
+        @media (max-width: 639px) {
+          .sup-row { padding: 14px 16px; }
+          .sup-row-value { min-width: 0; overflow-wrap: anywhere; }
+          .sup-hero { padding: 50px 18px 36px; }
+          .sup-hero h1, .sup-hero h2, .sup-hero p,
+          .sup-section h2, .sup-section h3, .sup-section p, .sup-section li,
+          .sup-intl h1, .sup-intl h2, .sup-intl h3, .sup-intl p, .sup-intl li {
+            overflow-wrap: anywhere;
+            hyphens: auto;
+          }
+        }
         .sup-row-label {
           font-size: 13px;
           color: var(--sup-text-muted);
@@ -565,12 +576,13 @@ Verwendungszweck: ${PURPOSE_EN}`,
         .sup-row-value {
           flex: 1;
           font-size: calc(15px * var(--support-fs));
-          word-break: break-all;
+          overflow-wrap: anywhere;
           line-height: 1.5;
         }
         .sup-row-value.is-mono {
           font-family: ui-monospace, 'SF Mono', Consolas, monospace;
           font-weight: 600;
+          word-break: break-all;
         }
         .sup-copy-btn {
           background: transparent;
@@ -842,6 +854,9 @@ Verwendungszweck: ${PURPOSE_EN}`,
           font-family: ui-monospace, 'SF Mono', Consolas, monospace;
           font-size: calc(14px * var(--support-fs));
           line-height: 1.75;
+        }
+        @media (max-width: 639px) {
+          .sup-intl-bank { padding: 16px 14px; overflow-wrap: anywhere; }
         }
         .sup-intl-bank strong {
           font-family: 'Montserrat', sans-serif;
