@@ -64,3 +64,6 @@ submissions_check.json
 # === Working files (session v14) ===
 fix-*.ps1
 strip-*.ps1
+
+# Session backups
+*.backup-*
