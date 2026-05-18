@@ -40,7 +40,7 @@ function DropShieldIcon() {
 function getCoverStyle(coverPosition: string | undefined): React.CSSProperties {
   const base: React.CSSProperties = {
     width: '100%',
-    height: 175,
+    height: 159,
     objectFit: 'cover',
     display: 'block',
   }
@@ -89,13 +89,15 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
           {stories.map(story => (
             <div key={story.id} style={{ border: `1.5px solid ${GOLD}`, borderRadius: 16, overflow: 'hidden', background: CARD_BG, display: 'flex', flexDirection: 'column' }}>
 
-              <div style={{ position: 'relative', flexShrink: 0, width: '100%', height: 175, overflow: 'hidden', background: '#000' }}>
-                <img
-                  src={story.coverUrl}
-                  alt={story.title}
-                  onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }}
-                  style={getCoverStyle(story.coverPosition)}
-                />
+              <div style={{ padding: 8, flexShrink: 0 }}>
+                <div style={{ position: 'relative', width: '100%', height: 159, overflow: 'hidden', background: '#000', border: `1.5px solid ${GOLD}`, borderRadius: 8 }}>
+                  <img
+                    src={story.coverUrl}
+                    alt={story.title}
+                    onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }}
+                    style={getCoverStyle(story.coverPosition)}
+                  />
+                </div>
               </div>
 
               <div style={{ padding: '13px 13px 13px', flex: 1, display: 'flex', flexDirection: 'column', gap: 7 }}>

@@ -82,17 +82,19 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                 {/* ── Card row ── */}
                 <div style={{ display: 'flex' }}>
 
-                  {/* Cover — clickable, clean photo + white border via CSS outline */}
+                  {/* Cover — clickable, clean photo + gold frame */}
                   <div
                     onClick={() => toggle(s.id)}
-                    style={{ position: 'relative', flexShrink: 0, width: 130, alignSelf: 'stretch', cursor: 'pointer' }}
+                    style={{ flexShrink: 0, alignSelf: 'stretch', cursor: 'pointer', padding: 8, display: 'flex' }}
                   >
-                    <img
-                      src={s.coverUrl}
-                      alt={s.title}
-                      onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                    />
+                    <div style={{ width: 114, border: `1.5px solid ${GOLD}`, borderRadius: 8, overflow: 'hidden', display: 'flex' }}>
+                      <img
+                        src={s.coverUrl}
+                        alt={s.title}
+                        onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      />
+                    </div>
                   </div>
 
                   {/* Info */}
