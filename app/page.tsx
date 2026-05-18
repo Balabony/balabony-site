@@ -19,6 +19,7 @@ import InclusivitySection from './components/InclusivitySection'
 import BonusSection from './components/BonusSection'
 import AuthorSection from './components/AuthorSection'
 import PwaSection from './components/PwaSection'
+import ChannelsSection from './components/ChannelsSection'
 
 const FALLBACK_SERIES: SeriesCard[] = []
 
@@ -100,7 +101,7 @@ export default function HomePage() {
 
         <BonusSection />
 
-        <PwaSection />
+        <PwaSection />      <ChannelsSection />
 
         <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '20px 0' }} />
 
