@@ -30,7 +30,7 @@ const platforms = [
   },
   {
     name: 'WhatsApp', sub: 'Чат підтримки',
-    href: 'https://wa.me/380000000000', bg: '#25D366',
+    href: 'https://wa.me/380505859141', bg: '#25D366',
     icon: <FaWhatsapp size={22} color="#fff" />
   },
 ]

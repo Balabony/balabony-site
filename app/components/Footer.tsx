@@ -80,7 +80,7 @@ export default function Footer() {
               { label: 'Instagram', href: 'https://www.instagram.com/balabony_' },
               { label: 'TikTok',    href: 'https://www.tiktok.com/@balabony_' },
               { label: 'Facebook',  href: 'https://www.facebook.com/profile.php?id=61568006368489' },
-              { label: 'WhatsApp',  href: 'https://wa.me/380000000000' },
+              { label: 'WhatsApp',  href: 'https://wa.me/380505859141' },
             ].map(s => (
               <a key={s.label} href={s.href} target="_blank" rel="noreferrer"
                 style={{ textDecoration: 'none', color: 'rgba(255,255,255,0.8)', fontSize: 16, fontWeight: 600 }}>
