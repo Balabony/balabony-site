@@ -15,6 +15,7 @@ import ResumeBanner from './components/ResumeBanner'
 import { ThemeProvider } from './context/ThemeContext'
 import SeriesStrip, { type SeriesCard } from './components/SeriesStrip'
 import FreshStoriesGrid, { type Story } from './components/FreshStoriesGrid'
+import GamesSection from './components/GamesSection'
 
 const FALLBACK_SERIES: SeriesCard[] = []
 
@@ -127,6 +128,8 @@ export default function HomePage() {
         <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '20px 0' }} />
         <div id="longevity-club"><LongevityClubSection /></div>
         <div id="fairytales"><FairytalesSection /></div>
+
+        <GamesSection />
 
         {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
         {/* БАНЕР: Підтримайте інклюзивність                              */}
