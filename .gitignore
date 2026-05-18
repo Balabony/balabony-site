@@ -60,3 +60,7 @@ api_audit.txt
 parochka-search.json
 search.json
 submissions_check.json
+
+# === Working files (session v14) ===
+fix-*.ps1
+strip-*.ps1
