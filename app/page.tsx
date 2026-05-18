@@ -18,6 +18,7 @@ import FreshStoriesGrid, { type Story } from './components/FreshStoriesGrid'
 import InclusivitySection from './components/InclusivitySection'
 import BonusSection from './components/BonusSection'
 import AuthorSection from './components/AuthorSection'
+import PwaSection from './components/PwaSection'
 
 const FALLBACK_SERIES: SeriesCard[] = []
 
@@ -27,48 +28,6 @@ const SAMPLE_STORIES: Story[] = [
   { id: 's1', title: 'Рецепт від серця',  author: 'Оксана Мельник',  coverUrl: `${BASE_COVER}/s3-ep47-1777907593975.jpg`, tags: ['родина', 'кухня'],   hasAudio: true,  teaser: 'Найстаріший рецепт у родині завжди передавався з рук у руки — але що відбувається, коли передати вже нікому?', url: '/stories/1' },
   { id: 's2', title: 'Перший сніг',       author: 'Іван Коваленко',  coverUrl: `${BASE_COVER}/s3-ep46-1777908375713.jpg`, tags: ['зима', 'дитинство'], hasAudio: false, teaser: 'У пам\'яті дідуся перший сніг завжди пахне мандаринами і дровами у грубці.',                                 url: '/stories/2' },
   { id: 's3', title: 'Лист з минулого',   author: 'Марія Петренко',  coverUrl: `${BASE_COVER}/s3-ep45-1777908432264.jpg`, tags: ['пам\'ять', 'листи'], hasAudio: true,  teaser: 'Розбираючи горище, Галина знайшла стос листів, перев\'язаних синьою стрічкою. Адресат — вона сама.',         url: '/stories/3' },
-]
-
-function ShareIcon() {
-  return (
-    <svg
-      width="14" height="16" viewBox="0 0 14 16" fill="none"
-      stroke="#f5a623" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
-      style={{ display: 'inline-block', verticalAlign: 'middle', marginBottom: 2 }}
-    >
-      <path d="M2 7 L2 14 Q2 15 3 15 L11 15 Q12 15 12 14 L12 7" />
-      <line x1="7" y1="10" x2="7" y2="1" />
-      <polyline points="3.5,5 7,1 10.5,5" />
-    </svg>
-  )
-}
-
-function AddToHomeIcon() {
-  return (
-    <svg
-      width="14" height="14" viewBox="0 0 14 14" fill="none"
-      stroke="#f5a623" strokeWidth="1.6" strokeLinecap="round"
-      style={{ display: 'inline-block', verticalAlign: 'middle', marginBottom: 2 }}
-    >
-      <rect x="1" y="1" width="12" height="12" rx="2" />
-      <line x1="7" y1="4" x2="7" y2="10" />
-      <line x1="4" y1="7" x2="10" y2="7" />
-    </svg>
-  )
-}
-
-const ANDROID_STEPS = [
-  'Відкрий balabony.com у Chrome',
-  'Натисни ⋮ → «Додати на головний екран»',
-  'Підтверди — іконка з\'явиться на робочому столі',
-]
-
-const IPHONE_STEPS: React.ReactNode[] = [
-  'Відкрий balabony.com у браузері Safari',
-  <>{'Натисни кнопку "Поділитися" '}<ShareIcon />{' — внизу екрану посередині'}</>,
-  'У меню що відкрилось — прокрути список вниз',
-  <>{'Натисни '}<AddToHomeIcon />{' "На Початковий екран"'}</>,
-  'Натисни "Додати" у правому верхньому куті',
 ]
 
 const viewAllLinkStyle: React.CSSProperties = { display: 'inline-block', color: '#f5a623', textDecoration: 'none', fontSize: 15, fontWeight: 600, fontFamily: "'Montserrat', sans-serif" }
@@ -141,81 +100,7 @@ export default function HomePage() {
 
         <BonusSection />
 
-        <div style={{ background: '#1a2035', border: '1.5px solid #f5a623', borderRadius: 16, padding: 28, marginBottom: 56 }}>
-          <h4 style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', marginBottom: 8, textAlign: 'center' }}>
-            Завжди під рукою
-          </h4>
-          <p style={{ fontSize: 16, color: '#8899bb', textAlign: 'center', marginBottom: 24 }}>
-            Додай Balabony на головний екран — як звичайний застосунок, без завантажень.
-          </p>
-
-          {/* ━━━━━ 2 phones visual ━━━━━ */}
-          <div style={{ position: 'relative', height: 320, marginBottom: 32, maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
-            {/* iPhone (back, tilted left) */}
-            <div style={{ position: 'absolute', left: '12%', top: 0, width: 140, height: 290, background: '#1a1a1a', borderRadius: 26, padding: 5, boxShadow: '0 18px 40px rgba(0,0,0,0.5)', transform: 'rotate(-8deg)' }}>
-              <div style={{ background: '#0E1A2B', borderRadius: 22, height: '100%', overflow: 'hidden', position: 'relative' }}>
-                <div style={{ position: 'absolute', top: 6, left: '50%', transform: 'translateX(-50%)', width: 44, height: 13, background: '#1a1a1a', borderRadius: 7, zIndex: 2 }} />
-                <div style={{ padding: '24px 10px 10px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 9, color: '#f5a623', fontWeight: 700, letterSpacing: 1, marginBottom: 5 }}>BALABONY®</div>
-                  <div style={{ fontFamily: "'Lora', serif", fontSize: 12, color: '#fff', fontWeight: 700, lineHeight: 1.2, marginBottom: 8 }}>Читай українське</div>
-                  <div style={{ width: 70, height: 18, background: '#f5a623', borderRadius: 9, margin: '0 auto 10px' }} />
-                  <div style={{ height: 68, background: 'linear-gradient(135deg, #14253B, #1f3a5f)', border: '1px solid #f5a623', borderRadius: 7, marginBottom: 6 }} />
-                  <div style={{ height: 4, background: '#f5a623', borderRadius: 2, marginBottom: 4, width: '70%' }} />
-                  <div style={{ height: 4, background: 'rgba(255,255,255,0.2)', borderRadius: 2, marginBottom: 4 }} />
-                  <div style={{ height: 4, background: 'rgba(255,255,255,0.2)', borderRadius: 2, width: '60%' }} />
-                </div>
-              </div>
-            </div>
-            {/* Android (front, tilted right) */}
-            <div style={{ position: 'absolute', right: '12%', top: 30, width: 140, height: 290, background: '#2a2a2a', borderRadius: 22, padding: 4, boxShadow: '0 18px 40px rgba(0,0,0,0.5)', transform: 'rotate(6deg)' }}>
-              <div style={{ background: '#0E1A2B', borderRadius: 18, height: '100%', overflow: 'hidden', position: 'relative' }}>
-                <div style={{ position: 'absolute', top: 7, left: '50%', transform: 'translateX(-50%)', width: 9, height: 9, background: '#2a2a2a', borderRadius: '50%', zIndex: 2 }} />
-                <div style={{ padding: '22px 10px 10px' }}>
-                  <div style={{ display: 'flex', gap: 4, marginBottom: 7 }}>
-                    <div style={{ height: 36, flex: 1, background: 'linear-gradient(135deg, #14253B, #1f3a5f)', border: '1px solid #f5a623', borderRadius: 5 }} />
-                    <div style={{ height: 36, flex: 1, background: 'linear-gradient(135deg, #14253B, #1f3a5f)', border: '1px solid #f5a623', borderRadius: 5 }} />
-                  </div>
-                  <div style={{ fontSize: 8, color: '#f5a623', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Серії Балабонів</div>
-                  <div style={{ display: 'flex', gap: 5, alignItems: 'center', padding: 5, background: 'rgba(255,255,255,0.05)', borderRadius: 5, border: '1px solid rgba(245,166,35,0.3)', marginBottom: 4 }}>
-                    <div style={{ width: 18, height: 18, background: '#f5a623', borderRadius: 4, flexShrink: 0 }} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ height: 3, background: '#fff', borderRadius: 1, marginBottom: 2 }} />
-                      <div style={{ height: 2, background: 'rgba(255,255,255,0.3)', borderRadius: 1, width: '70%' }} />
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 5, alignItems: 'center', padding: 5, background: 'rgba(255,255,255,0.05)', borderRadius: 5, border: '1px solid rgba(245,166,35,0.3)' }}>
-                    <div style={{ width: 18, height: 18, background: '#f5a623', borderRadius: 4, flexShrink: 0 }} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ height: 3, background: '#fff', borderRadius: 1, marginBottom: 2 }} />
-                      <div style={{ height: 2, background: 'rgba(255,255,255,0.3)', borderRadius: 1, width: '70%' }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24 }}>
-            <div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#f5a623', marginBottom: 12, textAlign: 'center' }}>Android · Chrome</div>
-              {ANDROID_STEPS.map((step, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-                  <span style={{ minWidth: 28, height: 28, borderRadius: '50%', background: 'rgba(245,166,35,0.15)', border: '1.5px solid #f5a623', color: '#f5a623', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
-                  <span style={{ fontSize: 17, color: '#c8d8e8', lineHeight: 1.6 }}>{step}</span>
-                </div>
-              ))}
-            </div>
-            <div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#f5a623', marginBottom: 12, textAlign: 'center' }}>iPhone · Safari</div>
-              {IPHONE_STEPS.map((step, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-                  <span style={{ minWidth: 28, height: 28, borderRadius: '50%', background: 'rgba(245,166,35,0.15)', border: '1.5px solid #f5a623', color: '#f5a623', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
-                  <span style={{ fontSize: 17, color: '#c8d8e8', lineHeight: 1.6 }}>{step}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <PwaSection />
 
         <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '20px 0' }} />
 
