@@ -17,6 +17,7 @@ import SeriesStrip, { type SeriesCard } from './components/SeriesStrip'
 import FreshStoriesGrid, { type Story } from './components/FreshStoriesGrid'
 import InclusivitySection from './components/InclusivitySection'
 import BonusSection from './components/BonusSection'
+import AuthorSection from './components/AuthorSection'
 
 const FALLBACK_SERIES: SeriesCard[] = []
 
@@ -218,39 +219,7 @@ export default function HomePage() {
 
         <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '20px 0' }} />
 
-        <div style={{
-          background: '#0f1e3a', border: '1.5px solid #f5a623', borderRadius: 16,
-          padding: 28, marginBottom: 40
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
-            <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <svg width="28" height="28" viewBox="0 0 56 56" fill="none">
-                <path d="M36 10 L46 20 L20 46 L10 46 L10 36 Z" stroke="#f5a623" strokeWidth="2" fill="none" strokeLinejoin="round"/>
-                <line x1="30" y1="16" x2="40" y2="26" stroke="#f5a623" strokeWidth="2" strokeLinecap="round"/>
-                <line x1="10" y1="40" x2="10" y2="46" stroke="#f5a623" strokeWidth="1" strokeLinecap="round"/>
-                <line x1="10" y1="46" x2="16" y2="46" stroke="#f5a623" strokeWidth="1" strokeLinecap="round"/>
-              </svg>
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Montserrat', Arial, sans-serif" }}>Стань автором Balabony</div>
-          </div>
-          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.7, marginBottom: 16 }}>
-            Пишеш історії? Публікуй їх на Balabony і отримуй гонорар з кожного прочитання. Ми ділимо доходи чесно:
-          </p>
-          <ul style={{ listStyle: 'none', padding: 0, marginBottom: 24 }}>
-            <li style={{ fontSize: 15, color: 'rgba(255,255,255,0.85)', marginBottom: 10, lineHeight: 1.6 }}>
-              <span style={{ color: '#f5a623', fontWeight: 700 }}>50/50</span> — для авторів-ФОП
-            </li>
-            <li style={{ fontSize: 15, color: 'rgba(255,255,255,0.85)', marginBottom: 10, lineHeight: 1.6 }}>
-              <span style={{ color: '#f5a623', fontWeight: 700 }}>60/40</span> — для інших авторів (60% — платформі, 40% — автору; платформа сплачує податки за автора)
-            </li>
-          </ul>
-          <a
-            href="/become-author"
-            style={{ display: 'inline-block', padding: '12px 28px', background: 'var(--accent-gold)', color: '#fff', borderRadius: 9, fontWeight: 700, fontSize: 16, textDecoration: 'none', fontFamily: "'Montserrat', sans-serif" }}
-          >
-            Подати заявку →
-          </a>
-        </div>
+        <AuthorSection />
 
         <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '20px 0' }} />
 
