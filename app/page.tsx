@@ -18,6 +18,7 @@ import InclusivitySection from './components/InclusivitySection'
 import BonusSection from './components/BonusSection'
 import AuthorSection from './components/AuthorSection'
 import AboutAuthorSection from './components/AboutAuthorSection'
+import AboutBalabonySection from './components/AboutBalabonySection'
 import PwaSection from './components/PwaSection'
 import ChannelsSection from './components/ChannelsSection'
 import SurveyPreviewSection from './components/SurveyPreviewSection'
@@ -98,6 +99,7 @@ export default function HomePage() {
 
         <PwaSection />      <ChannelsSection />
         <AboutAuthorSection />
+        <AboutBalabonySection />
         <AuthorSection />
         <SurveyPreviewSection />
       </main>
