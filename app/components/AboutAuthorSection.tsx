@@ -38,10 +38,10 @@ const AUTHOR = {
   // Цитата автора
   quote: 'Я пишу для тих, хто памʼятає, як пахне дощ на солом\'яному даху.' as string | null,
 
-  // CTA — куди веде кнопка
+  // CTA — куди веде кнопка (скрол до секції "Серії Балабонів" на головній)
   cta: {
     label: 'Усі історії Назара',
-    href: '/stories',
+    href: '#series',
   },
 }
 
@@ -95,7 +95,23 @@ export default function AboutAuthorSection() {
           )}
 
           <div className="cta-block">
-            <Link href={AUTHOR.cta.href} className="cta">
+            <Link
+              href={AUTHOR.cta.href}
+              className="cta"
+              style={{
+                display: 'inline-block',
+                background: '#EF9F27',
+                color: '#FFFFFF',
+                padding: '14px 28px',
+                borderRadius: '12px',
+                fontWeight: 600,
+                fontSize: '15px',
+                textDecoration: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s ease, transform 0.15s ease',
+              }}
+            >
               {AUTHOR.cta.label} →
             </Link>
           </div>
@@ -256,26 +272,34 @@ export default function AboutAuthorSection() {
           margin-top: 24px;
         }
 
-        .cta {
-          display: inline-block;
-          background: #EF9F27;
+        /* High specificity + !important — перебиває глобальний CSS для <a> */
+        .about-author-section .cta-block .cta,
+        .about-author-section .cta-block .cta:link,
+        .about-author-section .cta-block .cta:visited {
+          display: inline-block !important;
+          background: #EF9F27 !important;
           color: #FFFFFF !important;
-          padding: 14px 28px;
-          border-radius: 12px;
-          font-weight: 600;
-          font-size: 15px;
-          text-decoration: none;
-          transition: background 0.2s ease, transform 0.15s ease;
+          padding: 14px 28px !important;
+          border-radius: 12px !important;
+          font-weight: 600 !important;
+          font-size: 15px !important;
+          text-decoration: none !important;
+          border: none !important;
+          transition: background 0.2s ease, transform 0.15s ease !important;
+          cursor: pointer;
         }
 
-        .cta:hover {
-          background: #BA7517;
-          transform: translateY(-1px);
+        .about-author-section .cta-block .cta:hover {
+          background: #BA7517 !important;
+          color: #FFFFFF !important;
+          transform: translateY(-1px) !important;
+          text-decoration: none !important;
         }
 
-        .cta:active {
-          background: #854F0B;
-          transform: translateY(0);
+        .about-author-section .cta-block .cta:active {
+          background: #854F0B !important;
+          color: #FFFFFF !important;
+          transform: translateY(0) !important;
         }
 
         /* Mobile */

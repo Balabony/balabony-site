@@ -72,7 +72,7 @@ export default function HomePage() {
       <Header />
       <ResumeBanner />
       <Hero />
-      <SeriesStrip series={seriesData} />
+      <div id="series"><SeriesStrip series={seriesData} /></div>
       <div style={viewAllWrapperStyle}>
         <Link href="/series" style={viewAllLinkStyle}>Усі серії →</Link>
       </div>
