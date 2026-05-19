@@ -20,6 +20,7 @@ import BonusSection from './components/BonusSection'
 import AuthorSection from './components/AuthorSection'
 import PwaSection from './components/PwaSection'
 import ChannelsSection from './components/ChannelsSection'
+import SurveyPreviewSection from './components/SurveyPreviewSection'
 
 const FALLBACK_SERIES: SeriesCard[] = []
 
@@ -109,36 +110,7 @@ export default function HomePage() {
 
         <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '20px 0' }} />
 
-        <div style={{
-          background: '#0f1e3a', border: '1.5px solid #f5a623', borderRadius: 16,
-          padding: 28, marginBottom: 40
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
-            <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <svg width="28" height="28" viewBox="0 0 56 56" fill="none">
-                <rect x="12" y="10" width="32" height="38" rx="4" stroke="#f5a623" strokeWidth="2" fill="none"/>
-                <rect x="20" y="6" width="16" height="9" rx="3" stroke="#f5a623" strokeWidth="1.5" fill="none"/>
-                <line x1="20" y1="26" x2="36" y2="26" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="20" y1="33" x2="36" y2="33" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="20" y1="40" x2="30" y2="40" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Montserrat', Arial, sans-serif" }}>Пройди опитування — отримай 50 бонусів</div>
-          </div>
-          <p style={{ fontSize: 15, color: '#8899bb', marginBottom: 14 }}>
-            Допоможи нам стати кращими — це займе 3 хвилини
-          </p>
-          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.8)', lineHeight: 1.7, marginBottom: 24 }}>
-            Ми хочемо краще розуміти тебе як читача. Пройди коротке анонімне опитування і отримай 50 бонусних балів на рахунок одразу після завершення.
-          </p>
-          <a
-            href="/survey"
-            target="_blank"
-            style={{ display: 'inline-block', padding: '12px 28px', background: 'var(--accent-gold)', color: '#fff', borderRadius: 9, fontWeight: 700, fontSize: 16, textDecoration: 'none', fontFamily: "'Montserrat', sans-serif" }}
-          >
-            Пройти опитування →
-          </a>
-        </div>
+        <SurveyPreviewSection />
 
         <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '20px 0' }} />
 
