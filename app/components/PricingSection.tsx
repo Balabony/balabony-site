@@ -42,18 +42,37 @@ function FreeViewTimer() {
   }, [])
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginTop: 12 }}>
-      <span style={{ fontSize: 18, color: '#FFFFFF' }}>
-        Нові історії та серії щодня. 🕐 Наступна оновиться через:
-      </span>
-      <span style={{
-        fontSize: 18, fontWeight: 700, color: '#FFB800',
-        fontVariantNumeric: 'tabular-nums', letterSpacing: 1,
-        fontFamily: "'Montserrat', Arial, sans-serif",
-      }}>
-        {hydrated ? fmtCountdown(secs) : '—:—:—'}
-      </span>
-      <span style={{ fontSize: 18, color: '#FFFFFF' }}>— або обери план</span>
+    <div className="ptimer">
+      <span className="ptimer-text">Нові історії та серії щодня. Наступна оновиться через:</span>
+      <span className="ptimer-count">{hydrated ? fmtCountdown(secs) : '—:—:—'}</span>
+      <style jsx>{`
+        .ptimer {
+          background: rgba(255,255,255,0.06);
+          border: 1.5px solid #EF9F27;
+          border-radius: 14px;
+          padding: 16px 22px;
+          margin: 0 auto 32px;
+          max-width: 720px;
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          font-size: 16px;
+          text-align: center;
+          position: relative;
+          z-index: 1;
+        }
+        .ptimer-text { color: #FFFFFF; }
+        .ptimer-count {
+          font-weight: 700;
+          color: #FAC775;
+          font-variant-numeric: tabular-nums;
+          letter-spacing: 1.2px;
+          font-size: 18px;
+          font-family: 'Montserrat', Arial, sans-serif;
+        }
+      `}</style>
     </div>
   )
 }
@@ -211,7 +230,6 @@ function PaymentModal({ pkg, onClose }: PaymentModalProps) {
               {loading ? 'Перенаправлення...' : `Оплатити ${pkg.price} ₴`}
             </button>
 
-            {/* Розстрочка — тільки для річного */}
             {isAnnual && (
               <div style={{ marginTop: 20, borderTop: '1px solid var(--border)', paddingTop: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
@@ -224,7 +242,6 @@ function PaymentModal({ pkg, onClose }: PaymentModalProps) {
                   ⚠️ При оплаті частинами також діє правило «Без повернення залишку», оскільки це річний контракт.
                 </div>
 
-                {/* ПриватБанк */}
                 <button
                   onClick={() => handleInstallment('privat')}
                   disabled={installmentLoading !== null}
@@ -236,7 +253,6 @@ function PaymentModal({ pkg, onClose }: PaymentModalProps) {
                     fontFamily: "'Montserrat', sans-serif",
                   }}
                 >
-                  {/* ПриватБанк лого */}
                   <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
                     <rect width="40" height="40" rx="8" fill="#1B4F9B"/>
                     <text x="20" y="27" textAnchor="middle" fill="#fff" fontSize="13" fontWeight="bold" fontFamily="Arial">П24</text>
@@ -249,7 +265,6 @@ function PaymentModal({ pkg, onClose }: PaymentModalProps) {
                   </div>
                 </button>
 
-                {/* Ощадбанк */}
                 <button
                   onClick={() => handleInstallment('oschadbank')}
                   disabled={installmentLoading !== null}
@@ -261,7 +276,6 @@ function PaymentModal({ pkg, onClose }: PaymentModalProps) {
                     fontFamily: "'Montserrat', sans-serif",
                   }}
                 >
-                  {/* Ощадбанк лого */}
                   <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
                     <rect width="40" height="40" rx="8" fill="#007A3D"/>
                     <text x="20" y="27" textAnchor="middle" fill="#fff" fontSize="11" fontWeight="bold" fontFamily="Arial">ОЩД</text>
@@ -291,7 +305,7 @@ export default function PricingSection() {
 
   const plans = [
     {
-      badge: 'БЕЗ ПІДПИСКИ', badgeBg: '#4a5568',
+      badge: 'БЕЗ ПІДПИСКИ', badgeClass: 'pbadge-gray',
       tier: 'peritem', tierLabel: 'Поштучно',
       price: '9', unit: '₴/шт',
       note: 'Одна історія або одна серія — 9 грн',
@@ -301,35 +315,35 @@ export default function PricingSection() {
         { ok: false, text: 'Необмежений доступ' },
       ],
       btnLabel: 'Спробувати',
-      btnBg: '#4a5568', featured: false
+      featured: false
     },
     {
-      badge: 'УБД / ІНВАЛІДНІСТЬ', badgeBg: 'var(--accent-gold)',
+      badge: 'УБД / ІНВАЛІДНІСТЬ', badgeClass: 'pbadge-gold',
       tier: 'inclusive', tierLabel: 'Пільговий',
       price: '1', unit: '₴/рік',
       note: 'УБД, люди з інвалідністю',
       features: [
         { ok: true,  text: 'Весь контент без обмежень' },
         { ok: true,  text: 'Валідація через Дія' },
-        { ok: false, text: 'Відеореклама перед кожною серією' },
+        { ok: false, text: 'Без реклами' },
       ],
-      btnLabel: '🇺🇦 Підтвердити через Дія',
-      btnBg: 'var(--bg-deep)', featured: false
+      btnLabel: 'Підтвердити через Дія',
+      featured: false
     },
     {
-      badge: 'ПОПУЛЯРНИЙ', badgeBg: 'var(--accent-gold)',
+      badge: 'ПОПУЛЯРНИЙ', badgeClass: 'pbadge-gold',
       tier: 'standard', tierLabel: 'Місячний',
       price: '129', unit: '₴/міс',
-      note: 'Перший місяць — 49 ₴ · потім 129 ₴/міс · Скасування в будь-який час',
+      note: 'Перший місяць — 49 ₴ · потім 129 ₴/міс',
       features: [
         { ok: true, text: 'Весь контент без обмежень' },
         { ok: true, text: 'Жодної реклами' },
       ],
       btnLabel: 'Оформити за 129 ₴',
-      btnBg: 'var(--accent-gold)', featured: true
+      featured: false
     },
     {
-      badge: '42% ВИГОДИ', badgeBg: 'var(--accent-gold)',
+      badge: 'НАЙВИГІДНІШЕ · 42% ВИГОДИ', badgeClass: 'pbadge-best',
       tier: 'annual', tierLabel: 'Річний',
       price: '890', unit: '₴/рік',
       note: 'Всього 74 ₴/міс · Економія 658 ₴',
@@ -337,117 +351,63 @@ export default function PricingSection() {
         { ok: true, text: 'Весь контент без обмежень' },
         { ok: true, text: 'Жодної реклами' },
         { ok: true, text: 'Офлайн-завантаження' },
+        { ok: true, text: 'Ексклюзивний контент', highlight: true },
       ],
       btnLabel: 'Економте 658 ₴ на рік',
-      btnBg: 'var(--accent-gold)', featured: false
+      featured: true
     },
   ]
 
   return (
-    <section id="pricing" style={{ marginBottom: 56 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-        <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+    <section id="pricing" className="psection">
+      <div className="phead">
+        <div className="phead-icon">
           <svg width="30" height="30" viewBox="0 0 56 56" fill="none">
-            <rect x="8" y="16" width="40" height="26" rx="5" stroke="#f5a623" strokeWidth="2" fill="none"/>
-            <line x1="8" y1="25" x2="48" y2="25" stroke="#f5a623" strokeWidth="2"/>
-            <rect x="14" y="33" width="10" height="4" rx="2" fill="#f5a623"/>
-            <rect x="28" y="33" width="6" height="4" rx="2" fill="rgba(245,166,35,0.45)"/>
+            <rect x="8" y="16" width="40" height="26" rx="5" stroke="#EF9F27" strokeWidth="2.5" fill="none"/>
+            <line x1="8" y1="25" x2="48" y2="25" stroke="#EF9F27" strokeWidth="2.5"/>
+            <rect x="14" y="33" width="10" height="4" rx="2" fill="#EF9F27"/>
+            <rect x="28" y="33" width="6" height="4" rx="2" fill="rgba(239,159,39,0.45)"/>
           </svg>
         </div>
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent-gold)', fontFamily: "'Montserrat', Arial, sans-serif", marginBottom: 3 }}>Підписки</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Montserrat', Arial, sans-serif" }}>Оберіть свій план</div>
+        <div className="phead-text">
+          <div className="phead-label">ПІДПИСКИ</div>
+          <div className="phead-title">Оберіть свій план</div>
         </div>
       </div>
 
-      <div style={{ background: 'var(--bg-deep)', color: '#f8fafc', border: '1.5px solid #f5a623', borderRadius: 14, padding: '16px 24px', marginBottom: 28 }}>
-        <FreeViewTimer />
-      </div>
+      <FreeViewTimer />
 
-      <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '40px 0' }} />
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-        gap: 20,
-      }}>
+      <div className="pgrid">
         {plans.map(plan => (
-          <div key={plan.tier} style={{
-            background: 'var(--white)',
-            border: '1.5px solid #f5a623',
-            borderRadius: 18, padding: '36px 28px',
-            display: 'flex', flexDirection: 'column', position: 'relative'
-          }}>
+          <div key={plan.tier} className={`pcard ${plan.featured ? 'pcard-featured' : ''}`}>
             {plan.badge && (
-              <span style={{
-                position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
-                fontSize: 9, fontWeight: 700, letterSpacing: 1.5, padding: '3px 12px',
-                borderRadius: 20, whiteSpace: 'nowrap', color: '#fff', background: plan.badgeBg
-              }}>{plan.badge}</span>
+              <span className={`pbadge ${plan.badgeClass}`}>{plan.badge}</span>
             )}
-            <div style={{ fontSize: 18, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--accent-gold)', marginBottom: 10 }}>
-              {plan.tierLabel}
+            <div className="ptier">{plan.tierLabel}</div>
+            <div className="pprice-row">
+              <span className="pprice-num">{plan.price}</span>
+              <span className="pprice-unit">{plan.unit}</span>
             </div>
-            <div style={{ fontFamily: "'Lora', serif", fontSize: 72, fontWeight: 600, color: 'var(--text)', lineHeight: 1, marginBottom: 4 }}>
-              {plan.price} <span style={{ fontSize: 16, fontWeight: 400, color: 'var(--muted)' }}>{plan.unit}</span>
-            </div>
-            <p style={{ fontSize: 12, color: 'var(--muted)', margin: '10px 0 14px', lineHeight: 1.5 }}>
-              {plan.note}
-            </p>
-            <div style={{ height: 1, background: 'var(--border)', margin: '0 0 14px' }} />
-            <ul style={{ listStyle: 'none', marginBottom: 20, padding: 0, flex: 1 }}>
+            <p className="pnote">{plan.note}</p>
+            <div className="pdivider" />
+            <ul className="pfeatures">
               {plan.features.map(f => (
-                <li key={f.text} style={{ fontSize: 16, color: 'var(--text)', padding: '5px 0', display: 'flex', alignItems: 'flex-start', gap: 7, lineHeight: 1.4 }}>
-                  <span style={{ color: f.ok ? 'var(--accent-gold)' : '#ef4444', fontWeight: 800, flexShrink: 0 }}>{f.ok ? '✓' : '×'}</span>
-                  {f.text}
+                <li key={f.text} className={(f as any).highlight ? 'pfeat-hl' : ''}>
+                  <span className={`pmark ${f.ok ? 'ok' : 'no'}`}>{f.ok ? '✓' : '✕'}</span>
+                  <span>{f.text}</span>
                 </li>
               ))}
             </ul>
 
-            {/* Розстрочка — мінібанер під річним та місячним тарифом */}
             {(plan.tier === 'annual' || plan.tier === 'standard') && (
-              <div style={{
-                background: 'linear-gradient(135deg, #f0f7ff 0%, #f0fdf4 100%)',
-                border: '1px solid #e2e8f0', borderRadius: 12,
-                padding: '12px 14px', marginBottom: 14,
-              }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#1e293b', marginBottom: 8 }}>
-                  💳 Оплата частинами
+              <div className="pinstall">
+                <div className="pinstall-label">Оплата частинами</div>
+                <div className="pinstall-desc">
+                  Без комісій · {plan.tier === 'annual' ? 'від 149 ₴/міс' : 'від 3 до 6 місяців'}
                 </div>
-                <div style={{ fontSize: 11, color: '#64748b', marginBottom: 10, lineHeight: 1.5 }}>
-                  Купуй зараз — плати частинами. Без комісій та переплат.
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    onClick={() => setModal({ price: plan.price, tier: plan.tierLabel, unit: plan.unit })}
-                    style={{
-                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      padding: '8px 10px', borderRadius: 8,
-                      border: '1.5px solid #1B4F9B', background: '#fff',
-                      cursor: 'pointer', fontFamily: "'Montserrat', sans-serif",
-                    }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 40 40" fill="none">
-                      <rect width="40" height="40" rx="8" fill="#1B4F9B"/>
-                      <text x="20" y="27" textAnchor="middle" fill="#fff" fontSize="13" fontWeight="bold" fontFamily="Arial">П24</text>
-                    </svg>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#1B4F9B' }}>Частинами</span>
-                  </button>
-                  <button
-                    onClick={() => setModal({ price: plan.price, tier: plan.tierLabel, unit: plan.unit })}
-                    style={{
-                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      padding: '8px 10px', borderRadius: 8,
-                      border: '1.5px solid #007A3D', background: '#fff',
-                      cursor: 'pointer', fontFamily: "'Montserrat', sans-serif",
-                    }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 40 40" fill="none">
-                      <rect width="40" height="40" rx="8" fill="#007A3D"/>
-                      <text x="20" y="27" textAnchor="middle" fill="#fff" fontSize="11" fontWeight="bold" fontFamily="Arial">ОЩД</text>
-                    </svg>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#007A3D' }}>Розстрочка</span>
-                  </button>
+                <div className="pinstall-btns">
+                  <button onClick={() => setModal({ price: plan.price, tier: plan.tierLabel, unit: plan.unit })}>ПриватБанк</button>
+                  <button onClick={() => setModal({ price: plan.price, tier: plan.tierLabel, unit: plan.unit })}>Ощадбанк</button>
                 </div>
               </div>
             )}
@@ -457,20 +417,337 @@ export default function PricingSection() {
                 onClick={() => {
                   try { if (typeof window !== 'undefined' && (window as any).gtag) (window as any).gtag('event', 'click_annual_no_refund_policy') } catch(_) {}
                 }}
-                style={{ fontSize: 10, color: 'var(--muted)', marginBottom: 10, lineHeight: 1.5, cursor: 'pointer', textAlign: 'center' }}
+                className="pannual-note"
               >
                 Підписку можна скасувати в будь-який момент. Доступ зберігається до кінця оплаченого періоду.
               </p>
             )}
+
             <button
               onClick={() => setModal({ price: plan.price, tier: plan.tierLabel, unit: plan.unit })}
-              style={{ display: 'block', textAlign: 'center', padding: 14, borderRadius: 9, fontSize: 18, fontWeight: 700, cursor: 'pointer', border: 'none', fontFamily: "'Montserrat', sans-serif", minHeight: 52, background: plan.btnBg, color: '#fff' }}
-            >{plan.btnLabel}</button>
+              className="pcta"
+            >
+              {plan.btnLabel}
+            </button>
           </div>
         ))}
       </div>
 
       {modal && <PaymentModal pkg={modal} onClose={() => setModal(null)} />}
+
+      <style jsx>{`
+        .psection {
+          background: linear-gradient(180deg, #0E1A2B 0%, #14253B 50%, #0E1A2B 100%);
+          padding: 40px 22px 48px;
+          border-radius: 18px;
+          margin-bottom: 56px;
+          position: relative;
+          overflow: hidden;
+        }
+        .psection::before, .psection::after {
+          content: '';
+          position: absolute;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(239,159,39,0.22), transparent 70%);
+          pointer-events: none;
+        }
+        .psection::before { width: 260px; height: 260px; top: -70px; right: -70px; }
+        .psection::after { width: 220px; height: 220px; bottom: -50px; left: -50px; }
+
+        .phead {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          margin-bottom: 22px;
+          position: relative;
+          z-index: 1;
+          text-align: center;
+        }
+        .phead-icon {
+          width: 60px; height: 60px;
+          border-radius: 15px;
+          background: rgba(239,159,39,0.12);
+          border: 1.5px solid rgba(239,159,39,0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .phead-text { text-align: left; }
+        .phead-label {
+          color: #EF9F27;
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: 2.2px;
+          margin-bottom: 4px;
+          font-family: 'Montserrat', Arial, sans-serif;
+        }
+        .phead-title {
+          font-family: 'Lora', Georgia, serif;
+          color: #FFFFFF;
+          font-size: 28px;
+          font-weight: 700;
+          line-height: 1.2;
+        }
+
+        .pgrid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+          gap: 18px;
+          position: relative;
+          z-index: 1;
+        }
+
+        .pcard {
+          background: linear-gradient(180deg, #2C1A02 0%, #4A2F0A 100%);
+          border: 2px solid #FAC775;
+          border-radius: 18px;
+          padding: 32px 22px 24px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          position: relative;
+          transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                      box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                      border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .pcard:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 14px 34px rgba(239, 159, 39, 0.5);
+          border-color: #FFD888;
+        }
+        .pcard-featured {
+          background: linear-gradient(180deg, #BA7517 0%, #854F0B 100%);
+          border-color: #FAC775;
+          border-width: 2.5px;
+          animation: pulseGlow 2.6s ease-in-out infinite;
+        }
+        @keyframes pulseGlow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(250, 199, 117, 0.55); }
+          50% { box-shadow: 0 0 0 14px rgba(250, 199, 117, 0); }
+        }
+
+        .pbadge {
+          position: absolute;
+          top: -13px;
+          left: 50%;
+          transform: translateX(-50%);
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 1.3px;
+          padding: 6px 14px;
+          border-radius: 14px;
+          white-space: nowrap;
+          color: #FFFFFF !important;
+          font-family: 'Montserrat', Arial, sans-serif;
+          animation: badgePulse 2.6s ease-in-out infinite;
+        }
+        .pbadge-gold { background: #EF9F27; }
+        .pbadge-gray { background: #5F5E5A; }
+        .pbadge-best {
+          background: linear-gradient(90deg, #BA7517 0%, #EF9F27 50%, #BA7517 100%);
+          background-size: 200% auto;
+          border: 1.5px solid #FFD888;
+          box-shadow: 0 4px 14px rgba(239, 159, 39, 0.5);
+          font-size: 12px;
+          padding: 7px 18px;
+          top: -15px;
+        }
+        @keyframes badgePulse {
+          0%, 100% { transform: translateX(-50%) translateY(0); }
+          50% { transform: translateX(-50%) translateY(-2px); }
+        }
+
+        .ptier {
+          font-size: 16px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 1.8px;
+          color: #FAC775 !important;
+          margin-bottom: 12px;
+          font-family: 'Montserrat', Arial, sans-serif;
+        }
+
+        .pprice-row {
+          display: flex;
+          align-items: baseline;
+          justify-content: center;
+          gap: 8px;
+          margin-bottom: 6px;
+        }
+        .pprice-num {
+          font-family: 'Lora', Georgia, serif;
+          font-size: 68px;
+          font-weight: 700;
+          color: #FFFFFF !important;
+          line-height: 1;
+        }
+        .pprice-unit {
+          font-size: 17px;
+          color: #FAC775 !important;
+          font-weight: 700;
+          font-family: 'Montserrat', Arial, sans-serif;
+        }
+        .pnote {
+          font-size: 14px;
+          color: rgba(255, 248, 234, 0.92) !important;
+          line-height: 1.5;
+          margin: 10px 12px 16px;
+          min-height: 42px;
+        }
+        .pdivider {
+          height: 1px;
+          background: rgba(250, 199, 117, 0.3);
+          margin: 0 0 16px;
+          width: 100%;
+        }
+
+        .pfeatures {
+          list-style: none;
+          padding: 0;
+          margin: 0 0 18px;
+          flex: 1;
+          width: 100%;
+        }
+        .pfeatures li {
+          display: flex;
+          align-items: flex-start;
+          justify-content: center;
+          gap: 10px;
+          padding: 7px 0;
+          font-size: 16px;
+          color: #FFF8EA !important;
+          line-height: 1.45;
+          text-align: left;
+          max-width: 220px;
+          margin: 0 auto;
+        }
+        .pmark {
+          flex-shrink: 0;
+          font-weight: 700;
+          width: 18px;
+          text-align: center;
+          font-size: 17px;
+        }
+        .pmark.ok { color: #FAC775 !important; }
+        .pmark.no { color: #F09595 !important; }
+        .pfeat-hl {
+          font-weight: 700;
+          background: rgba(250, 199, 117, 0.22);
+          border: 1px solid rgba(250, 199, 117, 0.5);
+          border-radius: 8px;
+          padding: 7px 10px !important;
+          max-width: 230px !important;
+        }
+        .pfeat-hl .pmark.ok { color: #FFD888 !important; }
+        .pfeat-hl span:last-child { color: #FFFFFF !important; }
+
+        .pinstall {
+          background: rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(250, 199, 117, 0.4);
+          border-radius: 12px;
+          padding: 12px 14px;
+          margin: 0 0 14px;
+          width: 100%;
+        }
+        .pinstall-label {
+          font-size: 13px;
+          font-weight: 700;
+          color: #FAC775 !important;
+          margin-bottom: 5px;
+          letter-spacing: 0.6px;
+          font-family: 'Montserrat', Arial, sans-serif;
+        }
+        .pinstall-desc {
+          font-size: 12px;
+          color: rgba(255, 248, 234, 0.88) !important;
+          margin-bottom: 10px;
+          line-height: 1.4;
+        }
+        .pinstall-btns {
+          display: flex;
+          gap: 8px;
+        }
+        .pinstall-btns button {
+          flex: 1;
+          padding: 9px 6px;
+          border-radius: 8px;
+          border: 1.5px solid #FAC775;
+          background: #EF9F27;
+          font-size: 13px;
+          font-weight: 700;
+          color: #FFFFFF !important;
+          cursor: pointer;
+          transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+          font-family: 'Montserrat', Arial, sans-serif;
+        }
+        .pinstall-btns button:hover {
+          background: #BA7517;
+          color: #FFFFFF !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+        }
+        .pinstall-btns button:active {
+          background: #854F0B;
+          color: #FFFFFF !important;
+          transform: translateY(0);
+        }
+
+        .pannual-note {
+          font-size: 11px;
+          color: rgba(255, 248, 234, 0.7) !important;
+          margin-bottom: 12px;
+          line-height: 1.5;
+          cursor: pointer;
+          text-align: center;
+        }
+
+        .pcta {
+          display: block;
+          padding: 16px 14px;
+          border-radius: 12px;
+          border: 1.5px solid #FAC775;
+          background: #EF9F27;
+          font-size: 16px;
+          font-weight: 800;
+          cursor: pointer;
+          width: 100%;
+          text-align: center;
+          transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+          letter-spacing: 0.4px;
+          color: #FFFFFF !important;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+          font-family: 'Montserrat', Arial, sans-serif;
+          animation: ctaBreath 2.5s ease-in-out infinite;
+        }
+        .pcta:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
+          background: #BA7517;
+          color: #FFFFFF !important;
+          border-color: #FFD888;
+        }
+        .pcta:active {
+          background: #854F0B;
+          color: #FFFFFF !important;
+          transform: translateY(0);
+        }
+        @keyframes ctaBreath {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(255, 248, 234, 0.4); }
+          50% { box-shadow: 0 0 0 8px rgba(255, 248, 234, 0); }
+        }
+
+        @media (max-width: 640px) {
+          .pgrid { grid-template-columns: 1fr; }
+          .pprice-num { font-size: 56px; }
+          .phead-title { font-size: 24px; }
+        }
+      `}</style>
     </section>
   )
 }
