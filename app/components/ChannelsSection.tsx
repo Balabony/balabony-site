@@ -96,7 +96,11 @@ export default function ChannelsSection() {
       <style jsx>{`
         .ch-section {
           background: linear-gradient(180deg, ${NAVY} 0%, #14253B 50%, ${NAVY} 100%);
+          border: 1.5px solid #EF9F27;
+          border-radius: 18px;
           padding: 56px 16px;
+          margin: 0 0 56px;
+          box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
         }
         .ch-container {
           max-width: 1100px;
