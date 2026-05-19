@@ -84,9 +84,13 @@ export default function HomePage() {
 
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 0' }}>
 
-        <ReaderSection />
+        <div id="reader" style={{ display: 'block', scrollMarginTop: '80px' }}>
+          <ReaderSection />
+        </div>
 
-        <PricingSection />
+        <div id="pricing" style={{ display: 'block', scrollMarginTop: '80px' }}>
+          <PricingSection />
+        </div>
         <div id="longevity-club"><LongevityClubSection /></div>
         <div id="fairytales"><FairytalesSection /></div>
 
