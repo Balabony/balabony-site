@@ -13,6 +13,7 @@ import FairytalesSection from './components/FairytalesSection'
 import ResumeBanner from './components/ResumeBanner'
 import { ThemeProvider } from './context/ThemeContext'
 import SeriesStrip, { type SeriesCard } from './components/SeriesStrip'
+import BalabonyHomeBlock from './components/BalabonyHomeBlock'
 import FreshStoriesGrid, { type Story } from './components/FreshStoriesGrid'
 import InclusivitySection from './components/InclusivitySection'
 import BonusSection from './components/BonusSection'
@@ -73,10 +74,7 @@ export default function HomePage() {
       <Header />
       <ResumeBanner />
       <Hero />
-      <div id="series"><SeriesStrip series={seriesData} /></div>
-      <div style={viewAllWrapperStyle}>
-        <Link href="/series" style={viewAllLinkStyle}>Усі серії →</Link>
-      </div>
+      <div id="series"><BalabonyHomeBlock /></div>
       <FreshStoriesGrid stories={freshStories} />
       <div style={viewAllWrapperStyle}>
         <Link href="/stories" style={viewAllLinkStyle}>Усі історії →</Link>
