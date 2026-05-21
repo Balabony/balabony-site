@@ -1,19 +1,102 @@
 'use client'
 
 import { useTheme } from '../context/ThemeContext'
-import ShareButtons from './ShareButtons'
 import { trackStoryEvent } from '@/lib/analytics'
 
 const GOLD = '#F5A623'
+const AMBER = '#FFB347'
 const CARD_BG = '#0f1e3a'
 const FONT = "'Montserrat', Arial, sans-serif"
+
+const STYLES = `
+.fs-kicker {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  color: ${GOLD};
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  line-height: 1;
+  background: rgba(245,166,35,0.14);
+  border: 1px solid rgba(245,166,35,0.5);
+  padding: 5px 10px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  animation: fsKickerGlow 2.2s ease-in-out infinite;
+}
+@keyframes fsKickerGlow {
+  0%, 100% { box-shadow: 0 0 6px rgba(245,166,35,0.35); }
+  50% { box-shadow: 0 0 18px rgba(245,166,35,0.75); }
+}
+.fs-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  will-change: transform;
+  display: flex;
+  flex-direction: column;
+  background: ${CARD_BG};
+  border: 1.5px solid ${AMBER};
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 0 14px rgba(255,179,71,0.18);
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+  transform: translateY(0);
+}
+.fs-card:hover,
+.fs-card:focus-visible {
+  transform: translateY(-6px);
+  box-shadow: 0 0 32px rgba(255,179,71,0.5);
+  outline: none;
+}
+.fs-card:hover .fs-cover-img,
+.fs-card:focus-visible .fs-cover-img {
+  transform: scale(1.05);
+}
+.fs-card:hover .fs-title-text,
+.fs-card:focus-visible .fs-title-text {
+  color: ${AMBER};
+}
+.fs-card:active {
+  transform: translateY(-3px);
+  box-shadow: 0 0 24px rgba(255,179,71,0.4);
+}
+.fs-cover-img {
+  transition: transform 0.35s ease;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.fs-title-text {
+  transition: color 0.2s ease;
+}
+.fs-teaser {
+  font-size: 12px;
+  color: #7A90A8;
+  font-family: ${FONT};
+  line-height: 1.55;
+  margin: 0;
+  flex-grow: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fs-card, .fs-cover-img, .fs-title-text { transition: none; }
+  .fs-card:hover, .fs-card:focus-visible { transform: none; }
+  .fs-card:hover .fs-cover-img, .fs-card:focus-visible .fs-cover-img { transform: none; }
+  .fs-kicker { animation: none; }
+}
+`
 
 export interface Story {
   id: string
   title: string
   author: string
   coverUrl: string
-  coverPosition?: string  // лишаємо для зворотної сумісності зі старими записами
+  coverPosition?: string
   tags: string[]
   hasAudio: boolean
   teaser: string
@@ -23,49 +106,43 @@ export interface Story {
   category?: string
 }
 
-function DropShieldIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <path d="M12 2C12 2 3.5 6.5 3.5 13C3.5 17.7 7.3 21.3 12 22C16.7 21.3 20.5 17.7 20.5 13C20.5 6.5 12 2 12 2Z"
-        stroke={GOLD} strokeWidth="1.6" strokeLinejoin="round"/>
-      <path d="M8.5 13l2.5 2.5 4.5-5" stroke={GOLD} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-}
-
-/**
- * Для нового підходу (server-side crop) фото вже прийшло обрізаним — просто показуємо його cover.
- * Для старих записів з cover_position типу "scale:X x:Y y:Z" або "70% 30%" — підтримуємо fallback.
- */
 function getCoverStyle(coverPosition: string | undefined): React.CSSProperties {
-  const base: React.CSSProperties = {
-    width: '100%',
-    height: 159,
-    objectFit: 'cover',
-    display: 'block',
-  }
+  if (!coverPosition || coverPosition === 'center') return { objectPosition: 'center' }
 
-  if (!coverPosition || coverPosition === 'center') return { ...base, objectPosition: 'center' }
-
-  // Старі формати - fallback (не для нових записів)
   const transformM = coverPosition.match(/scale:(-?\d+)\s+x:(-?\d+)\s+y:(-?\d+)/)
   if (transformM) {
     const scale = Math.max(100, Math.min(400, parseInt(transformM[1], 10)))
     const tx    = Math.max(-200, Math.min(200, parseInt(transformM[2], 10)))
     const ty    = Math.max(-200, Math.min(200, parseInt(transformM[3], 10)))
     return {
-      ...base,
       transform: `translate(${tx}%, ${ty}%) scale(${scale / 100})`,
       transformOrigin: 'center center',
     }
   }
 
-  // Дуже старий object-position
   if (/^\s*[\d.]+%/.test(coverPosition) || /^(left|right|center|top|bottom)/.test(coverPosition)) {
-    return { ...base, objectPosition: coverPosition }
+    return { objectPosition: coverPosition }
   }
 
-  return { ...base, objectPosition: 'center' }
+  return { objectPosition: 'center' }
+}
+
+/**
+ * Якщо тизер обрізаний на короткому слові ("У", "до", "на"...) або на одній літері,
+ * прибираємо цей "хвіст" перед "...".
+ * Webkit-line-clamp обріже візуально; функція тут просто страхує від випадків,
+ * коли тизер уже приходить з "..." з бази.
+ */
+function cleanTeaser(text: string): string {
+  if (!text) return ''
+  // Прибираємо існуючі "..." на кінці, потім останні слова <=2 символів
+  let t = text.trim().replace(/\.{3,}\s*$/, '').replace(/…\s*$/, '').trim()
+  // Якщо останнє слово 1-2 літери — відрізаємо його
+  const words = t.split(/\s+/)
+  while (words.length > 3 && words[words.length - 1].replace(/[.,;:!?—–\-"'«»()]/g, '').length <= 2) {
+    words.pop()
+  }
+  return words.join(' ')
 }
 
 export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
@@ -73,28 +150,30 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
 
   return (
     <section style={{ background: colors.bg, padding: '20px 20px 40px' }}>
+      <style dangerouslySetInnerHTML={{ __html: STYLES }} />
+
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 26 }}>
-          <div style={{ width: 42, height: 42, borderRadius: 11, background: `${GOLD}1A`, border: `1px solid ${GOLD}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <DropShieldIcon />
-          </div>
-          <div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: GOLD, letterSpacing: 2, textTransform: 'uppercase', fontFamily: FONT, lineHeight: 1 }}>Нові надходження</div>
-            <div style={{ fontSize: 19, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.2 }}>Свіжі історії</div>
-          </div>
+        <div style={{ marginBottom: 26 }}>
+          <div className="fs-kicker">Нові надходження</div>
+          <div style={{ fontSize: 19, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.2 }}>Свіжі історії</div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(275px, 1fr))', gap: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(275px, 1fr))', gap: 20, alignItems: 'stretch' }}>
           {stories.map(story => (
-            <div key={story.id} style={{ border: `1.5px solid ${GOLD}`, borderRadius: 16, overflow: 'hidden', background: CARD_BG, display: 'flex', flexDirection: 'column' }}>
-
+            <a
+              key={story.id}
+              href={`https://balabony.com${story.url}`}
+              onClick={() => trackStoryEvent(story.id, story.title, 'open')}
+              className="fs-card"
+            >
               <div style={{ padding: 8, flexShrink: 0 }}>
-                <div style={{ position: 'relative', width: '100%', height: 159, overflow: 'hidden', background: '#000', border: `1.5px solid ${GOLD}`, borderRadius: 8 }}>
+                <div style={{ position: 'relative', width: '100%', height: 159, overflow: 'hidden', background: '#000', borderRadius: 8 }}>
                   <img
                     src={story.coverUrl}
                     alt={story.title}
                     onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }}
+                    className="fs-cover-img"
                     style={getCoverStyle(story.coverPosition)}
                   />
                 </div>
@@ -104,25 +183,23 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
                 <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, fontFamily: FONT, letterSpacing: 0.3 }}>
                   {story.author}
                 </div>
-                <a
-                  href={`https://balabony.com${story.url}`}
-                  onClick={() => trackStoryEvent(story.id, story.title, 'open')}
-                  style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.4, textDecoration: 'none', textTransform: 'uppercase', paddingLeft: 14 }}
+                <div
+                  className="fs-title-text"
+                  style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.4, textTransform: 'uppercase', paddingLeft: 14 }}
                 >
                   {story.title}
-                </a>
-                <p style={{ fontSize: 12, color: '#7A90A8', fontFamily: FONT, lineHeight: 1.65, margin: 0, flexGrow: 1 }}>
-                  {story.teaser}
+                </div>
+                <p className="fs-teaser">
+                  {cleanTeaser(story.teaser)}
                 </p>
                 {(() => {
                   const displayTags = [
                     story.genre,
                     story.duration_minutes ? `${story.duration_minutes} хв` : null,
-                    story.category,
                   ].filter(Boolean) as string[]
                   if (!displayTags.length) return null
                   return (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 'auto' }}>
                       {displayTags.map(tag => (
                         <span key={tag} style={{ fontSize: 10, fontWeight: 600, color: GOLD, fontFamily: FONT, border: `1px solid ${GOLD}`, padding: '2px 8px', borderRadius: 20 }}>
                           {tag}
@@ -131,9 +208,8 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
                     </div>
                   )
                 })()}
-                <ShareButtons url={`https://balabony.com${story.url}`} title={story.title} />
               </div>
-            </div>
+            </a>
           ))}
         </div>
       </div>
