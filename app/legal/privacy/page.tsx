@@ -1,3 +1,4 @@
+import ProtectedEmail from '@/app/components/ProtectedEmail'
 export const metadata = {
   title: 'Політика конфіденційності — Balabony',
   description: 'Як Balabony збирає, використовує та захищає ваші персональні дані.',
@@ -78,7 +79,7 @@ export default function PrivacyPage() {
         <li>Подати скаргу до Уповноваженого Верховної Ради України з прав людини.</li>
       </ul>
       <p>
-        Щоб скористатися цими правами — напишіть на <a href="mailto:nazar@balabony.com">nazar@balabony.com</a>. Ми відповідаємо протягом 30 днів.
+        Щоб скористатися цими правами — напишіть на <ProtectedEmail user="nazar" domain="balabony.com" />. Ми відповідаємо протягом 30 днів.
       </p>
 
       <h2>7. Безпека</h2>
@@ -98,7 +99,7 @@ export default function PrivacyPage() {
 
       <h2>10. Контакти</h2>
       <p>
-        Питання конфіденційності — <a href="mailto:nazar@balabony.com">nazar@balabony.com</a><br/>
+        Питання конфіденційності — <ProtectedEmail user="nazar" domain="balabony.com" /><br/>
         Письмова адреса — <span className="placeholder">[ЗАПОВНИТИ: юридична адреса]</span>
       </p>
     </>

@@ -1,3 +1,4 @@
+import ProtectedEmail from '@/app/components/ProtectedEmail'
 export const metadata = {
   title: 'Публічна оферта — Balabony',
   description: 'Договір про надання послуг доступу до платформи Balabony.',
@@ -42,7 +43,7 @@ export default function OfferPage() {
         <li><strong>«Дія»</strong> — для пільгової підписки 1 ₴/рік.</li>
       </ul>
       <p>
-        Доступ активується автоматично після підтвердження платежу провайдером. У разі затримки звертайтеся на <a href="mailto:nazar@balabony.com">nazar@balabony.com</a>.
+        Доступ активується автоматично після підтвердження платежу провайдером. У разі затримки звертайтеся на <ProtectedEmail user="nazar" domain="balabony.com" />.
       </p>
 
       <h2>4. Автопродовження місячної підписки</h2>
@@ -50,7 +51,7 @@ export default function OfferPage() {
         Місячна підписка продовжується автоматично щомісяця за тарифом 129 ₴. Списання відбувається з карти, прив&apos;язаної при оплаті.
       </p>
       <p>
-        Замовник може скасувати автопродовження в будь-який момент у налаштуваннях облікового запису або написавши на <a href="mailto:nazar@balabony.com">nazar@balabony.com</a>. Доступ зберігається до кінця вже оплаченого періоду.
+        Замовник може скасувати автопродовження в будь-який момент у налаштуваннях облікового запису або написавши на <ProtectedEmail user="nazar" domain="balabony.com" />. Доступ зберігається до кінця вже оплаченого періоду.
       </p>
 
       <h2>5. Річна підписка — особливі умови</h2>
@@ -83,7 +84,7 @@ export default function OfferPage() {
         <li>Інші випадки за окремою згодою сторін.</li>
       </ul>
       <p>
-        Запит на повернення подається на email <a href="mailto:nazar@balabony.com">nazar@balabony.com</a> протягом 14 днів з моменту події. Розгляд — до 14 робочих днів. Повернення на ту саму карту, з якої здійснювався платіж.
+        Запит на повернення подається на email <ProtectedEmail user="nazar" domain="balabony.com" /> протягом 14 днів з моменту події. Розгляд — до 14 робочих днів. Повернення на ту саму карту, з якої здійснювався платіж.
       </p>
       <p>
         <strong>Не повертаються кошти за:</strong> вже використаний період підписки, оплачену річну підписку поза випадками п. 7.
@@ -115,7 +116,7 @@ export default function OfferPage() {
         ЄДРПОУ / ІПН: <span className="placeholder">[ЗАПОВНИТИ]</span><br/>
         Юридична адреса: <span className="placeholder">[ЗАПОВНИТИ]</span><br/>
         IBAN: <span className="placeholder">[ЗАПОВНИТИ]</span><br/>
-        Email: <a href="mailto:nazar@balabony.com">nazar@balabony.com</a>
+        Email: <ProtectedEmail user="nazar" domain="balabony.com" />
       </p>
     </>
   )

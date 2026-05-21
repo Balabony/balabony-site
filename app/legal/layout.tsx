@@ -1,3 +1,4 @@
+import ProtectedEmail from '@/app/components/ProtectedEmail'
 import Link from 'next/link'
 
 export default function LegalLayout({ children }: { children: React.ReactNode }) {
@@ -23,7 +24,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
         </div>
 
         <p className="legal-footer-note">
-          Усі документи редаговано: травень 2026. © 2026 Balabony®. Питання — <a href="mailto:nazar@balabony.com">nazar@balabony.com</a>
+          Усі документи редаговано: травень 2026. © 2026 Balabony®. Питання — <ProtectedEmail user="nazar" domain="balabony.com" />
         </p>
       </div>
 

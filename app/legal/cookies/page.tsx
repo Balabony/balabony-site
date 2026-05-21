@@ -1,3 +1,4 @@
+import ProtectedEmail from '@/app/components/ProtectedEmail'
 export const metadata = {
   title: 'Політика Cookies — Balabony',
   description: 'Як Balabony використовує файли cookie та локальне сховище.',
@@ -67,7 +68,7 @@ export default function CookiesPage() {
 
       <h2>6. Контакти</h2>
       <p>
-        Питання щодо cookies — пишіть на <a href="mailto:nazar@balabony.com">nazar@balabony.com</a>.
+        Питання щодо cookies — пишіть на <ProtectedEmail user="nazar" domain="balabony.com" />.
       </p>
     </>
   )

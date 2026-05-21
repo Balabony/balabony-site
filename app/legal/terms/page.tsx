@@ -1,3 +1,4 @@
+import ProtectedEmail from '@/app/components/ProtectedEmail'
 export const metadata = {
   title: 'Угода користувача — Balabony',
   description: 'Умови використання платформи Balabony.',
@@ -104,7 +105,7 @@ export default function TermsPage() {
 
       <h2>10. Розірвання Угоди</h2>
       <p>
-        Ви можете припинити користуватися сервісом у будь-який момент, видаливши обліковий запис у налаштуваннях або написавши на <a href="mailto:nazar@balabony.com">nazar@balabony.com</a>.
+        Ви можете припинити користуватися сервісом у будь-який момент, видаливши обліковий запис у налаштуваннях або написавши на <ProtectedEmail user="nazar" domain="balabony.com" />.
       </p>
       <p>
         Ми можемо припинити надання послуг у разі порушення вами цієї Угоди.
@@ -117,7 +118,7 @@ export default function TermsPage() {
 
       <h2>12. Зв&apos;язок</h2>
       <p>
-        Питання щодо Угоди — <a href="mailto:nazar@balabony.com">nazar@balabony.com</a>
+        Питання щодо Угоди — <ProtectedEmail user="nazar" domain="balabony.com" />
       </p>
     </>
   )
