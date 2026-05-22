@@ -121,7 +121,7 @@ export default function GiftPage() {
             const selected = giftType === t
             return (
               <div
-                key={t} type="button" onClick={() => setGiftType(t)}
+                key={t} onClick={() => setGiftType(t)}
                 style={{
                   background: selected ? 'rgba(240,165,0,0.08)' : '#0f1e3a',
                   border: selected ? '2px solid #f0a500' : '1px solid rgba(200,212,232,0.15)',
