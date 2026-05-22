@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -74,7 +74,7 @@ export default function BalabonyHomeBlock() {
 
 function NewEpisodeCard({ episode }: { episode: BalabonyEpisode }) {
   return (
-    <Link href={`/series/${episode.slug}`} className="bb-card bb-card-featured">
+    <Link href={`/episodes/${episode.slug}`} className="bb-card bb-card-featured">
       <div className="bb-cover">
         {episode.cover_url ? (
           <img src={episode.cover_url} alt={episode.title} className="bb-cover-img" />
