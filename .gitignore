@@ -67,3 +67,9 @@ strip-*.ps1
 
 # Session backups
 *.backup-*
+
+# Session bak files with date suffix
+*.bak-*
+
+# QUICK_START session notes (local only)
+QUICK_START_*.md
