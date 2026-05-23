@@ -5,25 +5,26 @@ import AnalyticsTracker from './components/AnalyticsTracker'
 import ServiceWorkerRegistration from './components/ServiceWorkerRegistration'
 
 export const metadata: Metadata = {
-  title: 'Balabony® — Українські аудіоісторії для дітей і дорослих',
-  description: 'Balabony — платформа українських аудіоісторій. Слухайте серіали та окремі твори від авторів з усієї України. Перші 3 серії безкоштовно.',
-  keywords: ['аудіоісторії', 'аудіоказки', 'українські казки', 'балабони', 'слухати українською'],
+  metadataBase: new URL('https://balabony.com'),
+  title: 'Balabony® — українські історії для всієї родини',
+  description: 'Платформа українських історій для всієї родини. Читай безкоштовно одну серію.',
+  keywords: ['українські історії', 'історії для дітей', 'балабони', 'український контент', 'читати українською'],
   authors: [{ name: 'Balabony®' }],
   robots: 'index, follow',
-  alternates: { canonical: 'https://balabony.com/' },
+  alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
     url: 'https://balabony.com/',
-    title: 'Balabony® — Українські аудіоісторії',
-    description: 'Слухайте українські аудіоісторії онлайн і офлайн. Серіали, казки, оповідання. Перші 3 серії — безкоштовно.',
+    title: 'Balabony® — українські історії для всієї родини',
+    description: 'Платформа українських історій для всієї родини. Читай безкоштовно одну серію.',
     images: [{ url: 'https://balabony.com/og-image.jpg', width: 1200, height: 630 }],
     locale: 'uk_UA',
     siteName: 'Balabony®',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Balabony® — Українські аудіоісторії',
-    description: 'Слухайте українські аудіоісторії онлайн і офлайн.',
+    title: 'Balabony® — українські історії для всієї родини',
+    description: 'Платформа українських історій для всієї родини. Читай безкоштовно одну серію.',
     images: ['https://balabony.com/og-image.jpg'],
   },
   icons: {

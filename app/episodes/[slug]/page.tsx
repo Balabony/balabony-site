@@ -48,6 +48,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title:  episode.title,
       images: episode.cover_url ? [episode.cover_url] : [],
     },
+    alternates: { canonical: `/episodes/${slug}` },
   }
 }
 

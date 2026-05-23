@@ -1,4 +1,4 @@
-﻿import { notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
 
@@ -45,6 +45,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title:  story.title,
       images: story.cover_url ? [story.cover_url] : [],
     },
+    alternates: { canonical: `/stories/${id}` },
   }
 }
 
