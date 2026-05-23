@@ -33,6 +33,13 @@ function buildPreview(fullText: string, sentenceCount = 3): string {
   return sentences.slice(0, sentenceCount).join(' ')
 }
 
+// Estimate reading time in minutes. Ukrainian prose ~ 200 words/min.
+function estimateReadingMinutes(text: string): number {
+  if (!text) return 0
+  const words = text.trim().split(/\s+/).filter(Boolean).length
+  return Math.max(1, Math.round(words / 200))
+}
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
@@ -54,7 +61,7 @@ export async function GET(req: Request) {
     const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
       .from('content')
-      .select('title, corrected_text, is_free, season_number, episode_number')
+      .select('title, corrected_text, is_free, season_number, episode_number, duration_minutes')
       .eq('type', 'balabony')
       .eq('status', 'published')
       .eq('season_number', season)
@@ -66,16 +73,18 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'episode not found' }, { status: 404 })
     }
 
-    // Compute global episode index (1..80) to compare with freeEpisode from client
-    const globalIndex = (season - 1) * 20 + episode
+    // episode comes already as global index (1..80)
+    const globalIndex = episode
     const isUnlocked = data.is_free === true || globalIndex === freeEpisode
 
     const fullText = data.corrected_text ?? ''
+    const readingMinutes = estimateReadingMinutes(fullText)
     if (isUnlocked) {
       return NextResponse.json({
         title: data.title,
         content: fullText,
         locked: false,
+        duration_minutes: readingMinutes,
       })
     }
 
@@ -84,6 +93,7 @@ export async function GET(req: Request) {
       title: data.title,
       content: preview,
       locked: true,
+      duration_minutes: readingMinutes,
     })
   } catch (err: any) {
     return NextResponse.json(

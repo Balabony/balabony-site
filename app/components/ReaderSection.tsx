@@ -16,13 +16,15 @@ type EpisodeData = {
   title: string
   content: string
   locked: boolean
+  duration_minutes: number | null
 }
 
 type Theme = 'dark' | 'light' | 'amber'
+type FontStyle = 'serif' | 'sans' | 'dyslexic'
 
 export default function ReaderSection() {
   const [fontSize, setFontSize] = useState(24)
-  const [isSerif, setIsSerif] = useState(true)
+  const [fontStyle, setFontStyle] = useState<FontStyle>('serif')
   const [zenMode, setZenMode] = useState(false)
   const [currentSeason, setCurrentSeason] = useState(1)
   const [currentEp, setCurrentEp] = useState(1)
@@ -97,9 +99,10 @@ export default function ReaderSection() {
   // Fetch episode whenever ep/season/free changes
   useEffect(() => {
     if (!mounted) return
+    const globalEp = (currentSeason - 1) * EPISODES_PER_SEASON + currentEp
     const params = new URLSearchParams({
       season: String(currentSeason),
-      episode: String(currentEp),
+      episode: String(globalEp),
     })
     if (freeEpisode !== null) params.set('free', String(freeEpisode))
 
@@ -215,6 +218,82 @@ export default function ReaderSection() {
     setTheme(t => (t === 'dark' ? 'light' : t === 'light' ? 'amber' : 'dark'))
   }
 
+  // Quote selection + share
+  const [selectedQuote, setSelectedQuote] = useState<string>('')
+  const [quoteBoxPos, setQuoteBoxPos] = useState<{ top: number; left: number } | null>(null)
+
+  useEffect(() => {
+    if (!mounted) return
+    const onSelChange = () => {
+      const sel = window.getSelection()
+      if (!sel || sel.isCollapsed) {
+        setSelectedQuote('')
+        setQuoteBoxPos(null)
+        return
+      }
+      const text = sel.toString().trim()
+      // Only react when selection is inside the content area
+      const container = contentRef.current
+      if (!container || text.length < 10) {
+        setSelectedQuote('')
+        setQuoteBoxPos(null)
+        return
+      }
+      const range = sel.getRangeAt(0)
+      const node = range.commonAncestorContainer
+      const inside = container.contains(node.nodeType === 1 ? (node as Element) : node.parentElement)
+      if (!inside) {
+        setSelectedQuote('')
+        setQuoteBoxPos(null)
+        return
+      }
+      const rect = range.getBoundingClientRect()
+      setSelectedQuote(text)
+      setQuoteBoxPos({
+        top: rect.top + window.scrollY - 48,
+        left: rect.left + window.scrollX + rect.width / 2,
+      })
+    }
+    document.addEventListener('selectionchange', onSelChange)
+    return () => document.removeEventListener('selectionchange', onSelChange)
+  }, [mounted])
+
+  const shareQuote = async () => {
+    if (!selectedQuote || !episodeData) return
+    const url = typeof window !== 'undefined' ? window.location.origin : ''
+    const text = `«${selectedQuote}»\n\n— ${episodeData.title}, Балабони, серія ${globalCurrentEp}\n${url}`
+    try {
+      if (navigator.share) {
+        await navigator.share({ text, url })
+      } else {
+        await navigator.clipboard.writeText(text)
+        alert('Цитату скопійовано в буфер обміну')
+      }
+    } catch {
+      // user cancelled or error
+    }
+    setSelectedQuote('')
+    setQuoteBoxPos(null)
+    window.getSelection()?.removeAllRanges()
+  }
+
+  const cycleFontStyle = () => {
+    setFontStyle(f => (f === 'serif' ? 'sans' : f === 'sans' ? 'dyslexic' : 'serif'))
+  }
+
+  const getFontFamily = () => {
+    if (fontStyle === 'serif') return "'Lora', serif"
+    if (fontStyle === 'sans') return "'Montserrat', sans-serif"
+    return "'OpenDyslexic', 'Comic Sans MS', sans-serif"
+  }
+
+  const fontStyleLabel =
+    fontStyle === 'serif'
+      ? 'З зарубками (Книжковий)'
+      : fontStyle === 'sans'
+      ? 'Без зарубок (Сучасний)'
+      : 'Для дислексії'
+
   const isLocked = episodeData?.locked === true
   const isBookmarked = bookmarks.has(globalCurrentEp)
   const readCount = readEpisodes.size
@@ -244,11 +323,46 @@ export default function ReaderSection() {
   return (
     <section id="reader" style={{ marginBottom: 56 }}>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Open+Dyslexic:wght@400;700&display=swap');
         #reader button:focus-visible {
           outline: 2px solid var(--accent-gold);
           outline-offset: 2px;
         }
+        .balabony-quote-fab {
+          position: absolute;
+          transform: translate(-50%, -100%);
+          background: var(--dark, #0f172a);
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          padding: 8px 14px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          z-index: 50;
+          box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+          font-family: 'Montserrat', sans-serif;
+        }
+        .balabony-quote-fab::after {
+          content: '';
+          position: absolute;
+          left: 50%; bottom: -6px;
+          transform: translateX(-50%);
+          border: 6px solid transparent;
+          border-top-color: var(--dark, #0f172a);
+          border-bottom: 0;
+        }
       `}</style>
+      {selectedQuote && quoteBoxPos && (
+        <button
+          className="balabony-quote-fab"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={shareQuote}
+          style={{ top: quoteBoxPos.top, left: quoteBoxPos.left }}
+        >
+          ❝ Поділитись цитатою
+        </button>
+      )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
         <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <svg width="30" height="30" viewBox="0 0 56 56" fill="none">
@@ -280,13 +394,13 @@ export default function ReaderSection() {
               fontSize: 16, fontWeight: 600, fontFamily: "'Montserrat', sans-serif", minHeight: 44
             }}>{b.label}</button>
           ))}
-          <button onClick={() => setIsSerif(s => !s)} style={{
+          <button onClick={cycleFontStyle} style={{
             padding: '10px 16px', border: '1px solid var(--border)', borderRadius: 8,
-            cursor: 'pointer', background: isSerif ? 'var(--dark)' : 'transparent',
-            color: isSerif ? '#fff' : 'var(--text)', fontSize: 14, fontWeight: 600,
+            cursor: 'pointer', background: fontStyle !== 'sans' ? 'var(--dark)' : 'transparent',
+            color: fontStyle !== 'sans' ? '#fff' : 'var(--text)', fontSize: 14, fontWeight: 600,
             fontFamily: "'Montserrat', sans-serif", minHeight: 44
           }}>
-            {isSerif ? 'З зарубками (Книжковий)' : 'Без зарубок (Сучасний)'}
+            {fontStyleLabel}
           </button>
           <button onClick={cycleTheme} aria-label="Тема" title="Змінити тему" style={{
             padding: '10px 14px', border: '1px solid var(--border)', borderRadius: 8,
@@ -329,6 +443,12 @@ export default function ReaderSection() {
               ? `Серія ${globalCurrentEp}: ${episodeData.title}`
               : `Серія ${globalCurrentEp}`}
           </div>
+          {episodeData?.duration_minutes ? (
+            <div style={{ fontSize: 15, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500 }}>
+              <span aria-hidden="true" style={{ fontSize: 16 }}>⏱</span>
+              <span>~{episodeData.duration_minutes} хв читання</span>
+            </div>
+          ) : null}
         </div>
 
         {/* Season tabs */}
@@ -420,7 +540,7 @@ export default function ReaderSection() {
             padding: isLocked && !loading ? '20px 28px 12px' : '20px 28px 28px',
             fontSize: fontSize,
             lineHeight: 2.0,
-            fontFamily: isSerif ? "'Lora', serif" : "'Montserrat', sans-serif",
+            fontFamily: getFontFamily(),
             minHeight: 200
           }}>
             {loading && (
