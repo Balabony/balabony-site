@@ -1,7 +1,8 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { useTheme } from '../context/ThemeContext'
+import AuthMenu from './AuthMenu'
 
 const FONT_SIZES = [
   { label: 'A',   value: '16px', title: 'Стандартний' },
@@ -95,9 +96,16 @@ export default function Header() {
           >DE</a>
         </div>
 
+        {/* Auth menu */}
+
+
+        <AuthMenu />
+
+
+
         {/* Eye Care */}
         <button
-          className="baly-eye"
+          className="baly-eye baly-eye-hide-mobile"
           onClick={() => setEyeCare(e => !e)}
           title="Режим захисту зору"
           style={{
@@ -147,3 +155,5 @@ export default function Header() {
     </>
   )
 }
+
+

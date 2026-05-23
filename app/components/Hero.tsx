@@ -1,4 +1,4 @@
-export default function Hero() {
+﻿export default function Hero() {
   const navItems = [
     { label: 'ІСТОРІЇ', href: '/stories' },
     { label: 'СЕРІЇ', href: '/series' },
@@ -54,8 +54,8 @@ export default function Hero() {
             style={{
               display: 'flex',
               justifyContent: 'center',
-              gap: 18,
-              flexWrap: 'wrap',
+              gap: 10,
+              flexWrap: 'nowrap',
               marginBottom: 28,
             }}
           >
@@ -159,3 +159,4 @@ export default function Hero() {
     </>
   )
 }
+
