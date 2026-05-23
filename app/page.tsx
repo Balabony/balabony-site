@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -83,9 +83,7 @@ export default function HomePage() {
 
         <div id="pricing" style={{ display: 'block', scrollMarginTop: '80px' }}>
           <PricingSection />
-        </div>
-        <div id="longevity-club"><LongevityClubSection /></div>
-        <div id="fairytales"><FairytalesSection /></div>
+        </div>        <div id="fairytales"><FairytalesSection /></div>
 
         {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
         {/* ІНКЛЮЗИВНІСТЬ                                                  */}
@@ -105,3 +103,4 @@ export default function HomePage() {
     </ThemeProvider>
   )
 }
+

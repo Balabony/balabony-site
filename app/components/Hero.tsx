@@ -2,7 +2,7 @@
   const navItems = [
     { label: 'ІСТОРІЇ', href: '/stories' },
     { label: 'СЕРІЇ', href: '/series' },
-    { label: 'ІГРИ', href: '#games' },
+    { label: 'ІГРИ', href: '/games' },
     { label: 'КАЗКИ', href: '/stories?genre=fairytale' },
   ]
 
@@ -159,4 +159,5 @@
     </>
   )
 }
+
 
