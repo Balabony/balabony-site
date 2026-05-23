@@ -1,25 +1,254 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
-const PARAGRAPHS = [
-  { id: 'p1', text: 'Дід Панас повільно відкрив свій синій блокнот. Папір зашурхотів, наче листя під ногами в осінньому лісі. Тут панував спокій. Текст на цій сторінці ніколи не рухається сам — він чекає на ваші очі.' },
-  { id: 'p2', text: 'Баба Ганя принесла духмяний чай. «Ти знову в своїх думках?» — усміхнулася вона. Дід мовчав, бо знав: найкращі історії народжуються в тиші.' },
-  { id: 'p3', text: 'Але Панас не відповідав. Він дивився на зашифрований запис, який зробив ще тридцять років тому, коли над селом пролетіла таємнича вогняна куля.' },
-  { id: 'p4', text: '«Ганю,» — нарешті промовив він тихо, — «здається, я знайшов відповідь. Все було у цьому блокноті весь цей час...»' },
-]
+const SEASONS = [1, 2, 3, 4]
+const EPISODES_PER_SEASON = 20
+const TOTAL_EPISODES = SEASONS.length * EPISODES_PER_SEASON
 
-const EPISODES = Array.from({ length: 20 }, (_, i) => i + 1)
-const FREE_EPISODES = [1, 2, 3]
+const STORAGE_KEY_FREE = 'balabony-free-episode'
+const STORAGE_KEY_BOOKMARKS = 'balabony-bookmarks'
+const STORAGE_KEY_PROGRESS = 'balabony-progress'
+const STORAGE_KEY_READ = 'balabony-read'
+const STORAGE_KEY_THEME = 'balabony-theme'
+
+type EpisodeData = {
+  title: string
+  content: string
+  locked: boolean
+}
+
+type Theme = 'dark' | 'light' | 'amber'
 
 export default function ReaderSection() {
   const [fontSize, setFontSize] = useState(24)
   const [isSerif, setIsSerif] = useState(true)
   const [zenMode, setZenMode] = useState(false)
+  const [currentSeason, setCurrentSeason] = useState(1)
   const [currentEp, setCurrentEp] = useState(1)
+  const [freeEpisode, setFreeEpisode] = useState<number | null>(null)
+  const [episodeData, setEpisodeData] = useState<EpisodeData | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+  const [bookmarks, setBookmarks] = useState<Set<number>>(new Set())
+  const [readEpisodes, setReadEpisodes] = useState<Set<number>>(new Set())
+  const [theme, setTheme] = useState<Theme>('dark')
+
+  const readerRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const scrollRestoredRef = useRef(false)
+
+  // Load all persisted state on mount
+  useEffect(() => {
+    setMounted(true)
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_FREE)
+      if (saved) {
+        const num = parseInt(saved, 10)
+        if (!isNaN(num)) setFreeEpisode(num)
+      }
+      const bks = localStorage.getItem(STORAGE_KEY_BOOKMARKS)
+      if (bks) {
+        const parsed = JSON.parse(bks)
+        if (Array.isArray(parsed)) setBookmarks(new Set(parsed.filter((n: unknown) => typeof n === 'number')))
+      }
+      const reads = localStorage.getItem(STORAGE_KEY_READ)
+      if (reads) {
+        const parsed = JSON.parse(reads)
+        if (Array.isArray(parsed)) setReadEpisodes(new Set(parsed.filter((n: unknown) => typeof n === 'number')))
+      }
+      const th = localStorage.getItem(STORAGE_KEY_THEME)
+      if (th === 'dark' || th === 'light' || th === 'amber') setTheme(th)
+    } catch {
+      // ignore localStorage errors
+    }
+  }, [])
+
+  // Apply theme by toggling body class
+  useEffect(() => {
+    if (!mounted) return
+    const body = document.body
+    body.classList.remove('dark-mode', 'amber-mode')
+    if (theme === 'dark') body.classList.add('dark-mode')
+    if (theme === 'amber') body.classList.add('amber-mode')
+    try {
+      localStorage.setItem(STORAGE_KEY_THEME, theme)
+    } catch {}
+  }, [theme, mounted])
+
+  // Track native fullscreen state
+  useEffect(() => {
+    const onFsChange = () => setZenMode(Boolean(document.fullscreenElement))
+    document.addEventListener('fullscreenchange', onFsChange)
+    return () => document.removeEventListener('fullscreenchange', onFsChange)
+  }, [])
+
+  const toggleZen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        if (readerRef.current?.requestFullscreen) await readerRef.current.requestFullscreen()
+      } else {
+        if (document.exitFullscreen) await document.exitFullscreen()
+      }
+    } catch {}
+  }
+
+  // Fetch episode whenever ep/season/free changes
+  useEffect(() => {
+    if (!mounted) return
+    const params = new URLSearchParams({
+      season: String(currentSeason),
+      episode: String(currentEp),
+    })
+    if (freeEpisode !== null) params.set('free', String(freeEpisode))
+
+    setLoading(true)
+    setError(null)
+    scrollRestoredRef.current = false
+    fetch(`/api/episode?${params.toString()}`)
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.json()
+      })
+      .then((data: EpisodeData) => {
+        setEpisodeData(data)
+        setLoading(false)
+      })
+      .catch(e => {
+        setError(e?.message ?? 'Failed to load episode')
+        setLoading(false)
+      })
+  }, [currentSeason, currentEp, freeEpisode, mounted])
+
+  // Restore scroll position after content renders
+  const globalCurrentEp = (currentSeason - 1) * EPISODES_PER_SEASON + currentEp
+  useEffect(() => {
+    if (loading || !episodeData || !contentRef.current || scrollRestoredRef.current) return
+    try {
+      const map = JSON.parse(localStorage.getItem(STORAGE_KEY_PROGRESS) || '{}')
+      const y = map[globalCurrentEp]
+      if (typeof y === 'number' && y > 0 && contentRef.current) {
+        // Scroll to absolute Y position within the content area
+        const rect = contentRef.current.getBoundingClientRect()
+        const absoluteTop = window.scrollY + rect.top
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        window.scrollTo({
+          top: absoluteTop + y,
+          behavior: prefersReduced ? 'auto' : 'smooth',
+        })
+      }
+    } catch {}
+    scrollRestoredRef.current = true
+  }, [loading, episodeData, globalCurrentEp])
+
+  // Save scroll progress while reading (relative to content top), and mark read
+  useEffect(() => {
+    if (!mounted) return
+    let timeout: ReturnType<typeof setTimeout> | null = null
+    const onScroll = () => {
+      if (timeout) clearTimeout(timeout)
+      timeout = setTimeout(() => {
+        const el = contentRef.current
+        if (!el) return
+        const rect = el.getBoundingClientRect()
+        const contentTop = window.scrollY + rect.top
+        const relative = Math.max(0, window.scrollY - contentTop)
+        const contentHeight = el.offsetHeight
+        try {
+          const map = JSON.parse(localStorage.getItem(STORAGE_KEY_PROGRESS) || '{}')
+          map[globalCurrentEp] = relative
+          localStorage.setItem(STORAGE_KEY_PROGRESS, JSON.stringify(map))
+          if (contentHeight > 0 && relative / contentHeight > 0.7) {
+            setReadEpisodes(prev => {
+              if (prev.has(globalCurrentEp)) return prev
+              const next = new Set(prev)
+              next.add(globalCurrentEp)
+              try {
+                localStorage.setItem(STORAGE_KEY_READ, JSON.stringify(Array.from(next)))
+              } catch {}
+              return next
+            })
+          }
+        } catch {}
+      }, 200)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (timeout) clearTimeout(timeout)
+    }
+  }, [globalCurrentEp, mounted])
+
+  // Handle episode pick: set + lock as free if not yet chosen
+  const handlePickEpisode = (ep: number) => {
+    const globalEp = (currentSeason - 1) * EPISODES_PER_SEASON + ep
+    setCurrentEp(ep)
+    if (freeEpisode === null) {
+      localStorage.setItem(STORAGE_KEY_FREE, String(globalEp))
+      setFreeEpisode(globalEp)
+    }
+  }
+
+  const toggleBookmark = (globalEp: number) => {
+    setBookmarks(prev => {
+      const next = new Set(prev)
+      if (next.has(globalEp)) next.delete(globalEp)
+      else next.add(globalEp)
+      try {
+        localStorage.setItem(STORAGE_KEY_BOOKMARKS, JSON.stringify(Array.from(next)))
+      } catch {}
+      return next
+    })
+  }
+
+  const goToNextEpisode = () => {
+    if (globalCurrentEp >= TOTAL_EPISODES) return
+    const nextGlobal = globalCurrentEp + 1
+    const nextSeason = Math.ceil(nextGlobal / EPISODES_PER_SEASON)
+    const nextEp = ((nextGlobal - 1) % EPISODES_PER_SEASON) + 1
+    setCurrentSeason(nextSeason)
+    setCurrentEp(nextEp)
+  }
+
+  const cycleTheme = () => {
+    setTheme(t => (t === 'dark' ? 'light' : t === 'light' ? 'amber' : 'dark'))
+  }
+
+  const isLocked = episodeData?.locked === true
+  const isBookmarked = bookmarks.has(globalCurrentEp)
+  const readCount = readEpisodes.size
+
+  const scrollToPricing = () => {
+    const el = document.getElementById('pricing')
+    if (!el) return
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    el.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth' })
+  }
+
+  // Split content into paragraphs
+  const paragraphs = (episodeData?.content ?? '')
+    .split(/\n\n+/)
+    .map(p => p.trim())
+    .filter(Boolean)
+  const finalParagraphs =
+    paragraphs.length > 1
+      ? paragraphs
+      : (episodeData?.content ?? '')
+          .split(/\n+/)
+          .map(p => p.trim())
+          .filter(Boolean)
+
+  const themeLabel = theme === 'dark' ? 'Темна' : theme === 'light' ? 'Світла' : 'Сепія'
 
   return (
     <section id="reader" style={{ marginBottom: 56 }}>
+      <style>{`
+        #reader button:focus-visible {
+          outline: 2px solid var(--accent-gold);
+          outline-offset: 2px;
+        }
+      `}</style>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
         <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <svg width="30" height="30" viewBox="0 0 56 56" fill="none">
@@ -27,18 +256,23 @@ export default function ReaderSection() {
             <line x1="28" y1="22" x2="28" y2="41" stroke="#f5a623" strokeWidth="1.5" strokeDasharray="3,2.5"/>
           </svg>
         </div>
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: "'Montserrat', Arial, sans-serif" }}>ЧИТАЙТЕ</div>
+          {mounted && (
+            <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
+              Прочитано: {readCount} з {TOTAL_EPISODES}
+            </div>
+          )}
         </div>
       </div>
 
-      <div style={{ background: 'var(--white)', border: '1.5px solid #f5a623', borderRadius: 20, overflow: 'hidden' }}>
+      <div ref={readerRef} style={{ background: 'var(--white)', border: '1.5px solid #f5a623', borderRadius: 20, overflow: 'hidden' }}>
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 24px', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600 }}>Шрифт:</span>
           {[
             { label: 'A+', action: () => setFontSize(s => Math.min(s + 2, 36)) },
-            { label: 'A−', action: () => setFontSize(s => Math.max(s - 2, 14)) },
+            { label: 'A-', action: () => setFontSize(s => Math.max(s - 2, 14)) },
           ].map(b => (
             <button key={b.label} onClick={b.action} style={{
               padding: '10px 16px', border: '1px solid var(--border)', borderRadius: 8,
@@ -54,61 +288,125 @@ export default function ReaderSection() {
           }}>
             {isSerif ? 'З зарубками (Книжковий)' : 'Без зарубок (Сучасний)'}
           </button>
-          <button onClick={() => setZenMode(z => !z)} aria-label="Zen-режим" style={{
+          <button onClick={cycleTheme} aria-label="Тема" title="Змінити тему" style={{
+            padding: '10px 14px', border: '1px solid var(--border)', borderRadius: 8,
+            cursor: 'pointer', background: 'transparent', color: 'var(--text)',
+            fontSize: 13, fontWeight: 600, fontFamily: "'Montserrat', sans-serif", minHeight: 44
+          }}>
+            {theme === 'dark' ? '🌙' : theme === 'light' ? '☀️' : '🟤'} {themeLabel}
+          </button>
+          <button onClick={toggleZen} aria-label="Zen-режим (повний екран)" style={{
             padding: '10px 16px', border: '1px solid var(--border)', borderRadius: 8,
             cursor: 'pointer', background: 'transparent', color: 'var(--text)', minHeight: 44
           }}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               {zenMode
-                ? <path d="M5 1v4H1M9 1v4h4M1 9h4v4M13 9H9v4" />
-                : <path d="M1 5V1h4M9 1h4v4M1 9v4h4M13 9v4H9" />}
+                ? <path d="M5 1v4H1 M1 9h4v4 M13 9v4h-4 M9 5V1h4" />
+                : <path d="M1 5V1h4 M9 1h4v4 M13 9v4h-4 M5 13H1v-4" />}
             </svg>
           </button>
-          <span style={{
-            marginLeft: 'auto', fontSize: 10, background: 'var(--accent-gold)', color: '#fff',
-            padding: '3px 10px', borderRadius: 20, fontWeight: 700
-          }}>Офлайн</span>
+          <button
+            onClick={() => toggleBookmark(globalCurrentEp)}
+            aria-label={isBookmarked ? 'Прибрати закладку' : 'Додати закладку'}
+            title={isBookmarked ? 'Прибрати закладку' : 'Додати закладку'}
+            style={{
+              padding: '10px 16px', border: '1px solid var(--border)', borderRadius: 8,
+              cursor: 'pointer',
+              background: isBookmarked ? 'var(--accent-gold)' : 'transparent',
+              color: isBookmarked ? '#fff' : 'var(--text)',
+              minHeight: 44, fontSize: 16
+            }}
+          >
+            {isBookmarked ? '✦' : '✧'}
+          </button>
+          <span style={{ marginLeft: 'auto', fontSize: 10, background: 'var(--accent-gold)', color: '#fff', padding: '3px 10px', borderRadius: 20, fontWeight: 700, opacity: 0.7 }}>Офлайн · скоро</span>
         </div>
 
-        {/* Story header */}
-        <div style={{
-          padding: '24px 28px 0',
-          background: 'linear-gradient(135deg, var(--bg-deep) 0%, #1e293b 50%, #0f172a 100%)',
-          position: 'relative', minHeight: 160, display: 'flex', alignItems: 'flex-end'
-        }}>
-          <div style={{ paddingBottom: 20 }}>
-            <h2 style={{ fontFamily: "'Lora', serif", fontSize: 20, fontWeight: 600, color: '#f8fafc', lineHeight: 1.3 }}>
-              Синій блокнот та таємниця Балабонів
-            </h2>
-            <span style={{
-              marginTop: 8, display: 'inline-block', fontSize: 10, fontWeight: 700,
-              background: 'var(--accent-gold)', color: '#fff', padding: '3px 10px', borderRadius: 20
-            }}>БЕЗКОШТОВНО</span>
+        {/* Story title */}
+        <div style={{ padding: '20px 28px 0', borderBottom: '1px solid var(--border)', paddingBottom: 16 }}>
+          <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 8 }}>
+            {episodeData?.title
+              ? `Серія ${globalCurrentEp}: ${episodeData.title}`
+              : `Серія ${globalCurrentEp}`}
           </div>
         </div>
 
-        {/* Episodes bar */}
-        <div style={{ padding: '16px 28px', background: '#f8fafc', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 12 }}>
-            Серії сезону <span style={{ color: 'var(--accent-gold)' }}>(1 Сезон = 20 Серій)</span>
+        {/* Season tabs */}
+        <div style={{ padding: '14px 24px 0', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {SEASONS.map(s => {
+            const isActive = s === currentSeason
+            return (
+              <button
+                key={s}
+                onClick={() => setCurrentSeason(s)}
+                style={{
+                  padding: '8px 14px', borderRadius: 8, minHeight: 36,
+                  border: `1.5px solid ${isActive ? 'var(--accent-gold)' : 'var(--border)'}`,
+                  background: isActive ? 'var(--accent-gold)' : 'transparent',
+                  color: isActive ? '#fff' : 'var(--text)',
+                  fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  fontFamily: "'Montserrat', sans-serif"
+                }}
+              >
+                Сезон {s}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Episodes grid */}
+        <div style={{ padding: '12px 24px 16px' }}>
+          <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 8, fontWeight: 600 }}>
+            Сезон {currentSeason}: 20 серій
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {EPISODES.map(ep => {
-              const isFree = FREE_EPISODES.includes(ep)
+            {Array.from({ length: EPISODES_PER_SEASON }, (_, i) => {
+              const ep = i + 1
+              const globalEp = (currentSeason - 1) * EPISODES_PER_SEASON + ep
               const isActive = ep === currentEp
+              const isFree = mounted && freeEpisode === globalEp
+              const isBkm = mounted && bookmarks.has(globalEp)
+              const isRead = mounted && readEpisodes.has(globalEp)
               return (
                 <button
                   key={ep}
-                  onClick={() => setCurrentEp(ep)}
+                  onClick={() => handlePickEpisode(ep)}
                   style={{
+                    position: 'relative',
                     padding: '8px 10px', borderRadius: 8, minWidth: 44, minHeight: 44,
                     border: `1.5px solid ${isActive ? 'var(--accent-gold)' : isFree ? 'var(--accent-gold)' : 'var(--border)'}`,
-                    background: isActive ? 'var(--accent-gold)' : isFree ? 'rgba(239,159,39,0.12)' : 'var(--white)',
-                    color: isActive ? '#fff' : isFree ? 'var(--accent-gold)' : 'var(--muted)',
+                    background: isActive ? 'var(--accent-gold)' : isFree ? 'rgba(239,159,39,0.12)' : isRead ? 'rgba(239,159,39,0.05)' : 'var(--white)',
+                    color: isActive ? '#fff' : isFree ? 'var(--accent-gold)' : isRead ? 'var(--text)' : 'var(--muted)',
                     fontSize: 12, fontWeight: 700, cursor: 'pointer',
                     fontFamily: "'Montserrat', sans-serif"
-                  }}>
-                  {isFree ? `${ep} ★` : ep}
+                  }}
+                  title={[
+                    isFree ? 'Безкоштовна' : null,
+                    isBkm ? 'Закладка' : null,
+                    isRead ? 'Прочитано' : null,
+                  ].filter(Boolean).join(' · ')}
+                >
+                  <span>{ep}</span>
+                  {isFree && <span style={{ marginLeft: 2 }}>★</span>}
+                  {isBkm && (
+                    <span style={{
+                      position: 'absolute',
+                      top: 2, right: 4,
+                      fontSize: 10,
+                      color: 'var(--accent-gold)',
+                      lineHeight: 1
+                    }}>✦</span>
+                  )}
+                  {isRead && !isActive && !isFree && (
+                    <span style={{
+                      position: 'absolute',
+                      bottom: 3, left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: 4, height: 4,
+                      borderRadius: '50%',
+                      background: 'var(--accent-gold)'
+                    }} />
+                  )}
                 </button>
               )
             })}
@@ -116,23 +414,128 @@ export default function ReaderSection() {
         </div>
 
         {/* Content */}
-        <div
-          style={{
-            padding: '20px 28px 28px',
+        <div>
+          <div ref={contentRef} style={{
+            position: 'relative',
+            padding: isLocked && !loading ? '20px 28px 12px' : '20px 28px 28px',
             fontSize: fontSize,
             lineHeight: 2.0,
-            fontFamily: isSerif ? "'Lora', serif" : "'Montserrat', sans-serif"
-          }}
-        >
-          {PARAGRAPHS.map(p => (
-            <p
-              key={p.id}
-              id={p.id}
-              style={{ marginBottom: 18 }}
-            >
-              {p.text}
-            </p>
-          ))}
+            fontFamily: isSerif ? "'Lora', serif" : "'Montserrat', sans-serif",
+            minHeight: 200
+          }}>
+            {loading && (
+              <p style={{ color: 'var(--muted)', fontStyle: 'italic' }}>Завантаження…</p>
+            )}
+            {error && !loading && (
+              <p style={{ color: 'var(--muted)' }}>Не вдалося завантажити серію: {error}</p>
+            )}
+            {!loading && !error && finalParagraphs.map((p, idx) => {
+              const dialogueMatch = p.match(/^([А-ЯЇІЄҐ][а-яїієґА-ЯЇІЄҐ'-]*)\s*:\s*([\s\S]*)$/)
+              if (dialogueMatch) {
+                const speaker = dialogueMatch[1]
+                const rest = dialogueMatch[2]
+                const parts = rest.split(/(\([^)]*\))/g).filter(Boolean)
+                return (
+                  <p key={idx} style={{ marginBottom: 18 }}>
+                    <span style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>{speaker}:</span>{' '}
+                    {parts.map((part, i) =>
+                      part.startsWith('(') && part.endsWith(')') ? (
+                        <em key={i} style={{ color: 'var(--muted)', fontStyle: 'italic' }}>{part}</em>
+                      ) : (
+                        <span key={i}>{part}</span>
+                      )
+                    )}
+                  </p>
+                )
+              }
+              const parts = p.split(/(\([^)]*\))/g).filter(Boolean)
+              return (
+                <p key={idx} style={{ marginBottom: 18 }}>
+                  {parts.map((part, i) =>
+                    part.startsWith('(') && part.endsWith(')') ? (
+                      <em key={i} style={{ color: 'var(--muted)', fontStyle: 'italic' }}>{part}</em>
+                    ) : (
+                      <span key={i}>{part}</span>
+                    )
+                  )}
+                </p>
+              )
+            })}
+
+            {/* Next-episode button after content (only for unlocked / read) */}
+            {!loading && !error && !isLocked && globalCurrentEp < TOTAL_EPISODES && (
+              <div style={{ marginTop: 28, textAlign: 'center' }}>
+                <button
+                  onClick={goToNextEpisode}
+                  style={{
+                    padding: '12px 24px',
+                    background: 'var(--accent-gold)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 8,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontFamily: "'Montserrat', sans-serif"
+                  }}
+                >
+                  Далі: Серія {globalCurrentEp + 1} →
+                </button>
+              </div>
+            )}
+
+            {isLocked && !loading && (
+              <div style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 120,
+                background: 'linear-gradient(to bottom, transparent, var(--white))',
+                pointerEvents: 'none'
+              }} />
+            )}
+          </div>
+
+          {/* Paywall message */}
+          {isLocked && !loading && (
+            <div style={{
+              padding: '8px 28px 28px',
+              textAlign: 'center',
+              background: 'var(--white)'
+            }}>
+              <p style={{ fontSize: 15, color: 'var(--text)', marginBottom: 14, lineHeight: 1.5 }}>
+                {freeEpisode !== null ? (
+                  <>
+                    <span style={{ display: 'block', marginBottom: 6 }}>
+                      Твоя безкоштовна серія — <strong>Серія {freeEpisode}</strong>.
+                    </span>
+                    <span style={{ display: 'block' }}>
+                      Щоб читати <strong>Серію {globalCurrentEp}</strong>, обери пакет.
+                    </span>
+                  </>
+                ) : (
+                  <>Щоб читати <strong>Серію {globalCurrentEp}</strong>, обери пакет.</>
+                )}
+              </p>
+              <button
+                onClick={scrollToPricing}
+                style={{
+                  padding: '12px 24px',
+                  background: 'var(--accent-gold)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontSize: 15,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontFamily: "'Montserrat', sans-serif"
+                }}
+              >
+                Обрати пакет →
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </section>
