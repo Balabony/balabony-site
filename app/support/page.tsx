@@ -116,7 +116,14 @@ export default function SupportPage() {
       });
     }
   };
-
+// Google Ads conversion tracking — копіювання донат-реквізитів
+  const handleCopyConversion = () => {
+    if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+      (window as any).gtag('event', 'conversion', {
+        send_to: 'AW-16967022103/klXQCNbSx7IcEJfswJo_'
+      });
+    }
+  };
   const liveRegionRef = useRef<HTMLDivElement>(null);
 
   const activeAccount = ACCOUNTS.find(a => a.currency === activeCurrency)!;
@@ -572,8 +579,7 @@ Verwendungszweck: ${PURPOSE_EN}`,
           .sup-toolbar { padding: 12px 14px; }
           .sup-toolbar-inner { gap: 8px; }
           .sup-toolbar-group { flex-wrap: wrap; }
- .sup-hero h1 { font-size: calc(32px * var(--support-fs)); }
- .sup-hero h2, .sup-hero p,
+          .sup-hero h1, .sup-hero h2, .sup-hero p,
           .sup-section h2, .sup-section h3, .sup-section p, .sup-section li,
           .sup-intl h1, .sup-intl h2, .sup-intl h3, .sup-intl p, .sup-intl li {
             overflow-wrap: anywhere;
@@ -1005,6 +1011,7 @@ Verwendungszweck: ${PURPOSE_EN}`,
           fullDetails={fullDetailsByLang.ua}
           qrString={qrString}
           handleAmountClick={handleAmountClick}
+          handleCopyConversion={handleCopyConversion}
         />}
 
         {lang === 'en' && <EnglishAppeal
@@ -1013,6 +1020,7 @@ Verwendungszweck: ${PURPOSE_EN}`,
           copyToClipboard={copyToClipboard}
           fullDetails={fullDetailsByLang.en}
           qrString={qrString}
+          handleCopyConversion={handleCopyConversion}
         />}
 
         {lang === 'de' && <GermanAppeal
@@ -1021,6 +1029,7 @@ Verwendungszweck: ${PURPOSE_EN}`,
           copyToClipboard={copyToClipboard}
           fullDetails={fullDetailsByLang.de}
           qrString={qrString}
+          handleCopyConversion={handleCopyConversion}
         />}
 
         {copiedField && (
@@ -1039,7 +1048,7 @@ function UkrainianContent({
   copiedField, copyToClipboard,
   selectedAmount, setSelectedAmount,
   customAmount, setCustomAmount,
-  fullDetails, qrString, handleAmountClick,
+  fullDetails, qrString, handleAmountClick, handleCopyConversion,
 }: {
   activeCurrency: Currency;
   setActiveCurrency: (c: Currency) => void;
@@ -1053,6 +1062,7 @@ function UkrainianContent({
   fullDetails: string;
   qrString: string;
   handleAmountClick: (amount: number) => void;
+  handleCopyConversion: () => void;
 }) {
   const showAmount = selectedAmount || (customAmount ? parseFloat(customAmount) : null);
 
@@ -1117,7 +1127,7 @@ function UkrainianContent({
           </div>
 
           <button className={`sup-copy-all ${copiedField === 'all-ua' ? 'is-copied' : ''}`}
-                  onClick={() => copyToClipboard(fullDetails, 'all-ua')}>
+                  onClick={() => { handleCopyConversion(); copyToClipboard(fullDetails, 'all-ua'); }}>
             {copiedField === 'all-ua' ? '✓ Усі реквізити скопійовано!' : '📋 Копіювати всі реквізити одним блоком'}
           </button>
 
@@ -1232,12 +1242,13 @@ function UkrainianContent({
 }
 
 // ============================================================================
-function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails, qrString }: {
+function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails, qrString, handleCopyConversion }: {
   activeAccount: AccountInfo;
   copiedField: string | null;
   copyToClipboard: (text: string, key: string) => void;
   fullDetails: string;
   qrString: string;
+  handleCopyConversion: () => void;
 }) {
   return (
     <main id="sup-main" className="sup-container" style={{ paddingTop: 56 }}>
@@ -1287,7 +1298,7 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
         </div>
 
         <button className={`sup-copy-all ${copiedField === 'all-en' ? 'is-copied' : ''}`}
-                onClick={() => copyToClipboard(fullDetails, 'all-en')}
+                onClick={() => { handleCopyConversion(); copyToClipboard(fullDetails, 'all-en'); }}
                 style={{ marginTop: 16 }}>
           {copiedField === 'all-en' ? '✓ All details copied!' : '📋 Copy all bank details'}
         </button>
@@ -1337,12 +1348,13 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
 }
 
 // ============================================================================
-function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails, qrString }: {
+function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails, qrString, handleCopyConversion }: {
   activeAccount: AccountInfo;
   copiedField: string | null;
   copyToClipboard: (text: string, key: string) => void;
   fullDetails: string;
   qrString: string;
+  handleCopyConversion: () => void;
 }) {
   return (
     <main id="sup-main" className="sup-container" style={{ paddingTop: 56 }}>
@@ -1394,7 +1406,7 @@ function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails
         </div>
 
         <button className={`sup-copy-all ${copiedField === 'all-de' ? 'is-copied' : ''}`}
-                onClick={() => copyToClipboard(fullDetails, 'all-de')}
+                onClick={() => { handleCopyConversion(); copyToClipboard(fullDetails, 'all-de'); }}
                 style={{ marginTop: 16 }}>
           {copiedField === 'all-de' ? '✓ Alle Daten kopiert!' : '📋 Alle Bankdaten kopieren'}
         </button>
