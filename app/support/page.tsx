@@ -572,7 +572,8 @@ Verwendungszweck: ${PURPOSE_EN}`,
           .sup-toolbar { padding: 12px 14px; }
           .sup-toolbar-inner { gap: 8px; }
           .sup-toolbar-group { flex-wrap: wrap; }
-          .sup-hero h1, .sup-hero h2, .sup-hero p,
+ .sup-hero h1 { font-size: calc(32px * var(--support-fs)); }
+ .sup-hero h2, .sup-hero p,
           .sup-section h2, .sup-section h3, .sup-section p, .sup-section li,
           .sup-intl h1, .sup-intl h2, .sup-intl h3, .sup-intl p, .sup-intl li {
             overflow-wrap: anywhere;
