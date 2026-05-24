@@ -1060,18 +1060,7 @@ function UkrainianContent({
 
       <main id="sup-main" className="sup-container">
 
-        <div className="sup-warn" role="status">
-          <div className="sup-warn-icon" aria-hidden="true">🚧</div>
-          <div className="sup-warn-content">
-            <div className="sup-warn-title">Платформа на стадії активної розробки</div>
-            <p className="sup-warn-text">
-              balabony.com зараз перебуває у фазі програмування і вдосконалення. Можливі тимчасові
-              перебої з доступом до контенту, недостатня швидкість завантаження, незавершені функції.
-              Ми перепрошуємо за можливі незручності та працюємо над покращенням сервісу щодня.
-              Якщо ви знайшли помилку — напишіть нам на <strong>{CONTACT_EMAIL}</strong>.
-            </p>
-          </div>
-        </div>
+        
 
         <section className="sup-mission" aria-labelledby="mission-ua">
           <h2 id="mission-ua">На що підуть кошти</h2>
@@ -1238,18 +1227,7 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
   return (
     <main id="sup-main" className="sup-container" style={{ paddingTop: 56 }}>
 
-      <div className="sup-warn" role="status">
-        <div className="sup-warn-icon" aria-hidden="true">🚧</div>
-        <div className="sup-warn-content">
-          <div className="sup-warn-title">Platform under active development</div>
-          <p className="sup-warn-text">
-            balabony.com is currently in active programming and refinement phase. Temporary content
-            access issues, slower loading, or unfinished features are possible. We apologise for any
-            inconvenience and work to improve the service every day. If you find a bug, please email
-            <strong> {CONTACT_EMAIL}</strong>.
-          </p>
-        </div>
-      </div>
+      
 
       <section className="sup-intl" aria-labelledby="intl-en">
         <h2 id="intl-en">Support Ukrainian-Language Accessible Audio Content</h2>
@@ -1354,19 +1332,7 @@ function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails
   return (
     <main id="sup-main" className="sup-container" style={{ paddingTop: 56 }}>
 
-      <div className="sup-warn" role="status">
-        <div className="sup-warn-icon" aria-hidden="true">🚧</div>
-        <div className="sup-warn-content">
-          <div className="sup-warn-title">Plattform in aktiver Entwicklung</div>
-          <p className="sup-warn-text">
-            balabony.com befindet sich derzeit in der Phase aktiver Programmierung und Verbesserung.
-            Temporäre Inhalts-Zugriffsprobleme, langsamere Ladezeiten oder unfertige Funktionen sind
-            möglich. Wir entschuldigen uns für etwaige Unannehmlichkeiten und arbeiten täglich an
-            der Verbesserung. Wenn Sie einen Fehler finden, senden Sie bitte eine E-Mail an
-            <strong> {CONTACT_EMAIL}</strong>.
-          </p>
-        </div>
-      </div>
+      
 
       <section className="sup-intl" aria-labelledby="intl-de">
         <h2 id="intl-de">Unterstützung für ukrainischsprachige barrierefreie Audioinhalte</h2>
