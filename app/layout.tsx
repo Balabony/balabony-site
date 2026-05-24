@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import GoogleAnalytics from './components/GoogleAnalytics'
 import './globals.css'
 import UpdateBanner from './components/UpdateBanner'
 import AnalyticsTracker from './components/AnalyticsTracker'
@@ -58,6 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <UpdateBanner />
         <AnalyticsTracker />
+        <GoogleAnalytics />
         <ServiceWorkerRegistration />
       </body>
     </html>
