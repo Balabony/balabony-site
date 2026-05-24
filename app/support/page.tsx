@@ -104,6 +104,18 @@ export default function SupportPage() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState<string>('');
+  // Google Ads conversion tracking — на вибір суми донації
+  const handleAmountClick = (amount: number) => {
+    setSelectedAmount(amount);
+    setCustomAmount('');
+    if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+      (window as any).gtag('event', 'conversion', {
+        send_to: 'AW-16967022103/ZnRmCKPyh70aEJfswJo_',
+        value: amount,
+        currency: activeCurrency
+      });
+    }
+  };
 
   const liveRegionRef = useRef<HTMLDivElement>(null);
 
@@ -991,6 +1003,7 @@ Verwendungszweck: ${PURPOSE_EN}`,
           setCustomAmount={setCustomAmount}
           fullDetails={fullDetailsByLang.ua}
           qrString={qrString}
+          handleAmountClick={handleAmountClick}
         />}
 
         {lang === 'en' && <EnglishAppeal
@@ -1025,7 +1038,7 @@ function UkrainianContent({
   copiedField, copyToClipboard,
   selectedAmount, setSelectedAmount,
   customAmount, setCustomAmount,
-  fullDetails, qrString,
+  fullDetails, qrString, handleAmountClick,
 }: {
   activeCurrency: Currency;
   setActiveCurrency: (c: Currency) => void;
@@ -1038,6 +1051,7 @@ function UkrainianContent({
   setCustomAmount: (s: string) => void;
   fullDetails: string;
   qrString: string;
+  handleAmountClick: (amount: number) => void;
 }) {
   const showAmount = selectedAmount || (customAmount ? parseFloat(customAmount) : null);
 
@@ -1144,19 +1158,19 @@ function UkrainianContent({
 
             <div className="sup-amounts">
               <button className={`sup-amount ${selectedAmount === 100 ? 'is-selected' : ''}`}
-                      onClick={() => { setSelectedAmount(100); setCustomAmount(''); }}>
+                      onClick={() => handleAmountClick(100)}>
                 100 ₴<span className="sup-amount-note">символічна підтримка</span>
               </button>
               <button className={`sup-amount ${selectedAmount === 500 ? 'is-selected' : ''}`}
-                      onClick={() => { setSelectedAmount(500); setCustomAmount(''); }}>
+                      onClick={() => handleAmountClick(500)}>
                 500 ₴<span className="sup-amount-note">1 година роботи</span>
               </button>
               <button className={`sup-amount ${selectedAmount === 1500 ? 'is-selected' : ''}`}
-                      onClick={() => { setSelectedAmount(1500); setCustomAmount(''); }}>
+                      onClick={() => handleAmountClick(1500)}>
                 1 500 ₴<span className="sup-amount-note">пільговий доступ</span>
               </button>
               <button className={`sup-amount ${selectedAmount === 5000 ? 'is-selected' : ''}`}
-                      onClick={() => { setSelectedAmount(5000); setCustomAmount(''); }}>
+                      onClick={() => handleAmountClick(5000)}>
                 5 000 ₴<span className="sup-amount-note">розвиток платформи</span>
               </button>
             </div>
