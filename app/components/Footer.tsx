@@ -232,10 +232,10 @@ export default function Footer() {
           fontSize: 15, lineHeight: 1.7, color: 'rgba(255,255,255,0.85)',
           marginBottom: 12, fontFamily: "'Montserrat', sans-serif",
         }}>
-          Освітньо-літературна платформа <span style={{ color: '#f5a623', fontWeight: 600 }}>«Інституту громадянського суспільства»</span> (Львів, з 2005 року).
-          Ми відновлюємо грамотність і повертаємо дітям, постраждалим від війни, радість українського слова —
-          через літературу, аудіо та ШІ-тьюторинг. Безкоштовно — для дітей ВПО, ветеранських родин,
-          дітей з інвалідністю та дітей зі звільнених громад. Через спільні історії, живу мову й теплий гумор
+          Освітньо-літературна платформа <span style={{ color: '#f5a623', fontWeight: 600 }}>ЛОГО «Інститут громадянського суспільства»</span>.
+          Ми відновлюємо грамотність і повертаємо радість українського слова дітям, постраждалим від війни, —
+          через літературу, аудіо та ШІ-тьюторинг. Безкоштовно — для дітей ВПО, ветеранів (УБД) та їхніх родин,
+          людей з інвалідністю, дітей зі звільнених громад. Через спільні історії, живу мову й теплий гумор
           обʼєднуємо українців навколо рідної культури — щоб українці залишалися в Україні й будували її майбутнє.
         </p>
         <p style={{
@@ -243,11 +243,11 @@ export default function Footer() {
           margin: 0, fontStyle: 'italic',
           fontFamily: "'Montserrat', sans-serif",
         }}>
-          Educational and literary platform of the Institute of Civil Society (Lviv, since 2005).
+          Educational and literary platform LOGO &laquo;Institute of Civil Society&raquo;.
           We restore literacy and bring back the joy of the Ukrainian language to children affected by war —
-          through literature, audio and AI tutoring. Free of charge for IDP children, veterans&apos; families,
-          children with disabilities, and children from liberated communities. Through shared stories,
-          living language and warm humour we unite Ukrainians around their native culture —
+          through literature, audio and AI tutoring. Free of charge for IDP children, veterans (combat status)
+          and their families, people with disabilities, and children from liberated communities. Through shared
+          stories, living language and warm humour we unite Ukrainians around their native culture —
           so that Ukrainians stay in Ukraine and build its future.
         </p>
       </div>
