@@ -1,7 +1,5 @@
 'use client'
 
-import { useState } from 'react'
-
 const GOLD = '#EF9F27'
 const FONT = "'Montserrat', Arial, sans-serif"
 
@@ -57,17 +55,7 @@ const QUESTS: Quest[] = [
   { id: 'survey',  title: 'Пройди опитування', desc: '3 хвилини · одноразово',       reward: '+50', Icon: SurveyIcon },
 ]
 
-const REF_CODE = 'BALABONY-X7K2'
-
 export default function BonusSection() {
-  const [copied, setCopied] = useState(false)
-
-  const copy = async () => {
-    try { await navigator.clipboard.writeText(REF_CODE) } catch { /* ignore */ }
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
   return (
     <section className="bn-section">
 
@@ -88,11 +76,11 @@ export default function BonusSection() {
         <div className="bn-balance-row">
           <div>
             <div className="bn-balance-label">Твій баланс</div>
-            <div className="bn-balance-amount">120 <span className="bn-balance-unit">балів</span></div>
+            <div className="bn-balance-amount">— <span className="bn-balance-unit">балів</span></div>
           </div>
           <div className="bn-coin">Б</div>
         </div>
-        <div className="bn-balance-foot">50 балів = ~5 серій безкоштовно</div>
+        <div className="bn-balance-foot">Увійдіть, щоб бачити свій баланс і отримувати бонуси.</div>
       </div>
 
       <div className="bn-quests">
@@ -114,12 +102,10 @@ export default function BonusSection() {
       </div>
 
       <div className="bn-invite">
-        <div className="bn-invite-label">Твій реферальний код</div>
+        <div className="bn-invite-label">Реферальний код</div>
         <div className="bn-invite-row">
-          <div className="bn-invite-code">{REF_CODE}</div>
-          <button type="button" onClick={copy} className="bn-invite-btn">
-            {copied ? '✓ Скопійовано' : 'Копіювати'}
-          </button>
+          <div className="bn-invite-hint">Увійдіть, щоб отримати свій код</div>
+          <a href="/login" className="bn-invite-btn">Увійти</a>
         </div>
       </div>
 
@@ -324,21 +310,15 @@ export default function BonusSection() {
         }
         .bn-invite-row {
           display: flex;
-          gap: 8px;
+          gap: 12px;
           align-items: center;
           justify-content: center;
           flex-wrap: wrap;
         }
-        .bn-invite-code {
-          background: rgba(14,26,43,0.6);
-          color: ${GOLD};
-          border: 1px solid rgba(239,159,39,0.4);
-          border-radius: 8px;
-          padding: 10px 18px;
-          font-family: 'Lora', serif;
-          font-size: 18px;
-          font-weight: 800;
-          letter-spacing: 2px;
+        .bn-invite-hint {
+          color: #B5D4F4;
+          font-size: 14px;
+          font-family: ${FONT};
         }
         .bn-invite-btn {
           background: ${GOLD};
@@ -350,6 +330,8 @@ export default function BonusSection() {
           font-weight: 700;
           cursor: pointer;
           font-family: ${FONT};
+          text-decoration: none;
+          display: inline-block;
           transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
         .bn-invite-btn:hover {
