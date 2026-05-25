@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 
@@ -256,11 +256,14 @@ export default function Footer() {
         borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: 28, textAlign: 'center',
         fontSize: 14, color: 'rgba(255,255,255,0.6)', maxWidth: 1100, margin: '0 auto'
       }}>
-        <p>
-          © 2026 Balabony®. Історії українською. Усі права захищено згідно із законодавством України.<br />
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
-            Торговельна марка: заявка №m202607908 до Укрпатенту.<br />Авторське право: заявка №c202604211 до Укрпатенту.
-          </span>
+        <p style={{ marginBottom: 8 }}>
+          © 2026 Balabony®. Історії українською. Усі права захищено згідно із законодавством України.
+        </p>
+        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '4px 0 0 0' }}>
+          Торговельна марка: заявка №m202607908 до Укрпатенту.
+        </p>
+        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '4px 0 0 0' }}>
+          Авторське право: заявка №c202604211 до Укрпатенту.
         </p>
       </div>
 
