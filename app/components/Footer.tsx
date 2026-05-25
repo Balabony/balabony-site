@@ -49,7 +49,7 @@ const LEGAL_LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="footer-root" style={{ background: 'var(--dark)', color: '#94a3b8', padding: '32px 5% 30px', marginTop: 24 }}>
+    <footer className="footer-root" style={{ background: 'var(--dark)', color: '#94a3b8', padding: '32px 5% 100px', marginTop: 24 }}>
 
       <div style={{
         display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
