@@ -78,9 +78,34 @@ export default function Footer() {
         <div>
           <h4 style={{ color: '#FFFFFF', marginBottom: 16, fontSize: 18, fontWeight: 700 }}>Платформи</h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
-            {['Web (браузер)', 'iOS (Safari PWA)', 'Android (Chrome PWA)', 'Telegram-бот', 'Smart TV / Tablets'].map(item => (
-              <li key={item} style={{ marginBottom: 9 }}>
-                <a href="#" className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 16 }}>{item}</a>
+            {[
+              { label: 'Web (браузер)',       href: '/',     soon: false },
+              { label: 'iOS (Safari PWA)',    href: null,    soon: true  },
+              { label: 'Android (Chrome PWA)', href: null,   soon: true  },
+              { label: 'Telegram-бот',        href: null,    soon: true  },
+              { label: 'Smart TV / Tablets',  href: null,    soon: true  },
+            ].map(item => (
+              <li key={item.label} style={{ marginBottom: 9, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                {item.href ? (
+                  <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 16 }}>
+                    {item.label}
+                  </a>
+                ) : (
+                  <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: 16 }}>{item.label}</span>
+                )}
+                {item.soon && (
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, letterSpacing: '0.3px',
+                    padding: '2px 8px', borderRadius: 999,
+                    background: 'rgba(245,166,35,0.15)',
+                    color: '#f5a623',
+                    border: '1px solid rgba(245,166,35,0.35)',
+                    fontFamily: "'Montserrat', sans-serif",
+                    textTransform: 'uppercase',
+                  }}>
+                    Скоро
+                  </span>
+                )}
               </li>
             ))}
           </ul>
