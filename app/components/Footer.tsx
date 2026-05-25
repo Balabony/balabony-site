@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 
@@ -202,9 +202,8 @@ export default function Footer() {
           <h4 style={{ color: '#FFFFFF', marginBottom: 16, fontSize: 18, fontWeight: 700 }}>Навігація</h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {[
-              { label: 'Рідер', href: '/#reader' },
-              { label: 'Тарифи', href: '/#pricing' },
-              { label: 'Ігри', href: '/games' },
+              { label: 'Рідер', href: '#reader' },
+              { label: 'Тарифи', href: '#pricing' },
             ].map(item => (
               <li key={item.label} style={{ marginBottom: 9 }}>
                 <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 16 }}>{item.label}</a>
@@ -232,19 +231,29 @@ export default function Footer() {
           fontSize: 15, lineHeight: 1.7, color: 'rgba(255,255,255,0.85)',
           marginBottom: 12, fontFamily: "'Montserrat', sans-serif",
         }}>
-          Партнер: <span style={{ color: '#f5a623', fontWeight: 600 }}>ЛОГО «Інститут громадянського суспільства»</span>.
-          Допомагаємо інтегруватися в українську культуру, популяризуємо українську мову та памʼять,
-          обʼєднуємо усіх українців навколо спільних історій. Працюємо для того, щоб українці залишалися
-          в Україні й будували її майбутнє.
+          Балабони — освітня платформа{' '}
+          <a
+            href="https://lvivdim.com/pages/pro-nas"
+            target="_blank"
+            rel="noreferrer"
+            className="footer-link-inline"
+            style={{ color: '#f5a623', textDecoration: 'underline', fontWeight: 600 }}
+          >
+            ЛОГО «Інститут громадянського суспільства»
+          </a>{' '}
+          (Львів, з 2005 року). Ми відновлюємо грамотність українських дітей, постраждалих від війни,
+          через літературу, аудіо та ШІ-тьюторинг — безкоштовно для дітей ВПО, ветеранських родин,
+          дітей з інвалідністю та дітей зі звільнених громад.
         </p>
         <p style={{
           fontSize: 13, lineHeight: 1.6, color: 'rgba(255,255,255,0.55)',
           margin: 0, fontStyle: 'italic',
           fontFamily: "'Montserrat', sans-serif",
         }}>
-          Partner: Institute of Civil Society. We help integration into Ukrainian culture, promote
-          Ukrainian language and memory, and unite all Ukrainians around shared stories. We work so
-          that Ukrainians stay in Ukraine and build its future.
+          Balabony is an educational platform by the Institute of Civil Society (Lviv, est. 2005).
+          We restore literacy for Ukrainian children affected by war through literature, audio and
+          AI tutoring — free of charge for IDP children, veterans&apos; families, children with
+          disabilities, and children from liberated communities.
         </p>
       </div>
 
@@ -408,4 +417,3 @@ export default function Footer() {
     </footer>
   )
 }
-
