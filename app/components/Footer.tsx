@@ -1,42 +1,20 @@
 'use client'
 
-import { useState } from 'react'
-
 const E_USER = 'nazar'
 const E_HOST = 'balabony'
 const E_TLD  = 'net'
 
 function ProtectedEmail() {
-  const [revealed, setRevealed] = useState(false)
-  const [copied, setCopied]     = useState(false)
-
-  function handleClick() {
-    const email = `${E_USER}@${E_HOST}.${E_TLD}`
-    navigator.clipboard?.writeText(email).catch(() => {})
-    setRevealed(true)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
   return (
-    <button
-      onClick={handleClick}
-      title="Клікни, щоб скопіювати email"
+    <span
       className="footer-email-btn"
       style={{
-        background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-        color: 'rgba(255,255,255,0.8)', fontSize: 14, fontFamily: "'Montserrat', sans-serif",
-        textAlign: 'left',
+        color: 'rgba(255,255,255,0.8)', fontSize: 14,
+        fontFamily: "'Montserrat', sans-serif",
       }}
     >
-      <span aria-hidden={revealed}>
-        {revealed
-          ? `${E_USER}@${E_HOST}.${E_TLD}`
-          : <>{E_USER}<span style={{ color: '#f5a623' }}> [at] </span>{E_HOST}<span style={{ color: '#f5a623' }}> [dot] </span>{E_TLD}</>
-        }
-      </span>
-      {copied && <span style={{ color: '#4ade80', marginLeft: 6, fontSize: 12 }}>✓ скопійовано</span>}
-    </button>
+      {E_USER}@{E_HOST}.{E_TLD}
+    </span>
   )
 }
 
