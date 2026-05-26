@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -8,6 +8,7 @@ import FreeBanner from './components/FreeBanner'
 import HowItWorks from './components/HowItWorks'
 import ReaderSection from './components/ReaderSection'
 import PricingSection from './components/PricingSection'
+import FAQ from './components/FAQ'
 import AudioPlayer from './components/AudioPlayer'
 import Footer from './components/Footer'
 import FairytalesSection from './components/FairytalesSection'
@@ -116,6 +117,10 @@ export default function HomePage() {
 
         <div id="pricing" style={{ display: 'block', scrollMarginTop: '80px' }}>
           <PricingSection />
+        </div>
+
+        <div id="faq" style={{ display: 'block', scrollMarginTop: '80px' }}>
+          <FAQ />
         </div>
         <div id="fairytales"><FairytalesSection /></div>
 
