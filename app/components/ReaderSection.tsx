@@ -626,16 +626,9 @@ export default function ReaderSection() {
             }}>
               <p style={{ fontSize: 15, color: 'var(--text)', marginBottom: 14, lineHeight: 1.5 }}>
                 {freeEpisode !== null ? (
-                  <>
-                    <span style={{ display: 'block', marginBottom: 6 }}>
-                      Твоя безкоштовна серія — <strong>Серія {freeEpisode}</strong>.
-                    </span>
-                    <span style={{ display: 'block' }}>
-                      Щоб читати <strong>Серію {globalCurrentEp}</strong>, обери пакет.
-                    </span>
-                  </>
+                  <>Це була твоя безкоштовна серія. Щоб читати далі&nbsp;— обери&nbsp;пакет.</>
                 ) : (
-                  <>Щоб читати <strong>Серію {globalCurrentEp}</strong>, обери пакет.</>
+                  <>Щоб читати далі&nbsp;— обери&nbsp;пакет.</>
                 )}
               </p>
               <button
