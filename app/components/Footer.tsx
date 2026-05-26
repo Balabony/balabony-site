@@ -19,46 +19,60 @@ function ProtectedEmail() {
 }
 
 const LEGAL_LINKS = [
-  { title: 'Угода користувача',         href: '/legal/terms' },
   { title: 'Політика конфіденційності', href: '/legal/privacy' },
+  { title: 'Угода користувача',         href: '/legal/terms' },
   { title: 'Публічна оферта',           href: '/legal/offer' },
   { title: 'Політика Cookies',          href: '/legal/cookies' },
+  { title: 'Договір з автором',         href: '/become-author' },
+]
+
+const SOCIALS = [
+  { label: 'Telegram',  href: 'https://t.me/balabony_bot' },
+  { label: 'Viber',     href: 'https://connect.viber.com/business/fc54c304-3c99-11f1-954e-c29e734e1403' },
+  { label: 'Instagram', href: 'https://www.instagram.com/balabony_' },
+  { label: 'TikTok',    href: 'https://www.tiktok.com/@balabony_' },
+  { label: 'Facebook',  href: 'https://www.facebook.com/profile.php?id=61568006368489' },
+  { label: 'WhatsApp',  href: 'https://wa.me/380505859141' },
+]
+
+const PLATFORMS = [
+  { label: 'Web (браузер)',        href: '/',  soon: false },
+  { label: 'iOS (Safari PWA)',     href: null, soon: true  },
+  { label: 'Android (Chrome PWA)', href: null, soon: true  },
+  { label: 'Telegram-бот',         href: null, soon: true  },
+  { label: 'Smart TV / Tablets',   href: null, soon: true  },
 ]
 
 export default function Footer() {
   return (
     <footer className="footer-root" style={{ background: 'var(--dark)', color: '#94a3b8', padding: '32px 5% 100px', marginTop: 24 }}>
 
+      {/* ════════ ОСНОВНІ 4 КОЛОНКИ ════════ */}
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: 40, maxWidth: 1100, margin: '0 auto 40px'
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: 32,
+        maxWidth: 1200,
+        margin: '0 auto 32px'
       }}>
+
+        {/* ───── КОЛОНКА 1: БРЕНД + КОНТАКТИ + ПІДТРИМАТИ ───── */}
         <div>
-          <span className="footer-logo" style={{ fontFamily: "'Comfortaa', cursive", fontSize: 22, display: 'block', marginBottom: 12 }}>
+          <span className="footer-logo" style={{ fontFamily: "'Comfortaa', cursive", fontSize: 22, display: 'block', marginBottom: 6 }}>
             Balabony<sup style={{ fontSize: 10 }}>®</sup>
           </span>
-          <p style={{ fontSize: 16, lineHeight: 1.8, color: 'rgba(255,255,255,0.8)', marginBottom: 8 }}>
-            Читай українське.
+          <p style={{ fontSize: 13, lineHeight: 1.5, color: 'rgba(255,255,255,0.55)', marginBottom: 18 }}>
+            Українські історії для всієї родини
           </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginTop: 4 }}>
-            {[
-              { label: 'Telegram',  href: 'https://t.me/balabony_bot' },
-              { label: 'Viber',     href: 'https://connect.viber.com/business/fc54c304-3c99-11f1-954e-c29e734e1403' },
-              { label: 'Instagram', href: 'https://www.instagram.com/balabony_' },
-              { label: 'TikTok',    href: 'https://www.tiktok.com/@balabony_' },
-              { label: 'Facebook',  href: 'https://www.facebook.com/profile.php?id=61568006368489' },
-              { label: 'WhatsApp',  href: 'https://wa.me/380505859141' },
-            ].map(s => (
-              <a key={s.label} href={s.href} target="_blank" rel="noreferrer"
-                className="footer-social"
-                style={{ textDecoration: 'none', color: 'rgba(255,255,255,0.8)', fontSize: 16, fontWeight: 600 }}>
-                {s.label}
-              </a>
-            ))}
-          </div>
 
-          <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <h4 style={{ color: '#f5a623', marginBottom: 12, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            Контакти
+          </h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
             <ProtectedEmail />
+            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14, fontFamily: "'Montserrat', sans-serif" }}>
+              WhatsApp +380 50 585 9141
+            </span>
             <a
               href="/contact"
               className="footer-cta-write"
@@ -73,30 +87,79 @@ export default function Footer() {
               Написати нам <span className="footer-cta-arrow">→</span>
             </a>
           </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
+            {SOCIALS.map(s => (
+              <a key={s.label} href={s.href} target="_blank" rel="noreferrer"
+                className="footer-social"
+                style={{ textDecoration: 'none', color: 'rgba(255,255,255,0.8)', fontSize: 14, fontWeight: 600 }}>
+                {s.label}
+              </a>
+            ))}
+          </div>
+
+          <h4 style={{ color: '#f5a623', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            Підтримати
+          </h4>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            <a
+              href="/support"
+              className="footer-lang-btn"
+              style={{
+                padding: '5px 12px', background: 'rgba(245,166,35,0.15)',
+                border: '1px solid rgba(245,166,35,0.4)', borderRadius: 6,
+                color: '#f5a623', fontSize: 13, fontWeight: 700, textDecoration: 'none',
+                fontFamily: "'Montserrat', sans-serif",
+              }}
+            >
+              UA
+            </a>
+            <a
+              href="/support?lang=en"
+              className="footer-lang-btn"
+              style={{
+                padding: '5px 12px', background: 'rgba(245,166,35,0.15)',
+                border: '1px solid rgba(245,166,35,0.4)', borderRadius: 6,
+                color: '#f5a623', fontSize: 13, fontWeight: 700, textDecoration: 'none',
+                fontFamily: "'Montserrat', sans-serif",
+              }}
+            >
+              EN · Donate
+            </a>
+            <a
+              href="/support?lang=de"
+              className="footer-lang-btn"
+              style={{
+                padding: '5px 12px', background: 'rgba(245,166,35,0.15)',
+                border: '1px solid rgba(245,166,35,0.4)', borderRadius: 6,
+                color: '#f5a623', fontSize: 13, fontWeight: 700, textDecoration: 'none',
+                fontFamily: "'Montserrat', sans-serif",
+              }}
+            >
+              DE · Spenden
+            </a>
+          </div>
         </div>
 
+        {/* ───── КОЛОНКА 2: ПЛАТФОРМИ + ДЛЯ АВТОРІВ ───── */}
         <div>
-          <h4 style={{ color: '#FFFFFF', marginBottom: 16, fontSize: 18, fontWeight: 700 }}>Платформи</h4>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {[
-              { label: 'Web (браузер)',       href: '/',     soon: false },
-              { label: 'iOS (Safari PWA)',    href: null,    soon: true  },
-              { label: 'Android (Chrome PWA)', href: null,   soon: true  },
-              { label: 'Telegram-бот',        href: null,    soon: true  },
-              { label: 'Smart TV / Tablets',  href: null,    soon: true  },
-            ].map(item => (
-              <li key={item.label} style={{ marginBottom: 9, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <h4 style={{ color: '#f5a623', marginBottom: 12, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            Платформи
+          </h4>
+          <ul style={{ listStyle: 'none', padding: 0, marginBottom: 22 }}>
+            {PLATFORMS.map(item => (
+              <li key={item.label} style={{ marginBottom: 7, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 {item.href ? (
-                  <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 16 }}>
+                  <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 14 }}>
                     {item.label}
                   </a>
                 ) : (
-                  <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: 16 }}>{item.label}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14 }}>{item.label}</span>
                 )}
                 {item.soon && (
                   <span style={{
-                    fontSize: 11, fontWeight: 700, letterSpacing: '0.3px',
-                    padding: '2px 8px', borderRadius: 999,
+                    fontSize: 10, fontWeight: 700, letterSpacing: '0.3px',
+                    padding: '2px 7px', borderRadius: 999,
                     background: 'rgba(245,166,35,0.15)',
                     color: '#f5a623',
                     border: '1px solid rgba(245,166,35,0.35)',
@@ -109,71 +172,74 @@ export default function Footer() {
               </li>
             ))}
           </ul>
+
+          <h4 style={{ color: '#f5a623', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            Для авторів
+          </h4>
+          <a
+            href="/become-author"
+            className="footer-author-cta"
+            style={{
+              display: 'inline-block', padding: '8px 16px',
+              background: '#EF9F27', borderRadius: 8,
+              color: '#0a1628', fontSize: 14, fontWeight: 700,
+              textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
+              marginBottom: 6,
+            }}
+          >
+            Стати автором →
+          </a>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', margin: 0 }}>
+            Запропонувати свою історію
+          </p>
         </div>
 
-        <div>
-          <h4 style={{ color: '#FFFFFF', marginBottom: 16, fontSize: 18, fontWeight: 700 }}>Інклюзивність</h4>
-          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.8, marginBottom: 12 }}>
-            Пільгові умови для ветеранів (УБД) та людей з інвалідністю: повний доступ за 1 грн.
-          </p>
-
-          <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+        {/* ───── КОЛОНКА 3: ВИДІЛЕНІ КАРТКИ ─ ІНКЛЮЗИВНІСТЬ + ДОСТУПНІСТЬ ───── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{
+            background: 'rgba(245,166,35,0.08)',
+            border: '1px solid rgba(245,166,35,0.4)',
+            borderRadius: 10,
+            padding: 16,
+          }}>
+            <h4 style={{ color: '#f5a623', marginBottom: 10, fontSize: 15, fontWeight: 700, fontFamily: "'Montserrat', sans-serif" }}>
+              Інклюзивність
+            </h4>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.6, marginBottom: 10 }}>
+              ВПО, ветерани (УБД) та люди з інвалідністю: повний доступ за 1 ₴.
+            </p>
             <a
               href="/support"
               className="footer-support-main"
               style={{
-                display: 'inline-block', marginBottom: 10,
-                color: '#f5a623', fontSize: 16, fontWeight: 700,
+                display: 'inline-block',
+                color: '#f5a623', fontSize: 13, fontWeight: 700,
                 textDecoration: 'none',
               }}
             >
-              <span className="footer-heart">❤</span> Підтримати інклюзивність <span className="footer-cta-arrow">→</span>
+              <span className="footer-heart">❤</span> Підтримати ініціативу <span className="footer-cta-arrow">→</span>
             </a>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              <a
-                href="/support"
-                className="footer-lang-btn"
-                style={{
-                  padding: '5px 12px', background: 'rgba(245,166,35,0.15)',
-                  border: '1px solid rgba(245,166,35,0.4)', borderRadius: 6,
-                  color: '#f5a623', fontSize: 13, fontWeight: 700, textDecoration: 'none',
-                  fontFamily: "'Montserrat', sans-serif",
-                }}
-              >
-                UA
-              </a>
-              <a
-                href="/support?lang=en"
-                className="footer-lang-btn"
-                style={{
-                  padding: '5px 12px', background: 'rgba(245,166,35,0.15)',
-                  border: '1px solid rgba(245,166,35,0.4)', borderRadius: 6,
-                  color: '#f5a623', fontSize: 13, fontWeight: 700, textDecoration: 'none',
-                  fontFamily: "'Montserrat', sans-serif",
-                }}
-              >
-                EN · Donate
-              </a>
-              <a
-                href="/support?lang=de"
-                className="footer-lang-btn"
-                style={{
-                  padding: '5px 12px', background: 'rgba(245,166,35,0.15)',
-                  border: '1px solid rgba(245,166,35,0.4)', borderRadius: 6,
-                  color: '#f5a623', fontSize: 13, fontWeight: 700, textDecoration: 'none',
-                  fontFamily: "'Montserrat', sans-serif",
-                }}
-              >
-                DE · Spenden
-              </a>
-            </div>
+          </div>
+
+          <div style={{
+            background: 'rgba(245,166,35,0.08)',
+            border: '1px solid rgba(245,166,35,0.4)',
+            borderRadius: 10,
+            padding: 16,
+          }}>
+            <h4 style={{ color: '#f5a623', marginBottom: 10, fontSize: 15, fontWeight: 700, fontFamily: "'Montserrat', sans-serif" }}>
+              Доступність
+            </h4>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.6, marginBottom: 10 }}>
+              Зручно для людей зі слабким зором, дислексією, обмеженою моторикою.
+            </p>
             <a
               href="/accessibility"
-              className="footer-link-muted"
+              className="footer-support-main"
               style={{
-                display: 'inline-block', marginTop: 10,
-                color: 'rgba(255,255,255,0.7)', fontSize: 14,
-                textDecoration: 'none', fontWeight: 500,
+                display: 'inline-block',
+                color: '#f5a623', fontSize: 13, fontWeight: 700,
+                textDecoration: 'none',
               }}
             >
               ♿ Доступність сайту <span className="footer-cta-arrow">→</span>
@@ -181,58 +247,77 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* ───── КОЛОНКА 4: ДОКУМЕНТИ + ПРО НАС + НАВІГАЦІЯ ───── */}
         <div>
-          <h4 style={{ color: '#FFFFFF', marginBottom: 16, fontSize: 18, fontWeight: 700 }}>Документи</h4>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
+          <h4 style={{ color: '#f5a623', marginBottom: 12, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            Документи
+          </h4>
+          <ul style={{ listStyle: 'none', padding: 0, marginBottom: 18 }}>
             {LEGAL_LINKS.map(d => (
-              <li key={d.title} style={{ marginBottom: 9 }}>
+              <li key={d.title} style={{ marginBottom: 7 }}>
                 <a
                   href={d.href}
                   className="footer-link"
-                  style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 16, fontFamily: "'Montserrat', sans-serif" }}
+                  style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 14, fontFamily: "'Montserrat', sans-serif" }}
                 >
                   {d.title}
                 </a>
               </li>
             ))}
-            <li style={{ marginBottom: 9 }}>
-              <a href="/become-author" className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 16 }}>Договір з автором</a>
+          </ul>
+
+          <h4 style={{ color: '#f5a623', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            Про нас
+          </h4>
+          <ul style={{ listStyle: 'none', padding: 0, marginBottom: 18 }}>
+            <li style={{ marginBottom: 7 }}>
+              <a href="/about" className="footer-link" style={{ color: '#f5a623', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+                Про автора
+              </a>
+            </li>
+            <li style={{ marginBottom: 7 }}>
+              <a href="/sitemap" className="footer-link" style={{ color: '#f5a623', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+                Навігація сайту
+              </a>
             </li>
           </ul>
-        </div>
 
-        <div>
-          <h4 style={{ color: '#FFFFFF', marginBottom: 16, fontSize: 18, fontWeight: 700 }}>Навігація</h4>
+          <h4 style={{ color: '#f5a623', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            Розділи
+          </h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {[
-              { label: 'Рідер', href: '/#reader' },
+              { label: 'Рідер',  href: '/#reader'  },
               { label: 'Тарифи', href: '/#pricing' },
-              { label: 'Ігри', href: '/games' },
+              { label: 'Ігри',   href: '/games'    },
             ].map(item => (
-              <li key={item.label} style={{ marginBottom: 9 }}>
-                <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 16 }}>{item.label}</a>
+              <li key={item.label} style={{ marginBottom: 7 }}>
+                <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 14 }}>
+                  {item.label}
+                </a>
               </li>
             ))}
           </ul>
         </div>
       </div>
 
+      {/* ════════ БЛОК «ПРО БАЛАБОНІВ» ════════ */}
       <div style={{
-        maxWidth: 1100, margin: '0 auto 32px',
-        padding: '24px 24px',
+        maxWidth: 1200, margin: '0 auto 28px',
+        padding: '22px 24px',
         background: 'rgba(245,166,35,0.06)',
         border: '1px solid rgba(245,166,35,0.18)',
         borderRadius: 12,
       }}>
         <h4 style={{
-          color: '#f5a623', marginBottom: 12, fontSize: 16, fontWeight: 700,
-          fontFamily: "'Montserrat', sans-serif", letterSpacing: '0.3px',
+          color: '#f5a623', marginBottom: 12, fontSize: 14, fontWeight: 700,
+          fontFamily: "'Montserrat', sans-serif", letterSpacing: '0.5px',
           textTransform: 'uppercase',
         }}>
           Про Балабонів
         </h4>
         <p style={{
-          fontSize: 15, lineHeight: 1.7, color: 'rgba(255,255,255,0.85)',
+          fontSize: 14, lineHeight: 1.7, color: 'rgba(255,255,255,0.85)',
           marginBottom: 12, fontFamily: "'Montserrat', sans-serif",
         }}>
           Освітньо-літературна платформа <span style={{ color: '#f5a623', fontWeight: 600 }}>ЛОГО «Інститут громадянського суспільства»</span>.
@@ -242,7 +327,7 @@ export default function Footer() {
           обʼєднуємо українців навколо рідної культури — щоб українці залишалися в Україні й будували її майбутнє.
         </p>
         <p style={{
-          fontSize: 13, lineHeight: 1.6, color: 'rgba(255,255,255,0.55)',
+          fontSize: 12, lineHeight: 1.6, color: 'rgba(255,255,255,0.55)',
           margin: 0, fontStyle: 'italic',
           fontFamily: "'Montserrat', sans-serif",
         }}>
@@ -255,17 +340,18 @@ export default function Footer() {
         </p>
       </div>
 
+      {/* ════════ КОПІРАЙТИ ════════ */}
       <div style={{
-        borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: 28, textAlign: 'center',
-        fontSize: 14, color: 'rgba(255,255,255,0.6)', maxWidth: 1100, margin: '0 auto'
+        borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: 22, textAlign: 'center',
+        fontSize: 13, color: 'rgba(255,255,255,0.6)', maxWidth: 1200, margin: '0 auto'
       }}>
-        <p style={{ marginBottom: 8 }}>
+        <p style={{ marginBottom: 6 }}>
           © 2026 Balabony®. Історії українською. Усі права захищено згідно із законодавством України.
         </p>
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '4px 0 0 0' }}>
+        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '3px 0 0 0' }}>
           Торговельна марка: заявка №m202607908 до Укрпатенту.
         </p>
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '4px 0 0 0' }}>
+        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '3px 0 0 0' }}>
           Авторське право: заявка №c202604211 до Укрпатенту.
         </p>
       </div>
@@ -358,8 +444,18 @@ export default function Footer() {
         }
         .footer-root :global(.footer-cta-write:hover .footer-cta-arrow),
         .footer-root :global(.footer-support-main:hover .footer-cta-arrow),
-        .footer-root :global(.footer-link-muted:hover .footer-cta-arrow) {
+        .footer-root :global(.footer-author-cta:hover .footer-cta-arrow) {
           transform: translateX(4px);
+        }
+
+        /* ── Become author CTA (golden filled button) ── */
+        .footer-root :global(.footer-author-cta) {
+          transition: background 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+        }
+        .footer-root :global(.footer-author-cta:hover) {
+          background: #FAC775 !important;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 18px rgba(239, 159, 39, 0.45);
         }
 
         /* ── Language donate buttons (UA / EN / DE) ── */
@@ -375,7 +471,7 @@ export default function Footer() {
           box-shadow: 0 6px 16px rgba(239, 159, 39, 0.4);
         }
 
-        /* ── Inclusivity main link "❤ Підтримати інклюзивність" ── */
+        /* ── Inclusivity / Accessibility CTAs ── */
         .footer-root :global(.footer-support-main) {
           transition: color 0.25s ease, transform 0.2s ease;
         }
@@ -396,23 +492,6 @@ export default function Footer() {
           30%      { transform: scale(1); }
           45%      { transform: scale(1.15); }
           60%      { transform: scale(1); }
-        }
-
-        /* ── Accessibility muted link ── */
-        .footer-root :global(.footer-link-muted) {
-          transition: color 0.25s ease, transform 0.2s ease;
-        }
-        .footer-root :global(.footer-link-muted:hover) {
-          color: #EF9F27 !important;
-          transform: translateX(3px);
-        }
-
-        /* ── Inline link in About block ── */
-        .footer-root :global(.footer-link-inline) {
-          transition: color 0.25s ease;
-        }
-        .footer-root :global(.footer-link-inline:hover) {
-          color: #FAC775 !important;
         }
       `}</style>
     </footer>
