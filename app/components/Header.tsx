@@ -59,6 +59,28 @@ export default function Header() {
       {/* Right controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, flexWrap: 'nowrap' }}>
 
+        {/* Free CTA — desktop only */}
+        
+          href="/free"
+          className="header-free-cta baly-eye-hide-mobile"
+          style={{
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+            padding: '6px 14px',
+            borderRadius: 100,
+            background: 'linear-gradient(135deg, #f0a500, #ffb820)',
+            color: '#1a1f2e',
+            textDecoration: 'none',
+            fontFamily: "'Montserrat', sans-serif",
+            whiteSpace: 'nowrap',
+            lineHeight: 1,
+          }}
+        >
+          Безкоштовно
+        </a>
+
         {/* Language switcher — links to /support with corresponding lang */}
         <div style={{ display: 'flex', gap: 2 }}>
           <a
