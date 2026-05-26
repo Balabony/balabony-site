@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 /**
  * HowItWorks — блок на головній між Hero і блоком серій.
@@ -42,7 +42,9 @@ export default function HowItWorks() {
             margin: '1.25rem 0 2.25rem',
             fontWeight: 800,
             letterSpacing: '-0.01em',
+            lineHeight: 1.2,
             color: '#fff',
+            whiteSpace: 'nowrap',
           }}
         >
           Три кроки знайомства
