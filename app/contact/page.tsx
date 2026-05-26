@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Breadcrumbs from '@/app/components/Breadcrumbs'
 
 const GOLD = '#f5a623'
 const FONT = "'Montserrat', Arial, sans-serif"
@@ -115,12 +116,8 @@ function ContactForm() {
     <main style={{ minHeight: '100vh', background: '#0a1628', padding: '48px 20px 80px' }}>
       <div style={{ maxWidth: 620, margin: '0 auto' }}>
 
-        {/* Logo */}
-        <div style={{ marginBottom: 36 }}>
-          <a href="/" style={{ fontFamily: "'Comfortaa', cursive", fontSize: 22, fontWeight: 700, color: GOLD, textDecoration: 'none' }}>
-            Balabony<sup style={{ fontSize: 9 }}>®</sup>
-          </a>
-        </div>
+        {/* Хлібні крихти замість окремого логотипу */}
+        <Breadcrumbs items={[{ label: 'Контакти' }]} />
 
         <h1 style={{ fontFamily: "'Lora', serif", fontSize: 28, fontWeight: 700, color: '#f5f0e8', marginBottom: 8 }}>
           {isErrorReport ? 'Дякуємо, що повідомляєте!' : 'Напишіть нам'}

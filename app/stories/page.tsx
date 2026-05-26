@@ -5,6 +5,7 @@ import Footer from '../components/Footer'
 import AudioPlayer from '../components/AudioPlayer'
 import { ThemeProvider } from '../context/ThemeContext'
 import FreshStoriesGrid, { type Story } from '../components/FreshStoriesGrid'
+import Breadcrumbs from '../components/Breadcrumbs'
 
 export const metadata: Metadata = {
   title: 'Історії читачів — Балабони',
@@ -58,6 +59,7 @@ export default async function StoriesPage() {
     <ThemeProvider>
       <Header />
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 20px' }}>
+        <Breadcrumbs items={[{ label: 'Історії читачів' }]} />
         <h1 style={{ fontFamily: '"Comfortaa", sans-serif', fontSize: 32, marginBottom: 24, color: '#F5A623' }}>
           Історії читачів
         </h1>
