@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 const GOLD = '#f5a623'
 const FONT = "'Montserrat', Arial, sans-serif"
-const TOPICS = ['Питання', 'Співпраця', 'Стати автором', 'Технічна проблема', 'Інше']
+const TOPICS = ['Питання', 'Співпраця', 'Стати автором', 'Технічна проблема', 'Знайдена помилка', 'Інше']
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '11px 14px', borderRadius: 10,
@@ -45,11 +46,35 @@ function ThankYouScreen() {
   )
 }
 
-export default function ContactPage() {
+/**
+ * Внутрішня форма. Винесена окремо, бо useSearchParams() у Next.js 13+
+ * потребує обгортки <Suspense> — інакше падає `next build`.
+ */
+function ContactForm() {
+  const searchParams = useSearchParams()
   const [form, setForm] = useState({ name: '', email: '', topic: '', message: '', website: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [isErrorReport, setIsErrorReport] = useState(false)
+
+  // При першому рендері читаємо параметри з URL і авто-заповнюємо форму.
+  useEffect(() => {
+    const topic = searchParams.get('topic')
+    const url = searchParams.get('url')
+    const fragment = searchParams.get('fragment')
+
+    if (topic === 'error') {
+      setIsErrorReport(true)
+      const prefilledMessage = buildErrorMessage(url, fragment)
+      setForm(prev => ({
+        ...prev,
+        topic: 'Знайдена помилка',
+        message: prefilledMessage,
+      }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function set(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -98,10 +123,12 @@ export default function ContactPage() {
         </div>
 
         <h1 style={{ fontFamily: "'Lora', serif", fontSize: 28, fontWeight: 700, color: '#f5f0e8', marginBottom: 8 }}>
-          Напишіть нам
+          {isErrorReport ? 'Дякуємо, що повідомляєте!' : 'Напишіть нам'}
         </h1>
         <p style={{ fontSize: 15, color: '#8899bb', marginBottom: 36, lineHeight: 1.6 }}>
-          Ми відповідаємо протягом 1–2 робочих днів.
+          {isErrorReport
+            ? 'Розкажіть, у чому саме помилка — ми виправимо. Текст знайденого фрагмента вже додано нижче.'
+            : 'Ми відповідаємо протягом 1–2 робочих днів.'}
         </p>
 
         <form onSubmit={handleSubmit} noValidate>
@@ -160,7 +187,7 @@ export default function ContactPage() {
             <div>
               <label htmlFor="message" style={labelStyle}>Повідомлення</label>
               <textarea
-                id="message" rows={6}
+                id="message" rows={isErrorReport ? 10 : 6}
                 placeholder="Ваше повідомлення…"
                 value={form.message} onChange={e => set('message', e.target.value)}
                 style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }}
@@ -190,5 +217,46 @@ export default function ContactPage() {
         </form>
       </div>
     </main>
+  )
+}
+
+/**
+ * Будує початковий текст повідомлення для звіту про помилку.
+ * Якщо є fragment — додає його у блок-цитату.
+ */
+function buildErrorMessage(url: string | null, fragment: string | null): string {
+  const lines: string[] = []
+
+  if (fragment) {
+    lines.push('Знайдена помилка у фрагменті:')
+    lines.push(`«${fragment.trim()}»`)
+    lines.push('')
+  }
+
+  if (url) {
+    lines.push(`Сторінка: ${url}`)
+    lines.push('')
+  }
+
+  lines.push('Опис помилки (заповніть, будь ласка):')
+  lines.push('')
+
+  return lines.join('\n')
+}
+
+/**
+ * Експортна обгортка з Suspense — обов'язково для useSearchParams() у App Router.
+ */
+export default function ContactPage() {
+  return (
+    <Suspense fallback={
+      <main style={{ minHeight: '100vh', background: '#0a1628', padding: '48px 20px 80px' }}>
+        <div style={{ maxWidth: 620, margin: '0 auto', color: '#8899bb', fontFamily: FONT }}>
+          Завантаження…
+        </div>
+      </main>
+    }>
+      <ContactForm />
+    </Suspense>
   )
 }
