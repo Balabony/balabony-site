@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Breadcrumbs from '@/app/components/Breadcrumbs'
 
 const GOLD = '#f5a623'
 const FONT = "'Montserrat', Arial, sans-serif"
@@ -78,12 +79,8 @@ export default function BecomeAuthorPage() {
     <main style={{ minHeight: '100vh', background: '#0a1628', padding: '48px 20px 100px' }}>
       <div style={{ maxWidth: 680, margin: '0 auto' }}>
 
-        {/* Logo */}
-        <div style={{ marginBottom: 40 }}>
-          <a href="/" style={{ fontFamily: "'Comfortaa', cursive", fontSize: 22, fontWeight: 700, color: GOLD, textDecoration: 'none' }}>
-            Balabony<sup style={{ fontSize: 9 }}>®</sup>
-          </a>
-        </div>
+        {/* Хлібні крихти замість окремого логотипу */}
+        <Breadcrumbs items={[{ label: 'Стати автором' }]} />
 
         {/* Hero */}
         <div style={{ marginBottom: 40 }}>
