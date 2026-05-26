@@ -31,10 +31,6 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           ]}
         />
 
-        <div className="legal-disclaimer">
-          <strong>⚠️ Чернетка документа.</strong> Цей текст є попередньою версією, яка потребує юридичної перевірки перед остаточним затвердженням. Реквізити ФОП будуть додані після державної реєстрації.
-        </div>
-
         <article className="legal-content">
           {children}
         </article>
@@ -68,17 +64,6 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           padding: 48px 56px;
           box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
         }
-        .legal-disclaimer {
-          background: rgba(239, 159, 39, 0.12);
-          border: 1.5px solid rgba(239, 159, 39, 0.5);
-          border-radius: 10px;
-          padding: 14px 18px;
-          margin-bottom: 30px;
-          font-size: 14px;
-          line-height: 1.5;
-          color: #4A2F0A;
-        }
-        .legal-disclaimer strong { color: #2C1A02; }
 
         .legal-content {
           color: #2C2C2A;
