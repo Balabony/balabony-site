@@ -37,14 +37,13 @@ export default function HowItWorks() {
         <div className="hiw__eyebrow">ЯК ЦЕ ПРАЦЮЄ</div>
         <h2
           id="how-it-works-title"
+          className="hiw__title"
           style={{
-            fontSize: 30,
             margin: '1.25rem 0 2.25rem',
             fontWeight: 800,
             letterSpacing: '-0.01em',
             lineHeight: 1.2,
             color: '#fff',
-            whiteSpace: 'nowrap',
           }}
         >
           Три кроки знайомства
@@ -160,6 +159,8 @@ export default function HowItWorks() {
           text-align: center;
           animation: hiw-step-float 5s ease-in-out infinite;
         }
+        .hiw__title { font-size: 30px; }
+        @media (max-width: 560px) { .hiw__title { font-size: 22px !important; } }
         .hiw__num {
           display: inline-block;
           background: linear-gradient(135deg, #f0a500, #ffb820);
