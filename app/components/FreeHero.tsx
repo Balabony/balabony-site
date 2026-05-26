@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 
@@ -232,17 +232,22 @@ export default function FreeHero({
           margin: 0;
           line-height: 1.5;
         }
-        .fh__cta {
+        .fh__cta,
+        .fh__cta:link,
+        .fh__cta:visited,
+        .fh__cta:hover,
+        .fh__cta:active {
           display: inline-block;
-          background: linear-gradient(135deg, #f0a500, #ffb820);
-          color: #1a1f2e;
+          background: linear-gradient(135deg, #f0a500, #ffb820) !important;
+          color: #ffffff !important;
           padding: 14px 34px;
           border-radius: 14px;
           font-size: 14px;
           font-weight: 800;
           letter-spacing: 0.04em;
           text-transform: uppercase;
-          text-decoration: none;
+          text-decoration: none !important;
+          border: none;
           animation: fh-pulse 2.5s ease-in-out infinite;
         }
         @media (prefers-reduced-motion: reduce) {
