@@ -1,47 +1,70 @@
-﻿import type { MetadataRoute } from 'next'
+import type { MetadataRoute } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://balabony.com'
+const BASE_URL = 'https://balabony.com'
 
+/**
+ * Файл /sitemap.xml — карта сайту для пошуковиків.
+ * Next.js App Router генерує його з цього модуля автоматично.
+ *
+ * Включає:
+ *  - статичні сторінки (фіксований список)
+ *  - усі опубліковані серії з Supabase (type='balabony')
+ *  - усі опубліковані історії з Supabase (type='story')
+ *
+ * Кожен запис має priority (важливість 0-1) і changeFrequency (частота оновлень).
+ */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = getSupabaseAdmin()
+  const now = new Date()
 
-  // РЎС‚Р°С‚РёС‡РЅС– СЃС‚РѕСЂС–РЅРєРё
-  const staticRoutes: MetadataRoute.Sitemap = [
-    { url: `${BASE_URL}/`,         lastModified: new Date(), changeFrequency: 'daily',   priority: 1.0 },
-    { url: `${BASE_URL}/episodes`, lastModified: new Date(), changeFrequency: 'daily',   priority: 0.9 },
-    { url: `${BASE_URL}/stories`,  lastModified: new Date(), changeFrequency: 'weekly',  priority: 0.8 },
-    { url: `${BASE_URL}/gift`,     lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/support`,  lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+  // 1. Статичні сторінки
+  const staticPages: MetadataRoute.Sitemap = [
+    { url: `${BASE_URL}`,                 lastModified: now, changeFrequency: 'daily',   priority: 1.0 },
+    { url: `${BASE_URL}/stories`,         lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
+    { url: `${BASE_URL}/episodes`,        lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
+    { url: `${BASE_URL}/about`,           lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE_URL}/games`,           lastModified: now, changeFrequency: 'weekly',  priority: 0.7 },
+    { url: `${BASE_URL}/support`,         lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE_URL}/become-author`,   lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/accessibility`,   lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/contact`,         lastModified: now, changeFrequency: 'yearly',  priority: 0.5 },
+    { url: `${BASE_URL}/sitemap`,         lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${BASE_URL}/legal/terms`,     lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE_URL}/legal/privacy`,   lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE_URL}/legal/offer`,     lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE_URL}/legal/cookies`,   lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
   ]
 
-  // РЎРµСЂС–С— Р‘Р°Р»Р°Р±РѕРЅС–РІ
-  const { data: episodes } = await supabase
-    .from('content')
-    .select('slug, approved_at')
-    .eq('type', 'balabony')
-    .eq('status', 'published')
+  // 2. Динамічні: серії та історії з Supabase
+  let dynamicPages: MetadataRoute.Sitemap = []
 
-  const episodeRoutes: MetadataRoute.Sitemap = (episodes ?? []).map((e: { slug: string; approved_at: string | null }) => ({
-    url: `${BASE_URL}/episodes/${e.slug}`,
-    lastModified: e.approved_at ? new Date(e.approved_at) : new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.7,
-  }))
+  try {
+    const supabase = getSupabaseAdmin()
+    const { data, error } = await supabase
+      .from('content')
+      .select('type, slug, approved_at')
+      .in('status', ['approved', 'published'])
 
-  // Р†СЃС‚РѕСЂС–С— С‡РёС‚Р°С‡С–РІ
-  const { data: stories } = await supabase
-    .from('content')
-    .select('slug, approved_at')
-    .eq('type', 'story')
-    .in('status', ['approved', 'published'])
+    if (!error && data) {
+      dynamicPages = data
+        .filter(row => row.slug)
+        .map(row => {
+          const isEpisode = row.type === 'balabony'
+          const path = isEpisode ? `/episodes/${row.slug}` : `/stories/${row.slug}`
+          const lastModified = row.approved_at ? new Date(row.approved_at) : now
+          return {
+            url:             `${BASE_URL}${path}`,
+            lastModified,
+            changeFrequency: 'monthly' as const,
+            priority:        isEpisode ? 0.8 : 0.7,
+          }
+        })
+    }
+  } catch (e) {
+    // Якщо Supabase недоступна — просто повертаємо статичні сторінки.
+    // Не блокуємо генерацію sitemap.
+    console.error('Sitemap: failed to fetch dynamic pages from Supabase', e)
+  }
 
-  const storyRoutes: MetadataRoute.Sitemap = (stories ?? []).map((s: { slug: string; approved_at: string | null }) => ({
-    url: `${BASE_URL}/stories/${s.slug}`,
-    lastModified: s.approved_at ? new Date(s.approved_at) : new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.6,
-  }))
-
-  return [...staticRoutes, ...episodeRoutes, ...storyRoutes]
+  return [...staticPages, ...dynamicPages]
 }
