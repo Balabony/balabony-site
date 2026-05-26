@@ -8,7 +8,6 @@ import ReaderSection from './components/ReaderSection'
 import PricingSection from './components/PricingSection'
 import AudioPlayer from './components/AudioPlayer'
 import Footer from './components/Footer'
-import LongevityClubSection from './components/LongevityClubSection'
 import FairytalesSection from './components/FairytalesSection'
 import ResumeBanner from './components/ResumeBanner'
 import { ThemeProvider } from './context/ThemeContext'
@@ -112,7 +111,6 @@ export default function HomePage() {
         <div id="pricing" style={{ display: 'block', scrollMarginTop: '80px' }}>
           <PricingSection />
         </div>
-        <div id="longevity-club"><LongevityClubSection /></div>
         <div id="fairytales"><FairytalesSection /></div>
 
         {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
