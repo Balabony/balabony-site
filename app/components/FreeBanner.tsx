@@ -169,24 +169,24 @@ export default function FreeBanner() {
         }
         @media (max-width: 560px) {
           .free-banner {
-            flex-wrap: wrap;
+            flex-direction: column;
+            align-items: flex-start;
             gap: 10px;
+            padding: 12px 14px;
           }
           .free-banner__icon {
-            order: 1;
             width: 36px;
             height: 36px;
           }
+          .free-banner__text {
+            font-size: 12px;
+            width: 100%;
+          }
           .free-banner__cta {
-            order: 2;
             padding: 8px 14px;
             font-size: 12px;
-            margin-left: auto;
-          }
-          .free-banner__text {
-            order: 3;
-            flex-basis: 100%;
-            font-size: 12px;
+            align-self: stretch;
+            text-align: center;
           }
         }
       `}</style>
