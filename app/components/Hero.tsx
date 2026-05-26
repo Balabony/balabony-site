@@ -1,7 +1,7 @@
-﻿export default function Hero() {
+export default function Hero() {
   const navItems = [
     { label: 'ІСТОРІЇ', href: '/stories' },
-    { label: 'СЕРІЇ', href: '/series' },
+    { label: 'СЕРІЇ', href: '/episodes' },
     { label: 'ІГРИ', href: '/games' },
     { label: 'КАЗКИ', href: '/stories?genre=fairytale' },
   ]
@@ -121,7 +121,7 @@
             </p>
 
             <a
-              href="/series"
+              href="/episodes"
               className="hero-cta"
               style={{
                 display: 'inline-block',
@@ -159,5 +159,3 @@
     </>
   )
 }
-
-

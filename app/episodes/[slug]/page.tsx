@@ -90,7 +90,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         <div style={{ marginTop: 24 }}>
           <Breadcrumbs
             items={[
-              { label: 'Серії', href: '/series' },
+              { label: 'Серії', href: '/episodes' },
               { label: episode.title },
             ]}
           />
