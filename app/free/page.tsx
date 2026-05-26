@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from 'next'
 import FreeHero from '../components/FreeHero'
 import HowItWorks from '../components/HowItWorks'
+import FAQ from '../components/FAQ'
 
 export const metadata: Metadata = {
   title: 'Спробуй безкоштовно — Balabony',
@@ -22,6 +23,7 @@ export default function FreePage() {
     <main>
       <FreeHero ctaHref="/#reader" />
       <HowItWorks />
+      <FAQ />
     </main>
   )
 }
