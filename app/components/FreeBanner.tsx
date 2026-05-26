@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 /**
  * FreeBanner — тонкий банер під Hero.
@@ -57,6 +57,7 @@ export default function FreeBanner() {
         </span>
 
         <span
+          className="free-banner__text"
           style={{
             flex: 1,
             minWidth: 0,
@@ -167,8 +168,24 @@ export default function FreeBanner() {
           }
         }
         @media (max-width: 560px) {
+          .free-banner {
+            flex-wrap: wrap;
+            gap: 10px;
+          }
+          .free-banner__icon {
+            order: 1;
+            width: 36px;
+            height: 36px;
+          }
           .free-banner__cta {
+            order: 2;
             padding: 8px 14px;
+            font-size: 12px;
+            margin-left: auto;
+          }
+          .free-banner__text {
+            order: 3;
+            flex-basis: 100%;
             font-size: 12px;
           }
         }
