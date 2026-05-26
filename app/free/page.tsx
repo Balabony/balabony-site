@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 export default function FreePage() {
   return (
     <main>
-      <FreeHero />
+      <FreeHero ctaHref="/#reader" />
       <HowItWorks />
     </main>
   )
