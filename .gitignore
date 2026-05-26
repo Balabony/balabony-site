@@ -1,4 +1,4 @@
-# deps
+﻿# deps
 /node_modules
 
 # Next.js
@@ -73,3 +73,6 @@ strip-*.ps1
 
 # QUICK_START session notes (local only)
 QUICK_START_*.md
+
+app/page.tsx.bak
+*.bak

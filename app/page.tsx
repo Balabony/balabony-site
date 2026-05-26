@@ -1,9 +1,11 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Header from './components/Header'
 import Hero from './components/Hero'
+import FreeBanner from './components/FreeBanner'
+import HowItWorks from './components/HowItWorks'
 import ReaderSection from './components/ReaderSection'
 import PricingSection from './components/PricingSection'
 import AudioPlayer from './components/AudioPlayer'
@@ -93,6 +95,10 @@ export default function HomePage() {
       <Header />
       <ResumeBanner />
       <Hero />
+        <FreeBanner />
+        <div id="how-it-works" style={{ display: 'block', scrollMarginTop: '80px' }}>
+          <HowItWorks />
+        </div>
       <div id="series"><SeriesStrip series={seriesData} /></div>
       <div style={viewAllWrapperStyle}>
         <Link href="/series" style={viewAllLinkStyle}>Усі серії →</Link>
