@@ -60,8 +60,7 @@ export default function Header() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, flexWrap: 'nowrap' }}>
 
         {/* Free CTA — desktop only */}
-        
-          href="/free"
+        <a href="/free"
           className="header-free-cta baly-eye-hide-mobile"
           style={{
             fontSize: 12,
