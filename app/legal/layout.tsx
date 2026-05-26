@@ -1,11 +1,35 @@
+'use client'
+
 import ProtectedEmail from '@/app/components/ProtectedEmail'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import Breadcrumbs from '@/app/components/Breadcrumbs'
+
+// Мапа: pathname → людська назва документа
+const DOC_TITLES: Record<string, string> = {
+  '/legal/terms':           'Угода користувача',
+  '/legal/privacy':         'Політика конфіденційності',
+  '/legal/offer':           'Публічна оферта',
+  '/legal/cookies':         'Політика Cookies',
+  '/legal/author-contract': 'Договір з автором',
+}
 
 export default function LegalLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname() || ''
+  const docTitle = DOC_TITLES[pathname] ?? 'Документ'
+
   return (
     <div className="legal-root">
       <div className="legal-shell">
-        <Link href="/" className="legal-back">← На головну</Link>
+
+        {/* Хлібні крихти (світла палітра для бежевого паперу) */}
+        <Breadcrumbs
+          variant="light"
+          items={[
+            { label: 'Юридичні документи', href: '/legal/terms' },
+            { label: docTitle },
+          ]}
+        />
 
         <div className="legal-disclaimer">
           <strong>⚠️ Чернетка документа.</strong> Цей текст є попередньою версією, яка потребує юридичної перевірки перед остаточним затвердженням. Реквізити ФОП будуть додані після державної реєстрації.
@@ -43,19 +67,6 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           border-radius: 18px;
           padding: 48px 56px;
           box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
-        }
-        .legal-back {
-          display: inline-block;
-          color: #BA7517;
-          font-size: 14px;
-          font-weight: 600;
-          text-decoration: none;
-          margin-bottom: 18px;
-          transition: color 0.2s, transform 0.2s;
-        }
-        .legal-back:hover {
-          color: #EF9F27;
-          transform: translateX(-3px);
         }
         .legal-disclaimer {
           background: rgba(239, 159, 39, 0.12);

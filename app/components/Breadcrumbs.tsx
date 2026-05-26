@@ -1,7 +1,22 @@
 import Script from 'next/script'
 
-const GOLD = '#f0a500'
 const FONT = "'Montserrat', Arial, sans-serif"
+
+// Палітри для різних варіантів
+const PALETTES = {
+  dark: {
+    homeColor:    '#f0a500', // золото
+    linkColor:    '#8899bb', // сіро-синій
+    currentColor: '#f5f0e8', // світлий (поточна сторінка)
+    separator:    '#445566', // приглушений
+  },
+  light: {
+    homeColor:    '#BA7517', // темно-помаранчевий (legal accent)
+    linkColor:    '#BA7517', // той же — добре читається на бежевому
+    currentColor: '#2C1A02', // темно-коричневий
+    separator:    'rgba(186,117,23,0.5)',
+  },
+}
 
 export interface BreadcrumbItem {
   /** Текст для відображення. Для першого (Home) можна не передавати — буде тільки іконка. */
@@ -14,34 +29,34 @@ interface BreadcrumbsProps {
   /**
    * Список елементів, починаючи з рівня ПІСЛЯ головної.
    * Головна додається автоматично першим елементом (іконка дому).
-   *
-   * Приклад для /episodes/s1e01:
-   *   items={[
-   *     { label: 'Серії', href: '/series' },
-   *     { label: 'Панас і 5G на вишні' },  // без href — це поточна сторінка
-   *   ]}
    */
   items: BreadcrumbItem[]
   /**
    * Базовий URL сайту для JSON-LD (потрібен абсолютний). За замовчуванням — balabony.com.
    */
   siteUrl?: string
+  /**
+   * Колірна схема:
+   *  - 'dark'  (за замовчуванням) — для темного фону сайту, золотий домик
+   *  - 'light' — для світлого фону (legal-сторінки), темно-помаранчевий домик
+   */
+  variant?: 'dark' | 'light'
 }
 
 /**
  * Хлібні крихти зі стилем Балабонів:
- * — кастомний SVG-домик (золото, тонкі лінії), без emoji і сторонніх іконкових бібліотек
+ * — кастомний SVG-домик (без emoji і сторонніх іконкових бібліотек)
  * — розділювач «›» приглушений
  * — поточна сторінка не клікабельна
  * — рендерить JSON-LD (schema.org BreadcrumbList) для Google rich snippets
- *
- * Це server component — не використовує state/effects.
- * Безпечно вставляти на будь-яку сторінку (server або client) — Next дозволяє server-component як child client-component не навпаки, тут все ок.
+ * — підтримує variant='dark' (за замовч.) і variant='light' (для legal сторінок)
  */
-export default function Breadcrumbs({ items, siteUrl = 'https://balabony.com' }: BreadcrumbsProps) {
+export default function Breadcrumbs({ items, siteUrl = 'https://balabony.com', variant = 'dark' }: BreadcrumbsProps) {
+  const palette = PALETTES[variant]
+
   // Готуємо повний список елементів — додаємо Home першим
   const allItems: BreadcrumbItem[] = [
-    { href: '/' }, // home — лише іконка, label НЕ показуємо у DOM, але передамо в JSON-LD як «Головна»
+    { href: '/' },
     ...items,
   ]
 
@@ -101,13 +116,13 @@ export default function Breadcrumbs({ items, siteUrl = 'https://balabony.com' }:
                       alignItems: 'center',
                       gap: 4,
                       fontSize: 13,
-                      color: isHome ? GOLD : '#8899bb',
+                      color: isHome ? palette.homeColor : palette.linkColor,
                       textDecoration: 'none',
                       fontWeight: isHome ? 600 : 500,
                       transition: 'color 0.15s',
                     }}
                   >
-                    {isHome ? <HomeIcon /> : item.label}
+                    {isHome ? <HomeIcon color={palette.homeColor} /> : item.label}
                   </a>
                 ) : (
                   <span
@@ -117,11 +132,11 @@ export default function Breadcrumbs({ items, siteUrl = 'https://balabony.com' }:
                       alignItems: 'center',
                       gap: 4,
                       fontSize: 13,
-                      color: isLast ? '#f5f0e8' : '#8899bb',
+                      color: isLast ? palette.currentColor : palette.linkColor,
                       fontWeight: isLast ? 600 : 500,
                     }}
                   >
-                    {isHome ? <HomeIcon /> : item.label}
+                    {isHome ? <HomeIcon color={palette.homeColor} /> : item.label}
                   </span>
                 )}
 
@@ -131,7 +146,7 @@ export default function Breadcrumbs({ items, siteUrl = 'https://balabony.com' }:
                     aria-hidden="true"
                     style={{
                       fontSize: 13,
-                      color: '#445566',
+                      color: palette.separator,
                       userSelect: 'none',
                     }}
                   >
@@ -155,10 +170,9 @@ export default function Breadcrumbs({ items, siteUrl = 'https://balabony.com' }:
 }
 
 /**
- * Фірмовий домик — тонкі лінії, золото.
- * Стилістика співпадає з іншими SVG на сайті (back-arrow, error-triangle).
+ * Фірмовий домик — тонкі лінії, колір налаштовується пропом.
  */
-function HomeIcon() {
+function HomeIcon({ color }: { color: string }) {
   return (
     <svg
       width="14"
@@ -168,10 +182,9 @@ function HomeIcon() {
       aria-hidden="true"
       style={{ display: 'block' }}
     >
-      {/* Дах + стіни */}
       <path
         d="M2 6 L7 2 L12 6 L12 12 L8.5 12 L8.5 8.5 L5.5 8.5 L5.5 12 L2 12 Z"
-        stroke={GOLD}
+        stroke={color}
         strokeWidth="1.4"
         strokeLinejoin="round"
         strokeLinecap="round"

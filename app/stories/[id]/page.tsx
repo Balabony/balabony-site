@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
+import ReportErrorWidget from '@/app/components/ReportErrorWidget'
+import Breadcrumbs from '@/app/components/Breadcrumbs'
 
 const GOLD      = '#f0a500'
 const NAVY_DEEP = '#0a1628'
@@ -71,11 +73,15 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
     <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT }}>
             <div style={{ maxWidth: 720, margin: '0 auto', padding: story.cover_url ? '0 20px 80px' : '60px 20px 80px' }}>
 
-        {/* Back link */}
-        <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#8899bb', textDecoration: 'none', marginBottom: 28, marginTop: story.cover_url ? 0 : 0, fontFamily: FONT }}>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2 L4 7 L9 12" stroke="#8899bb" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          На головну
-        </a>
+        {/* Хлібні крихти — заміна старого back link */}
+        <div style={{ marginTop: 24 }}>
+          <Breadcrumbs
+            items={[
+              { label: 'Історії читачів', href: '/stories' },
+              { label: story.title },
+            ]}
+          />
+        </div>
 
         {/* Header */}
         <div style={{ marginBottom: 36 }}>
@@ -120,6 +126,9 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         </div>
 
       </div>
+
+      {/* Віджет «Знайшли помилку?» — тост при виділенні + фіксована кнопка */}
+      <ReportErrorWidget />
     </div>
   )
 }
