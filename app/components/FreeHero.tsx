@@ -125,7 +125,23 @@ export default function FreeHero({
       </div>
 
       <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
-        <Link href={ctaHref} className="fh__cta">
+        <Link
+          href={ctaHref}
+          className="fh__cta"
+          style={{
+            display: 'inline-block',
+            background: 'linear-gradient(135deg, #f0a500, #ffb820)',
+            color: '#ffffff',
+            padding: '14px 34px',
+            borderRadius: 14,
+            fontSize: 14,
+            fontWeight: 800,
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+            textDecoration: 'none',
+            border: 'none',
+          }}
+        >
           {ctaLabel}
         </Link>
         <p
