@@ -4,17 +4,25 @@ const E_USER = 'nazar'
 const E_HOST = 'balabony'
 const E_TLD  = 'net'
 
+/**
+ * Email у вигляді клікабельного посилання mailto:.
+ * Залишаємо текст у форматі user@host.tld видимим — бо це футер, не публічна форма,
+ * і відкритий показ email тут є нормою.
+ */
 function ProtectedEmail() {
+  const email = `${E_USER}@${E_HOST}.${E_TLD}`
   return (
-    <span
+    <a
+      href={`mailto:${email}`}
       className="footer-email-btn"
       style={{
         color: 'rgba(255,255,255,0.8)', fontSize: 14,
         fontFamily: "'Montserrat', sans-serif",
+        textDecoration: 'none',
       }}
     >
-      {E_USER}@{E_HOST}.{E_TLD}
-    </span>
+      {email}
+    </a>
   )
 }
 
@@ -27,7 +35,7 @@ const LEGAL_LINKS = [
 ]
 
 const SOCIALS = [
-  { label: 'Telegram',  href: 'https://t.me/balabony_bot' },
+  { label: 'Telegram',  href: 'https://t.me/balabony' },
   { label: 'Viber',     href: 'https://connect.viber.com/business/fc54c304-3c99-11f1-954e-c29e734e1403' },
   { label: 'Instagram', href: 'https://www.instagram.com/balabony_' },
   { label: 'TikTok',    href: 'https://www.tiktok.com/@balabony_' },
@@ -70,9 +78,19 @@ export default function Footer() {
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
             <ProtectedEmail />
-            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14, fontFamily: "'Montserrat', sans-serif" }}>
+            <a
+              href="https://wa.me/380505859141"
+              target="_blank"
+              rel="noreferrer"
+              className="footer-email-btn"
+              style={{
+                color: 'rgba(255,255,255,0.8)', fontSize: 14,
+                fontFamily: "'Montserrat', sans-serif",
+                textDecoration: 'none',
+              }}
+            >
               WhatsApp +380 50 585 9141
-            </span>
+            </a>
             <a
               href="/contact"
               className="footer-cta-write"
