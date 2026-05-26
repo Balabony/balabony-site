@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
 import EpisodePaywall from './EpisodePaywall'
+import ReportErrorWidget from '@/app/components/ReportErrorWidget'
 
 const GOLD      = '#f0a500'
 const NAVY_DEEP = '#0a1628'
@@ -135,6 +136,9 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         </div>
 
       </div>
+
+      {/* Віджет «Знайшли помилку?» — тост при виділенні + фіксована кнопка */}
+      <ReportErrorWidget />
     </div>
   )
 }
