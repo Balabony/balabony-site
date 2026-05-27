@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { getAnonUserId } from '@/lib/anon-user'
 
 // Splits text into sentences without breaking on "..." or initials.
 // Rule: a sentence ends at . ! ? followed by whitespace + capital letter (or end of text).
@@ -75,7 +76,28 @@ export async function GET(req: Request) {
 
     // episode comes already as global index (1..80)
     const globalIndex = episode
-    const isUnlocked = data.is_free === true || globalIndex === freeEpisode
+
+    // Server-side paywall: an episode is unlocked if it is marked free in DB,
+    // OR the user already picked it via /api/pick (tracked in user_free_picks).
+    // Note: legacy ?free= query parameter is parsed but ignored — kept only for
+    // backward compatibility with cached URLs. Real source of truth is the DB.
+    let isUnlocked = data.is_free === true
+    if (!isUnlocked) {
+      const userId = await getAnonUserId()
+      if (userId) {
+        const { data: pickRow } = await supabase
+          .from('user_free_picks')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('content_type', 'series')
+          .eq('content_id', globalIndex)
+          .maybeSingle()
+        if (pickRow) isUnlocked = true
+      }
+    }
+
+    // freeEpisode is intentionally unused — see comment above.
+    void freeEpisode
 
     const fullText = data.corrected_text ?? ''
     const readingMinutes = estimateReadingMinutes(fullText)

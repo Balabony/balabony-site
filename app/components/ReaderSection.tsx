@@ -35,6 +35,7 @@ export default function ReaderSection() {
   const [mounted, setMounted] = useState(false)
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set())
   const [readEpisodes, setReadEpisodes] = useState<Set<number>>(new Set())
+  const [unlockedEpisodes, setUnlockedEpisodes] = useState<Set<number>>(new Set())
   const [theme, setTheme] = useState<Theme>('dark')
 
   const readerRef = useRef<HTMLDivElement>(null)
@@ -65,6 +66,30 @@ export default function ReaderSection() {
     } catch {
       // ignore localStorage errors
     }
+  }, [])
+
+  // Load anonymous user picks from /api/pick on mount.
+  // Server returns globalEp values for series the user has already picked.
+  // We populate unlockedEpisodes so paywall stays in sync with the DB.
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/pick')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (cancelled || !data?.ok) return
+        const seriesPicks = data?.picks?.series
+        if (!Array.isArray(seriesPicks)) return
+        const ids = seriesPicks
+          .map((p: { globalEp?: unknown }) =>
+            typeof p?.globalEp === 'number' ? p.globalEp : null)
+          .filter((n: number | null): n is number => n !== null)
+        setUnlockedEpisodes(new Set(ids))
+      })
+      .catch(() => {
+        // Silent fail — paywall treats all non-DB-free episodes as locked,
+        // which is the safe default. User can retry by clicking an episode.
+      })
+    return () => { cancelled = true }
   }, [])
 
   // Apply theme by toggling body class
@@ -104,7 +129,6 @@ export default function ReaderSection() {
       season: String(currentSeason),
       episode: String(globalEp),
     })
-    if (freeEpisode !== null) params.set('free', String(freeEpisode))
 
     setLoading(true)
     setError(null)
@@ -122,7 +146,7 @@ export default function ReaderSection() {
         setError(e?.message ?? 'Failed to load episode')
         setLoading(false)
       })
-  }, [currentSeason, currentEp, freeEpisode, mounted])
+  }, [currentSeason, currentEp, mounted])
 
   // Restore scroll position after content renders
   const globalCurrentEp = (currentSeason - 1) * EPISODES_PER_SEASON + currentEp
@@ -183,14 +207,49 @@ export default function ReaderSection() {
     }
   }, [globalCurrentEp, mounted])
 
-  // Handle episode pick: set + lock as free if not yet chosen
+  // Handle episode pick.
+  // - Always navigates to the episode (setCurrentEp).
+  // - Always tries to register the pick on the server (POST /api/pick).
+  // - Legacy localStorage write retained as a fallback (A1).
+  // - On limit-reached or network error: silent (paywall preview handles UX).
   const handlePickEpisode = (ep: number) => {
     const globalEp = (currentSeason - 1) * EPISODES_PER_SEASON + ep
     setCurrentEp(ep)
+
+    // Legacy localStorage write (A1 — backward-compatible fallback)
     if (freeEpisode === null) {
-      localStorage.setItem(STORAGE_KEY_FREE, String(globalEp))
+      try { localStorage.setItem(STORAGE_KEY_FREE, String(globalEp)) } catch {}
       setFreeEpisode(globalEp)
     }
+
+    // If already unlocked, no need to POST again
+    if (unlockedEpisodes.has(globalEp)) return
+
+    // Register pick on the server (idempotent, server enforces season limit)
+    fetch('/api/pick', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contentType: 'series',
+        season: currentSeason,
+        contentId: globalEp,
+      }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data?.ok && data?.picked) {
+          setUnlockedEpisodes(prev => {
+            const next = new Set(prev)
+            next.add(globalEp)
+            return next
+          })
+        }
+        // If data.ok === false (e.g. season_limit_reached): do nothing.
+        // /api/episode will return locked: true and paywall preview renders.
+      })
+      .catch(err => {
+        console.warn('[handlePickEpisode] /api/pick failed:', err)
+      })
   }
 
   const toggleBookmark = (globalEp: number) => {
@@ -484,7 +543,7 @@ export default function ReaderSection() {
               const ep = i + 1
               const globalEp = (currentSeason - 1) * EPISODES_PER_SEASON + ep
               const isActive = ep === currentEp
-              const isFree = mounted && freeEpisode === globalEp
+              const isFree = mounted && unlockedEpisodes.has(globalEp)
               const isBkm = mounted && bookmarks.has(globalEp)
               const isRead = mounted && readEpisodes.has(globalEp)
               return (
