@@ -98,6 +98,19 @@ export async function GET() {
     const userId = await getOrCreateAnonUserId()
     const supabase = getSupabaseAdmin()
 
+    // Check active subscription (frontend uses this to mark all episodes
+    // as unlocked without relying on per-episode picks).
+    const nowIso = new Date().toISOString()
+    const { data: activeSub } = await supabase
+      .from('app_subscriptions')
+      .select('id, plan, expires_at')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .gt('expires_at', nowIso)
+      .order('expires_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
     const { data, error } = await supabase
       .from('user_free_picks')
       .select('content_type, season, content_id, picked_at')
@@ -135,6 +148,10 @@ export async function GET() {
     return NextResponse.json({
       ok: true,
       userId,
+      subscriber: activeSub ? {
+        plan: activeSub.plan,
+        expiresAt: activeSub.expires_at,
+      } : null,
       picks: { series, stories },
       limits: {
         seriesPerSeason: SERIES_PER_SEASON_LIMIT,
@@ -237,6 +254,30 @@ export async function POST(req: NextRequest) {
     // ── Identity + DB
     const userId = await getOrCreateAnonUserId()
     const supabase = getSupabaseAdmin()
+
+    // ── Subscribers bypass picks entirely: they have unlimited access via
+    // app_subscriptions, so we don't need to record per-episode picks for them.
+    // Return ok so the frontend can star the episode visually without hitting
+    // the per-season limit.
+    const nowIso = new Date().toISOString()
+    const { data: activeSub } = await supabase
+      .from('app_subscriptions')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .gt('expires_at', nowIso)
+      .limit(1)
+      .maybeSingle()
+
+    if (activeSub) {
+      return NextResponse.json({
+        ok: true,
+        picked: true,
+        subscriber: true,
+        picksTotal: 0,
+        picksInSeason: 0,
+      })
+    }
 
     // ── Idempotent check: is this exact pick already in DB?
     const { data: existing, error: existingError } = await supabase
