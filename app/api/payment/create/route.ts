@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import crypto, { randomUUID } from 'crypto'
+import crypto from 'crypto'
+import { getOrCreateAnonUserId } from '@/lib/anon-user'
 
 const PUBLIC_KEY  = process.env.LIQPAY_PUBLIC_KEY  || ''
 const PRIVATE_KEY = process.env.LIQPAY_PRIVATE_KEY || ''
-const WEBHOOK_URL = 'https://balabony.vercel.app/api/webhook/liqpay'
-const RESULT_URL  = process.env.NEXT_PUBLIC_SITE_URL || 'https://balabony.com'
-const API_BASE    = 'https://balabony.vercel.app'
+const SITE_URL    = process.env.NEXT_PUBLIC_SITE_URL || 'https://balabony.com'
+const WEBHOOK_URL = `${SITE_URL}/api/webhook/liqpay`
+const RESULT_URL  = `${SITE_URL}/payment/success`
 
 function sign(data: string): string {
   return crypto.createHash('sha1')
@@ -15,7 +16,10 @@ function sign(data: string): string {
 
 export async function POST(req: NextRequest) {
   if (!PUBLIC_KEY || !PRIVATE_KEY) {
-    return NextResponse.json({ error: 'LIQPAY_PUBLIC_KEY and LIQPAY_PRIVATE_KEY must be set' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'LIQPAY_PUBLIC_KEY and LIQPAY_PRIVATE_KEY must be set' },
+      { status: 500 }
+    )
   }
 
   try {
@@ -25,23 +29,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 })
     }
 
-    // Register an anonymous web visitor so the webhook can record the subscription
-    const deviceId = `web_${randomUUID()}`
-    const userRes = await fetch(`${API_BASE}/api/user`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ device_id: deviceId }),
-    })
-    const { user_id } = await userRes.json().catch(() => ({}))
-    if (!user_id) {
-      return NextResponse.json({ error: 'Failed to register session' }, { status: 502 })
+    // Identity = balabony_uid cookie. Creates new app_users row if absent,
+    // so the webhook can link the subscription back to the same anonymous
+    // user that's reading on the site.
+    const userId = await getOrCreateAnonUserId()
+    if (!userId) {
+      return NextResponse.json({ error: 'Failed to identify user' }, { status: 500 })
     }
 
-    const plan        = numAmount <= 99 ? 'monthly' : 'yearly'
+    const plan        = numAmount <= 199 ? 'monthly' : 'yearly'
     const description = plan === 'monthly'
       ? 'Balabony Premium — 1 місяць'
       : 'Balabony Premium — 1 рік'
-    const orderId = `${user_id}_${Date.now()}`
+
+    // Order ID format: sub_<userId>_<timestamp>
+    // The "sub_" prefix lets the webhook distinguish subscriptions from gifts.
+    const orderId = `sub_${userId}_${Date.now()}`
 
     const params = {
       version:    3,
