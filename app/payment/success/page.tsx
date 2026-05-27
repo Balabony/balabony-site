@@ -7,39 +7,123 @@ export const metadata = {
 
 export default function PaymentSuccessPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 py-16">
-      <div className="max-w-md w-full text-center space-y-6">
-        <div className="text-6xl">✓</div>
+    <main
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "4rem 1.5rem",
+        backgroundColor: "#0e1626",
+        color: "#f5f1e8",
+        fontFamily:
+          "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "520px",
+          width: "100%",
+          textAlign: "center",
+          backgroundColor: "rgba(255, 255, 255, 0.03)",
+          border: "1px solid rgba(245, 165, 36, 0.25)",
+          borderRadius: "16px",
+          padding: "3rem 2rem",
+        }}
+      >
+        <div
+          style={{
+            width: "72px",
+            height: "72px",
+            margin: "0 auto 1.5rem",
+            borderRadius: "50%",
+            backgroundColor: "rgba(245, 165, 36, 0.15)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "2.5rem",
+            color: "#f5a524",
+          }}
+        >
+          ✓
+        </div>
 
-        <h1 className="text-3xl font-bold">Дякуємо!</h1>
+        <h1
+          style={{
+            fontSize: "2rem",
+            fontWeight: 700,
+            margin: "0 0 1rem",
+            color: "#f5a524",
+          }}
+        >
+          Дякуємо!
+        </h1>
 
-        <p className="text-lg opacity-80">
+        <p
+          style={{
+            fontSize: "1.125rem",
+            margin: "0 0 1.5rem",
+            opacity: 0.9,
+          }}
+        >
           Оплата успішно отримана.
         </p>
 
-        <p className="opacity-70 text-sm">
-          Підписка активується протягом хвилини після підтвердження
-          платежу від LiqPay. Якщо за 5 хвилин доступ не з&apos;явиться,
-          напишіть нам на{" "}
+        <p
+          style={{
+            fontSize: "0.95rem",
+            lineHeight: 1.6,
+            opacity: 0.7,
+            margin: "0 0 2rem",
+          }}
+        >
+          Підписка активується протягом хвилини після підтвердження платежу
+          від LiqPay. Якщо за 5 хвилин доступ не з&apos;явиться, напишіть нам
+          на{" "}
           <a
             href="mailto:nazar@balabony.com"
-            className="underline hover:opacity-100"
+            style={{ color: "#f5a524", textDecoration: "underline" }}
           >
             nazar@balabony.com
           </a>
           .
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            gap: "0.75rem",
+            justifyContent: "center",
+            flexWrap: "wrap",
+          }}
+        >
           <Link
             href="/"
-            className="px-6 py-3 rounded-lg bg-amber-500 text-black font-semibold hover:bg-amber-400 transition"
+            style={{
+              display: "inline-block",
+              padding: "0.875rem 1.75rem",
+              borderRadius: "10px",
+              backgroundColor: "#f5a524",
+              color: "#0e1626",
+              fontWeight: 600,
+              textDecoration: "none",
+              fontSize: "1rem",
+            }}
           >
             На головну
           </Link>
           <Link
             href="/episodes"
-            className="px-6 py-3 rounded-lg border border-white/20 hover:bg-white/5 transition"
+            style={{
+              display: "inline-block",
+              padding: "0.875rem 1.75rem",
+              borderRadius: "10px",
+              border: "1px solid rgba(245, 241, 232, 0.25)",
+              color: "#f5f1e8",
+              textDecoration: "none",
+              fontSize: "1rem",
+            }}
           >
             До серій →
           </Link>
