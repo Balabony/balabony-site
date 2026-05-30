@@ -69,7 +69,7 @@ export default function Footer() {
         {/* ───── КОЛОНКА 1: БРЕНД + КОНТАКТИ + ПІДТРИМАТИ ───── */}
         <div>
           <span className="footer-logo" style={{ fontFamily: "'Comfortaa', cursive", fontSize: 22, display: 'block', marginBottom: 6 }}>
-            Balabony<sup style={{ fontSize: 10 }}>®</sup>
+            Balabony<sup style={{ fontSize: 10 }}>™</sup>
           </span>
           <p style={{ fontSize: 13, lineHeight: 1.5, color: 'rgba(255,255,255,0.55)', marginBottom: 18 }}>
             Українські історії для всієї родини
@@ -340,23 +340,14 @@ export default function Footer() {
           fontSize: 14, lineHeight: 1.7, color: 'rgba(255,255,255,0.85)',
           marginBottom: 12, fontFamily: "'Montserrat', sans-serif",
         }}>
-          Освітньо-літературна платформа <span style={{ color: '#f5a623', fontWeight: 600 }}>ЛОГО «Інститут громадянського суспільства»</span>.
-          Ми відновлюємо грамотність і повертаємо радість українського слова дітям, постраждалим від війни, —
-          через літературу, аудіо та ШІ-тьюторинг. Безкоштовно — для дітей ВПО, ветеранів (УБД) та їхніх родин,
-          людей з інвалідністю, дітей зі звільнених громад. Через спільні історії, живу мову й теплий гумор
-          обʼєднуємо українців навколо рідної культури — щоб українці залишалися в Україні й будували її майбутнє.
+          Balabony — освітньо-літературна платформа українських історій. Ми повертаємо радість українського слова дітям, які постраждали від війни, — через літературу та живу українську історію. Безкоштовний доступ для дітей ВПО, ветеранів (УБД), людей з інвалідністю та дітей зі звільнених громад забезпечується у партнерстві з <span style={{ color: '#f5a623', fontWeight: 600 }}>ГО «Інститут громадянського суспільства»</span>. Через спільні історії, живу мову й теплий гумор ми обʼєднуємо українців навколо рідної культури — щоб вони залишалися в Україні й будували її майбутнє.
         </p>
         <p style={{
           fontSize: 12, lineHeight: 1.6, color: 'rgba(255,255,255,0.55)',
           margin: 0, fontStyle: 'italic',
           fontFamily: "'Montserrat', sans-serif",
         }}>
-          Educational and literary platform LOGO &laquo;Institute of Civil Society&raquo;.
-          We restore literacy and bring back the joy of the Ukrainian language to children affected by war —
-          through literature, audio and AI tutoring. Free of charge for IDP children, veterans (combat status)
-          and their families, people with disabilities, and children from liberated communities. Through shared
-          stories, living language and warm humour we unite Ukrainians around their native culture —
-          so that Ukrainians stay in Ukraine and build its future.
+          Balabony is an educational and literary platform of Ukrainian stories. We bring back the joy of the Ukrainian language to children affected by war — through literature and living Ukrainian storytelling. Free access for IDP children, veterans (combat status), people with disabilities, and children from liberated communities is provided in partnership with the NGO &laquo;Institute of Civil Society&raquo;. Through shared stories, living language and warm humour we unite Ukrainians around their native culture — so that they stay in Ukraine and build its future.
         </p>
       </div>
 
@@ -366,7 +357,7 @@ export default function Footer() {
         fontSize: 13, color: 'rgba(255,255,255,0.6)', maxWidth: 1200, margin: '0 auto'
       }}>
         <p style={{ marginBottom: 6 }}>
-          © 2026 Balabony®. Історії українською. Усі права захищено згідно із законодавством України.
+          © 2026 Balabony™. Історії українською. Усі права захищено згідно із законодавством України.
         </p>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '3px 0 0 0' }}>
           Торговельна марка: заявка №m202607908 до Укрпатенту.
