@@ -33,6 +33,7 @@ const LEGAL_LINKS = [
   { title: 'Угода користувача',         href: '/legal/terms' },
   { title: 'Публічна оферта',           href: '/legal/offer' },
   { title: 'Політика Cookies',          href: '/legal/cookies' },
+  { title: 'Захист дітей',              href: '/legal/child-safety' },
   { title: 'Договір з автором',         href: '/become-author' },
 ]
 
