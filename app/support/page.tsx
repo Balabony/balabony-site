@@ -53,7 +53,7 @@ const BRANCH_ADDR_EN = '25-Ye Hetman Mazepa St., Lviv 79059, Ukraine';
 const SWIFT = 'PBANUA2X';
 const PURPOSE_UA = 'Благодійний внесок на статутну діяльність ЛОГО „Інститут громадянського суспільства". Без ПДВ.';
 const PURPOSE_EN = 'Charitable contribution to support the statutory activities of Instytut Hromadyanskoho Suspilstva — accessibility and inclusion development.';
-const CONTACT_EMAIL = 'nazar@balabony.net';
+const CONTACT_EMAIL = 'nazar@balabony.com';
 
 // ============================================================================
 // EPC QR

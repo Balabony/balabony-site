@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
 
@@ -697,7 +697,7 @@ export default function AccessibilityPage() {
                 Розширений доступ включає: усі 60 шортів у HD-якості, додаткові мовні
                 картки, етимологічні довідки, повний архів сценаріїв, ранній доступ до нового матеріалу.
               </p>
-              <a href="mailto:nazar@balabony.net?subject=Заявка на пільговий доступ (УБД/інвалідність)" className="a11y-cta">
+              <a href="mailto:nazar@balabony.com?subject=Заявка на пільговий доступ (УБД/інвалідність)" className="a11y-cta">
                 Подати заявку →
               </a>
             </div>
@@ -737,8 +737,8 @@ export default function AccessibilityPage() {
               Доступність — це постійна робота. Якщо ви побачили щось, що працює не як треба,
               напишіть нам — виправимо протягом 48 годин.
             </p>
-            <a href="mailto:nazar@balabony.net?subject=Доступність balabony.com — знайдено бар'єр" className="a11y-mail">
-              nazar@balabony.net
+            <a href="mailto:nazar@balabony.com?subject=Доступність balabony.com — знайдено бар'єр" className="a11y-mail">
+              nazar@balabony.com
             </a>
           </section>
         </main>
@@ -751,4 +751,3 @@ export default function AccessibilityPage() {
     </>
   );
 }
-
