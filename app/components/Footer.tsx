@@ -4,7 +4,7 @@ import { FooterLegalSection } from './FooterLegalSection'
 
 const E_USER = 'nazar'
 const E_HOST = 'balabony'
-const E_TLD  = 'net'
+const E_TLD  = 'com'
 
 /**
  * Email у вигляді клікабельного посилання mailto:.
@@ -341,14 +341,14 @@ export default function Footer() {
           fontSize: 14, lineHeight: 1.7, color: 'rgba(255,255,255,0.85)',
           marginBottom: 12, fontFamily: "'Montserrat', sans-serif",
         }}>
-          Balabony — освітньо-літературна платформа українських історій. Ми повертаємо радість українського слова дітям, які постраждали від війни, — через літературу та живу українську історію. Безкоштовний доступ для дітей ВПО, ветеранів (УБД), людей з інвалідністю та дітей зі звільнених громад забезпечується у партнерстві з <span style={{ color: '#f5a623', fontWeight: 600 }}>ГО «Інститут громадянського суспільства»</span>. Через спільні історії, живу мову й теплий гумор ми обʼєднуємо українців навколо рідної культури — щоб вони залишалися в Україні й будували її майбутнє.
+          Balabony — освітньо-літературна платформа українських історій. Ми повертаємо радість українського слова дітям, які постраждали від війни, — через літературу та живу українську історію. Безкоштовний доступ для дітей ВПО, ветеранів (УБД) та людей з інвалідністю забезпечується у партнерстві з <span style={{ color: '#f5a623', fontWeight: 600 }}>ГО «Інститут громадянського суспільства»</span>. Через спільні історії, живу мову й теплий гумор ми обʼєднуємо українців навколо рідної культури — щоб вони залишалися в Україні й будували її майбутнє.
         </p>
         <p style={{
           fontSize: 12, lineHeight: 1.6, color: 'rgba(255,255,255,0.55)',
           margin: 0, fontStyle: 'italic',
           fontFamily: "'Montserrat', sans-serif",
         }}>
-          Balabony is an educational and literary platform of Ukrainian stories. We bring back the joy of the Ukrainian language to children affected by war — through literature and living Ukrainian storytelling. Free access for IDP children, veterans (combat status), people with disabilities, and children from liberated communities is provided in partnership with the NGO &laquo;Institute of Civil Society&raquo;. Through shared stories, living language and warm humour we unite Ukrainians around their native culture — so that they stay in Ukraine and build its future.
+          Balabony is an educational and literary platform of Ukrainian stories. We bring back the joy of the Ukrainian language to children affected by war — through literature and living Ukrainian storytelling. Free access for IDP children, veterans (combat status), and people with disabilities is provided in partnership with the NGO &laquo;Institute of Civil Society&raquo;. Through shared stories, living language and warm humour we unite Ukrainians around their native culture — so that they stay in Ukraine and build its future.
         </p>
       </div>
 
