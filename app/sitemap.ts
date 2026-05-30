@@ -19,32 +19,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 1. Статичні сторінки
   const staticPages: MetadataRoute.Sitemap = [
-    { url: `${BASE_URL}`,                 lastModified: now, changeFrequency: 'daily',   priority: 1.0 },
-    { url: `${BASE_URL}/stories`,         lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
-    { url: `${BASE_URL}/episodes`,        lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
-    { url: `${BASE_URL}/about`,           lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE_URL}/games`,           lastModified: now, changeFrequency: 'weekly',  priority: 0.7 },
-    { url: `${BASE_URL}/support`,         lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${BASE_URL}/become-author`,   lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/accessibility`,   lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/contact`,         lastModified: now, changeFrequency: 'yearly',  priority: 0.5 },
-    { url: `${BASE_URL}/sitemap`,         lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
-    { url: `${BASE_URL}/legal/terms`,     lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
-    { url: `${BASE_URL}/legal/privacy`,   lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
-    { url: `${BASE_URL}/legal/offer`,     lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
-    { url: `${BASE_URL}/legal/cookies`,   lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE_URL}`,                       lastModified: now, changeFrequency: 'daily',   priority: 1.0 },
+    { url: `${BASE_URL}/stories`,               lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
+    { url: `${BASE_URL}/episodes`,              lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
+    { url: `${BASE_URL}/about`,                 lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE_URL}/games`,                 lastModified: now, changeFrequency: 'weekly',  priority: 0.7 },
+    { url: `${BASE_URL}/support`,               lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE_URL}/become-author`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/accessibility`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/contacts`,              lastModified: now, changeFrequency: 'yearly',  priority: 0.5 },
+    { url: `${BASE_URL}/sitemap`,               lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${BASE_URL}/legal/terms`,           lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE_URL}/legal/privacy`,         lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE_URL}/legal/offer`,           lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE_URL}/legal/cookies`,         lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE_URL}/legal/refund`,          lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE_URL}/legal/author-contract`, lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
   ]
 
   // 2. Динамічні: серії та історії з Supabase
   let dynamicPages: MetadataRoute.Sitemap = []
-
   try {
     const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
       .from('content')
       .select('type, slug, approved_at')
       .in('status', ['approved', 'published'])
-
     if (!error && data) {
       dynamicPages = data
         .filter(row => row.slug)

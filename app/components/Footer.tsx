@@ -1,5 +1,7 @@
 'use client'
 
+import { FooterLegalSection } from './FooterLegalSection'
+
 const E_USER = 'nazar'
 const E_HOST = 'balabony'
 const E_TLD  = 'net'
@@ -373,6 +375,9 @@ export default function Footer() {
           Авторське право: заявка №c202604211 до Укрпатенту.
         </p>
       </div>
+
+      {/* ════════ РЕКВІЗИТИ ФОП (юридичний блок, видно на всіх сторінках) ════════ */}
+      <FooterLegalSection />
 
       <style jsx>{`
         /* ── Logo shimmer ── */
