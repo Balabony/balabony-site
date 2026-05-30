@@ -93,7 +93,7 @@ export default function PwaSection() {
 
             {/* Content */}
             <div className="pwa-iphone-content">
-              <div className="pwa-iphone-brand">BALABONY®</div>
+              <div className="pwa-iphone-brand">BALABONY™</div>
               <div className="pwa-iphone-headline">Читай українське</div>
               <div className="pwa-iphone-cta" />
               <div className="pwa-iphone-cover" />

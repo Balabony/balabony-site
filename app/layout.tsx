@@ -4,27 +4,26 @@ import './globals.css'
 import UpdateBanner from './components/UpdateBanner'
 import AnalyticsTracker from './components/AnalyticsTracker'
 import ServiceWorkerRegistration from './components/ServiceWorkerRegistration'
-
 export const metadata: Metadata = {
   metadataBase: new URL('https://balabony.com'),
-  title: 'Balabony® — українські історії для всієї родини',
+  title: 'Balabony™ — українські історії для всієї родини',
   description: 'Платформа українських історій для всієї родини. Читай безкоштовно одну серію.',
   keywords: ['українські історії', 'історії для дітей', 'балабони', 'український контент', 'читати українською'],
-  authors: [{ name: 'Balabony®' }],
+  authors: [{ name: 'Balabony™' }],
   robots: 'index, follow',
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
     url: 'https://balabony.com/',
-    title: 'Balabony® — українські історії для всієї родини',
+    title: 'Balabony™ — українські історії для всієї родини',
     description: 'Платформа українських історій для всієї родини. Читай безкоштовно одну серію.',
     images: [{ url: 'https://balabony.com/og-image.jpg', width: 1200, height: 630 }],
     locale: 'uk_UA',
-    siteName: 'Balabony®',
+    siteName: 'Balabony™',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Balabony® — українські історії для всієї родини',
+    title: 'Balabony™ — українські історії для всієї родини',
     description: 'Платформа українських історій для всієї родини. Читай безкоштовно одну серію.',
     images: ['https://balabony.com/og-image.jpg'],
   },
@@ -34,13 +33,11 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
 }
-
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: '#ef9f27',
 }
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="uk">

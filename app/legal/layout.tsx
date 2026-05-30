@@ -40,11 +40,12 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           <Link href="/legal/privacy"         className="legal-bottom-link">Політика конфіденційності</Link>
           <Link href="/legal/offer"           className="legal-bottom-link">Публічна оферта</Link>
           <Link href="/legal/cookies"         className="legal-bottom-link">Політика Cookies</Link>
+          <Link href="/legal/child-safety"    className="legal-bottom-link">Захист дітей</Link>
           <Link href="/legal/author-contract" className="legal-bottom-link">Договір з автором</Link>
         </div>
 
         <p className="legal-footer-note">
-          Усі документи редаговано: травень 2026. © 2026 Balabony®. Питання — <ProtectedEmail user="nazar" domain="balabony.com" />
+          Усі документи редаговано: травень 2026. © 2026 Balabony™. Питання — <ProtectedEmail user="nazar" domain="balabony.com" />
         </p>
       </div>
 
