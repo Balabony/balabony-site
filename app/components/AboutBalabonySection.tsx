@@ -11,7 +11,7 @@ import Link from 'next/link'
  *  - Рядок "Наші історії роблять три речі одночасно"
  *  - 3 картки: Об'єднують / Навчають / Лікують
  *  - Виділений блок: "сильна культура тримає людей удома" + аудіо тизер
- *  - 4 картки бенефіціарів (Діти ВПО / УБД / З інвалідністю / Звільнені) з SVG іконками
+ *  - 3 картки бенефіціарів (Діти ВПО / УБД / З інвалідністю) з SVG іконками
  *  - 1 CTA "Підтримати місію" → /support
  *  - Footer з лого ІГС (коло з "ЛОГО") + "Інститут громадянського суспільства"
  *
@@ -61,11 +61,6 @@ const MISSION = {
       title: 'З інвалідністю',
       subtitle: 'Доступ через текст',
       iconType: 'accessibility' as const,
-    },
-    {
-      title: 'Звільнені',
-      subtitle: 'Деокуповані громади',
-      iconType: 'homes' as const,
     },
   ],
 
@@ -405,7 +400,7 @@ export default function AboutBalabonySection() {
 
         .beneficiaries-grid {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
+          grid-template-columns: repeat(3, 1fr);
           gap: 12px;
           margin-bottom: 32px;
           position: relative;

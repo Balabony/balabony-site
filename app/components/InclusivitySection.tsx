@@ -57,7 +57,7 @@ const AUDIENCES: Audience[] = [
   { id: 'veterans', title: 'УБД',             subtitle: 'Учасники бойових дій',  Icon: ShieldIcon     },
   { id: 'disability', title: 'Інвалідність',  subtitle: 'Люди з інвалідністю',   Icon: WheelchairIcon },
   { id: 'idp',      title: 'Діти ВПО',         subtitle: 'Внутрішньо переміщені', Icon: HomeMoveIcon   },
-  { id: 'vision',   title: 'Порушення зору',   subtitle: 'Аудіо та крупний шрифт', Icon: EyeIcon       },
+  { id: 'vision',   title: 'Порушення зору',   subtitle: 'Крупний шрифт і темна тема', Icon: EyeIcon       },
 ]
 
 export default function InclusivitySection() {
@@ -74,7 +74,7 @@ export default function InclusivitySection() {
         <div className="inc-eyebrow">Для кожного</div>
         <h2 className="inc-title">Балабони доступні всім</h2>
         <p className="inc-lead">
-          Соціальний тариф — 1 грн на місяць — для тих, кому це найважливіше. Верифікація через сервіс «Дія».
+          Соціальний тариф — 1 ₴ на рік — для тих, кому це найважливіше. Верифікація через сервіс «Дія».
         </p>
 
         <div className="inc-grid">
