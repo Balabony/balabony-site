@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation'
+﻿import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
-import LogoutButton from '../profile/LogoutButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -115,7 +114,6 @@ export default async function AuthorDashboardPage() {
             <h1 style={{ fontSize: '1.75rem', color: '#1f2937', margin: 0 }}>Кабінет автора</h1>
             <p style={{ color: '#6b7280', margin: '0.25rem 0 0' }}>{profile.display_name}</p>
           </div>
-          <LogoutButton />
         </div>
 
         {/* Умови співпраці */}
