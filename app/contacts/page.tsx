@@ -1,8 +1,6 @@
 // FILE: app/contacts/page.tsx
 // Серверний компонент (без "use client") — контент видно без JS і без авторизації.
-// Стиль: темна тема + кремовий контентний блок, як на /legal/offer і /legal/privacy.
-// Якщо у вас є готовий wrapper для legal-сторінок — обгорніть контент у нього і приберіть локальні класи.
-
+// Інлайн-стилі (Tailwind у проєкті не застосовується): темна тема + кремова картка.
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -22,28 +20,75 @@ export const metadata: Metadata = {
   },
 };
 
+const h2Style: React.CSSProperties = {
+  fontSize: 20,
+  fontWeight: 600,
+  color: "#1c1917",
+  margin: "0 0 12px",
+};
+
+const sectionStyle: React.CSSProperties = { marginTop: 32 };
+
+const ulStyle: React.CSSProperties = {
+  margin: 0,
+  paddingLeft: 20,
+  lineHeight: 1.7,
+};
+
+const linkStyle: React.CSSProperties = {
+  color: "#92400e",
+  textDecoration: "underline",
+};
+
 export default function ContactsPage() {
   return (
-    <main className="min-h-screen bg-[#161412] px-4 py-12 md:py-16">
-      <article className="mx-auto max-w-3xl rounded-2xl bg-[#f6f1e7] px-6 py-10 text-stone-800 shadow-xl md:px-12 md:py-14">
-        <h1 className="text-3xl font-bold text-stone-900 md:text-4xl">Контакти</h1>
-        <p className="mt-3 text-lg text-stone-600">
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "#161412",
+        padding: "48px 16px",
+      }}
+    >
+      <article
+        style={{
+          maxWidth: 768,
+          margin: "0 auto",
+          background: "#f6f1e7",
+          color: "#292524",
+          borderRadius: 16,
+          padding: "clamp(28px, 5vw, 56px) clamp(20px, 4vw, 48px)",
+          boxShadow: "0 20px 50px rgba(0,0,0,0.35)",
+          fontSize: 16,
+          lineHeight: 1.6,
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "clamp(28px, 5vw, 36px)",
+            fontWeight: 700,
+            color: "#1c1917",
+            margin: 0,
+          }}
+        >
+          Контакти
+        </h1>
+        <p style={{ marginTop: 12, fontSize: 18, color: "#57534e" }}>
           Платіжні питання, технічна підтримка, співпраця, авторські запити —
           пишіть на email або у WhatsApp.
         </p>
 
-        <section className="mt-8">
-          <h2 className="mb-3 text-xl font-semibold text-stone-900">Звʼязатися з нами</h2>
-          <ul className="space-y-2">
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>Зв&apos;язатися з нами</h2>
+          <ul style={ulStyle}>
             <li>
               <strong>Email:</strong>{" "}
-              <a className="text-amber-800 underline hover:text-amber-900" href="mailto:nazar@balabony.com">
+              <a style={linkStyle} href="mailto:nazar@balabony.com">
                 nazar@balabony.com
               </a>
             </li>
             <li>
               <strong>WhatsApp / Telegram:</strong>{" "}
-              <a className="text-amber-800 underline hover:text-amber-900" href="tel:+380505859141">
+              <a style={linkStyle} href="tel:+380505859141">
                 +380 50 585 91 41
               </a>
             </li>
@@ -53,40 +98,69 @@ export default function ContactsPage() {
           </ul>
         </section>
 
-        <section className="mt-8">
-          <h2 className="mb-3 text-xl font-semibold text-stone-900">
-            Реквізити отримувача платежів
-          </h2>
-          <p className="mb-2">Платежі на платформі обробляє:</p>
-          <ul className="space-y-1">
-            <li><strong>ФОП Хомин Ігор Іванович</strong></li>
-            <li><strong>РНОКПП:</strong> 2552710170</li>
-            <li><strong>Адреса:</strong> Україна, 79069, м. Львів, вул. Шевченка Т., буд. 338, кв. 143</li>
-            <li><strong>Система оподаткування:</strong> платник єдиного податку 2 групи</li>
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>Реквізити отримувача платежів</h2>
+          <p style={{ margin: "0 0 8px" }}>Платежі на платформі обробляє:</p>
+          <ul style={ulStyle}>
+            <li>
+              <strong>ФОП Хомин Ігор Іванович</strong>
+            </li>
+            <li>
+              <strong>РНОКПП:</strong> 2552710170
+            </li>
+            <li>
+              <strong>Адреса:</strong> Україна, 79069, м. Львів, вул. Шевченка Т.,
+              буд. 338, кв. 143
+            </li>
+            <li>
+              <strong>Система оподаткування:</strong> платник єдиного податку 2
+              групи
+            </li>
           </ul>
         </section>
 
-        <section className="mt-8">
-          <h2 className="mb-3 text-xl font-semibold text-stone-900">
-            Партнер з освітньої та благодійної діяльності
-          </h2>
-          <p className="mb-2">
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>Партнер з освітньої та благодійної діяльності</h2>
+          <p style={{ margin: "0 0 8px" }}>
             Інклюзивна частина платформи (безкоштовний доступ для дітей ВПО,
             ветеранів УБД, людей з інвалідністю) реалізується у партнерстві з:
           </p>
-          <ul className="space-y-1">
-            <li><strong>Львівська обласна громадська організація «Інститут громадянського суспільства»</strong></li>
-            <li><strong>ЄДРПОУ:</strong> 33951844</li>
+          <ul style={ulStyle}>
+            <li>
+              <strong>
+                Львівська обласна громадська організація «Інститут громадянського
+                суспільства»
+              </strong>
+            </li>
+            <li>
+              <strong>ЄДРПОУ:</strong> 33951844
+            </li>
           </ul>
         </section>
 
-        <section className="mt-8">
-          <h2 className="mb-3 text-xl font-semibold text-stone-900">Юридичні документи</h2>
-          <ul className="space-y-1">
-            <li><Link className="text-amber-800 underline hover:text-amber-900" href="/legal/offer">Публічна оферта</Link></li>
-            <li><Link className="text-amber-800 underline hover:text-amber-900" href="/legal/privacy">Політика конфіденційності</Link></li>
-            <li><Link className="text-amber-800 underline hover:text-amber-900" href="/legal/refund">Правила повернення коштів</Link></li>
-            <li><Link className="text-amber-800 underline hover:text-amber-900" href="/legal/author-contract">Договір з автором</Link></li>
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>Юридичні документи</h2>
+          <ul style={ulStyle}>
+            <li>
+              <Link style={linkStyle} href="/legal/offer">
+                Публічна оферта
+              </Link>
+            </li>
+            <li>
+              <Link style={linkStyle} href="/legal/privacy">
+                Політика конфіденційності
+              </Link>
+            </li>
+            <li>
+              <Link style={linkStyle} href="/legal/refund">
+                Правила повернення коштів
+              </Link>
+            </li>
+            <li>
+              <Link style={linkStyle} href="/legal/author-contract">
+                Договір з автором
+              </Link>
+            </li>
           </ul>
         </section>
       </article>
