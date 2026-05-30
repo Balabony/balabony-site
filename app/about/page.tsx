@@ -1,17 +1,17 @@
 // FILE: app/about/page.tsx
-// Серверний компонент. Закриває 404 на /about (кнопка на 404-екрані має вести сюди).
-
+// Серверний компонент (без "use client") — контент видно без JS і без авторизації.
+// Інлайн-стилі (Tailwind у проєкті не застосовується): темна тема + кремова картка.
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Про автора — Balabony",
   description:
-    "Богдан Хомин — засновник освітньо-літературної платформи Balabony, директор ТОВ «Кінокомпанія Життя», автор українськомовних історій.",
+    "Богдан Хомин — засновник освітньо-літературної платформи Balabony. Місія платформи та лагідна українізація.",
   alternates: { canonical: "https://balabony.com/about" },
   openGraph: {
     title: "Про автора — Balabony",
     description:
-      "Богдан Хомин — засновник освітньо-літературної платформи Balabony, автор українськомовних історій.",
+      "Богдан Хомин — засновник освітньо-літературної платформи Balabony.",
     url: "https://balabony.com/about",
     siteName: "Balabony",
     locale: "uk_UA",
@@ -19,56 +19,98 @@ export const metadata: Metadata = {
   },
 };
 
+const h2Style: React.CSSProperties = {
+  fontSize: 22,
+  fontWeight: 600,
+  color: "#1c1917",
+  margin: "0 0 12px",
+};
+
+const sectionStyle: React.CSSProperties = { marginTop: 32 };
+
+const pStyle: React.CSSProperties = { margin: "0 0 14px" };
+const pLastStyle: React.CSSProperties = { margin: 0 };
+
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-[#161412] px-4 py-12 md:py-16">
-      <article className="mx-auto max-w-3xl rounded-2xl bg-[#f6f1e7] px-6 py-10 text-stone-800 shadow-xl md:px-12 md:py-14">
-        <h1 className="text-3xl font-bold text-stone-900 md:text-4xl">Про автора</h1>
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "#161412",
+        padding: "48px 16px",
+      }}
+    >
+      <article
+        style={{
+          maxWidth: 768,
+          margin: "0 auto",
+          background: "#f6f1e7",
+          color: "#292524",
+          borderRadius: 16,
+          padding: "clamp(28px, 5vw, 56px) clamp(20px, 4vw, 48px)",
+          boxShadow: "0 20px 50px rgba(0,0,0,0.35)",
+          fontSize: 16,
+          lineHeight: 1.65,
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "clamp(28px, 5vw, 36px)",
+            fontWeight: 700,
+            color: "#1c1917",
+            margin: 0,
+          }}
+        >
+          Про автора
+        </h1>
 
-        <section className="mt-8">
-          <h2 className="mb-3 text-xl font-semibold text-stone-900">Богдан Хомин</h2>
-          <p>
-            Богдан Хомин — засновник освітньо-літературної платформи Balabony,
-            директор ТОВ «Кінокомпанія Життя» (з 2011 року), автор серії історій
-            українською мовою.
-          </p>
-          <p className="mt-3">
-            9 років очолює медіа-проєкт, який видає чотири українськомовні газети
-            загальним накладом 1,56 млн примірників на рік через Укрпошту. На
-            основі цього досвіду створив Balabony — платформу, що поєднує сучасну
-            українську прозу з аудіо-форматом і AI-тьюторингом для людей з
-            обмеженим доступом до традиційного читання.
+        <section style={sectionStyle}>
+          <p style={pLastStyle}>
+            Богдан Хомин — засновник освітньо-літературної платформи Balabony.
+            На основі 23-річного досвіду у медіа він створив проєкт, що робить
+            сучасну українську прозу доступною для широкого читача. У планах
+            розвитку — аудіоформат і ШІ-тьюторинг для людей з обмеженим доступом
+            до традиційного читання.
           </p>
         </section>
 
-        <section className="mt-8">
-          <h2 className="mb-3 text-xl font-semibold text-stone-900">Місія Balabony</h2>
-          <p>
-            Платформа Balabony побудована на ідеї відновлення грамотності і
-            повернення радості українського слова через літературу, аудіо та
-            технології штучного інтелекту. Безкоштовний інклюзивний доступ
-            надається дітям ВПО, ветеранам УБД, людям з інвалідністю, дітям зі
-            звільнених громад — у партнерстві з Львівською обласною ГО «Інститут
-            громадянського суспільства».
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>Місія</h2>
+          <p style={pStyle}>
+            Ми відновлюємо грамотність і повертаємо радість українського слова
+            дітям, які постраждали від війни, — через літературу та живу
+            українську історію.
+          </p>
+          <p style={pStyle}>
+            Окрема частина нашої місії — лагідна українізація російськомовних
+            громадян: без тиску й повчань, через щире зацікавлення, добру історію
+            та задоволення від читання, ми допомагаємо їм природно повертатися до
+            української мови та культури.
+          </p>
+          <p style={pStyle}>
+            Через спільні історії, живу мову й теплий гумор ми об&apos;єднуємо
+            українців навколо рідної культури, щоб вони залишалися в Україні й
+            будували її майбутнє.
+          </p>
+          <p style={pLastStyle}>
+            Безкоштовний інклюзивний доступ надається дітям ВПО, ветеранам (УБД),
+            людям з інвалідністю й дітям зі звільнених громад.
           </p>
         </section>
 
-        <section className="mt-8">
-          <h2 className="mb-3 text-xl font-semibold text-stone-900">Партнерська мережа</h2>
-          <ul className="list-disc space-y-1 pl-6">
-            <li>Львівська ОГО «Інститут громадянського суспільства» (ЄДРПОУ 33951844) — інклюзивна частина платформи</li>
-            <li>Veteran Hub — ветеранська підтримка та реабілітація</li>
-            <li>ICS Львів — інституційна підтримка</li>
-            <li>Фонди ветеранської реабілітації</li>
-          </ul>
-        </section>
-
-        <section className="mt-8">
-          <h2 className="mb-3 text-xl font-semibold text-stone-900">Контакти автора</h2>
-          <ul className="space-y-1">
-            <li><strong>Email:</strong> nazar@balabony.com</li>
-            <li><strong>Платформа:</strong> balabony.com</li>
-          </ul>
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>Партнерська мережа</h2>
+          <p style={pStyle}>
+            Перевірка пільгових статусів (ВПО, ветеранів УБД, людей з
+            інвалідністю) для надання безкоштовного доступу здійснюється через
+            державний застосунок «Дія» (Міністерство цифрової трансформації
+            України).
+          </p>
+          <p style={pLastStyle}>
+            Розробка платформи — програмування, підготовку матеріалів та супутні
+            послуги — реалізується за грантової підтримки Львівської обласної
+            громадської організації «Інститут громадянського суспільства».
+          </p>
         </section>
       </article>
     </main>
