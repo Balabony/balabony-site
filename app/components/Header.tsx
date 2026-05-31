@@ -53,7 +53,7 @@ export default function Header() {
         fontFamily: "'Comfortaa', cursive", fontSize: 22, fontWeight: 700,
         color: 'var(--accent-gold)', textDecoration: 'none', flexShrink: 0,
       }}>
-        Balabony<sup style={{ fontSize: 9, color: 'var(--accent-gold)' }}>®</sup>
+        Balabony<sup style={{ fontSize: 9, color: 'var(--accent-gold)' }}>™</sup>
       </a>
 
       {/* Right controls */}

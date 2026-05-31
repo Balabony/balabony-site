@@ -34,7 +34,7 @@ const LEGAL_LINKS = [
   { title: 'Публічна оферта',           href: '/legal/offer' },
   { title: 'Політика Cookies',          href: '/legal/cookies' },
   { title: 'Захист дітей',              href: '/legal/child-safety' },
-  { title: 'Договір з автором',         href: '/become-author' },
+  { title: 'Договір з автором',         href: '/legal/author-contract' },
 ]
 
 const SOCIALS = [
@@ -364,7 +364,7 @@ export default function Footer() {
           Торговельна марка: заявка №m202607908 до Укрпатенту.
         </p>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '3px 0 0 0' }}>
-          Авторське право: заявка №c202604211 до Укрпатенту.
+          Авторське право: свідоцтво АП №147106 від 18.05.2026 (УКРНОІВІ).
         </p>
       </div>
 
