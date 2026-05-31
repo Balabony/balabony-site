@@ -11,13 +11,13 @@ import Link from 'next/link'
  *  - Рядок "Наші історії роблять три речі одночасно"
  *  - 3 картки: Об'єднують / Навчають / Лікують
  *  - Виділений блок: "сильна культура тримає людей удома" + аудіо тизер
- *  - 3 картки бенефіціарів (Діти ВПО / УБД / З інвалідністю) з SVG іконками
+ *  - 4 картки бенефіціарів (Діти ВПО / УБД / З інвалідністю / Люди похилого віку) з SVG іконками
  *  - 1 CTA "Підтримати місію" → /support
  *  - Footer з лого ІГС (коло з "ЛОГО") + "Інститут громадянського суспільства"
  *
  * Адаптивність:
  *  - Desktop: 3 колонки функції, 4 колонки бенефіціари
- *  - Mobile (<700px): все вертикально
+ *  - Mobile (<700px): функції вертикально, бенефіціари 2×2
  */
 
 // ===== CONTENT (легко редагувати тут) =====
@@ -62,6 +62,11 @@ const MISSION = {
       subtitle: 'Доступ через текст',
       iconType: 'accessibility' as const,
     },
+    {
+      title: 'Люди похилого віку',
+      subtitle: 'Слухають замість читати',
+      iconType: 'headphones' as const,
+    },
   ],
 
   cta: {
@@ -76,7 +81,7 @@ const MISSION = {
 }
 
 // ===== SVG ICONS (бенефіціари) =====
-function BeneficiaryIcon({ type }: { type: 'children' | 'shield' | 'accessibility' | 'homes' }) {
+function BeneficiaryIcon({ type }: { type: 'children' | 'shield' | 'accessibility' | 'headphones' | 'homes' }) {
   const stroke = '#FFD888'
   switch (type) {
     case 'children':
@@ -125,6 +130,38 @@ function BeneficiaryIcon({ type }: { type: 'children' | 'shield' | 'accessibilit
             stroke={stroke}
             strokeWidth="2"
             strokeLinecap="round"
+          />
+        </svg>
+      )
+    case 'headphones':
+      return (
+        <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true">
+          <path
+            d="M9 23v-5a9 9 0 0 1 18 0v5"
+            fill="none"
+            stroke={stroke}
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          <rect
+            x="6"
+            y="22"
+            width="6"
+            height="9"
+            rx="2"
+            fill="none"
+            stroke={stroke}
+            strokeWidth="2"
+          />
+          <rect
+            x="24"
+            y="22"
+            width="6"
+            height="9"
+            rx="2"
+            fill="none"
+            stroke={stroke}
+            strokeWidth="2"
           />
         </svg>
       )
@@ -400,7 +437,7 @@ export default function AboutBalabonySection() {
 
         .beneficiaries-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(4, 1fr);
           gap: 12px;
           margin-bottom: 32px;
           position: relative;
