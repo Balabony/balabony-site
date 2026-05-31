@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import EpisodePaywall from './EpisodePaywall'
 import ReportErrorWidget from '@/app/components/ReportErrorWidget'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
+import ShareButtons from '@/app/components/ShareButtons'
 
 const GOLD      = '#f0a500'
 const NAVY_DEEP = '#0a1628'
@@ -126,6 +127,11 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           seasonNumber={episode.season_number}
           episodeNumber={episode.episode_number}
         />
+
+        {/* Поширення */}
+        <div style={{ marginTop: 40 }}>
+          <ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} />
+        </div>
 
         {/* Footer */}
         <div style={{ marginTop: 52, paddingTop: 24, borderTop: '0.5px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>

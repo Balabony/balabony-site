@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
 import ReportErrorWidget from '@/app/components/ReportErrorWidget'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
+import ShareButtons from '@/app/components/ShareButtons'
 
 const GOLD      = '#f0a500'
 const NAVY_DEEP = '#0a1628'
@@ -111,6 +112,11 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
           style={{ fontSize: 16, lineHeight: 1.9, color: '#dde6f0', fontFamily: FONT, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
           dangerouslySetInnerHTML={{ __html: escapeHtml(body) }}
         />
+
+        {/* Поширення */}
+        <div style={{ marginTop: 40 }}>
+          <ShareButtons url={`https://balabony.com/stories/${id}`} title={story.title} />
+        </div>
 
         {/* Footer */}
         <div style={{ marginTop: 52, paddingTop: 24, borderTop: '0.5px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
