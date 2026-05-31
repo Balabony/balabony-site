@@ -31,11 +31,14 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           ]}
         />
 
+        <Link href="/" className="legal-home-link">← На головну</Link>
+
         <article className="legal-content">
           {children}
         </article>
 
         <div className="legal-bottom-nav">
+          <Link href="/"                      className="legal-bottom-link legal-bottom-home">← На головну</Link>
           <Link href="/legal/terms"           className="legal-bottom-link">Угода користувача</Link>
           <Link href="/legal/privacy"         className="legal-bottom-link">Політика конфіденційності</Link>
           <Link href="/legal/offer"           className="legal-bottom-link">Публічна оферта</Link>
@@ -70,6 +73,29 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           color: #2C2C2A;
           font-size: 16px;
           line-height: 1.75;
+        }
+
+        .legal-home-link {
+          display: inline-block;
+          margin: 0 0 20px;
+          padding: 8px 16px;
+          background: rgba(239, 159, 39, 0.12);
+          border: 1px solid rgba(239, 159, 39, 0.5);
+          border-radius: 8px;
+          color: #BA7517;
+          font-size: 14px;
+          font-weight: 700;
+          text-decoration: none;
+          transition: background 0.2s, transform 0.2s;
+        }
+        .legal-home-link:hover {
+          background: #EF9F27;
+          color: #FFFFFF;
+          transform: translateX(-2px);
+        }
+        .legal-bottom-home {
+          background: rgba(239, 159, 39, 0.22);
+          font-weight: 700;
         }
         .legal-content :global(h1) {
           font-family: 'Lora', Georgia, serif;
