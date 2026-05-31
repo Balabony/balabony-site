@@ -111,9 +111,9 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
 
           {/* Meta row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: GOLD, fontFamily: FONT }}>Балабони</span>
-            {date && <span style={{ fontSize: 12, color: '#445566', fontFamily: FONT }}>{date}</span>}
-            <span style={{ fontSize: 12, color: '#445566', fontFamily: FONT }}>{wordCount} слів · ~{readMin} хв</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: GOLD, fontFamily: FONT }}>Балабони</span>
+            {date && <span style={{ fontSize: 15, fontWeight: 600, color: '#aab8cc', fontFamily: FONT }}>{date}</span>}
+            <span style={{ fontSize: 15, fontWeight: 600, color: '#aab8cc', fontFamily: FONT }}>{wordCount} слів · ~{readMin} хв</span>
           </div>
         </div>
 
