@@ -101,10 +101,6 @@ export default function FAQ() {
         scrollMarginTop: 80,
       }}
     >
-      {/* Радіальні підсвітки в кутах, як в FreeHero */}
-      <span className="faq__glow faq__glow--tl" aria-hidden="true" />
-      <span className="faq__glow faq__glow--br" aria-hidden="true" />
-
       <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <div className="faq__eyebrow">ПИТАННЯ ТА ВІДПОВІДІ</div>
         <h2
