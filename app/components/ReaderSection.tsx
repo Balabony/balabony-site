@@ -380,7 +380,7 @@ export default function ReaderSection() {
   const themeLabel = theme === 'dark' ? 'Темна' : theme === 'light' ? 'Світла' : 'Сепія'
 
   return (
-    <section id="reader" style={{ marginBottom: 56 }}>
+    <section id="reader" style={{ marginBottom: 28 }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Open+Dyslexic:wght@400;700&display=swap');
         #reader button:focus-visible {

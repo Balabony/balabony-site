@@ -20,11 +20,11 @@ export default function HowItWorks() {
         fontFamily: 'Montserrat, sans-serif',
         background: '#1a1f2e',
         borderRadius: 16,
-        padding: '3rem 2rem',
+        padding: '2rem 2rem',
         position: 'relative',
         overflow: 'hidden',
         color: '#fff',
-        margin: '2rem auto',
+        margin: '1rem auto 1.5rem',
         maxWidth: 1200,
         scrollMarginTop: 80,
       }}
