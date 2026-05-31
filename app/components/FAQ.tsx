@@ -92,11 +92,11 @@ export default function FAQ() {
         fontFamily: 'Montserrat, sans-serif',
         background: '#1a1f2e',
         borderRadius: 16,
-        padding: '2rem 2rem',
+        padding: '2rem 2rem 1rem',
         position: 'relative',
         overflow: 'hidden',
         color: '#fff',
-        margin: '0 auto 2rem',
+        margin: '0 auto 0.75rem',
         maxWidth: 1200,
         scrollMarginTop: 80,
       }}

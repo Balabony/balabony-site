@@ -35,7 +35,7 @@ export default function FairytalesSection() {
   if (tales.length === 0) return null
 
   return (
-    <section style={{ background: 'var(--dark)', padding: '24px 5%' }}>
+    <section style={{ background: 'var(--dark)', padding: '16px 5% 24px' }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 18 }}>
