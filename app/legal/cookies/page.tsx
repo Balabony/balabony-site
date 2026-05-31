@@ -2,6 +2,16 @@ import ProtectedEmail from '@/app/components/ProtectedEmail'
 export const metadata = {
   title: 'Політика Cookies — Balabony',
   description: 'Як Balabony використовує файли cookie та локальне сховище.',
+  alternates: { canonical: '/legal/cookies' },
+  openGraph: {
+    type: 'website',
+    url: 'https://balabony.com/legal/cookies',
+    title: 'Політика Cookies — Balabony',
+    description: 'Як Balabony використовує файли cookie та локальне сховище.',
+    images: [{ url: 'https://balabony.com/og-image.jpg', width: 1200, height: 630 }],
+    locale: 'uk_UA',
+    siteName: 'Balabony™',
+  },
 }
 
 export default function CookiesPage() {

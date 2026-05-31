@@ -2,6 +2,16 @@ import ProtectedEmail from '@/app/components/ProtectedEmail'
 export const metadata = {
   title: 'Політика конфіденційності — Balabony',
   description: 'Як Balabony збирає, використовує та захищає ваші персональні дані.',
+  alternates: { canonical: '/legal/privacy' },
+  openGraph: {
+    type: 'website',
+    url: 'https://balabony.com/legal/privacy',
+    title: 'Політика конфіденційності — Balabony',
+    description: 'Як Balabony збирає, використовує та захищає ваші персональні дані.',
+    images: [{ url: 'https://balabony.com/og-image.jpg', width: 1200, height: 630 }],
+    locale: 'uk_UA',
+    siteName: 'Balabony™',
+  },
 }
 
 export default function PrivacyPage() {

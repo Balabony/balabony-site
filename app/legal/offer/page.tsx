@@ -2,6 +2,16 @@ import ProtectedEmail from '@/app/components/ProtectedEmail'
 export const metadata = {
   title: 'Публічна оферта — Balabony',
   description: 'Договір про надання послуг доступу до платформи Balabony.',
+  alternates: { canonical: '/legal/offer' },
+  openGraph: {
+    type: 'website',
+    url: 'https://balabony.com/legal/offer',
+    title: 'Публічна оферта — Balabony',
+    description: 'Договір про надання послуг доступу до платформи Balabony.',
+    images: [{ url: 'https://balabony.com/og-image.jpg', width: 1200, height: 630 }],
+    locale: 'uk_UA',
+    siteName: 'Balabony™',
+  },
 }
 
 export default function OfferPage() {

@@ -2,6 +2,16 @@ import ProtectedEmail from '@/app/components/ProtectedEmail'
 export const metadata = {
   title: 'Угода користувача — Balabony',
   description: 'Умови використання платформи Balabony.',
+  alternates: { canonical: '/legal/terms' },
+  openGraph: {
+    type: 'website',
+    url: 'https://balabony.com/legal/terms',
+    title: 'Угода користувача — Balabony',
+    description: 'Умови використання платформи Balabony.',
+    images: [{ url: 'https://balabony.com/og-image.jpg', width: 1200, height: 630 }],
+    locale: 'uk_UA',
+    siteName: 'Balabony™',
+  },
 }
 
 export default function TermsPage() {
