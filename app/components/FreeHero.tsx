@@ -61,8 +61,6 @@ export default function FreeHero({
         maxWidth: 1200,
       }}
     >
-      <span className="fh__glow fh__glow--tl" aria-hidden="true" />
-      <span className="fh__glow fh__glow--br" aria-hidden="true" />
 
       <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <div className="fh__eyebrow">ЗАХОДЬ ДО БАЛАБОНІВ</div>

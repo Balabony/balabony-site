@@ -203,8 +203,6 @@ export default function AboutBalabonySection() {
       className="about-balabony-section"
       aria-labelledby="about-balabony-kicker"
     >
-      <div className="radial-top-right" aria-hidden="true" />
-      <div className="radial-bottom-left" aria-hidden="true" />
 
       {/* KICKER */}
       <div className="header">

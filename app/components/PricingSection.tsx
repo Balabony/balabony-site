@@ -951,7 +951,7 @@ const styles = `
     overflow: hidden;
   }
   .bb-pricing-wrap::before, .bb-pricing-wrap::after {
-    content: '';
+    content: none;
     position: absolute;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(239,159,39,0.22), transparent 70%);

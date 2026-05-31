@@ -38,8 +38,8 @@ interface SupportSettings {
 
 const ACCOUNTS: AccountInfo[] = [
   { currency: 'UAH', iban: 'UA213052990000026004011046438', type: 'Поточний', symbol: '₴' },
-  { currency: 'USD', iban: 'UA103052990000026035031007697', type: 'Розподільчий', symbol: '$' },
-  { currency: 'EUR', iban: 'UA663052990000026039031009657', type: 'Розподільчий', symbol: '€' },
+  { currency: 'USD', iban: 'UA813052990000026008001047335', type: 'Поточний', symbol: '$' },
+  { currency: 'EUR', iban: 'UA403052990000026001021042436', type: 'Поточний', symbol: '€' },
 ];
 
 const ORG_NAME_UA = 'ЛОГО „Інститут громадянського суспільства"';

@@ -17,36 +17,6 @@ export default function Hero() {
           overflow: 'hidden',
         }}
       >
-        {/* Дві золотих радіальних "плями" — фірмовий патерн section-dark */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: -80,
-            right: -80,
-            width: 280,
-            height: 280,
-            borderRadius: '50%',
-            background:
-              'radial-gradient(circle, rgba(239,159,39,0.18), transparent 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            bottom: -60,
-            left: -60,
-            width: 220,
-            height: 220,
-            borderRadius: '50%',
-            background:
-              'radial-gradient(circle, rgba(239,159,39,0.14), transparent 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-
         <div style={{ position: 'relative', maxWidth: 960, margin: '0 auto' }}>
           {/* Внутрішня навігація Hero */}
           <nav
