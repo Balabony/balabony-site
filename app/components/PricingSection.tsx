@@ -942,10 +942,10 @@ const styles = `
   .bb-pricing-wrap {
     background: linear-gradient(180deg, #0E1A2B 0%, #14253B 50%, #0E1A2B 100%);
     border-radius: 18px;
-    padding: 40px 22px 48px;
+    padding: 40px 22px 32px;
     font-family: 'Montserrat', Arial, sans-serif;
     max-width: 920px;
-    margin: 0 auto 56px;
+    margin: 0 auto 20px;
     color: #fff;
     position: relative;
     overflow: hidden;
@@ -1503,7 +1503,7 @@ const styles = `
 
   /* MOBILE */
   @media (max-width: 720px) {
-    .bb-pricing-wrap { padding: 30px 14px 36px; }
+    .bb-pricing-wrap { padding: 30px 14px 24px; }
     .bb-pricing-title { font-size: 22px; }
     .bb-pricing-subtitle { font-size: 13px; }
     .bb-pricing-eyebrow { font-size: 11px; letter-spacing: 2.5px; }
