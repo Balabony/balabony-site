@@ -1,4 +1,4 @@
-﻿import { redirect } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 
 export const dynamic = 'force-dynamic'
@@ -39,8 +39,36 @@ const STATUS_LABEL: Record<string, string> = {
   published: 'Опубліковано',
 }
 
+// --- Бренд-токени Balabony (зі сайту: theme-color #ef9f27, темно-синя героїка, кремові поверхні, сериф) ---
+const BRAND = {
+  navy: '#16202e',        // фон сторінки (героїка сайту)
+  navyCard: '#1f2937',    // темна картка (умови)
+  cream: '#f6f1e7',       // світлі картки
+  amber: '#ef9f27',       // фірмовий бурштин (акцент, баланс, кнопка)
+  amberDark: '#b45309',   // посилання
+  ink: '#1c1917',         // заголовки
+  text: '#292524',        // основний текст
+  muted: '#78716c',       // приглушений текст
+  line: '#e7e0d2',        // розділювачі на кремовому
+}
+const SERIF = 'Georgia, "Times New Roman", serif'
+
 function uah(n: number) {
   return new Intl.NumberFormat('uk-UA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0)
+}
+
+// Верхня смуга з лого — щоб кабінет відчувався частиною сайту
+function BrandBar() {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem' }}>
+      <a href="/" style={{ textDecoration: 'none', fontFamily: SERIF, fontSize: '1.4rem', fontWeight: 700, color: BRAND.amber, letterSpacing: '0.5px' }}>
+        Balabony<span style={{ fontSize: '0.7rem', verticalAlign: 'super' }}>™</span>
+      </a>
+      <a href="/" style={{ textDecoration: 'none', fontSize: '0.85rem', color: 'rgba(255,255,255,0.65)' }}>
+        ← На сайт
+      </a>
+    </div>
+  )
 }
 
 export default async function AuthorDashboardPage() {
@@ -60,16 +88,19 @@ export default async function AuthorDashboardPage() {
 
   if (!profile) {
     return (
-      <main style={{ minHeight: '100vh', padding: '2rem 1rem', background: '#fef3c7' }}>
-        <div style={{ maxWidth: 640, margin: '0 auto', background: 'white', padding: '2.5rem', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
-          <h1 style={{ fontSize: '1.75rem', marginBottom: '1rem', color: '#1f2937' }}>Кабінет автора</h1>
-          <p style={{ color: '#6b7280', lineHeight: 1.6, marginBottom: '1.5rem' }}>
-            Ваш обліковий запис ще не підключено як авторський. Якщо ви подали заявку
-            й очікуєте підтвердження — редакція активує доступ після підписання угоди.
-          </p>
-          <a href="/become-author" style={{ display: 'inline-block', padding: '0.75rem 1.5rem', background: '#ef9f27', color: '#1f2937', borderRadius: 10, textDecoration: 'none', fontWeight: 700 }}>
-            Стати автором →
-          </a>
+      <main style={{ minHeight: '100vh', padding: '2rem 1rem', background: BRAND.navy }}>
+        <div style={{ maxWidth: 640, margin: '0 auto' }}>
+          <BrandBar />
+          <div style={{ background: BRAND.cream, padding: '2.5rem', borderRadius: 16, boxShadow: '0 20px 50px rgba(0,0,0,0.35)' }}>
+            <h1 style={{ fontFamily: SERIF, fontSize: '1.9rem', marginBottom: '1rem', color: BRAND.ink }}>Кабінет автора</h1>
+            <p style={{ color: BRAND.text, lineHeight: 1.65, marginBottom: '1.5rem' }}>
+              Ваш обліковий запис ще не підключено як авторський. Якщо ви подали заявку
+              й очікуєте підтвердження — редакція активує доступ після підписання угоди.
+            </p>
+            <a href="/become-author" style={{ display: 'inline-block', padding: '0.75rem 1.5rem', background: BRAND.amber, color: BRAND.ink, borderRadius: 10, textDecoration: 'none', fontWeight: 700 }}>
+              Стати автором →
+            </a>
+          </div>
         </div>
       </main>
     )
@@ -98,29 +129,29 @@ export default async function AuthorDashboardPage() {
   const published = stories.filter(s => s.status === 'published').length
 
   const card: React.CSSProperties = {
-    background: 'white', borderRadius: 12, padding: '1.25rem 1.5rem',
-    boxShadow: '0 2px 12px rgba(0,0,0,0.06)', flex: '1 1 160px',
+    background: BRAND.cream, borderRadius: 14, padding: '1.25rem 1.5rem',
+    boxShadow: '0 10px 30px rgba(0,0,0,0.25)', flex: '1 1 160px',
   }
-  const statNum: React.CSSProperties = { fontSize: '2rem', fontWeight: 700, color: '#1f2937', lineHeight: 1 }
-  const statLabel: React.CSSProperties = { fontSize: '0.85rem', color: '#6b7280', marginTop: 6 }
+  const statNum: React.CSSProperties = { fontSize: '2rem', fontWeight: 700, color: BRAND.ink, lineHeight: 1 }
+  const statLabel: React.CSSProperties = { fontSize: '0.85rem', color: BRAND.muted, marginTop: 6 }
 
   return (
-    <main style={{ minHeight: '100vh', padding: '2rem 1rem', background: '#fef3c7' }}>
+    <main style={{ minHeight: '100vh', padding: '2rem 1rem', background: BRAND.navy }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
-        {/* Шапка */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-          <div>
-            <h1 style={{ fontSize: '1.75rem', color: '#1f2937', margin: 0 }}>Кабінет автора</h1>
-            <p style={{ color: '#6b7280', margin: '0.25rem 0 0' }}>{profile.display_name}</p>
-          </div>
+        <BrandBar />
+
+        {/* Заголовок сторінки */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h1 style={{ fontFamily: SERIF, fontSize: '2.1rem', color: 'white', margin: 0 }}>Кабінет автора</h1>
+          <p style={{ color: 'rgba(255,255,255,0.7)', margin: '0.35rem 0 0' }}>{profile.display_name}</p>
         </div>
 
         {/* Умови співпраці */}
-        <div style={{ background: '#1f2937', color: 'white', borderRadius: 12, padding: '1rem 1.5rem', marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ background: BRAND.navyCard, color: 'white', borderRadius: 14, padding: '1.1rem 1.5rem', marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', border: '1px solid rgba(239,159,39,0.25)' }}>
           <div>
             <div style={{ fontSize: '0.85rem', opacity: 0.7 }}>Ваші умови</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>
+            <div style={{ fontFamily: SERIF, fontSize: '1.25rem', fontWeight: 700, color: BRAND.amber }}>
               {profile.is_fop ? 'Автор-ФОП · 50%' : 'Без ФОП · 40%'}
             </div>
           </div>
@@ -136,34 +167,34 @@ export default async function AuthorDashboardPage() {
           <div style={card}><div style={statNum}>{published}</div><div style={statLabel}>опубліковано історій</div></div>
           <div style={card}><div style={statNum}>{totalViews}</div><div style={statLabel}>переглядів усього</div></div>
           <div style={card}><div style={statNum}>{totalReads}</div><div style={statLabel}>прочитань</div></div>
-          <div style={{ ...card, background: '#065f46', color: 'white' }}>
-            <div style={{ ...statNum, color: 'white' }}>{uah(balance.balance)} ₴</div>
-            <div style={{ ...statLabel, color: 'rgba(255,255,255,0.8)' }}>баланс до виплати</div>
+          <div style={{ ...card, background: BRAND.amber }}>
+            <div style={{ ...statNum, color: BRAND.ink }}>{uah(balance.balance)} ₴</div>
+            <div style={{ ...statLabel, color: 'rgba(28,25,23,0.7)' }}>баланс до виплати</div>
           </div>
         </div>
 
         {/* Деталі балансу */}
-        <div style={{ background: 'white', borderRadius: 12, padding: '1rem 1.5rem', marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '2rem', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-          <div><div style={statLabel}>Нараховано всього</div><div style={{ fontWeight: 700, color: '#1f2937' }}>{uah(balance.total_accrued)} ₴</div></div>
-          <div><div style={statLabel}>Виплачено</div><div style={{ fontWeight: 700, color: '#1f2937' }}>{uah(balance.total_paid)} ₴</div></div>
-          <div><div style={statLabel}>До виплати</div><div style={{ fontWeight: 700, color: '#065f46' }}>{uah(balance.balance)} ₴</div></div>
+        <div style={{ background: BRAND.cream, borderRadius: 14, padding: '1.1rem 1.5rem', marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '2rem', boxShadow: '0 10px 30px rgba(0,0,0,0.25)' }}>
+          <div><div style={statLabel}>Нараховано всього</div><div style={{ fontWeight: 700, color: BRAND.ink }}>{uah(balance.total_accrued)} ₴</div></div>
+          <div><div style={statLabel}>Виплачено</div><div style={{ fontWeight: 700, color: BRAND.ink }}>{uah(balance.total_paid)} ₴</div></div>
+          <div><div style={statLabel}>До виплати</div><div style={{ fontWeight: 700, color: BRAND.amberDark }}>{uah(balance.balance)} ₴</div></div>
         </div>
 
         {/* Список історій */}
-        <div style={{ background: 'white', borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-          <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #f1f5f9', fontWeight: 700, color: '#1f2937' }}>
+        <div style={{ background: BRAND.cream, borderRadius: 14, overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.25)' }}>
+          <div style={{ padding: '1rem 1.5rem', borderBottom: `1px solid ${BRAND.line}`, fontFamily: SERIF, fontWeight: 700, fontSize: '1.15rem', color: BRAND.ink }}>
             Мої історії ({stories.length})
           </div>
 
           {stories.length === 0 ? (
-            <div style={{ padding: '2rem 1.5rem', color: '#6b7280', textAlign: 'center' }}>
+            <div style={{ padding: '2rem 1.5rem', color: BRAND.muted, textAlign: 'center' }}>
               Поки що до вашого профілю не прив&apos;язано жодної історії.
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
                 <thead>
-                  <tr style={{ textAlign: 'left', color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase' }}>
+                  <tr style={{ textAlign: 'left', color: BRAND.muted, fontSize: '0.8rem', textTransform: 'uppercase' }}>
                     <th style={{ padding: '0.75rem 1.5rem' }}>Історія</th>
                     <th style={{ padding: '0.75rem 1rem' }}>Статус</th>
                     <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Перегляди</th>
@@ -173,15 +204,15 @@ export default async function AuthorDashboardPage() {
                 </thead>
                 <tbody>
                   {stories.map((s) => (
-                    <tr key={s.content_id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '0.75rem 1.5rem', color: '#1f2937', fontWeight: 500 }}>
+                    <tr key={s.content_id} style={{ borderTop: `1px solid ${BRAND.line}` }}>
+                      <td style={{ padding: '0.75rem 1.5rem', color: BRAND.ink, fontWeight: 500 }}>
                         {s.title}
-                        {s.is_free && <span style={{ marginLeft: 8, fontSize: '0.7rem', color: '#92400e', background: '#fef3c7', padding: '2px 8px', borderRadius: 999 }}>безкоштовна</span>}
+                        {s.is_free && <span style={{ marginLeft: 8, fontSize: '0.7rem', color: BRAND.ink, background: BRAND.amber, padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}>безкоштовна</span>}
                       </td>
-                      <td style={{ padding: '0.75rem 1rem', color: '#6b7280' }}>{STATUS_LABEL[s.status] || s.status}</td>
-                      <td style={{ padding: '0.75rem 1rem', textAlign: 'right', color: '#1f2937' }}>{s.views_count}</td>
-                      <td style={{ padding: '0.75rem 1rem', textAlign: 'right', color: '#1f2937' }}>{s.reads_total}</td>
-                      <td style={{ padding: '0.75rem 1.5rem', textAlign: 'right', color: '#6b7280' }}>{s.avg_read_percentage}%</td>
+                      <td style={{ padding: '0.75rem 1rem', color: BRAND.muted }}>{STATUS_LABEL[s.status] || s.status}</td>
+                      <td style={{ padding: '0.75rem 1rem', textAlign: 'right', color: BRAND.ink }}>{s.views_count}</td>
+                      <td style={{ padding: '0.75rem 1rem', textAlign: 'right', color: BRAND.ink }}>{s.reads_total}</td>
+                      <td style={{ padding: '0.75rem 1.5rem', textAlign: 'right', color: BRAND.muted }}>{s.avg_read_percentage}%</td>
                     </tr>
                   ))}
                 </tbody>
@@ -190,9 +221,9 @@ export default async function AuthorDashboardPage() {
           )}
         </div>
 
-        <p style={{ color: '#9ca3af', fontSize: '0.8rem', marginTop: '1rem', lineHeight: 1.5 }}>
+        <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.8rem', marginTop: '1rem', lineHeight: 1.5 }}>
           Нарахування з&apos;являються після оплат читачів за ваші історії. Виплати —
-          за умовами угоди автора. Питання: <a href="/contact" style={{ color: '#b45309' }}>напишіть редакції</a>.
+          за умовами угоди автора. Питання: <a href="/contact" style={{ color: BRAND.amber }}>напишіть редакції</a>.
         </p>
       </div>
     </main>
