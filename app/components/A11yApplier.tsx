@@ -3,38 +3,42 @@
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 
-// Читає збережений у /accessibility масштаб шрифту (balabony_a11y.fontScale, 1..2)
-function readScale(): number {
+// Читає налаштування доступності, збережені на /accessibility (balabony_a11y)
+function readPrefs(): { scale: number; theme: string } {
   try {
     const raw = localStorage.getItem('balabony_a11y')
-    if (!raw) return 1
-    const parsed = JSON.parse(raw)
-    const v = Number(parsed?.fontScale)
-    if (!isFinite(v)) return 1
-    return Math.min(2, Math.max(1, v))
+    if (!raw) return { scale: 1, theme: 'default' }
+    const p = JSON.parse(raw)
+    const v = Number(p?.fontScale)
+    const scale = isFinite(v) ? Math.min(2, Math.max(1, v)) : 1
+    const theme = typeof p?.theme === 'string' ? p.theme : 'default'
+    return { scale, theme }
   } catch {
-    return 1
+    return { scale: 1, theme: 'default' }
   }
 }
 
 /**
- * Застосовує обраний у /accessibility масштаб до всього сайту.
- * Сайт на px-стилях, тож масштабуємо глобальним zoom через CSS-змінну --site-zoom
- * (правило body { zoom: var(--site-zoom, 1) } у globals.css).
- * На самій сторінці /accessibility zoom не вмикаємо — там працює власний прев'ю (--a11y-fs),
- * щоб масштаб не подвоювався.
+ * Застосовує налаштування доступності до всього сайту:
+ *  - масштаб шрифту через --site-zoom (body { zoom } у globals.css);
+ *  - тему доступності через data-a11y-theme на <html>
+ *    (правила для dyslexic / high-contrast у globals.css).
+ * На самій /accessibility масштабом керує сама сторінка (наживо), тож тут його не чіпаємо.
  */
 export default function A11yApplier() {
   const pathname = usePathname() || '/'
 
   useEffect(() => {
     const apply = () => {
-      // На сторінці налаштувань zoom керується самою сторінкою (наживо при зміні розміру).
-      if (pathname.startsWith('/accessibility')) return
-      document.documentElement.style.setProperty('--site-zoom', String(readScale()))
+      const onA11yPage = pathname.startsWith('/accessibility')
+      const { scale, theme } = readPrefs()
+
+      if (!onA11yPage) {
+        document.documentElement.style.setProperty('--site-zoom', String(scale))
+      }
+      document.documentElement.setAttribute('data-a11y-theme', theme)
     }
     apply()
-    // реагуємо на зміну налаштувань в іншій вкладці
     window.addEventListener('storage', apply)
     return () => window.removeEventListener('storage', apply)
   }, [pathname])

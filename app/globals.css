@@ -101,3 +101,5 @@ body {
   .baly-eye-hide-mobile { display: none !important; }
 }
 body { zoom: var(--site-zoom, 1); }
+html[data-a11y-theme="dyslexic"] body, html[data-a11y-theme="dyslexic"] body * { letter-spacing: 0.05em !important; word-spacing: 0.18em !important; line-height: 1.85 !important; }
+html[data-a11y-theme="high-contrast"] body { filter: contrast(1.35); }
