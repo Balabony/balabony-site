@@ -5,7 +5,7 @@ const FONT = "'Montserrat', Arial, sans-serif"
 // Палітри для різних варіантів
 const PALETTES = {
   dark: {
-    homeColor:    '#f0a500', // золото
+    homeColor:    'var(--accent-gold)', // золото
     linkColor:    '#8899bb', // сіро-синій
     currentColor: '#f5f0e8', // світлий (поточна сторінка)
     separator:    '#445566', // приглушений

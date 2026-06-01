@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 
 const NAVY = '#0f1e3a'
-const GOLD = '#f0a500'
+const GOLD = 'var(--accent-gold)'
 const CREAM = '#f5f0e8'
 const FONT = "'Montserrat', Arial, sans-serif"
 

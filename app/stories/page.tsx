@@ -97,7 +97,7 @@ export default async function StoriesPage({
       <Header />
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 20px' }}>
         <Breadcrumbs items={[{ label: heading }]} />
-        <h1 style={{ fontFamily: '"Comfortaa", sans-serif', fontSize: 32, marginBottom: 24, color: '#F5A623' }}>
+        <h1 style={{ fontFamily: '"Comfortaa", sans-serif', fontSize: 32, marginBottom: 24, color: 'var(--accent-gold)' }}>
           {heading}
         </h1>
 

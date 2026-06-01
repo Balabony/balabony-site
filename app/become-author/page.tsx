@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 
-const GOLD = '#f5a623'
+const GOLD = 'var(--accent-gold)'
 const FONT = "'Montserrat', Arial, sans-serif"
 const SERIF = "'Lora', serif"
 
@@ -120,7 +120,7 @@ export default function BecomeAuthorPage() {
           <SectionCard>
             <SectionTitle>Умови співпраці</SectionTitle>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 16 }}>
-              <div style={{ background: 'rgba(245,166,35,0.08)', border: '1px solid rgba(245,166,35,0.3)', borderRadius: 12, padding: '18px 20px' }}>
+              <div style={{ background: 'rgba(239,159,39,0.08)', border: '1px solid rgba(239,159,39,0.3)', borderRadius: 12, padding: '18px 20px' }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase' as const, color: GOLD, fontFamily: FONT, marginBottom: 8 }}>Для авторів-ФОП</div>
                 <div style={{ fontSize: 32, fontWeight: 700, color: GOLD, fontFamily: SERIF, marginBottom: 6 }}>50%</div>
                 <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>
@@ -128,7 +128,7 @@ export default function BecomeAuthorPage() {
                   Ти самостійно сплачуєш податки.
                 </div>
               </div>
-              <div style={{ background: 'rgba(245,166,35,0.08)', border: '1px solid rgba(245,166,35,0.3)', borderRadius: 12, padding: '18px 20px' }}>
+              <div style={{ background: 'rgba(239,159,39,0.08)', border: '1px solid rgba(239,159,39,0.3)', borderRadius: 12, padding: '18px 20px' }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase' as const, color: GOLD, fontFamily: FONT, marginBottom: 8 }}>Для інших авторів</div>
                 <div style={{ fontSize: 32, fontWeight: 700, color: GOLD, fontFamily: SERIF, marginBottom: 6 }}>40%</div>
                 <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>

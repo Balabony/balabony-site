@@ -4,7 +4,7 @@
 import Link from "next/link";
 
 const headingStyle: React.CSSProperties = {
-  color: "#f5a623",
+  color: "var(--accent-gold)",
   fontSize: 12,
   fontWeight: 700,
   textTransform: "uppercase",

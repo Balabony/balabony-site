@@ -41,7 +41,7 @@ const ITEMS: { q: string; a: React.ReactNode }[] = [
           href="mailto:nazar@balabony.com"
           className="faq__email"
           style={{
-            color: '#f0a500',
+            color: 'var(--accent-gold)',
             textDecoration: 'underline',
             textDecorationStyle: 'dashed',
             textUnderlineOffset: 3,
@@ -189,13 +189,13 @@ export default function FAQ() {
         .faq__eyebrow {
           display: inline-block;
           background: transparent;
-          color: #f0a500;
+          color: var(--accent-gold);
           padding: 8px 22px;
           border-radius: 100px;
           font-size: 12px;
           font-weight: 700;
           letter-spacing: 0.12em;
-          border: 1px solid #f0a500;
+          border: 1px solid var(--accent-gold);
           animation: faq-float 4s ease-in-out infinite;
           text-transform: uppercase;
         }
@@ -209,7 +209,7 @@ export default function FAQ() {
           padding: 1.25rem 1.5rem;
         }
         .faq__q {
-          color: #f0a500;
+          color: var(--accent-gold);
           font-size: 16px;
           font-weight: 700;
           margin: 0 0 8px;

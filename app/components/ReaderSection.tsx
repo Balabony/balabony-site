@@ -423,10 +423,10 @@ export default function ReaderSection() {
         </button>
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-        <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1a2f4a', border: '1.5px solid rgba(239,159,39,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <svg width="30" height="30" viewBox="0 0 56 56" fill="none">
-            <path d="M14 38 L14 18 Q28 13 28 22 Q28 13 42 18 L42 38 Q28 33 28 41 Q28 33 14 38 Z" stroke="#f5a623" strokeWidth="2.5" fill="none" strokeLinejoin="round"/>
-            <line x1="28" y1="22" x2="28" y2="41" stroke="#f5a623" strokeWidth="1.5" strokeDasharray="3,2.5"/>
+            <path d="M14 38 L14 18 Q28 13 28 22 Q28 13 42 18 L42 38 Q28 33 28 41 Q28 33 14 38 Z" stroke="var(--accent-gold)" strokeWidth="2.5" fill="none" strokeLinejoin="round"/>
+            <line x1="28" y1="22" x2="28" y2="41" stroke="var(--accent-gold)" strokeWidth="1.5" strokeDasharray="3,2.5"/>
           </svg>
         </div>
         <div style={{ flex: 1 }}>
@@ -439,7 +439,7 @@ export default function ReaderSection() {
         </div>
       </div>
 
-      <div ref={readerRef} style={{ background: 'var(--white)', border: '1.5px solid #f5a623', borderRadius: 20, overflow: 'hidden' }}>
+      <div ref={readerRef} style={{ background: 'var(--white)', border: '1.5px solid var(--accent-gold)', borderRadius: 20, overflow: 'hidden' }}>
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 24px', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600 }}>Шрифт:</span>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 
-const GOLD = '#f0a500'
+const GOLD = '#ef9f27'
 const FONT = "'Montserrat', Arial, sans-serif"
 
 interface ReportErrorWidgetProps {

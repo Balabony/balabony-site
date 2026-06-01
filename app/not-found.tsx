@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-const GOLD      = '#f0a500'
+const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
 const FONT      = "'Montserrat', Arial, sans-serif"
 const SERIF     = "'Lora', Georgia, serif"
@@ -38,7 +38,7 @@ export default function NotFound() {
           lineHeight: 1,
           letterSpacing: '-0.05em',
           marginBottom: 8,
-          textShadow: '0 4px 24px rgba(240,165,0,0.25)',
+          textShadow: '0 4px 24px rgba(239,159,39,0.25)',
         }}>
           404
         </div>

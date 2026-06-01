@@ -32,9 +32,9 @@ export default function UpdateBanner() {
     <div style={{
       position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)',
       zIndex: 9999, display: 'flex', alignItems: 'center', gap: 14,
-      background: '#081420', border: '1.5px solid #F5A623',
+      background: '#081420', border: '1.5px solid var(--accent-gold)',
       borderRadius: 14, padding: '12px 20px',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.55), 0 0 0 1px rgba(245,166,35,0.15)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.55), 0 0 0 1px rgba(239,159,39,0.15)',
       fontFamily: "'Montserrat', Arial, sans-serif",
       whiteSpace: 'nowrap',
     }}>
@@ -46,7 +46,7 @@ export default function UpdateBanner() {
         onClick={handleUpdate}
         style={{
           fontSize: 12, fontWeight: 700,
-          background: '#F5A623', color: '#081420',
+          background: 'var(--accent-gold)', color: '#081420',
           border: 'none', borderRadius: 8,
           padding: '7px 16px', cursor: 'pointer',
           fontFamily: "'Montserrat', Arial, sans-serif",

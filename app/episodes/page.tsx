@@ -58,7 +58,7 @@ export default async function EpisodesPage() {
     <ThemeProvider>
       <Header />
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 20px' }}>
-        <h1 style={{ fontFamily: '"Comfortaa", sans-serif', fontSize: 32, marginBottom: 24, color: '#F5A623' }}>
+        <h1 style={{ fontFamily: '"Comfortaa", sans-serif', fontSize: 32, marginBottom: 24, color: 'var(--accent-gold)' }}>
           Усі серії Балабонів
         </h1>
         {series.length === 0 ? (

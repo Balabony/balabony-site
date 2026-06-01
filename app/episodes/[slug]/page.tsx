@@ -6,7 +6,7 @@ import ReportErrorWidget from '@/app/components/ReportErrorWidget'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ShareButtons from '@/app/components/ShareButtons'
 
-const GOLD      = '#f0a500'
+const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
 const NAVY      = '#0f1e3a'
 const FONT      = "'Montserrat', Arial, sans-serif"
@@ -118,7 +118,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         </div>
 
         {/* Divider */}
-        <div style={{ height: 1, background: 'linear-gradient(to right, transparent, rgba(240,165,0,0.4), transparent)', marginBottom: 36 }} />
+        <div style={{ height: 1, background: 'linear-gradient(to right, transparent, rgba(239,159,39,0.4), transparent)', marginBottom: 36 }} />
 
         {/* Episode body (із перевіркою paywall) */}
         <EpisodePaywall

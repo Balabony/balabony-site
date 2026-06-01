@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 
-const GOLD      = '#f0a500'
+const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
 const NAVY      = '#0f1e3a'
 const FONT      = "'Montserrat', Arial, sans-serif"

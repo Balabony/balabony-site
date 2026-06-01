@@ -25,8 +25,8 @@ export default function FreeBanner() {
           alignItems: 'center',
           gap: 14,
           background:
-            'linear-gradient(90deg, rgba(240,165,0,0.10), rgba(240,165,0,0.05))',
-          border: '1px solid rgba(240,165,0,0.4)',
+            'linear-gradient(90deg, rgba(239,159,39,0.10), rgba(239,159,39,0.05))',
+          border: '1px solid rgba(239,159,39,0.4)',
           borderRadius: 14,
           padding: '14px 18px',
           textDecoration: 'none',
@@ -69,7 +69,7 @@ export default function FreeBanner() {
         >
           <strong
             style={{
-              color: '#f0a500',
+              color: 'var(--accent-gold)',
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
@@ -141,14 +141,14 @@ export default function FreeBanner() {
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #f0a500;
+          color: var(--accent-gold);
           animation: free-banner-float 3.5s ease-in-out infinite;
           position: relative;
           z-index: 1;
         }
         .free-banner__cta {
           flex-shrink: 0;
-          background: linear-gradient(135deg, #f0a500, #ffb820);
+          background: linear-gradient(135deg, var(--accent-gold), #ffb820);
           color: #1a1f2e;
           padding: 9px 20px;
           border-radius: 100px;

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import EpisodeBody from './EpisodeBody'
 
-const GOLD = '#f0a500'
+const GOLD = '#ef9f27'
 const STORAGE_KEY_FREE = 'balabony-free-episode'
 const EPISODES_PER_SEASON = 20
 
@@ -125,7 +125,7 @@ export default function EpisodePaywall({ html, fontFamily, seasonNumber, episode
           marginTop: 24,
           padding: '32px 24px',
           borderRadius: 16,
-          background: 'rgba(240,165,0,0.08)',
+          background: 'rgba(239,159,39,0.08)',
           border: `1px solid ${GOLD}44`,
           textAlign: 'center',
           fontFamily,

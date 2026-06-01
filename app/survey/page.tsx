@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 
-const GOLD = '#f5a623'
+const GOLD = '#ef9f27'
 const FONT = "'Montserrat', Arial, sans-serif"
 
 const GENRES = [
@@ -225,7 +225,7 @@ export default function SurveyPage() {
           {QUESTIONS.map((q, i) => (
             <div
               key={q.id}
-              style={{ background: '#0f1e3a', border: '1.5px solid rgba(245,166,35,0.3)', borderRadius: 14, padding: '24px 22px', marginBottom: 16 }}
+              style={{ background: '#0f1e3a', border: '1.5px solid rgba(239,159,39,0.3)', borderRadius: 14, padding: '24px 22px', marginBottom: 16 }}
             >
               <p style={{ fontSize: 15, fontWeight: 700, color: '#f5f0e8', marginBottom: 16, fontFamily: FONT }}>
                 {i + 1}. {q.label}

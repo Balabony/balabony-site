@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 
 const FONT = "'Montserrat', Arial, sans-serif"
-const GOLD = '#f0a500'
+const GOLD = 'var(--accent-gold)'
 const NAVY_DEEP = '#0a1628'
 const NAVY = '#0f1e3a'
 
@@ -89,7 +89,7 @@ export default function RevisePage() {
     background: NAVY,
     borderRadius: 20,
     padding: '32px 28px',
-    border: `1px solid rgba(240,165,0,0.2)`,
+    border: `1px solid rgba(239,159,39,0.2)`,
   }
 
   if (loading) {
@@ -240,7 +240,7 @@ export default function RevisePage() {
             style={{
               width: '100%',
               padding: '14px 20px',
-              background: submitting ? 'rgba(240,165,0,0.4)' : GOLD,
+              background: submitting ? 'rgba(239,159,39,0.4)' : GOLD,
               color: '#081420',
               border: 'none',
               borderRadius: 10,

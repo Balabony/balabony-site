@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 
 const FONT = "'Montserrat', Arial, sans-serif"
-const GOLD = '#f0a500'
+const GOLD = 'var(--accent-gold)'
 const NAVY_DEEP = '#0a1628'
 const NAVY = '#0f1e3a'
 
@@ -53,7 +53,7 @@ export default function ApprovePage() {
         padding: '40px 36px',
         maxWidth: 480,
         width: '100%',
-        border: `1px solid rgba(240,165,0,0.25)`,
+        border: `1px solid rgba(239,159,39,0.25)`,
         textAlign: 'center',
       }}>
         <div style={{ fontSize: 22, fontWeight: 700, color: GOLD, marginBottom: 4 }}>

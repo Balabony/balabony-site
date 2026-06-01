@@ -68,7 +68,7 @@ export default function EpisodeBody({ html, fontFamily }: Props) {
             transform: 'translateX(-50%)',
             background: 'rgba(10,22,40,0.96)',
             color: '#f5f0e8',
-            border: '1px solid rgba(240,165,0,0.4)',
+            border: '1px solid rgba(239,159,39,0.4)',
             borderRadius: 12,
             padding: '14px 22px',
             fontSize: 14,

@@ -34,7 +34,7 @@ const SAMPLE_STORIES: Story[] = [
   { id: 's3', title: 'Лист з минулого',   author: 'Марія Петренко',  coverUrl: `${BASE_COVER}/s3-ep45-1777908432264.jpg`, tags: ['пам\'ять', 'листи'], hasAudio: true,  teaser: 'Розбираючи горище, Галина знайшла стос листів, перев\'язаних синьою стрічкою. Адресат — вона сама.',         url: '/stories/3' },
 ]
 
-const viewAllLinkStyle: React.CSSProperties = { display: 'inline-block', color: '#f5a623', textDecoration: 'none', fontSize: 15, fontWeight: 600, fontFamily: "'Montserrat', sans-serif", textTransform: 'uppercase', letterSpacing: '0.04em' }
+const viewAllLinkStyle: React.CSSProperties = { display: 'inline-block', color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 15, fontWeight: 600, fontFamily: "'Montserrat', sans-serif", textTransform: 'uppercase', letterSpacing: '0.04em' }
 
 const viewAllWrapperStyle: React.CSSProperties = { maxWidth: 1100, margin: '0 auto', padding: '4px 20px 24px', textAlign: 'center' }
 

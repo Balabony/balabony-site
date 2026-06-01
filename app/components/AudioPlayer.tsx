@@ -621,7 +621,7 @@ export default function AudioPlayer() {
         <button
           onClick={toggleNight}
           title={isNight ? 'Денний режим' : 'Нічний режим'}
-          style={{ width: 36, height: 36, borderRadius: 10, border: `1px solid ${isNight ? 'rgba(245,166,35,0.5)' : '#475569'}`, background: isNight ? 'rgba(245,166,35,0.15)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}
+          style={{ width: 36, height: 36, borderRadius: 10, border: `1px solid ${isNight ? 'rgba(239,159,39,0.5)' : '#475569'}`, background: isNight ? 'rgba(239,159,39,0.15)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}
         >
           {isNight ? '🌙' : '☀️'}
         </button>

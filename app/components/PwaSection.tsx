@@ -666,7 +666,7 @@ export default function PwaSection() {
           padding: 5px;
           background: rgba(255,255,255,0.05);
           border-radius: 5px;
-          border: 1px solid rgba(245,166,35,0.3);
+          border: 1px solid rgba(239,159,39,0.3);
           margin-bottom: 4px;
         }
         .pwa-android-thumb {
@@ -718,7 +718,7 @@ export default function PwaSection() {
           min-width: 28px;
           height: 28px;
           border-radius: 50%;
-          background: rgba(245,166,35,0.15);
+          background: rgba(239,159,39,0.15);
           border: 1.5px solid ${GOLD};
           color: ${GOLD};
           font-size: 14px;

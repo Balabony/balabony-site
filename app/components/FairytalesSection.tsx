@@ -12,7 +12,7 @@ interface Fairytale {
   duration_minutes?: number
 }
 
-const GOLD = '#F5A623'
+const GOLD = 'var(--accent-gold)'
 const CARD_BG = '#0f1e3a'
 const FONT = "'Montserrat', Arial, sans-serif"
 

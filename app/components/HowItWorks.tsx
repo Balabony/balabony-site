@@ -141,13 +141,13 @@ export default function HowItWorks() {
         .hiw__eyebrow {
           display: inline-block;
           background: transparent;
-          color: #f0a500;
+          color: var(--accent-gold);
           padding: 8px 22px;
           border-radius: 100px;
           font-size: 12px;
           font-weight: 700;
           letter-spacing: 0.12em;
-          border: 1px solid #f0a500;
+          border: 1px solid var(--accent-gold);
           animation: hiw-float 4s ease-in-out infinite;
           text-transform: uppercase;
         }
@@ -163,7 +163,7 @@ export default function HowItWorks() {
         @media (max-width: 560px) { .hiw__title { font-size: 22px !important; } }
         .hiw__num {
           display: inline-block;
-          background: linear-gradient(135deg, #f0a500, #ffb820);
+          background: linear-gradient(135deg, var(--accent-gold), #ffb820);
           color: #1a1f2e;
           padding: 6px 18px;
           border-radius: 100px;

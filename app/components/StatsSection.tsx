@@ -2,7 +2,7 @@
 
 import { useTheme } from '../context/ThemeContext'
 
-const GOLD = '#F5A623'
+const GOLD = 'var(--accent-gold)'
 const FONT = "'Montserrat', Arial, sans-serif"
 
 const STATS = [

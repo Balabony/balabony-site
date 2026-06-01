@@ -103,11 +103,11 @@ export default function GiftPage() {
         <header style={{ textAlign: 'center', marginBottom: 40 }}>
           <div style={{
             display: 'inline-block', padding: '8px 16px', borderRadius: 999,
-            border: '1px solid rgba(240,165,0,0.5)', color: '#f0a500',
+            border: '1px solid rgba(239,159,39,0.5)', color: 'var(--accent-gold)',
             fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 16,
           }}>Подарунок</div>
           <h1 style={{ fontSize: 36, fontWeight: 700, margin: '0 0 12px' }}>
-            Подаруй <span style={{ color: '#f0a500' }}>Балабонів</span>
+            Подаруй <span style={{ color: 'var(--accent-gold)' }}>Балабонів</span>
           </h1>
           <p style={{ color: '#c8d4e8', fontSize: 16, margin: 0 }}>
             Внукам — бабусям, батькам — друзям. Електронна вітальна картка приходить на пошту в день, який обереш.
@@ -123,22 +123,22 @@ export default function GiftPage() {
               <div
                 key={t} onClick={() => setGiftType(t)}
                 style={{
-                  background: selected ? 'rgba(240,165,0,0.08)' : '#0f1e3a',
-                  border: selected ? '2px solid #f0a500' : '1px solid rgba(200,212,232,0.15)',
+                  background: selected ? 'rgba(239,159,39,0.08)' : '#0f1e3a',
+                  border: selected ? '2px solid var(--accent-gold)' : '1px solid rgba(200,212,232,0.15)',
                   borderRadius: 16, padding: 20, cursor: 'pointer', textAlign: 'left',
                   color: '#f5f0e8', transition: 'all .2s',
                 }}>
                 <div style={{ fontSize: 12, color: '#8899bb', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 }}>
                   {p.name}
                 </div>
-                <div style={{ fontSize: 28, fontWeight: 700, color: '#f0a500', marginBottom: 4 }}>
+                <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent-gold)', marginBottom: 4 }}>
                   {p.price} ₴
                 </div>
                 <div style={{ color: '#c8d4e8', fontSize: 13, marginBottom: 12 }}>{p.sub}</div>
                 <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: 13, color: '#c8d4e8' }}>
                   {p.perks.map((x, i) => (
                     <li key={i} style={{ paddingLeft: 14, position: 'relative', marginBottom: 4 }}>
-                      <span style={{ position: 'absolute', left: 0, color: '#f0a500' }}>✓</span> {x}
+                      <span style={{ position: 'absolute', left: 0, color: 'var(--accent-gold)' }}>✓</span> {x}
                     </li>
                   ))}
                 </ul>
@@ -197,10 +197,10 @@ export default function GiftPage() {
           )}
 
           <button type="submit" disabled={busy} style={{
-            width: '100%', background: busy ? '#664400' : '#f0a500',
+            width: '100%', background: busy ? '#664400' : 'var(--accent-gold)',
             color: '#0a1628', fontWeight: 700, fontSize: 16, padding: '16px 24px',
             border: 'none', borderRadius: 12, cursor: busy ? 'not-allowed' : 'pointer',
-            boxShadow: busy ? 'none' : '0 0 24px rgba(240,165,0,0.4)',
+            boxShadow: busy ? 'none' : '0 0 24px rgba(239,159,39,0.4)',
             transition: 'all .2s',
           }}>
             {busy ? 'Обробка…' : `Оплатити подарунок — ${pkg.price} ₴`}
