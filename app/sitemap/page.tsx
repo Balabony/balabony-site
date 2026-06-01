@@ -36,12 +36,6 @@ const GROUPS: SitemapGroup[] = [
     ],
   },
   {
-    title: 'Розваги',
-    links: [
-      { href: '/games', label: 'Ігри Балабонів', note: '12 інтерактивних ігор' },
-    ],
-  },
-  {
     title: 'Доступ і подарунки',
     links: [
       { href: '/free', label: 'Безкоштовно',  note: 'Безкоштовний доступ' },

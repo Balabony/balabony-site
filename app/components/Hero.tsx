@@ -2,7 +2,6 @@ export default function Hero() {
   const navItems = [
     { label: 'ІСТОРІЇ', href: '/stories' },
     { label: 'СЕРІЇ', href: '/episodes' },
-    { label: 'ІГРИ', href: '/games' },
     { label: 'КАЗКИ', href: '/stories?genre=fairytale' },
   ]
 

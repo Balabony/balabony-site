@@ -1,18 +1,7 @@
-import LongevityClubSection from '../components/LongevityClubSection'
-import Breadcrumbs from '../components/Breadcrumbs'
+import { redirect } from 'next/navigation'
 
-export const metadata = {
-  title: 'Ігри · Балабони',
-  description: 'Інтерактивні ігри та головоломки',
-}
-
+// Розділ «Ігри» вимкнено. Код збережено у бекапі (LongevityClubSection.tsx, PuzzleGame.tsx).
+// Щоб повернути — віднови оригінальну сторінку з бекапу.
 export default function GamesPage() {
-  return (
-    <>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px 0' }}>
-        <Breadcrumbs items={[{ label: 'Ігри' }]} />
-      </div>
-      <LongevityClubSection />
-    </>
-  )
+  redirect('/')
 }
