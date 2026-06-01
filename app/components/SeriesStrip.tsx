@@ -5,7 +5,7 @@ import { useTheme } from '../context/ThemeContext'
 import ShareButtons from './ShareButtons'
 import { trackStoryEvent } from '@/lib/analytics'
 
-const GOLD = '#F5A623'
+const GOLD = 'var(--accent-gold)'
 const CARD_BG = '#0f1e3a'
 const FONT = "'Montserrat', Arial, sans-serif"
 
@@ -59,7 +59,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
 
         {/* Section header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
-          <div style={{ width: 42, height: 42, borderRadius: 11, background: `${GOLD}1A`, border: `1px solid ${GOLD}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: 42, height: 42, borderRadius: 11, background: `rgba(239,159,39,0.10)`, border: `1px solid rgba(239,159,39,0.27)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <BookIcon />
           </div>
           <div>
@@ -124,7 +124,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                 }}>
                   <div style={{
                     padding: '16px 18px 20px',
-                    borderTop: `1px solid ${GOLD}33`,
+                    borderTop: `1px solid rgba(239,159,39,0.20)`,
                     background: 'rgba(0,0,0,0.25)',
                   }}>
                     {/* Title */}

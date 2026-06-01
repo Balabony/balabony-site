@@ -69,7 +69,7 @@ export default function Header() {
             textTransform: 'uppercase',
             padding: '6px 14px',
             borderRadius: 100,
-            background: 'linear-gradient(135deg, #f0a500, #ffb820)',
+            background: 'linear-gradient(135deg, var(--accent-gold), #ffb820)',
             color: '#1a1f2e',
             textDecoration: 'none',
             fontFamily: "'Montserrat', sans-serif",
@@ -153,7 +153,7 @@ export default function Header() {
           style={{
             width: 54, height: 28, borderRadius: 14, position: 'relative',
             background: isNight ? '#1a2e4a' : '#f0e6cc',
-            border: `1.5px solid ${isNight ? 'rgba(245,166,35,0.3)' : 'rgba(245,166,35,0.55)'}`,
+            border: `1.5px solid ${isNight ? 'rgba(239,159,39,0.3)' : 'rgba(239,159,39,0.55)'}`,
             cursor: 'pointer', flexShrink: 0, transition: 'background 0.3s',
             padding: 0,
           }}
@@ -161,7 +161,7 @@ export default function Header() {
           <span style={{
             position: 'absolute', top: 3, left: isNight ? 3 : 25,
             width: 20, height: 20, borderRadius: '50%',
-            background: '#F5A623',
+            background: 'var(--accent-gold)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 11, lineHeight: 1,
             transition: 'left 0.28s cubic-bezier(.4,0,.2,1)',

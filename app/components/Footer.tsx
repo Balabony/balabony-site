@@ -76,7 +76,7 @@ export default function Footer() {
             Українські історії для всієї родини
           </p>
 
-          <h4 style={{ color: '#f5a623', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Контакти
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
@@ -99,8 +99,8 @@ export default function Footer() {
               className="footer-cta-write"
               style={{
                 display: 'inline-block', padding: '7px 16px',
-                background: 'rgba(245,166,35,0.15)', border: '1px solid rgba(245,166,35,0.4)',
-                borderRadius: 8, color: '#f5a623', fontSize: 13, fontWeight: 700,
+                background: 'rgba(239,159,39,0.15)', border: '1px solid rgba(239,159,39,0.4)',
+                borderRadius: 8, color: 'var(--accent-gold)', fontSize: 13, fontWeight: 700,
                 textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
                 width: 'fit-content',
               }}
@@ -119,7 +119,7 @@ export default function Footer() {
             ))}
           </div>
 
-          <h4 style={{ color: '#f5a623', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Підтримати
           </h4>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -127,9 +127,9 @@ export default function Footer() {
               href="/support"
               className="footer-lang-btn"
               style={{
-                padding: '5px 12px', background: 'rgba(245,166,35,0.15)',
-                border: '1px solid rgba(245,166,35,0.4)', borderRadius: 6,
-                color: '#f5a623', fontSize: 13, fontWeight: 700, textDecoration: 'none',
+                padding: '5px 12px', background: 'rgba(239,159,39,0.15)',
+                border: '1px solid rgba(239,159,39,0.4)', borderRadius: 6,
+                color: 'var(--accent-gold)', fontSize: 13, fontWeight: 700, textDecoration: 'none',
                 fontFamily: "'Montserrat', sans-serif",
               }}
             >
@@ -139,9 +139,9 @@ export default function Footer() {
               href="/support?lang=en"
               className="footer-lang-btn"
               style={{
-                padding: '5px 12px', background: 'rgba(245,166,35,0.15)',
-                border: '1px solid rgba(245,166,35,0.4)', borderRadius: 6,
-                color: '#f5a623', fontSize: 13, fontWeight: 700, textDecoration: 'none',
+                padding: '5px 12px', background: 'rgba(239,159,39,0.15)',
+                border: '1px solid rgba(239,159,39,0.4)', borderRadius: 6,
+                color: 'var(--accent-gold)', fontSize: 13, fontWeight: 700, textDecoration: 'none',
                 fontFamily: "'Montserrat', sans-serif",
               }}
             >
@@ -151,9 +151,9 @@ export default function Footer() {
               href="/support?lang=de"
               className="footer-lang-btn"
               style={{
-                padding: '5px 12px', background: 'rgba(245,166,35,0.15)',
-                border: '1px solid rgba(245,166,35,0.4)', borderRadius: 6,
-                color: '#f5a623', fontSize: 13, fontWeight: 700, textDecoration: 'none',
+                padding: '5px 12px', background: 'rgba(239,159,39,0.15)',
+                border: '1px solid rgba(239,159,39,0.4)', borderRadius: 6,
+                color: 'var(--accent-gold)', fontSize: 13, fontWeight: 700, textDecoration: 'none',
                 fontFamily: "'Montserrat', sans-serif",
               }}
             >
@@ -164,7 +164,7 @@ export default function Footer() {
 
         {/* ───── КОЛОНКА 2: ПЛАТФОРМИ + ДЛЯ АВТОРІВ ───── */}
         <div>
-          <h4 style={{ color: '#f5a623', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Платформи
           </h4>
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: 14 }}>
@@ -181,9 +181,9 @@ export default function Footer() {
                   <span style={{
                     fontSize: 10, fontWeight: 700, letterSpacing: '0.3px',
                     padding: '2px 7px', borderRadius: 999,
-                    background: 'rgba(245,166,35,0.15)',
-                    color: '#f5a623',
-                    border: '1px solid rgba(245,166,35,0.35)',
+                    background: 'rgba(239,159,39,0.15)',
+                    color: 'var(--accent-gold)',
+                    border: '1px solid rgba(239,159,39,0.35)',
                     fontFamily: "'Montserrat', sans-serif",
                     textTransform: 'uppercase',
                   }}>
@@ -194,7 +194,7 @@ export default function Footer() {
             ))}
           </ul>
 
-          <h4 style={{ color: '#f5a623', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Для авторів
           </h4>
           <a
@@ -218,12 +218,12 @@ export default function Footer() {
         {/* ───── КОЛОНКА 3: ВИДІЛЕНІ КАРТКИ ─ ІНКЛЮЗИВНІСТЬ + ДОСТУПНІСТЬ ───── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{
-            background: 'rgba(245,166,35,0.08)',
-            border: '1px solid rgba(245,166,35,0.4)',
+            background: 'rgba(239,159,39,0.08)',
+            border: '1px solid rgba(239,159,39,0.4)',
             borderRadius: 10,
             padding: 16,
           }}>
-            <h4 style={{ color: '#f5a623', marginBottom: 10, fontSize: 15, fontWeight: 700, fontFamily: "'Montserrat', sans-serif" }}>
+            <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 15, fontWeight: 700, fontFamily: "'Montserrat', sans-serif" }}>
               Інклюзивність
             </h4>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.6, marginBottom: 10 }}>
@@ -234,7 +234,7 @@ export default function Footer() {
               className="footer-support-main"
               style={{
                 display: 'inline-block',
-                color: '#f5a623', fontSize: 13, fontWeight: 700,
+                color: 'var(--accent-gold)', fontSize: 13, fontWeight: 700,
                 textDecoration: 'none',
               }}
             >
@@ -243,12 +243,12 @@ export default function Footer() {
           </div>
 
           <div style={{
-            background: 'rgba(245,166,35,0.08)',
-            border: '1px solid rgba(245,166,35,0.4)',
+            background: 'rgba(239,159,39,0.08)',
+            border: '1px solid rgba(239,159,39,0.4)',
             borderRadius: 10,
             padding: 16,
           }}>
-            <h4 style={{ color: '#f5a623', marginBottom: 10, fontSize: 15, fontWeight: 700, fontFamily: "'Montserrat', sans-serif" }}>
+            <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 15, fontWeight: 700, fontFamily: "'Montserrat', sans-serif" }}>
               Доступність
             </h4>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.6, marginBottom: 10 }}>
@@ -259,7 +259,7 @@ export default function Footer() {
               className="footer-support-main"
               style={{
                 display: 'inline-block',
-                color: '#f5a623', fontSize: 13, fontWeight: 700,
+                color: 'var(--accent-gold)', fontSize: 13, fontWeight: 700,
                 textDecoration: 'none',
               }}
             >
@@ -270,7 +270,7 @@ export default function Footer() {
 
         {/* ───── КОЛОНКА 4: ДОКУМЕНТИ + ПРО НАС + НАВІГАЦІЯ ───── */}
         <div>
-          <h4 style={{ color: '#f5a623', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Документи
           </h4>
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: 8 }}>
@@ -287,23 +287,23 @@ export default function Footer() {
             ))}
           </ul>
 
-          <h4 style={{ color: '#f5a623', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Про нас
           </h4>
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: 8 }}>
             <li style={{ marginBottom: 5 }}>
-              <a href="/about" className="footer-link" style={{ color: '#f5a623', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+              <a href="/about" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
                 Про автора
               </a>
             </li>
             <li style={{ marginBottom: 5 }}>
-              <a href="/sitemap" className="footer-link" style={{ color: '#f5a623', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+              <a href="/sitemap" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
                 Навігація сайту
               </a>
             </li>
           </ul>
 
-          <h4 style={{ color: '#f5a623', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Розділи
           </h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
@@ -325,12 +325,12 @@ export default function Footer() {
       <div style={{
         maxWidth: 1200, margin: '0 auto 28px',
         padding: '22px 24px',
-        background: 'rgba(245,166,35,0.06)',
-        border: '1px solid rgba(245,166,35,0.18)',
+        background: 'rgba(239,159,39,0.06)',
+        border: '1px solid rgba(239,159,39,0.18)',
         borderRadius: 12,
       }}>
         <h4 style={{
-          color: '#f5a623', marginBottom: 8, fontSize: 14, fontWeight: 700,
+          color: 'var(--accent-gold)', marginBottom: 8, fontSize: 14, fontWeight: 700,
           fontFamily: "'Montserrat', sans-serif", letterSpacing: '0.5px',
           textTransform: 'uppercase',
         }}>
@@ -340,7 +340,7 @@ export default function Footer() {
           fontSize: 14, lineHeight: 1.7, color: 'rgba(255,255,255,0.85)',
           marginBottom: 8, fontFamily: "'Montserrat', sans-serif",
         }}>
-          Balabony — освітньо-літературна платформа українських історій. Ми повертаємо радість українського слова через сучасну літературу та оригінальні українські історії. Безкоштовний доступ для дітей ВПО, ветеранів (УБД) та людей з інвалідністю забезпечується у партнерстві з <span style={{ color: '#f5a623', fontWeight: 600 }}>ГО «Інститут громадянського суспільства»</span>. Через спільні історії, живу мову й теплий гумор ми обʼєднуємо українців навколо рідної культури — щоб вони залишалися в Україні й будували її майбутнє.
+          Balabony — освітньо-літературна платформа українських історій. Ми повертаємо радість українського слова через сучасну літературу та оригінальні українські історії. Безкоштовний доступ для дітей ВПО, ветеранів (УБД) та людей з інвалідністю забезпечується у партнерстві з <span style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>ГО «Інститут громадянського суспільства»</span>. Через спільні історії, живу мову й теплий гумор ми обʼєднуємо українців навколо рідної культури — щоб вони залишалися в Україні й будували її майбутнє.
         </p>
         <p style={{
           fontSize: 12, lineHeight: 1.6, color: 'rgba(255,255,255,0.55)',

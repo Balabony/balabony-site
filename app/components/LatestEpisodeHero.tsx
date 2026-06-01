@@ -3,7 +3,7 @@
 import { useTheme } from '../context/ThemeContext'
 import ShareButtons from './ShareButtons'
 
-const GOLD = '#F5A623'
+const GOLD = 'var(--accent-gold)'
 const FONT = "'Montserrat', Arial, sans-serif"
 
 export interface Episode {
@@ -34,7 +34,7 @@ export default function LatestEpisodeHero({ episode }: { episode: Episode }) {
         <div className="ep-hero-grid">
 
           {/* Cover */}
-          <div className="ep-hero-cover" style={{ position: 'relative', borderRadius: 18, overflow: 'hidden', boxShadow: `0 8px 48px rgba(245,166,35,0.22), 0 2px 12px rgba(0,0,0,0.4)`, border: `1.5px solid ${GOLD}`, flexShrink: 0 }}>
+          <div className="ep-hero-cover" style={{ position: 'relative', borderRadius: 18, overflow: 'hidden', boxShadow: `0 8px 48px rgba(239,159,39,0.22), 0 2px 12px rgba(0,0,0,0.4)`, border: `1.5px solid ${GOLD}`, flexShrink: 0 }}>
             <img src={episode.coverUrl} alt={episode.title}
               style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', display: 'block' }} />
             <div style={{ position: 'absolute', top: 14, left: 14, background: GOLD, color: '#081420', fontSize: 11, fontWeight: 800, fontFamily: FONT, padding: '4px 11px', borderRadius: 20, letterSpacing: 0.5 }}>
@@ -56,7 +56,7 @@ export default function LatestEpisodeHero({ episode }: { episode: Episode }) {
 
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 22 }}>
               <a href={episode.readUrl}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: GOLD, color: '#081420', padding: '13px 26px', borderRadius: 12, fontSize: 14, fontWeight: 700, fontFamily: FONT, textDecoration: 'none', boxShadow: '0 4px 18px rgba(245,166,35,0.38)' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: GOLD, color: '#081420', padding: '13px 26px', borderRadius: 12, fontSize: 14, fontWeight: 700, fontFamily: FONT, textDecoration: 'none', boxShadow: '0 4px 18px rgba(239,159,39,0.38)' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#081420" strokeWidth="2" strokeLinecap="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
                 Читати
               </a>
