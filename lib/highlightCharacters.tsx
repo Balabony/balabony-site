@@ -9,7 +9,7 @@
 import React from 'react'
 import { CHARACTER_REGEX } from './characters'
 
-const GOLD = '#f5a623' // той самий accent-gold що в ReaderSection
+const GOLD = '#ef9f27' // канон --accent-gold (globals.css:5)
 
 export function highlightCharacters(paragraph: string): React.ReactNode {
   if (!paragraph) return paragraph
