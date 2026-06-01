@@ -20,7 +20,6 @@ function trackEvent(event: string) {
     const key = `balabony_event_${event}`
     const count = parseInt(localStorage.getItem(key) || '0') + 1
     localStorage.setItem(key, String(count))
-    console.log(`[Analytics] ${event}: ${count}`)
   } catch (e) {}
 }
 
