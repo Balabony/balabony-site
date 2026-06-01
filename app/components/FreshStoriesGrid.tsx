@@ -3,7 +3,7 @@
 import { useTheme } from '../context/ThemeContext'
 import { trackStoryEvent } from '@/lib/analytics'
 
-const GOLD = '#F5A623'
+const GOLD = 'var(--accent-gold)'
 const AMBER = '#FFB347'
 const CARD_BG = '#0f1e3a'
 const FONT = "'Montserrat', Arial, sans-serif"
@@ -17,16 +17,16 @@ const STYLES = `
   letter-spacing: 2px;
   text-transform: uppercase;
   line-height: 1;
-  background: rgba(245,166,35,0.14);
-  border: 1px solid rgba(245,166,35,0.5);
+  background: rgba(239,159,39,0.14);
+  border: 1px solid rgba(239,159,39,0.5);
   padding: 5px 10px;
   border-radius: 4px;
   margin-bottom: 8px;
   animation: fsKickerGlow 2.2s ease-in-out infinite;
 }
 @keyframes fsKickerGlow {
-  0%, 100% { box-shadow: 0 0 6px rgba(245,166,35,0.35); }
-  50% { box-shadow: 0 0 18px rgba(245,166,35,0.75); }
+  0%, 100% { box-shadow: 0 0 6px rgba(239,159,39,0.35); }
+  50% { box-shadow: 0 0 18px rgba(239,159,39,0.75); }
 }
 .fs-card {
   transition: transform 0.25s ease, box-shadow 0.25s ease;
