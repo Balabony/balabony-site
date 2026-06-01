@@ -100,3 +100,4 @@ body {
 @media (max-width: 480px) {
   .baly-eye-hide-mobile { display: none !important; }
 }
+body { zoom: var(--site-zoom, 1); }

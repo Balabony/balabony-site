@@ -58,6 +58,7 @@ export default function AccessibilityPage() {
   useEffect(() => {
     document.documentElement.setAttribute('data-a11y-theme', theme);
     document.documentElement.style.setProperty('--a11y-fs', String(fontScale));
+    document.documentElement.style.setProperty('--site-zoom', String(fontScale));
   }, [theme, fontScale]);
 
   const save = (next: Partial<A11ySettings>) => {
