@@ -28,6 +28,31 @@ interface StoryRow {
   cover_url: string | null
 }
 
+// Старі/англомовні посилання → канонічний жанр у базі
+const GENRE_ALIASES: Record<string, string> = {
+  fairytale: 'Казка',
+  fairytales: 'Казка',
+  kazka: 'Казка',
+  kazky: 'Казка',
+}
+
+// Гарна назва для заголовка сторінки (множина), якщо відома
+const GENRE_DISPLAY: Record<string, string> = {
+  казка: 'Казки',
+}
+
+function normalize(v: string): string {
+  return v.trim().toLowerCase()
+}
+
+function resolveGenre(raw?: string | string[]): string | null {
+  const first = Array.isArray(raw) ? raw[0] : raw
+  if (!first) return null
+  const trimmed = first.trim()
+  if (!trimmed) return null
+  return GENRE_ALIASES[normalize(trimmed)] ?? trimmed
+}
+
 async function getStories(): Promise<Story[]> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
@@ -36,9 +61,7 @@ async function getStories(): Promise<Story[]> {
     .eq('type', 'story')
     .in('status', ['approved', 'published'])
     .order('approved_at', { ascending: false })
-
   if (error || !data) return []
-
   return (data as (StoryRow & { approved_at: string })[]).map((s) => ({
     id: s.slug,
     title: s.title,
@@ -52,19 +75,52 @@ async function getStories(): Promise<Story[]> {
   }))
 }
 
-export default async function StoriesPage() {
-  const stories = await getStories()
+export default async function StoriesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ genre?: string | string[] }>
+}) {
+  const { genre } = await searchParams
+  const activeGenre = resolveGenre(genre)
+
+  const allStories = await getStories()
+  const stories = activeGenre
+    ? allStories.filter((s) => normalize(s.genre ?? '') === normalize(activeGenre))
+    : allStories
+
+  const heading = activeGenre
+    ? GENRE_DISPLAY[normalize(activeGenre)] ?? activeGenre
+    : 'Історії читачів'
 
   return (
     <ThemeProvider>
       <Header />
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 20px' }}>
-        <Breadcrumbs items={[{ label: 'Історії читачів' }]} />
+        <Breadcrumbs items={[{ label: heading }]} />
         <h1 style={{ fontFamily: '"Comfortaa", sans-serif', fontSize: 32, marginBottom: 24, color: '#F5A623' }}>
-          Історії читачів
+          {heading}
         </h1>
+
+        {activeGenre && (
+          <a
+            href="/stories"
+            style={{
+              display: 'inline-block',
+              marginBottom: 20,
+              color: '#94a3b8',
+              fontSize: 14,
+              textDecoration: 'none',
+              fontFamily: "'Montserrat', sans-serif",
+            }}
+          >
+            ← Усі історії
+          </a>
+        )}
+
         {stories.length === 0 ? (
-          <p style={{ color: '#94a3b8' }}>Історій поки немає.</p>
+          <p style={{ color: '#94a3b8' }}>
+            {activeGenre ? 'Історій у цьому жанрі поки немає.' : 'Історій поки немає.'}
+          </p>
         ) : (
           <FreshStoriesGrid stories={stories} />
         )}
