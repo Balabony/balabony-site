@@ -42,19 +42,57 @@ export default function Header() {
 
   return (
     <>
+    <style dangerouslySetInnerHTML={{ __html: `
+      .header-nav-link:hover { color: var(--accent-gold) !important; }
+    ` }} />
     <header style={{
       background: 'var(--white)', borderBottom: '1px solid var(--border)',
       padding: '0 4%', height: 56, display: 'flex', justifyContent: 'space-between',
       alignItems: 'center', position: 'sticky', top: 0, zIndex: 100,
     }}>
 
-      {/* Logo */}
-      <a href="/" style={{
-        fontFamily: "'Comfortaa', cursive", fontSize: 22, fontWeight: 700,
-        color: 'var(--accent-gold)', textDecoration: 'none', flexShrink: 0,
-      }}>
-        Balabony<sup style={{ fontSize: 9, color: 'var(--accent-gold)' }}>™</sup>
-      </a>
+      {/* Left group: logo + primary nav */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 22, flexShrink: 0, minWidth: 0 }}>
+
+        {/* Logo */}
+        <a href="/" style={{
+          fontFamily: "'Comfortaa', cursive", fontSize: 22, fontWeight: 700,
+          color: 'var(--accent-gold)', textDecoration: 'none', flexShrink: 0,
+        }}>
+          Balabony<sup style={{ fontSize: 9, color: 'var(--accent-gold)' }}>™</sup>
+        </a>
+
+        {/* Primary nav — desktop only */}
+        <nav
+          className="baly-eye-hide-mobile"
+          aria-label="Основна навігація"
+          style={{ display: 'flex', alignItems: 'center', gap: 20 }}
+        >
+          {[
+            { label: 'Історії', href: '/stories' },
+            { label: 'Серії', href: '/episodes' },
+            { label: 'Підтримати', href: '/support' },
+          ].map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="header-nav-link"
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: 'var(--muted)',
+                textDecoration: 'none',
+                fontFamily: "'Montserrat', sans-serif",
+                whiteSpace: 'nowrap',
+                lineHeight: 1,
+                transition: 'color 0.15s',
+              }}
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
+      </div>
 
       {/* Right controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, flexWrap: 'nowrap' }}>
