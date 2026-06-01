@@ -29,15 +29,23 @@ const GROUPS: SitemapGroup[] = [
     title: 'Читати',
     links: [
       { href: '/',          label: 'Головна',          note: 'Hero, Reader, Pricing' },
-      { href: '/episodes',  label: 'Серії Балабонів',  note: 'Сезонні випуски' },
+      { href: '/episodes',  label: 'Серії Балабонів',  note: 'Усі випуски' },
+      { href: '/series',    label: 'Огляд сезонів',    note: 'Сезонна добірка' },
       { href: '/stories',   label: 'Історії читачів',  note: 'Реальні авторські історії' },
-      { href: '/stories?genre=fairytale', label: 'Казки', note: 'Окрема категорія' },
+      { href: '/stories?genre=Казка', label: 'Казки', note: 'Українські казки' },
     ],
   },
   {
     title: 'Розваги',
     links: [
       { href: '/games', label: 'Ігри Балабонів', note: '12 інтерактивних ігор' },
+    ],
+  },
+  {
+    title: 'Доступ і подарунки',
+    links: [
+      { href: '/free', label: 'Безкоштовно',  note: 'Безкоштовний доступ' },
+      { href: '/gift', label: 'Подарунок',    note: 'Подарункова підписка' },
     ],
   },
   {
@@ -58,8 +66,17 @@ const GROUPS: SitemapGroup[] = [
   {
     title: 'Про нас і зв\'язок',
     links: [
-      { href: '/about',   label: 'Про автора',  note: 'Назар Колодій, Львів' },
-      { href: '/contact', label: 'Контакти',    note: 'Форма зворотного зв\'язку' },
+      { href: '/about',    label: 'Про автора' },
+      { href: '/contact',  label: 'Зворотний зв\'язок', note: 'Форма звернення' },
+      { href: '/contacts', label: 'Контакти',           note: 'Контактні дані' },
+      { href: '/survey',   label: 'Опитування',         note: 'Поділіться думкою' },
+    ],
+  },
+  {
+    title: 'Акаунт',
+    links: [
+      { href: '/profile', label: 'Профіль',  note: 'Кабінет користувача' },
+      { href: '/login',   label: 'Вхід',     note: 'Увійти / зареєструватись' },
     ],
   },
   {
@@ -68,7 +85,9 @@ const GROUPS: SitemapGroup[] = [
       { href: '/legal/terms',           label: 'Угода користувача' },
       { href: '/legal/privacy',         label: 'Політика конфіденційності' },
       { href: '/legal/offer',           label: 'Публічна оферта' },
-      { href: '/legal/cookies',         label: 'Політика Cookies' },
+      { href: '/legal/child-safety',    label: 'Дитяча безпека' },
+      { href: '/legal/refund',          label: 'Повернення коштів' },
+      { href: '/legal/cookies',         label: 'Файли cookie' },
       { href: '/legal/author-contract', label: 'Договір з автором' },
     ],
   },
@@ -98,7 +117,7 @@ export default function SitemapPage() {
         </h1>
 
         <p style={{
-          fontSize: 15,
+          fontSize: 20,
           color: '#8899bb',
           lineHeight: 1.6,
           margin: '0 0 40px',
@@ -107,7 +126,7 @@ export default function SitemapPage() {
           Повна навігація по сторінках Балабони. Якщо щось загубили — тут точно знайдеться.
         </p>
 
-        {/* 6 груп карток */}
+        {/* групи карток */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
@@ -124,12 +143,12 @@ export default function SitemapPage() {
               }}
             >
               <h2 style={{
-                fontSize: 13,
+                fontSize: 17,
                 fontWeight: 700,
                 color: GOLD,
                 textTransform: 'uppercase',
                 letterSpacing: 1.5,
-                margin: '0 0 16px',
+                margin: '0 0 18px',
                 fontFamily: FONT,
               }}>
                 {group.title}
@@ -141,7 +160,7 @@ export default function SitemapPage() {
                 margin: 0,
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 10,
+                gap: 14,
               }}>
                 {group.links.map((link, lidx) => (
                   <li key={lidx}>
@@ -149,7 +168,7 @@ export default function SitemapPage() {
                       href={link.href}
                       style={{
                         display: 'block',
-                        padding: '8px 12px',
+                        padding: '10px 12px',
                         margin: '0 -12px',
                         borderRadius: 8,
                         textDecoration: 'none',
@@ -157,18 +176,18 @@ export default function SitemapPage() {
                       }}
                     >
                       <div style={{
-                        fontSize: 15,
+                        fontSize: 21,
                         fontWeight: 600,
                         color: '#f5f0e8',
-                        marginBottom: link.note ? 2 : 0,
+                        marginBottom: link.note ? 4 : 0,
                       }}>
                         {link.label}
                       </div>
                       {link.note && (
                         <div style={{
-                          fontSize: 12,
+                          fontSize: 16,
                           color: '#8899bb',
-                          lineHeight: 1.4,
+                          lineHeight: 1.45,
                         }}>
                           {link.note}
                         </div>
@@ -181,7 +200,7 @@ export default function SitemapPage() {
           ))}
         </div>
 
-        {/* Подвал з SEO-sitemap і поверненням */}
+        {/* Подвал з поверненням на головну */}
         <div style={{
           marginTop: 48,
           paddingTop: 28,
@@ -189,21 +208,9 @@ export default function SitemapPage() {
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
           gap: 16,
         }}>
-          <p style={{
-            fontSize: 13,
-            color: '#8899bb',
-            margin: 0,
-            lineHeight: 1.6,
-          }}>
-            Шукаєте машинописний XML-sitemap для роботів? Він тут:{' '}
-            <a href="/sitemap.xml" style={{ color: GOLD, textDecoration: 'underline' }}>
-              /sitemap.xml
-            </a>
-          </p>
-
           <a
             href="/"
             style={{
@@ -215,7 +222,7 @@ export default function SitemapPage() {
               border: `1px solid ${GOLD}44`,
               borderRadius: 10,
               color: GOLD,
-              fontSize: 13,
+              fontSize: 16,
               fontWeight: 700,
               textDecoration: 'none',
               fontFamily: FONT,

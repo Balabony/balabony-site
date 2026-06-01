@@ -579,7 +579,7 @@ export default function AudioPlayer() {
 
   return (
     <div style={{
-      position: 'fixed', bottom: 0, left: 0, width: '100%',
+      position: 'fixed', bottom: 'var(--bb-offset, 0px)', left: 0, width: '100%',
       background: 'var(--dark)', color: '#fff',
       boxShadow: '0 -4px 24px rgba(0,0,0,0.3)', zIndex: 200,
       display: 'flex', flexDirection: 'column',

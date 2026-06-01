@@ -4,6 +4,7 @@ import './globals.css'
 import UpdateBanner from './components/UpdateBanner'
 import AnalyticsTracker from './components/AnalyticsTracker'
 import ServiceWorkerRegistration from './components/ServiceWorkerRegistration'
+import BottomBar from './components/BottomBar'
 export const metadata: Metadata = {
   metadataBase: new URL('https://balabony.com'),
   title: 'Balabony™ — українські історії для всієї родини',
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         {children}
+        <BottomBar />
         <UpdateBanner />
         <AnalyticsTracker />
         <GoogleAnalytics />
