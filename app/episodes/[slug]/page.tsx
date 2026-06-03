@@ -112,8 +112,8 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           {/* Meta row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 15, fontWeight: 700, color: GOLD, fontFamily: FONT }}>Балабони</span>
-            {date && <span style={{ fontSize: 15, fontWeight: 600, color: '#aab8cc', fontFamily: FONT }}>{date}</span>}
-            <span style={{ fontSize: 15, fontWeight: 600, color: '#aab8cc', fontFamily: FONT }}>{wordCount} слів · ~{readMin} хв</span>
+            {date && <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--on-dark-muted)', fontFamily: FONT }}>{date}</span>}
+            <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--on-dark-muted)', fontFamily: FONT }}>{wordCount} слів · ~{readMin} хв</span>
           </div>
         </div>
 
@@ -135,7 +135,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
 
         {/* Footer */}
         <div style={{ marginTop: 52, paddingTop: 24, borderTop: '0.5px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-          <div style={{ fontSize: 13, color: '#8899bb', fontFamily: FONT }}>
+          <div style={{ fontSize: 13, color: 'var(--on-dark-muted)', fontFamily: FONT }}>
             Сезон {episode.season_number} · Серія {episode.episode_number}
           </div>
           <a
