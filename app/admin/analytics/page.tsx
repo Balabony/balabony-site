@@ -23,12 +23,15 @@ interface SurveyRow {
 interface PageView   { url: string; timestamp: string; device?: string; session_id?: string }
 interface StoryEvent { story_id?: string; story_title?: string; event_type: string; duration_seconds?: number; created_at: string }
 interface Session    { device?: string; city?: string; start_time: string; end_time?: string }
+interface PaywallHit { user_id: string; limit_type: string; hit_at: string }
 
 interface AnalyticsData {
-  surveys:      SurveyRow[]
-  page_views:   PageView[]
-  story_events: StoryEvent[]
-  sessions:     Session[]
+  surveys:        SurveyRow[]
+  page_views:     PageView[]
+  story_events:   StoryEvent[]
+  sessions:       Session[]
+  paywall_hits?:  PaywallHit[]
+  subscriber_ids?: string[]
 }
 
 // ─── Data helpers ─────────────────────────────────────────────────────────────
@@ -109,7 +112,25 @@ function buildSummary(d: AnalyticsData) {
     total_shares:             d.story_events.filter(e => e.event_type === 'share').length,
     top_stories:              topStories(d.story_events).slice(0, 5),
     avg_read_duration_sec:    avgDuration(d.story_events),
+    paywall_total_hits:       (d.paywall_hits ?? []).length,
+    paywall_unique_hitters:   new Set((d.paywall_hits ?? []).map(h => h.user_id)).size,
   }
+}
+
+// Воронка: скільки унікальних людей уперлися в пейвол і скільки з них стали платниками.
+// Зв'язок — user_id (balabony_uid) однаковий у paywall_hits і в активних підписках.
+function buildPaywall(hits: PaywallHit[], subscriberIds: string[]) {
+  const hitters = new Set(hits.map(h => h.user_id).filter(Boolean))
+  const subs    = new Set(subscriberIds)
+  let converted = 0
+  hitters.forEach(u => { if (subs.has(u)) converted++ })
+  const uniqueHitters  = hitters.size
+  const conversionRate = uniqueHitters ? Math.round((converted / uniqueHitters) * 100) : 0
+  const byType = [
+    { name: 'Історії (7)',     value: hits.filter(h => h.limit_type === 'stories_limit_reached').length },
+    { name: 'Серії (2/сезон)', value: hits.filter(h => h.limit_type === 'season_limit_reached').length },
+  ]
+  return { totalHits: hits.length, uniqueHitters, converted, conversionRate, byType }
 }
 
 // ─── Chart components ─────────────────────────────────────────────────────────
@@ -211,6 +232,11 @@ export default function AnalyticsPage() {
   const totalShares  = story_events.filter(e => e.event_type === 'share').length
   const uniqueSess   = new Set(page_views.map(v => v.session_id)).size
 
+  const paywallHits   = data.paywall_hits ?? []
+  const subscriberIds = data.subscriber_ids ?? []
+  const pw            = buildPaywall(paywallHits, subscriberIds)
+  const pwDayData     = groupByDay(paywallHits.map(h => ({ url: '', timestamp: h.hit_at })) as PageView[])
+
   return (
     <main style={{ minHeight: '100vh', background: '#0a1628', padding: '32px 24px 80px', fontFamily: FONT }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
@@ -223,6 +249,41 @@ export default function AnalyticsPage() {
           <StatCard label="Прочитань"      value={totalReads} />
           <StatCard label="Шерингів"       value={totalShares} />
           <StatCard label="Сер. читання"   value={avgDur ? `${Math.floor(avgDur / 60)}хв ${avgDur % 60}с` : '—'} />
+        </div>
+
+        {/* ─── Воронка · пейвол ─── */}
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
+          Воронка · пейвол
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 16 }}>
+          <StatCard label="Дійшли до пейволу" value={pw.uniqueHitters} sub={`${pw.totalHits} спрацювань усього`} />
+          <StatCard label="Стали платниками"  value={pw.converted} />
+          <StatCard label="Конверсія"         value={`${pw.conversionRate}%`} sub="з тих, хто вперся в ліміт" />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16, marginBottom: 24 }}>
+          <ChartCard title="Де впираються (тип ліміту)">
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={pw.byType} margin={{ left: -20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="name" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                <YAxis stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                <Tooltip content={<DarkTooltip />} />
+                <Bar dataKey="value" fill="#ef4444" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          <ChartCard title="Пейвол по днях (30 днів)">
+            <ResponsiveContainer width="100%" height={180}>
+              <LineChart data={pwDayData} margin={{ left: -20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="date" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 9 }} interval={4} />
+                <YAxis stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                <Tooltip content={<DarkTooltip />} />
+                <Line type="monotone" dataKey="views" stroke="#ef4444" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartCard>
         </div>
 
         {/* ─── Survey charts ─── */}

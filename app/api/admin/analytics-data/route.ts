@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   const db = getSupabaseAdmin()
 
-  const [surveys, pageViews, storyEvents, sessions] = await Promise.all([
+  const [surveys, pageViews, storyEvents, sessions, paywall, subs] = await Promise.all([
     db.from('survey_responses')
       .select('*')
       .order('created_at', { ascending: false })
@@ -30,12 +30,28 @@ export async function GET(req: NextRequest) {
       .select('device, city, start_time, end_time')
       .order('start_time', { ascending: false })
       .limit(5000),
+    db.from('paywall_hits')
+      .select('user_id, limit_type, hit_at')
+      .order('hit_at', { ascending: false })
+      .limit(20000),
+    db.from('app_subscriptions')
+      .select('user_id')
+      .eq('status', 'active')
+      .gt('expires_at', new Date().toISOString()),
   ])
 
+  // Унікальні user_id активних підписників (той самий balabony_uid, що й у paywall_hits) —
+  // дає змогу на сторінці порахувати, скільки тих, хто вперся в пейвол, стали платниками.
+  const subscriberIds = Array.from(
+    new Set((subs.data ?? []).map((r: { user_id: string | null }) => r.user_id).filter(Boolean))
+  )
+
   return NextResponse.json({
-    surveys:      surveys.data      ?? [],
-    page_views:   pageViews.data    ?? [],
-    story_events: storyEvents.data  ?? [],
-    sessions:     sessions.data     ?? [],
+    surveys:        surveys.data      ?? [],
+    page_views:     pageViews.data    ?? [],
+    story_events:   storyEvents.data  ?? [],
+    sessions:       sessions.data     ?? [],
+    paywall_hits:   paywall.data      ?? [],
+    subscriber_ids: subscriberIds,
   })
 }
