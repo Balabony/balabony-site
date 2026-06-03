@@ -73,7 +73,7 @@ const STYLES = `
 }
 .fs-teaser {
   font-size: 12px;
-  color: #7A90A8;
+  color: var(--on-dark-muted);
   font-family: ${FONT};
   line-height: 1.55;
   margin: 0;

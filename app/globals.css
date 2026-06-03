@@ -9,6 +9,7 @@
   --white: #ffffff;
   --text: #1e293b;
   --muted: #64748b;
+  --on-dark-muted: #aab8cc;
   --border: #e2e8f0;
   --highlight: #fef08a;
 }
@@ -103,7 +104,7 @@ body {
 body { zoom: var(--site-zoom, 1); }
 html[data-a11y-theme="dyslexic"] body, html[data-a11y-theme="dyslexic"] body * { letter-spacing: 0.05em !important; word-spacing: 0.18em !important; line-height: 1.85 !important; }
 /* Високий контраст: підсилюємо текст/інтерфейс глобальним фільтром... */
-html[data-a11y-theme="high-contrast"] body { filter: contrast(1.5); }
+html[data-a11y-theme="high-contrast"] body { --on-dark-muted: #ffffff; filter: contrast(1.5); }
 /* ...але виводимо медіа з-під фільтра, щоб фото/відео лишались природними
    (зворотний фільтр ~1/1.5 компенсує батьківський). */
 html[data-a11y-theme="high-contrast"] img,
