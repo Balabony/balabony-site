@@ -312,6 +312,9 @@ export async function POST(req: NextRequest) {
 
     if (contentType === 'series') {
       if ((counts.picksInSeason ?? 0) >= SERIES_PER_SEASON_LIMIT) {
+        // Користувач уперся в ліміт безкоштовних серій у сезоні —
+        // найсильніший сигнал готовності платити. Фіксуємо подію.
+        await recordPaywallHit(supabase, userId, 'series', season, contentId, 'season_limit_reached')
         return NextResponse.json(
           {
             ok: false,
@@ -324,6 +327,8 @@ export async function POST(req: NextRequest) {
       }
     } else {
       if (counts.picksTotal >= STORIES_TOTAL_LIMIT) {
+        // Користувач уперся в ліміт безкоштовних історій — фіксуємо пейвол.
+        await recordPaywallHit(supabase, userId, 'story', null, contentId, 'stories_limit_reached')
         return NextResponse.json(
           {
             ok: false,
@@ -385,6 +390,36 @@ export async function POST(req: NextRequest) {
 }
 
 // ─── Internal helpers ───────────────────────────────────────────────────────
+
+/**
+ * Записує подію «користувач уперся в безкоштовний ліміт» (пейвол).
+ * Це найсильніший сигнал наміру платити: дає змогу рахувати
+ * скільки людей дійшли до ліміту і скільки з них стали платниками
+ * (join за user_id з підписками — це той самий balabony_uid).
+ *
+ * Fire-and-forget: будь-яка помилка тут НЕ повинна ламати /api/pick,
+ * тому загорнуто в try/catch і лише логуємо.
+ */
+async function recordPaywallHit(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  userId: string,
+  contentType: ContentType,
+  season: number | null,
+  contentId: number,
+  limitType: 'season_limit_reached' | 'stories_limit_reached'
+): Promise<void> {
+  try {
+    await supabase.from('paywall_hits').insert({
+      user_id: userId,
+      content_type: contentType,
+      season,
+      content_id: contentId,
+      limit_type: limitType,
+    })
+  } catch (err) {
+    console.error('[/api/pick] paywall_hit record failed:', err)
+  }
+}
 
 /**
  * Returns current pick counts for the user.
