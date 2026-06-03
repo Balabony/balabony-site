@@ -11,7 +11,7 @@ export default function Hero() {
         style={{
           background:
             'linear-gradient(180deg, #0E1A2B 0%, #14253B 50%, #0E1A2B 100%)',
-          padding: '28px 5% 56px',
+          padding: '28px 5% 16px',
           position: 'relative',
           overflow: 'hidden',
         }}

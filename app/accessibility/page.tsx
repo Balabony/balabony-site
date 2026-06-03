@@ -304,7 +304,7 @@ export default function AccessibilityPage() {
         .a11y-main {
           max-width: 1200px;
           margin: 0 auto;
-          padding: 56px 24px;
+          padding: 56px 24px 24px;
         }
 
         /* HERO */
@@ -546,7 +546,7 @@ export default function AccessibilityPage() {
           border-top: 1px solid var(--a11y-border);
           background: var(--a11y-surface);
           padding: 32px 24px;
-          margin-top: 80px;
+          margin-top: 0;
           text-align: center;
           color: var(--a11y-text-muted);
           font-size: 14px;

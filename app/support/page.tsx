@@ -416,6 +416,7 @@ Verwendungszweck: ${PURPOSE_EN}`,
           background: var(--sup-surface-2);
         }
         .sup-tb-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .sup-tb-reset { padding: 5px 11px; font-size: 12px; font-weight: 600; }
         .sup-tb-btn.is-active {
           background: var(--sup-accent);
           color: var(--sup-accent-text);
@@ -993,7 +994,7 @@ Verwendungszweck: ${PURPOSE_EN}`,
                         aria-pressed={theme === 'dyslexic'}>{themeNamesByLang[lang].dyslexic}</button>
               </div>
               <div className="sup-toolbar-divider" />
-              <button onClick={reset} className="sup-tb-btn" aria-label={T.reset}>↺ {T.reset}</button>
+              <button onClick={reset} className="sup-tb-btn sup-tb-reset" aria-label={T.reset}>↺ {T.reset}</button>
             </div>
           </div>
         </header>
