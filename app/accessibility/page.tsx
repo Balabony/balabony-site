@@ -655,6 +655,19 @@ export default function AccessibilityPage() {
               Ось приклад трьох реплік з пілотного шорту «Панасів вай-фай»:
             </p>
 
+            {/* ІЛЮСТРАЦІЯ ГЕРОЯ (додано) */}
+            <figure style={{ margin: '14px 0 18px', textAlign: 'center' }}>
+              <img
+                src="/images/panas.jpg"
+                alt="Літній чоловік у вишиванці та безрукавці з книгою в руках, усміхнений, на тлі української хати з мальованими віконницями"
+                loading="lazy"
+                style={{ width: '100%', maxWidth: 360, height: 'auto', borderRadius: 14, border: '1px solid rgba(239,159,39,0.4)' }}
+              />
+              <figcaption style={{ marginTop: 8, fontSize: 13, opacity: 0.7 }}>
+                Дід Панас — герой серіалу «Балабони» (ілюстрація)
+              </figcaption>
+            </figure>
+
             <div className="a11y-dialog">
               <article className="a11y-row">
                 <div className="a11y-role">Дід Панас</div>
@@ -681,6 +694,18 @@ export default function AccessibilityPage() {
                   незареєстроване обладнання? Запишу: не зв&apos;язок.
                 </p>
               </article>
+            </div>
+
+            {/* ДЕМО АУДІО — приклад озвучення (додано) */}
+            <div style={{ margin: '20px 0 4px', padding: 16, border: '1px solid rgba(239,159,39,0.4)', borderRadius: 12, background: 'rgba(239,159,39,0.06)' }}>
+              <p style={{ margin: '0 0 10px', fontWeight: 600 }}>
+                <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#0E1A2B', background: 'var(--accent-gold)', padding: '2px 8px', borderRadius: 6, marginRight: 8 }}>Демо · на тестуванні</span>
+                Послухайте, як звучить озвучення серії:
+              </p>
+              <audio controls preload="none" style={{ width: '100%' }} aria-label="Демонстраційне аудіо: озвучення серії Балабони">
+                <source src="/audio/balabony_seria1_demo.mp3" type="audio/mpeg" />
+                Ваш браузер не підтримує відтворення аудіо.
+              </audio>
             </div>
           </section>
 
