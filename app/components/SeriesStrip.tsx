@@ -109,7 +109,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                       <span style={{ flex: 1 }}>{s.title}</span>
                       <ChevronIcon open={isOpen} />
                     </div>
-                    <div style={{ fontSize: 11, color: '#8CA0B8', fontFamily: FONT, marginTop: 'auto' }}>
+                    <div style={{ fontSize: 11, color: 'var(--on-dark-muted)', fontFamily: FONT, marginTop: 'auto' }}>
                       {s.hasAudio ? '🎧 Аудіо доступно' : '⏳ Аудіо готується'}
                     </div>
                     <ShareButtons url={`https://balabony.com${s.url}`} title={s.title} />
@@ -133,7 +133,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                     </div>
                     {/* Season/episode label */}
                     {label && (
-                      <div style={{ fontSize: 11, color: '#8CA0B8', fontFamily: FONT, letterSpacing: 0.5, marginBottom: 10 }}>
+                      <div style={{ fontSize: 11, color: 'var(--on-dark-muted)', fontFamily: FONT, letterSpacing: 0.5, marginBottom: 10 }}>
                         {label}
                       </div>
                     )}
