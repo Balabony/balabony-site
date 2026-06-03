@@ -553,6 +553,29 @@ export default function AccessibilityPage() {
           line-height: 1.6;
         }
         .a11y-footer p { margin: 4px 0; }
+
+        /* Адаптив: заголовки й email не вилазять за екран на мобільному */
+        .a11y-hero h1,
+        .a11y-section h2,
+        .a11y-inclusion h2,
+        .a11y-feedback h2 {
+          overflow-wrap: break-word;
+          word-break: break-word;
+          hyphens: auto;
+        }
+        .a11y-mail {
+          max-width: 100%;
+          box-sizing: border-box;
+          overflow-wrap: break-word;
+          word-break: break-word;
+        }
+        @media (max-width: 600px) {
+          .a11y-hero h1 { font-size: calc(32px * var(--a11y-fs)); }
+          .a11y-section h2 { font-size: calc(24px * var(--a11y-fs)); }
+          .a11y-inclusion h2 { font-size: calc(23px * var(--a11y-fs)); }
+          .a11y-feedback h2 { font-size: calc(26px * var(--a11y-fs)); }
+          .a11y-mail { font-size: 15px; padding: 14px 18px; }
+        }
       `}</style>
 
       <div className="a11y-page">
