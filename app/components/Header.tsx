@@ -47,7 +47,7 @@ export default function Header() {
     ` }} />
     <header style={{
       background: 'var(--white)', borderBottom: '1px solid var(--border)',
-      padding: '0 4%', height: 56, display: 'flex', justifyContent: 'space-between',
+      padding: '0 3%', height: 56, display: 'flex', justifyContent: 'space-between',
       alignItems: 'center', position: 'sticky', top: 0, zIndex: 100,
     }}>
 

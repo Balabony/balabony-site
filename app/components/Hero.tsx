@@ -11,7 +11,7 @@ export default function Hero() {
         style={{
           background:
             'linear-gradient(180deg, #0E1A2B 0%, #14253B 50%, #0E1A2B 100%)',
-          padding: '64px 5% 72px',
+          padding: '28px 5% 56px',
           position: 'relative',
           overflow: 'hidden',
         }}
@@ -48,7 +48,7 @@ export default function Hero() {
                   href={item.href}
                   style={{
                     color: '#EF9F27',
-                    fontWeight: 500,
+                    fontWeight: 700,
                     fontSize: 13,
                     textDecoration: 'none',
                     fontFamily: "'Montserrat', sans-serif",
@@ -108,6 +108,33 @@ export default function Hero() {
             >
               Читай безкоштовно
             </a>
+
+            <div style={{ marginTop: 16 }}>
+              <a
+                href="/accessibility"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  color: '#EF9F27',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  letterSpacing: 1,
+                  textDecoration: 'none',
+                  borderBottom: '1px solid rgba(239,159,39,0.5)',
+                  paddingBottom: 2,
+                  fontFamily: "'Montserrat', sans-serif",
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="4" r="1.6" fill="currentColor" stroke="none" />
+                  <path d="M5 8h14" />
+                  <path d="M12 8v6" />
+                  <path d="M9 20l3-6 3 6" />
+                </svg>
+                ДОСТУПНІСТЬ
+              </a>
+            </div>
           </div>
         </div>
       </div>
