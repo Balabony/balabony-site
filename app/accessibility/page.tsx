@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import DemoAudioPlayer from '../components/DemoAudioPlayer';
 
 /**
  * Сторінка доступності /accessibility
@@ -696,16 +697,14 @@ export default function AccessibilityPage() {
               </article>
             </div>
 
-            {/* ДЕМО АУДІО — приклад озвучення (додано) */}
-            <div style={{ margin: '20px 0 4px', padding: 16, border: '1px solid rgba(239,159,39,0.4)', borderRadius: 12, background: 'rgba(239,159,39,0.06)' }}>
-              <p style={{ margin: '0 0 10px', fontWeight: 600 }}>
-                <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#0E1A2B', background: 'var(--accent-gold)', padding: '2px 8px', borderRadius: 6, marginRight: 8 }}>Демо · на тестуванні</span>
-                Послухайте, як звучить озвучення серії:
-              </p>
-              <audio controls preload="none" style={{ width: '100%' }} aria-label="Демонстраційне аудіо: озвучення серії Балабони">
-                <source src="/audio/balabony_seria1_demo.mp3" type="audio/mpeg" />
-                Ваш браузер не підтримує відтворення аудіо.
-              </audio>
+            {/* ДЕМО АУДІО — фірмовий плеєр */}
+            <div style={{ margin: '20px 0 4px' }}>
+              <DemoAudioPlayer
+                src="/audio/balabony_seria1_demo.mp3"
+                badge="Демо · на тестуванні"
+                caption="Послухайте, як звучить озвучення серії:"
+                title="Озвучення серії Балабони"
+              />
             </div>
           </section>
 
