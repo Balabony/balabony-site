@@ -1125,10 +1125,10 @@ const styles = `
   .bb-pricing-card-featured {
     background: linear-gradient(180deg, rgba(239,159,39,0.20) 0%, rgba(239,159,39,0.05) 100%);
     border: 1.5px solid #EF9F27;
-    box-shadow: 0 0 28px rgba(239,159,39,0.4);
+    box-shadow: 0 0 12px rgba(239,159,39,0.22);
   }
   .bb-pricing-card-featured:hover {
-    box-shadow: 0 0 36px rgba(239,159,39,0.6);
+    box-shadow: 0 0 18px rgba(239,159,39,0.32);
   }
   .bb-pricing-badge {
     position: absolute;
