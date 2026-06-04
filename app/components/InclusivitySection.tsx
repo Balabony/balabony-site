@@ -55,9 +55,9 @@ function EyeIcon() {
 
 const AUDIENCES: Audience[] = [
   { id: 'veterans', title: 'УБД',             subtitle: 'Учасники бойових дій',  Icon: ShieldIcon     },
-  { id: 'disability', title: 'Інвалідність',  subtitle: 'Люди з інвалідністю',   Icon: WheelchairIcon },
+  { id: 'disability', title: 'Люди',  subtitle: 'з інвалідністю',   Icon: WheelchairIcon },
   { id: 'idp',      title: 'Діти ВПО',         subtitle: 'Внутрішньо переміщені', Icon: HomeMoveIcon   },
-  { id: 'vision',   title: 'Порушення зору',   subtitle: 'Крупний шрифт і темна тема', Icon: EyeIcon       },
+  { id: 'vision',   title: 'Зір',   subtitle: 'Крупний шрифт і темна тема', Icon: EyeIcon       },
 ]
 
 export default function InclusivitySection() {

@@ -63,7 +63,7 @@ const MISSION = {
       iconType: 'accessibility' as const,
     },
     {
-      title: 'Люди похилого віку',
+      title: 'Пенсіонери',
       subtitle: 'Слухають замість читати',
       iconType: 'headphones' as const,
     },

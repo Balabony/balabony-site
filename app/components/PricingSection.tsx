@@ -1514,7 +1514,7 @@ const styles = `
     .bb-pricing-diya-tag { font-size: 10px; }
     .bb-pricing-util-price { font-size: 20px; }
 
-    .bb-pricing-grid { grid-template-columns: 1fr; gap: 24px; }
+    .bb-pricing-grid { grid-template-columns: 1fr; gap: 40px; }
     .bb-pricing-card { padding: 22px 16px 16px; }
     .bb-pricing-price-main { font-size: 32px; }
     .bb-pricing-price-main small { font-size: 14px; }
