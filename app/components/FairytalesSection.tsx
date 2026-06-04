@@ -51,9 +51,10 @@ export default function FairytalesSection() {
           </h2>
           <p style={{
             fontSize: 'clamp(14px, 2.5vw, 17px)',
-            color: '#94a3b8',
+            color: '#ef9f27',
             margin: 0,
             lineHeight: 1.6,
+            fontWeight: 600,
           }}>
             Українські казки
           </p>

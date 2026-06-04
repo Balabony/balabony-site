@@ -99,7 +99,7 @@ export default function AuthorSection() {
       {/* CTA */}
       <div className="as-cta-wrap">
         <a href="/become-author" className="as-cta">Подати заявку →</a>
-        <div className="as-cta-note">Відповідь протягом 3 робочих днів</div>
+        <div className="as-cta-note">Відповідь протягом 3 робочих&nbsp;днів</div>
       </div>
 
       <style jsx>{`

@@ -460,6 +460,9 @@ export default function AboutBalabonySection() {
           color: #FFFFFF;
           margin: 0 0 4px;
           font-weight: 600;
+          overflow-wrap: break-word;
+          word-break: break-word;
+          hyphens: auto;
         }
 
         .beneficiary-subtitle {

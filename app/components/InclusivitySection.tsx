@@ -191,6 +191,9 @@ export default function InclusivitySection() {
           color: #FFFFFF;
           margin-bottom: 4px;
           font-family: ${FONT};
+          overflow-wrap: break-word;
+          word-break: break-word;
+          hyphens: auto;
         }
         .inc-audience-sub {
           font-size: 11px;
