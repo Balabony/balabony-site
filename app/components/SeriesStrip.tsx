@@ -87,7 +87,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                     onClick={() => toggle(s.id)}
                     style={{ flexShrink: 0, alignSelf: 'stretch', cursor: 'pointer', padding: 8, display: 'flex' }}
                   >
-                    <div style={{ width: 114, border: `1.5px solid ${GOLD}`, borderRadius: 8, overflow: 'hidden', display: 'flex' }}>
+                    <div style={{ width: 96, border: `1.5px solid ${GOLD}`, borderRadius: 8, overflow: 'hidden', display: 'flex' }}>
                       <img
                         src={s.coverUrl}
                         alt={s.title}

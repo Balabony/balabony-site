@@ -124,7 +124,7 @@ export default function InclusiveVoicePage() {
         }
         .iv-wrap { max-width: 920px; margin: 0 auto; padding: 0 24px; }
         .iv-bar {
-          display: flex; align-items: center; justify-content: space-between; gap: 14px;
+          display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
           padding: 22px 24px; max-width: 920px; margin: 0 auto;
         }
         .iv-brand {
