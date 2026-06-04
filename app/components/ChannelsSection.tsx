@@ -70,7 +70,7 @@ export default function ChannelsSection() {
       <div className="ch-container">
         <div className="ch-header">
           <div className="ch-label">ДЕ ЧИТАТИ</div>
-          <h2 id="ch-title" className="ch-title">Шість каналів — обирай свій</h2>
+          <h2 id="ch-title" className="ch-title">Шість каналів —<br />обирай&nbsp;свій</h2>
           <p className="ch-lead">Нові історії, аудіо й анонси — у месенджері, який тобі найзручніший.</p>
         </div>
 
@@ -120,7 +120,7 @@ export default function ChannelsSection() {
         .ch-title {
           font-family: 'Lora', serif;
           color: #fff;
-          font-size: 28px;
+          font-size: 36px;
           font-weight: 600;
           margin: 0 0 10px;
         }
@@ -199,7 +199,7 @@ export default function ChannelsSection() {
             grid-template-columns: 1fr;
           }
           .ch-title {
-            font-size: 24px;
+            font-size: 30px;
           }
         }
       `}</style>
