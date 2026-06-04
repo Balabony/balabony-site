@@ -368,7 +368,7 @@ export default function AboutBalabonySection() {
 
         .functions-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 14px;
           margin-bottom: 32px;
           position: relative;
@@ -435,7 +435,7 @@ export default function AboutBalabonySection() {
 
         .beneficiaries-grid {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
+          grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 12px;
           margin-bottom: 32px;
           position: relative;
@@ -507,12 +507,12 @@ export default function AboutBalabonySection() {
           }
 
           .functions-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
             gap: 12px;
           }
 
           .beneficiaries-grid {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
           }
 
           .highlight-text {

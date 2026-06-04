@@ -155,7 +155,7 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
         <div style={{ marginBottom: 26 }}>
-          <div className="fs-kicker">Нові надходження</div>
+          <div className="fs-kicker" style={{ color: colors.fg }}>Нові надходження</div>
           <div style={{ fontSize: 19, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.2 }}>Свіжі історії</div>
         </div>
 

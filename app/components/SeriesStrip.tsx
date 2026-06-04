@@ -103,7 +103,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                     </div>
                     <div
                       onClick={() => toggle(s.id)}
-                      style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.35, wordBreak: 'break-word', paddingLeft: 4, cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 6 }}
+                      style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.35, wordBreak: 'normal', overflowWrap: 'break-word', paddingLeft: 4, cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 6 }}
                     >
                       <span style={{ flex: 1 }}>{s.title}</span>
                       <ChevronIcon open={isOpen} />

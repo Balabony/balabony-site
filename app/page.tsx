@@ -32,7 +32,7 @@ const SAMPLE_STORIES: Story[] = []
 
 const viewAllLinkStyle: React.CSSProperties = { display: 'inline-block', color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 15, fontWeight: 600, fontFamily: "'Montserrat', sans-serif", textTransform: 'uppercase', letterSpacing: '0.04em' }
 
-const viewAllWrapperStyle: React.CSSProperties = { maxWidth: 1100, margin: '0 auto', padding: '4px 20px 24px', textAlign: 'center' }
+const viewAllWrapperStyle: React.CSSProperties = { maxWidth: 1100, margin: '0 auto', padding: '16px 20px', textAlign: 'center' }
 
 export default function HomePage() {
   const [seriesData,   setSeriesData]   = useState<SeriesCard[]>(FALLBACK_SERIES)

@@ -265,6 +265,17 @@ export default function Footer() {
             >
               ♿ Доступність сайту <span className="footer-cta-arrow">→</span>
             </a>
+            <a
+              href="/inclusivevoice"
+              className="footer-support-main"
+              style={{
+                display: 'block', marginTop: 8,
+                color: 'var(--accent-gold)', fontSize: 13, fontWeight: 700,
+                textDecoration: 'none',
+              }}
+            >
+              🎙 InclusiveVoice <span className="footer-cta-arrow">→</span>
+            </a>
           </div>
         </div>
 

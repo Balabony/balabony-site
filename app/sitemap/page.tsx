@@ -49,6 +49,7 @@ const GROUPS: SitemapGroup[] = [
       { href: '/support?lang=en',   label: 'Donate (English)',         note: 'For international donors' },
       { href: '/support?lang=de',   label: 'Spenden (Deutsch)',        note: 'Für internationale Spenden' },
       { href: '/accessibility',     label: 'Доступність',              note: 'Налаштування шрифту і тем' },
+      { href: '/inclusivevoice',    label: 'InclusiveVoice',           note: 'Голосовий інструмент доступності' },
     ],
   },
   {
