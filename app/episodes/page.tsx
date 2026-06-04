@@ -26,13 +26,21 @@ interface EpisodeRow {
   cover_url: string | null
   description: string | null
   duration_minutes: number | null
+  text: string | null
+}
+
+// Якщо тривалість не задана в базі — рахуємо орієнтовний час читання з тексту (~150 слів/хв).
+function estimateMinutes(text?: string | null): number | undefined {
+  if (!text) return undefined
+  const words = text.trim().split(/\s+/).filter(Boolean).length
+  return words ? Math.max(1, Math.round(words / 150)) : undefined
 }
 
 async function getEpisodes(): Promise<SeriesCard[]> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('slug, title, season_number, episode_number, cover_url, description, duration_minutes')
+    .select('slug, title, season_number, episode_number, cover_url, description, duration_minutes, text')
     .eq('type', 'balabony')
     .eq('status', 'published')
     .order('season_number', { ascending: true })
@@ -49,7 +57,7 @@ async function getEpisodes(): Promise<SeriesCard[]> {
     hasAudio: false,
     url: `/episodes/${e.slug}`,
     description: e.description ?? undefined,
-    durationMinutes: e.duration_minutes ?? undefined,
+    durationMinutes: e.duration_minutes ?? estimateMinutes(e.text),
   }))
 }
 

@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
+// Якщо тривалість не задана в базі — рахуємо орієнтовний час читання з тексту (~150 слів/хв).
+function estimateMinutes(text?: string | null): number | undefined {
+  if (!text) return undefined
+  const words = text.trim().split(/\s+/).filter(Boolean).length
+  return words ? Math.max(1, Math.round(words / 150)) : undefined
+}
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
@@ -14,7 +21,7 @@ export async function GET(req: Request) {
     const supabase = getSupabaseAdmin()
     let query = supabase
       .from('content')
-      .select('slug, episode_number, season_number, title, cover_url, audio_status, description, duration_minutes')
+      .select('slug, episode_number, season_number, title, cover_url, audio_status, description, duration_minutes, text')
       .eq('type', 'balabony')
       .eq('status', 'published')
       .order('season_number', { ascending })
@@ -34,7 +41,7 @@ export async function GET(req: Request) {
       has_audio: r.audio_status === 'ready',
       url: `/episodes/${r.slug}`,
       description: r.description,
-      duration_minutes: r.duration_minutes,
+      duration_minutes: r.duration_minutes ?? estimateMinutes(r.text),
     }))
 
     return NextResponse.json(mapped)

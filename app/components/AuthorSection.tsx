@@ -123,8 +123,8 @@ export default function AuthorSection() {
           background: linear-gradient(180deg, #0E1A2B 0%, #14253B 50%, #0E1A2B 100%);
           border: 1.5px solid ${GOLD};
           border-radius: 16px;
-          padding: 44px 24px;
-          margin-bottom: 40px;
+          padding: 44px 24px 32px;
+          margin-bottom: 20px;
         }
 
         .as-hero {
