@@ -17,6 +17,7 @@ export interface SeriesCard {
   hasAudio: boolean
   url: string
   description?: string
+  durationMinutes?: number
 }
 
 // "s3-ep46" → "Сезон 3 · Серія 46"
@@ -108,8 +109,15 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                       <span style={{ flex: 1 }}>{s.title}</span>
                       <ChevronIcon open={isOpen} />
                     </div>
-                    <div style={{ fontSize: 11, color: 'var(--on-dark-muted)', fontFamily: FONT, marginTop: 'auto' }}>
-                      {s.hasAudio ? '🎧 Аудіо доступно' : '⏳ Аудіо готується'}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 'auto' }}>
+                      <span style={{ fontSize: 11, color: 'var(--on-dark-muted)', fontFamily: FONT }}>
+                        {s.hasAudio ? '🎧 Аудіо доступно' : '⏳ Аудіо готується'}
+                      </span>
+                      {s.durationMinutes ? (
+                        <span style={{ fontSize: 10, fontWeight: 600, color: GOLD, fontFamily: FONT, border: `1px solid ${GOLD}`, padding: '2px 8px', borderRadius: 20 }}>
+                          {s.durationMinutes} хв
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                 </div>

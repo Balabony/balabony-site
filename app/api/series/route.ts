@@ -14,7 +14,7 @@ export async function GET(req: Request) {
     const supabase = getSupabaseAdmin()
     let query = supabase
       .from('content')
-      .select('slug, episode_number, season_number, title, cover_url, audio_status, description')
+      .select('slug, episode_number, season_number, title, cover_url, audio_status, description, duration_minutes')
       .eq('type', 'balabony')
       .eq('status', 'published')
       .order('season_number', { ascending })
@@ -34,6 +34,7 @@ export async function GET(req: Request) {
       has_audio: r.audio_status === 'ready',
       url: `/episodes/${r.slug}`,
       description: r.description,
+      duration_minutes: r.duration_minutes,
     }))
 
     return NextResponse.json(mapped)

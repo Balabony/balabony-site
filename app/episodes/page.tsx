@@ -25,13 +25,14 @@ interface EpisodeRow {
   episode_number: number
   cover_url: string | null
   description: string | null
+  duration_minutes: number | null
 }
 
 async function getEpisodes(): Promise<SeriesCard[]> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('slug, title, season_number, episode_number, cover_url, description')
+    .select('slug, title, season_number, episode_number, cover_url, description, duration_minutes')
     .eq('type', 'balabony')
     .eq('status', 'published')
     .order('season_number', { ascending: true })
@@ -48,6 +49,7 @@ async function getEpisodes(): Promise<SeriesCard[]> {
     hasAudio: false,
     url: `/episodes/${e.slug}`,
     description: e.description ?? undefined,
+    durationMinutes: e.duration_minutes ?? undefined,
   }))
 }
 
