@@ -124,15 +124,16 @@ export default function InclusiveVoicePage() {
         }
         .iv-wrap { max-width: 920px; margin: 0 auto; padding: 0 24px; }
         .iv-bar {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 22px 0; max-width: 920px; margin: 0 auto;
+          display: flex; align-items: center; justify-content: space-between; gap: 14px;
+          padding: 22px 24px; max-width: 920px; margin: 0 auto;
         }
         .iv-brand {
           font-family: 'Comfortaa', 'Montserrat', sans-serif;
           font-weight: 700; font-size: 20px; letter-spacing: .5px;
-          color: var(--iv-ink);
+          color: var(--iv-ink); min-width: 0;
         }
         .iv-brand b { color: var(--iv-gold); }
+        .iv-langs { flex: none; }
         .iv-langs {
           display: inline-flex; align-items: center; gap: 4px;
           border: 1px solid rgba(244,241,234,0.20);
