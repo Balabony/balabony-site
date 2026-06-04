@@ -1,8 +1,17 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 
 function checkAuth(req: NextRequest): boolean {
   return req.cookies.get('admin_session')?.value === process.env.ADMIN_PASSWORD
+}
+
+// Витягти вміст між двома маркерами (без них). null, якщо не знайдено.
+function between(s: string, a: string, b: string): string | null {
+  const i = s.indexOf(a)
+  if (i < 0) return null
+  const j = s.indexOf(b, i + a.length)
+  if (j < 0) return null
+  return s.slice(i + a.length, j).trim()
 }
 
 export async function POST(req: NextRequest) {
@@ -12,7 +21,6 @@ export async function POST(req: NextRequest) {
 
   try {
     const { text, genre } = await req.json()
-
     if (!text) {
       return NextResponse.json({ error: 'text is required' }, { status: 400 })
     }
@@ -21,25 +29,22 @@ export async function POST(req: NextRequest) {
 
     const prompt = `Ти — досвідчений редактор українських художніх текстів. Зроби редакторську правку: виправ стилістичні недоліки, граматичні помилки, незграбні звороти, пунктуацію. Зберігай авторський голос і стиль${genre ? ` (жанр: ${genre})` : ''}.
 
-Поверни ТІЛЬКИ валідний JSON без markdown і без коментарів:
-{
-  "corrected_text": "<ПОВНИЙ виправлений текст — зберігай усі абзаци та розриви рядків>",
-  "changes": [
-    {
-      "id": 1,
-      "original": "<точна фраза з оригінального тексту>",
-      "corrected": "<нова фраза яка є в corrected_text>",
-      "reason": "<коротке пояснення>"
-    }
-  ]
-}
+ФОРМАТ ВІДПОВІДІ — рівно дві секції з маркерами, нічого більше:
+
+===TEXT===
+<ПОВНИЙ виправлений текст: усі абзаци та розриви рядків як у звичайному тексті — БЕЗ екранування, БЕЗ JSON>
+===ENDTEXT===
+===CHANGES===
+[
+  { "id": 1, "original": "<точна фраза з оригіналу>", "corrected": "<нова фраза, що є у виправленому тексті>", "reason": "<коротке пояснення>" }
+]
+===ENDCHANGES===
 
 Правила:
-- Максимум 15 правок
+- Максимум 15 правок у списку CHANGES
 - Правь лише суттєві помилки та стилістично невдалі місця
-- corrected_text відрізняється від оригіналу тільки у виправлених місцях
-- original — точна підрядкова фраза з оригінального тексту
-- corrected — точна підрядкова фраза яка є в corrected_text замість original
+- У секції TEXT — звичайний текст (не JSON): пиши абзаци як є, з реальними переносами рядків
+- CHANGES — валідний JSON-масив; кожна original/corrected — короткі підрядкові фрази (не весь текст)
 
 Текст:
 ---
@@ -48,27 +53,28 @@ ${text}
 
     const message = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 4000,
+      max_tokens: 8000,
       messages: [{ role: 'user', content: prompt }],
     })
 
     const raw = message.content[0].type === 'text' ? message.content[0].text : ''
 
-    const jsonMatch = raw.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      return NextResponse.json({ error: 'AI повернув неочікуваний формат', raw }, { status: 500 })
-    }
+    // 1) Повний текст — звичайний текст між маркерами (не JSON).
+    const correctedText = between(raw, '===TEXT===', '===ENDTEXT===') ?? raw.trim() ?? text
 
-    let result
-    try {
-      result = JSON.parse(jsonMatch[0])
-    } catch {
-      return NextResponse.json({ error: 'Не вдалося розпарсити відповідь AI', raw }, { status: 500 })
+    // 2) Список змін — окремий маленький JSON. Якщо не парситься — не валимо все.
+    let changes: unknown[] = []
+    const changesRaw = between(raw, '===CHANGES===', '===ENDCHANGES===')
+    if (changesRaw) {
+      const arr = changesRaw.match(/\[[\s\S]*\]/)
+      if (arr) {
+        try { changes = JSON.parse(arr[0]) } catch { changes = [] }
+      }
     }
 
     return NextResponse.json({
-      corrected_text: result.corrected_text ?? text,
-      changes:        result.changes ?? [],
+      corrected_text: correctedText || text,
+      changes,
     })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })

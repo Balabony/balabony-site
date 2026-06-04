@@ -1,8 +1,16 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 
 function checkAuth(req: NextRequest): boolean {
   return req.cookies.get('admin_session')?.value === process.env.ADMIN_PASSWORD
+}
+
+function between(s: string, a: string, b: string): string | null {
+  const i = s.indexOf(a)
+  if (i < 0) return null
+  const j = s.indexOf(b, i + a.length)
+  if (j < 0) return null
+  return s.slice(i + a.length, j).trim()
 }
 
 export async function POST(req: NextRequest) {
@@ -34,40 +42,47 @@ export async function POST(req: NextRequest) {
 - Основну тему та ідею
 - Структуру: кількість абзаців може змінитись незначно, але не кардинально
 
-Поверни ТІЛЬКИ валідний JSON без markdown і коментарів:
-{
-  "humanized_text": "<повний переписаний текст — зберігай розриви рядків між абзацами>",
-  "changes_summary": [
-    "<що саме змінено і чому — пункт 1, просто і конкретно>",
-    "<пункт 2>",
-    "<пункт 3>",
-    "<пункт 4>",
-    "<пункт 5>"
-  ]
-}
+ФОРМАТ ВІДПОВІДІ — рівно дві секції з маркерами, нічого більше:
 
-Текст для переробки:
----
-${text}
----`
+===TEXT===
+<ПОВНИЙ переписаний текст: абзаци та розриви рядків як у звичайному тексті — БЕЗ екранування, БЕЗ JSON>
+===ENDTEXT===
+===CHANGES===
+[
+  "<що саме змінено і чому — пункт 1, просто і конкретно>",
+  "<пункт 2>",
+  "<пункт 3>",
+  "<пункт 4>",
+  "<пункт 5>"
+]
+===ENDCHANGES===
+
+Правила:
+- У секції TEXT — звичайний текст (не JSON): абзаци з реальними переносами рядків
+- CHANGES — валідний JSON-масив коротких рядків`
 
     const message = await client.messages.create({
-      model:      'claude-sonnet-4-6',
-      max_tokens: 4096,
-      messages:   [{ role: 'user', content: prompt }],
+      model: 'claude-sonnet-4-6',
+      max_tokens: 8000,
+      messages: [{ role: 'user', content: `${prompt}\n\nТекст для переробки:\n---\n${text}\n---` }],
     })
 
     const raw = message.content[0].type === 'text' ? message.content[0].text : ''
-    const jsonMatch = raw.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) return NextResponse.json({ error: 'AI повернув неочікуваний формат', raw }, { status: 500 })
 
-    let result
-    try { result = JSON.parse(jsonMatch[0]) }
-    catch { return NextResponse.json({ error: 'Не вдалося розпарсити відповідь AI', raw }, { status: 500 }) }
+    const humanizedText = between(raw, '===TEXT===', '===ENDTEXT===') ?? raw.trim() ?? text
+
+    let summary: unknown[] = []
+    const changesRaw = between(raw, '===CHANGES===', '===ENDCHANGES===')
+    if (changesRaw) {
+      const arr = changesRaw.match(/\[[\s\S]*\]/)
+      if (arr) {
+        try { summary = JSON.parse(arr[0]) } catch { summary = [] }
+      }
+    }
 
     return NextResponse.json({
-      humanized_text:   result.humanized_text   ?? text,
-      changes_summary:  result.changes_summary   ?? [],
+      humanized_text:  humanizedText || text,
+      changes_summary: summary,
     })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
