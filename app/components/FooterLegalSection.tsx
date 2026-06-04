@@ -77,7 +77,7 @@ export function FooterLegalSection() {
         {/* Документи */}
         <div>
           <h4 style={headingStyle}>Документи</h4>
-          <p style={{ margin: 0 }}>
+          <p style={{ margin: 0, display: "flex", flexWrap: "wrap", alignItems: "center", rowGap: 6 }}>
             <Link style={linkStyle} href="/legal/offer">
               Публічна оферта
             </Link>

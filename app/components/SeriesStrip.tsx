@@ -80,31 +80,28 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                 style={{ border: `1.5px solid ${GOLD}`, borderRadius: 14, overflow: 'hidden', background: CARD_BG }}
               >
                 {/* ── Card row ── */}
-                <div style={{ display: 'flex' }}>
+                <div className="ss-row">
 
                   {/* Cover — clickable, clean photo + gold frame */}
-                  <div
-                    onClick={() => toggle(s.id)}
-                    style={{ flexShrink: 0, alignSelf: 'stretch', cursor: 'pointer', padding: 8, display: 'flex' }}
-                  >
-                    <div style={{ width: 96, border: `1.5px solid ${GOLD}`, borderRadius: 8, overflow: 'hidden', display: 'flex' }}>
+                  <div onClick={() => toggle(s.id)} className="ss-cover">
+                    <div className="ss-frame">
                       <img
                         src={s.coverUrl}
                         alt={s.title}
                         onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        className="ss-img"
                       />
                     </div>
                   </div>
 
                   {/* Info */}
-                  <div style={{ padding: '12px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+                  <div className="ss-info">
                     <div style={{ fontSize: 10, color: GOLD, fontWeight: 600, fontFamily: FONT }}>
                       {label || `Сезон ${s.season} · Серія ${s.number}`}
                     </div>
                     <div
                       onClick={() => toggle(s.id)}
-                      style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.35, wordBreak: 'normal', overflowWrap: 'break-word', paddingLeft: 4, cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 6 }}
+                      style={{ fontSize: 15, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.3, wordBreak: 'normal', overflowWrap: 'break-word', cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 6 }}
                     >
                       <span style={{ flex: 1, minWidth: 0 }}>{s.title}</span>
                       <ChevronIcon open={isOpen} />
@@ -171,6 +168,20 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
           })}
         </div>
       </div>
+
+      <style jsx>{`
+        .ss-row { display: flex; flex-direction: row; align-items: stretch; }
+        .ss-cover { flex-shrink: 0; align-self: stretch; cursor: pointer; padding: 8px; display: flex; }
+        .ss-frame { width: 96px; border: 1.5px solid ${GOLD}; border-radius: 8px; overflow: hidden; display: flex; }
+        .ss-img { width: 100%; height: 100%; object-fit: cover; object-position: center 22%; display: block; }
+        .ss-info { padding: 12px 14px; flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+        @media (max-width: 600px) {
+          .ss-row { flex-direction: column; }
+          .ss-cover { align-self: auto; padding: 8px 8px 0; }
+          .ss-frame { width: 100%; aspect-ratio: 3 / 2; }
+          .ss-info { padding: 12px 16px 16px; }
+        }
+      `}</style>
     </section>
   )
 }
