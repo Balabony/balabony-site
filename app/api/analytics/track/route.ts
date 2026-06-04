@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { getOrCreateAnonUserId } from '@/lib/anon-user'
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,6 +42,23 @@ export async function POST(req: NextRequest) {
           .update({ end_time: new Date().toISOString() })
           .eq('session_id', body.session_id)
         break
+
+      case 'acquisition': {
+        // First-touch attribution. user_id = balabony_uid (same as revenue_events).
+        // ignoreDuplicates keeps the earliest row → never overwrite first touch.
+        const userId = await getOrCreateAnonUserId()
+        await db.from('user_acquisition').upsert({
+          user_id:      userId,
+          utm_source:   body.utm_source   ?? null,
+          utm_medium:   body.utm_medium   ?? null,
+          utm_campaign: body.utm_campaign ?? null,
+          utm_content:  body.utm_content  ?? null,
+          utm_term:     body.utm_term     ?? null,
+          referrer:     body.referrer     ?? null,
+          landing_path: body.landing_path ?? null,
+        }, { onConflict: 'user_id', ignoreDuplicates: true })
+        break
+      }
     }
 
     return NextResponse.json({ ok: true })

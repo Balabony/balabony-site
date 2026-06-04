@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   const db = getSupabaseAdmin()
 
-  const [surveys, pageViews, storyEvents, sessions, paywall, subs, revenue] = await Promise.all([
+  const [surveys, pageViews, storyEvents, sessions, paywall, subs, revenue, acquisition] = await Promise.all([
     db.from('survey_responses')
       .select('*')
       .order('created_at', { ascending: false })
@@ -39,9 +39,12 @@ export async function GET(req: NextRequest) {
       .eq('status', 'active')
       .gt('expires_at', new Date().toISOString()),
     db.from('revenue_events')
-      .select('source, plan, provider, amount_kopecks, occurred_at')
+      .select('user_id, source, plan, provider, amount_kopecks, occurred_at')
       .eq('status', 'success')
       .order('occurred_at', { ascending: false })
+      .limit(20000),
+    db.from('user_acquisition')
+      .select('user_id, utm_source, utm_medium, utm_campaign, referrer')
       .limit(20000),
   ])
 
@@ -59,5 +62,6 @@ export async function GET(req: NextRequest) {
     paywall_hits:   paywall.data      ?? [],
     subscriber_ids: subscriberIds,
     revenue_events: revenue.data      ?? [],
+    acquisition:    acquisition.data  ?? [],
   })
 }

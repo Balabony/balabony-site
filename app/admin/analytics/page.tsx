@@ -24,7 +24,8 @@ interface PageView   { url: string; timestamp: string; device?: string; session_
 interface StoryEvent { story_id?: string; story_title?: string; event_type: string; duration_seconds?: number; created_at: string }
 interface Session    { device?: string; city?: string; start_time: string; end_time?: string }
 interface PaywallHit { user_id: string; limit_type: string; hit_at: string }
-interface RevenueEvent { source: string; plan?: string | null; provider?: string; amount_kopecks: number; occurred_at: string }
+interface RevenueEvent { user_id?: string | null; source: string; plan?: string | null; provider?: string; amount_kopecks: number; occurred_at: string }
+interface Acquisition { user_id: string; utm_source?: string | null; utm_medium?: string | null; utm_campaign?: string | null; referrer?: string | null }
 
 interface AnalyticsData {
   surveys:        SurveyRow[]
@@ -34,6 +35,7 @@ interface AnalyticsData {
   paywall_hits?:  PaywallHit[]
   subscriber_ids?: string[]
   revenue_events?: RevenueEvent[]
+  acquisition?:   Acquisition[]
 }
 
 // ─── Data helpers ─────────────────────────────────────────────────────────────
@@ -189,6 +191,42 @@ function revenueByDay(events: RevenueEvent[], days = 30): { date: string; uah: n
   return Object.entries(result).map(([date, uah]) => ({ date, uah: Math.round(uah) }))
 }
 
+// Канал залучення: utm_source, або хост реферера, або 'прямий'.
+function channelOf(a: { utm_source?: string | null; referrer?: string | null }): string {
+  if (a.utm_source) return a.utm_source.toLowerCase()
+  const ref = a.referrer
+  if (!ref) return 'прямий'
+  try {
+    const host = new URL(ref).hostname.replace(/^www\./, '')
+    if (host.includes('balabony')) return 'прямий'
+    return host
+  } catch { return 'прямий' }
+}
+
+// Користувачі та виручка за каналом залучення (join по user_id).
+function buildChannels(acq: Acquisition[], revenue: RevenueEvent[]) {
+  const userChannel = new Map<string, string>()
+  const usersByCh: Record<string, number> = {}
+  acq.forEach(a => {
+    const ch = channelOf(a)
+    if (a.user_id) userChannel.set(a.user_id, ch)
+    usersByCh[ch] = (usersByCh[ch] ?? 0) + 1
+  })
+
+  const revByCh: Record<string, number> = {}
+  revenue.forEach(e => {
+    const ch = (e.user_id && userChannel.get(e.user_id)) || 'невідомо'
+    revByCh[ch] = (revByCh[ch] ?? 0) + (e.amount_kopecks || 0)
+  })
+
+  const users = Object.entries(usersByCh)
+    .map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 10)
+  const revenueByChannel = Object.entries(revByCh)
+    .map(([name, kop]) => ({ name, value: Math.round(kop / 100) })).sort((a, b) => b.value - a.value).slice(0, 10)
+
+  return { users, revenueByChannel }
+}
+
 // ─── Chart components ─────────────────────────────────────────────────────────
 
 const DarkTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) => {
@@ -297,6 +335,9 @@ export default function AnalyticsPage() {
   const rev           = buildRevenue(revenueEvents)
   const revDayData    = revenueByDay(revenueEvents)
 
+  const acquisition   = data.acquisition ?? []
+  const ch            = buildChannels(acquisition, revenueEvents)
+
   return (
     <main style={{ minHeight: '100vh', background: '#0a1628', padding: '32px 24px 80px', fontFamily: FONT }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
@@ -342,6 +383,36 @@ export default function AnalyticsPage() {
                 <YAxis stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} />
                 <Tooltip content={<DarkTooltip />} />
                 <Bar dataKey="value" fill="#22c55e" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </div>
+
+        {/* ─── Канали залучення ─── */}
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
+          Канали залучення (UTM)
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16, marginBottom: 24 }}>
+          <ChartCard title="Користувачі за каналом">
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={ch.users} layout="vertical" margin={{ left: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis type="number" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                <YAxis type="category" dataKey="name" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} width={90} />
+                <Tooltip content={<DarkTooltip />} />
+                <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          <ChartCard title="Виручка за каналом, ₴">
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={ch.revenueByChannel} layout="vertical" margin={{ left: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis type="number" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                <YAxis type="category" dataKey="name" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} width={90} />
+                <Tooltip content={<DarkTooltip />} />
+                <Bar dataKey="value" fill="#22c55e" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>
