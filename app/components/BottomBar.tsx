@@ -83,6 +83,12 @@ export default function BottomBar() {
               href={tab.href}
               className="bb-tab"
               aria-current={active ? 'page' : undefined}
+              onClick={(e) => {
+                if (active) {
+                  e.preventDefault()
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }
+              }}
               style={{
                 flex: 1,
                 position: 'relative',

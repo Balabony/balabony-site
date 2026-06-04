@@ -159,7 +159,7 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
           <div style={{ fontSize: 19, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.2 }}>Свіжі історії</div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(275px, 1fr))', gap: 20, alignItems: 'stretch' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(275px, 100%), 1fr))', gap: 20, alignItems: 'stretch' }}>
           {stories.map(story => (
             <a
               key={story.id}

@@ -402,6 +402,7 @@ export default function Footer() {
           position: relative;
           transition: color 0.25s ease, transform 0.2s ease;
           display: inline-block;
+          white-space: nowrap;
         }
         .footer-root :global(.footer-link::after) {
           content: '';

@@ -280,7 +280,7 @@ export default function AuthorSection() {
           opacity: 0.95;
         }
         .as-cta-note {
-          margin-top: 12px;
+          margin-top: 24px;
           font-size: 13px;
           color: #8899bb;
           font-family: ${FONT};

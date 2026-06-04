@@ -70,7 +70,7 @@ export default function ChannelsSection() {
       <div className="ch-container">
         <div className="ch-header">
           <div className="ch-label">ДЕ ЧИТАТИ</div>
-          <h2 id="ch-title" className="ch-title">Шість каналів —<br />обирай&nbsp;свій</h2>
+          <h2 id="ch-title" className="ch-title">Шість&nbsp;каналів&nbsp;—<br />обирай&nbsp;свій</h2>
           <p className="ch-lead">Нові історії, аудіо й анонси — у месенджері, який тобі найзручніший.</p>
         </div>
 
@@ -98,8 +98,8 @@ export default function ChannelsSection() {
           background: linear-gradient(180deg, ${NAVY} 0%, #14253B 50%, ${NAVY} 100%);
           border: 1.5px solid #EF9F27;
           border-radius: 18px;
-          padding: 56px 16px;
-          margin: 0 0 56px;
+          padding: 28px 18px;
+          margin: 0 0 40px;
           box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
         }
         .ch-container {
@@ -120,8 +120,9 @@ export default function ChannelsSection() {
         .ch-title {
           font-family: 'Lora', serif;
           color: #fff;
-          font-size: 36px;
+          font-size: 32px;
           font-weight: 600;
+          line-height: 1.15;
           margin: 0 0 10px;
         }
         .ch-lead {
@@ -133,7 +134,7 @@ export default function ChannelsSection() {
         }
         .ch-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 14px;
         }
         .ch-card {
@@ -199,7 +200,7 @@ export default function ChannelsSection() {
             grid-template-columns: 1fr;
           }
           .ch-title {
-            font-size: 30px;
+            font-size: 26px;
           }
         }
       `}</style>
