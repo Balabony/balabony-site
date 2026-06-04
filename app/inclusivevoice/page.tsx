@@ -7,15 +7,14 @@ type Lang = 'en' | 'uk'
 const C = {
   en: {
     nav: 'Balabony',
-    switch: 'УК',
     kicker: 'A Balabony accessibility engine',
     title: 'InclusiveVoice',
     subtitle: 'A voice-first path into reading and storytelling — for people for whom the keyboard is a barrier.',
     loopTitle: 'A complete voice loop',
     loop: [
-      { icon: '🎙', h: 'Speak', p: 'Tell a story, a memory, or a folk tale aloud. No typing required.' },
-      { icon: '✍', h: 'Transcribe & edit', p: 'Speech becomes text; an editor reviews and refines it.' },
-      { icon: '🔊', h: 'Listen', p: 'Published as text and as audio — narrated in the consented voices of our own authors.' },
+      { icon: 'mic', h: 'Speak', p: 'Tell a story, a memory, or a folk tale aloud. No typing required.' },
+      { icon: 'pen', h: 'Transcribe & edit', p: 'Speech becomes text; an editor reviews and refines it.' },
+      { icon: 'sound', h: 'Listen', p: 'Published as text and as audio — narrated in the consented voices of our own authors.' },
     ],
     whoTitle: 'Built for those too often left out',
     who: 'Older adults (60+), veterans, internally displaced people, and people with disabilities — anyone for whom typing stands between them and authorship.',
@@ -34,15 +33,14 @@ const C = {
   },
   uk: {
     nav: 'Балабони',
-    switch: 'EN',
     kicker: 'Інструмент доступності Balabony',
     title: 'InclusiveVoice',
     subtitle: 'Голос як шлях до читання й історій — для тих, кому клавіатура є бар\u2019єром.',
     loopTitle: 'Повне голосове коло',
     loop: [
-      { icon: '🎙', h: 'Говоріть', p: 'Розкажіть історію, спогад чи казку вголос. Друкувати не треба.' },
-      { icon: '✍', h: 'Розшифровка й редагування', p: 'Мовлення стає текстом; редактор його вичитує й доопрацьовує.' },
-      { icon: '🔊', h: 'Слухайте', p: 'Публікація як текст і як аудіо — озвучене голосами наших авторів за їхньою згодою.' },
+      { icon: 'mic', h: 'Говоріть', p: 'Розкажіть історію, спогад чи казку вголос. Друкувати не треба.' },
+      { icon: 'pen', h: 'Розшифровка й редагування', p: 'Мовлення стає текстом; редактор його вичитує й доопрацьовує.' },
+      { icon: 'sound', h: 'Слухайте', p: 'Публікація як текст і як аудіо — озвучене голосами наших авторів за їхньою згодою.' },
     ],
     whoTitle: 'Для тих, кого надто часто лишають осторонь',
     who: 'Літні люди (60+), ветерани, внутрішньо переміщені особи та люди з інвалідністю — усі, для кого друк стоїть між ними й можливістю творити.',
@@ -60,6 +58,48 @@ const C = {
     email: 'nazar@balabony.com',
   },
 } as const
+
+function Icon({ name, size = 30 }: { name: string; size?: number }) {
+  const common = {
+    width: size, height: size, viewBox: '0 0 24 24', fill: 'none',
+    stroke: 'currentColor', strokeWidth: 1.6,
+    strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const,
+  }
+  if (name === 'mic') {
+    return (
+      <svg {...common}>
+        <rect x="9" y="2" width="6" height="11" rx="3" />
+        <path d="M5 10a7 7 0 0 0 14 0" />
+        <line x1="12" y1="17" x2="12" y2="21" />
+        <line x1="8" y1="21" x2="16" y2="21" />
+      </svg>
+    )
+  }
+  if (name === 'pen') {
+    return (
+      <svg {...common}>
+        <path d="M12 19l7-7a2.1 2.1 0 0 0-3-3l-7 7-1 4z" />
+        <line x1="3" y1="21" x2="14" y2="21" />
+      </svg>
+    )
+  }
+  if (name === 'link') {
+    return (
+      <svg {...common}>
+        <path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1" />
+        <path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1" />
+      </svg>
+    )
+  }
+  // sound
+  return (
+    <svg {...common}>
+      <path d="M4 9v6h4l5 4V5L8 9z" />
+      <path d="M16.5 8.5a5 5 0 0 1 0 7" />
+      <path d="M19 6a8 8 0 0 1 0 12" />
+    </svg>
+  )
+}
 
 export default function InclusiveVoicePage() {
   const [lang, setLang] = useState<Lang>('en')
@@ -93,13 +133,20 @@ export default function InclusiveVoicePage() {
           color: var(--iv-ink);
         }
         .iv-brand b { color: var(--iv-gold); }
-        .iv-switch {
-          background: transparent; color: var(--iv-ink);
-          border: 1px solid rgba(244,241,234,0.25);
-          border-radius: 999px; padding: 7px 16px; font-size: 13px; font-weight: 600;
-          cursor: pointer; transition: all .2s ease; font-family: inherit;
+        .iv-langs {
+          display: inline-flex; align-items: center; gap: 4px;
+          border: 1px solid rgba(244,241,234,0.20);
+          border-radius: 999px; padding: 5px 10px;
         }
-        .iv-switch:hover { border-color: var(--iv-gold); color: var(--iv-gold); }
+        .iv-lang {
+          background: transparent; border: none; cursor: pointer;
+          font-family: inherit; font-size: 13px; font-weight: 700; letter-spacing: .5px;
+          color: var(--iv-muted); padding: 3px 8px; border-radius: 999px;
+          transition: color .2s ease;
+        }
+        .iv-lang:hover { color: var(--iv-ink); }
+        .iv-lang.on { color: var(--iv-gold); }
+        .iv-langsep { color: rgba(244,241,234,0.25); font-size: 13px; }
 
         .iv-hero { padding: 48px 0 24px; }
         .iv-kicker {
@@ -133,7 +180,7 @@ export default function InclusiveVoicePage() {
           transition: transform .2s ease, border-color .2s ease;
         }
         .iv-step:hover { transform: translateY(-4px); border-color: rgba(239,159,39,0.4); }
-        .iv-step .ic { font-size: 30px; display: block; margin-bottom: 14px; }
+        .iv-step .ic { display: block; margin-bottom: 14px; color: var(--iv-gold); line-height: 0; }
         .iv-step h3 { font-size: 17px; margin: 0 0 8px; color: var(--iv-gold); }
         .iv-step p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--iv-muted); }
 
@@ -174,6 +221,11 @@ export default function InclusiveVoicePage() {
         }
         .iv-foot a { color: var(--iv-gold); text-decoration: none; }
         .iv-foot a:hover { text-decoration: underline; }
+        .iv-foot-link {
+          flex-basis: 100%; display: inline-flex; align-items: center; gap: 7px;
+          margin-top: 6px; font-weight: 600;
+        }
+        .iv-foot-link svg { flex: none; }
 
         .iv-reveal { opacity: 0; transform: translateY(14px); animation: ivUp .6s ease forwards; }
         @keyframes ivUp { to { opacity: 1; transform: none; } }
@@ -189,9 +241,19 @@ export default function InclusiveVoicePage() {
 
       <header className="iv-bar">
         <span className="iv-brand">Balabony · <b>InclusiveVoice</b></span>
-        <button className="iv-switch" onClick={() => setLang(lang === 'en' ? 'uk' : 'en')}>
-          {t.switch}
-        </button>
+        <div className="iv-langs" role="group" aria-label="Language">
+          <button
+            className={`iv-lang ${lang === 'uk' ? 'on' : ''}`}
+            onClick={() => setLang('uk')}
+            aria-pressed={lang === 'uk'}
+          >УК</button>
+          <span className="iv-langsep">|</span>
+          <button
+            className={`iv-lang ${lang === 'en' ? 'on' : ''}`}
+            onClick={() => setLang('en')}
+            aria-pressed={lang === 'en'}
+          >EN</button>
+        </div>
       </header>
 
       <div className="iv-wrap">
@@ -206,7 +268,7 @@ export default function InclusiveVoicePage() {
           <div className="iv-loop">
             {t.loop.map((s, i) => (
               <div className="iv-step" key={i}>
-                <span className="ic">{s.icon}</span>
+                <span className="ic"><Icon name={s.icon} /></span>
                 <h3>{s.h}</h3>
                 <p>{s.p}</p>
               </div>
@@ -244,9 +306,17 @@ export default function InclusiveVoicePage() {
         <footer className="iv-foot">
           <span>© {new Date().getFullYear()} Balabony</span>
           <span>·</span>
-          <a href="https://www.balabony.com">balabony.com</a>
+          <a href="https://balabony.com">balabony.com</a>
           <span>·</span>
           <span>{t.cta} <a href={`mailto:${t.email}`}>{t.email}</a></span>
+          <a
+            className="iv-foot-link"
+            href="https://balabony.com/inclusivevoice"
+            aria-label="InclusiveVoice — balabony.com/inclusivevoice"
+          >
+            <Icon name="link" size={16} />
+            <span>balabony.com/inclusivevoice</span>
+          </a>
         </footer>
       </div>
     </main>
