@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { recordRevenueEvent } from '@/lib/revenue'
 
 const PRIVATE_KEY = process.env.LIQPAY_PRIVATE_KEY || ''
 
@@ -35,6 +36,15 @@ export async function POST(req: NextRequest) {
         }),
       })
       console.log(`✅ ПриватБанк розстрочка: ${order_id}, ${amount} ₴`)
+
+      // ── Record revenue (never throws; installment has no uid here)
+      await recordRevenueEvent({
+        userId:    null,
+        source:    'installment',
+        provider:  'privat',
+        amountUah: amount,
+        orderId:   order_id,
+      })
     }
 
     return NextResponse.json({ status: 'ok' })

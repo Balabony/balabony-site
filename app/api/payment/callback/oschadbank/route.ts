@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { recordRevenueEvent } from '@/lib/revenue'
 
 const MERCHANT_LOGIN = 'balabony_com'
 const SECRET_KEY = process.env.WFP_SECRET_KEY || ''
@@ -54,6 +55,15 @@ export async function POST(req: NextRequest) {
         }),
       })
       console.log(`✅ Ощадбанк розстрочка: ${orderReference}, ${amount} ₴`)
+
+      // ── Record revenue (never throws; installment has no uid here)
+      await recordRevenueEvent({
+        userId:    null,
+        source:    'installment',
+        provider:  'oschad',
+        amountUah: amount,
+        orderId:   orderReference,
+      })
     }
 
     // WayForPay вимагає відповідь у певному форматі

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { sendGiftPurchaseEmail } from '@/lib/email'
+import { recordRevenueEvent } from '@/lib/revenue'
 
 const PRIVATE_KEY = process.env.LIQPAY_PRIVATE_KEY || ''
 
@@ -83,6 +84,16 @@ export async function POST(req: NextRequest) {
         paid_at: new Date().toISOString(),
       })
       .eq('id', gift.id)
+
+    // ── Record revenue (never throws; no uid — gift is paid by sender)
+    await recordRevenueEvent({
+      userId:    null,
+      source:    'gift',
+      provider:  'liqpay',
+      plan:      gift.gift_type ?? null,
+      amountUah: amount,
+      orderId:   order_id,
+    })
 
     // Шлемо email дарувальнику (не блокуємо webhook у разі помилки)
     try {

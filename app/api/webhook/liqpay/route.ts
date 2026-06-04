@@ -20,6 +20,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { recordRevenueEvent } from '@/lib/revenue'
 
 const PRIVATE_KEY = process.env.LIQPAY_PRIVATE_KEY || ''
 
@@ -174,6 +175,18 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(`[webhook/liqpay] ✅ subscription created: user=${userId} plan=${plan} amount=${numAmount}₴ order=${order_id}`)
+
+    // ── Record revenue (never throws; won't break the payment)
+    await recordRevenueEvent({
+      userId:    userId,
+      source:    'subscription',
+      provider:  'liqpay',
+      plan,
+      amountUah: numAmount,
+      orderId:   order_id,
+      paymentId: payment_id ?? null,
+    })
+
     return NextResponse.json({ ok: true, plan, expires_at: expiresAt.toISOString() })
   } catch (error) {
     console.error('[webhook/liqpay] unexpected error:', error)
