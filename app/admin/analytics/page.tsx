@@ -24,6 +24,7 @@ interface PageView   { url: string; timestamp: string; device?: string; session_
 interface StoryEvent { story_id?: string; story_title?: string; event_type: string; duration_seconds?: number; created_at: string }
 interface Session    { device?: string; city?: string; start_time: string; end_time?: string }
 interface PaywallHit { user_id: string; limit_type: string; hit_at: string }
+interface RevenueEvent { source: string; plan?: string | null; provider?: string; amount_kopecks: number; occurred_at: string }
 
 interface AnalyticsData {
   surveys:        SurveyRow[]
@@ -32,6 +33,7 @@ interface AnalyticsData {
   sessions:       Session[]
   paywall_hits?:  PaywallHit[]
   subscriber_ids?: string[]
+  revenue_events?: RevenueEvent[]
 }
 
 // ─── Data helpers ─────────────────────────────────────────────────────────────
@@ -114,6 +116,8 @@ function buildSummary(d: AnalyticsData) {
     avg_read_duration_sec:    avgDuration(d.story_events),
     paywall_total_hits:       (d.paywall_hits ?? []).length,
     paywall_unique_hitters:   new Set((d.paywall_hits ?? []).map(h => h.user_id)).size,
+    revenue_total_uah:        Math.round((d.revenue_events ?? []).reduce((s, e) => s + (e.amount_kopecks || 0), 0) / 100),
+    revenue_transactions:     (d.revenue_events ?? []).length,
   }
 }
 
@@ -131,6 +135,58 @@ function buildPaywall(hits: PaywallHit[], subscriberIds: string[]) {
     { name: 'Серії (2/сезон)', value: hits.filter(h => h.limit_type === 'season_limit_reached').length },
   ]
   return { totalHits: hits.length, uniqueHitters, converted, conversionRate, byType }
+}
+
+// Гроші: усе рахуємо в копійках, показуємо в гривнях.
+const SOURCE_LABELS: Record<string, string> = {
+  subscription: 'Підписки',
+  installment:  'Розстрочка',
+  gift:         'Подарунки',
+  purchase:     'Поштучно',
+}
+
+function fmtUah(kopecks: number): string {
+  const uah = Math.round(kopecks / 100)
+  return `${uah.toLocaleString('uk-UA')} ₴`
+}
+
+function buildRevenue(events: RevenueEvent[]) {
+  const now = Date.now()
+  const totalKop   = events.reduce((s, e) => s + (e.amount_kopecks || 0), 0)
+  const last30Kop  = events
+    .filter(e => { try { return now - new Date(e.occurred_at).getTime() <= 30 * 86400000 } catch { return false } })
+    .reduce((s, e) => s + (e.amount_kopecks || 0), 0)
+  const count      = events.length
+  const avgKop     = count ? Math.round(totalKop / count) : 0
+
+  // За джерелом (у гривнях, для графіка)
+  const bySrcKop: Record<string, number> = {}
+  events.forEach(e => { bySrcKop[e.source] = (bySrcKop[e.source] ?? 0) + (e.amount_kopecks || 0) })
+  const bySource = Object.entries(bySrcKop)
+    .map(([src, kop]) => ({ name: SOURCE_LABELS[src] ?? src, value: Math.round(kop / 100) }))
+    .sort((a, b) => b.value - a.value)
+
+  return { totalKop, last30Kop, count, avgKop, bySource }
+}
+
+// Виручка по днях (у гривнях) за останні 30 днів
+function revenueByDay(events: RevenueEvent[], days = 30): { date: string; uah: number }[] {
+  const result: Record<string, number> = {}
+  const now = Date.now()
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now - i * 86400000)
+    result[`${d.getDate()}.${d.getMonth() + 1}`] = 0
+  }
+  events.forEach(e => {
+    try {
+      const d = new Date(e.occurred_at)
+      if (now - d.getTime() <= days * 86400000) {
+        const key = `${d.getDate()}.${d.getMonth() + 1}`
+        if (key in result) result[key] += (e.amount_kopecks || 0) / 100
+      }
+    } catch { /* skip */ }
+  })
+  return Object.entries(result).map(([date, uah]) => ({ date, uah: Math.round(uah) }))
 }
 
 // ─── Chart components ─────────────────────────────────────────────────────────
@@ -237,6 +293,10 @@ export default function AnalyticsPage() {
   const pw            = buildPaywall(paywallHits, subscriberIds)
   const pwDayData     = groupByDay(paywallHits.map(h => ({ url: '', timestamp: h.hit_at })) as PageView[])
 
+  const revenueEvents = data.revenue_events ?? []
+  const rev           = buildRevenue(revenueEvents)
+  const revDayData    = revenueByDay(revenueEvents)
+
   return (
     <main style={{ minHeight: '100vh', background: '#0a1628', padding: '32px 24px 80px', fontFamily: FONT }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
@@ -249,6 +309,42 @@ export default function AnalyticsPage() {
           <StatCard label="Прочитань"      value={totalReads} />
           <StatCard label="Шерингів"       value={totalShares} />
           <StatCard label="Сер. читання"   value={avgDur ? `${Math.floor(avgDur / 60)}хв ${avgDur % 60}с` : '—'} />
+        </div>
+
+        {/* ─── Гроші ─── */}
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
+          Гроші
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 16 }}>
+          <StatCard label="Виручка всього"  value={fmtUah(rev.totalKop)} sub={`${rev.count} транзакцій`} />
+          <StatCard label="За 30 днів"      value={fmtUah(rev.last30Kop)} />
+          <StatCard label="Транзакцій"      value={rev.count} />
+          <StatCard label="Середній чек"    value={rev.count ? fmtUah(rev.avgKop) : '—'} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16, marginBottom: 24 }}>
+          <ChartCard title="Виручка по днях, ₴ (30 днів)">
+            <ResponsiveContainer width="100%" height={180}>
+              <LineChart data={revDayData} margin={{ left: -20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="date" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 9 }} interval={4} />
+                <YAxis stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                <Tooltip content={<DarkTooltip />} />
+                <Line type="monotone" dataKey="uah" stroke="#22c55e" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          <ChartCard title="Виручка за джерелом, ₴">
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={rev.bySource} margin={{ left: -20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="name" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                <YAxis stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                <Tooltip content={<DarkTooltip />} />
+                <Bar dataKey="value" fill="#22c55e" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
         </div>
 
         {/* ─── Воронка · пейвол ─── */}
