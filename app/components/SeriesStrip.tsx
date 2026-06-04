@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useTheme } from '../context/ThemeContext'
-import ShareButtons from './ShareButtons'
 import { trackStoryEvent } from '@/lib/analytics'
 
 const GOLD = 'var(--accent-gold)'
@@ -112,7 +111,6 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                     <div style={{ fontSize: 11, color: 'var(--on-dark-muted)', fontFamily: FONT, marginTop: 'auto' }}>
                       {s.hasAudio ? '🎧 Аудіо доступно' : '⏳ Аудіо готується'}
                     </div>
-                    <ShareButtons url={`https://balabony.com${s.url}`} title={s.title} />
                   </div>
                 </div>
 
