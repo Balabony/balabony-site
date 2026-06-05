@@ -101,6 +101,7 @@ interface AIReport {
   genre_match:  { score: number; verdict: string; details: string }
   grammar:      { score: number; verdict: string; details: string; errors?: string[] }
   overall:      { recommendation: string; summary: string; suggestions?: string[] }
+  suggested?:   { genre: string | null; category: string | null }
 }
 
 interface Change { id: number; original: string; corrected: string; reason: string }
@@ -148,6 +149,7 @@ export default function Stories1Page() {
   const [title,      setTitle]      = useState('')
   const [genre,      setGenre]      = useState(GENRES[0])
   const [category,   setCategory]   = useState('')
+  const [isAdult,    setIsAdult]    = useState(false)
   const [text,       setText]       = useState('')
 
   // Photo
@@ -227,6 +229,9 @@ export default function Stories1Page() {
       const data = await res.json() as { report?: AIReport; error?: string }
       if (!res.ok || data.error) { setCheckError(data.error ?? 'Помилка'); setCheckPhase('error'); return }
       setReport(data.report ?? null); setCheckPhase('done')
+      // ШІ визначив жанр і категорію — підставляємо; редактор може змінити вручну
+      if (data.report?.suggested?.genre)    setGenre(data.report.suggested.genre)
+      if (data.report?.suggested?.category) setCategory(data.report.suggested.category)
     } catch { setCheckError("Помилка з'єднання"); setCheckPhase('error') }
   }
 
@@ -273,6 +278,7 @@ export default function Stories1Page() {
           humanizeSummary: humanizeSummary.length ? humanizeSummary : null,
           publishedVersion: publishedVersion ?? 'original',
           category:        category || '',
+          isAdult,
         }),
       })
       const data = await res.json() as { message?: string; error?: string; status?: string; coverGenerating?: boolean }
@@ -284,6 +290,7 @@ export default function Stories1Page() {
 
   const handleReset = () => {
     setAuthorName(''); setTitle(''); setGenre(GENRES[0]); setCategory(''); setText('')
+    setIsAdult(false)
     setImgSrc(''); setPhotoB64(''); setReport(null)
     setCheckPhase('idle'); setCheckError('')
     setCorrectPhase('idle'); setCorrectError(''); setCorrectedText(''); setCorrections([])
@@ -378,6 +385,17 @@ export default function Stories1Page() {
               </select>
             </Field>
           </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <div
+              onClick={() => setIsAdult(v => !v)}
+              style={{ width: 40, height: 22, borderRadius: 11, background: isAdult ? '#e0484d' : 'rgba(255,255,255,0.1)', border: `1px solid ${isAdult ? '#e0484d' : 'rgba(255,255,255,0.15)'}`, position: 'relative', flexShrink: 0, transition: 'background 0.2s', cursor: 'pointer' }}
+            >
+              <div style={{ position: 'absolute', top: 2, left: isAdult ? 20 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
+            </div>
+            <span style={{ fontSize: 13, color: isAdult ? '#f5f0e8' : '#8899bb', fontFamily: FONT }}>🔞 Тільки для дорослих (18+)</span>
+          </div>
+
           <Field label="Назва історії">
             <input style={inputBase} value={title} onChange={e => setTitle(e.target.value)} placeholder="Назва твору" />
           </Field>

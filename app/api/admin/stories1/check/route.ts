@@ -1,6 +1,9 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 
+const GENRES = ['Драма', 'Гумор', 'Казка', 'Детектив', 'Романтика', 'Трилер', 'Пригоди', 'Фантастика', 'Містика', 'Історична проза', 'Сімейна історія', 'Бойовик', 'Жахи', 'Психологія', 'Біографія', 'Життєві історії']
+const CATEGORIES = ['З життя', 'Містика', 'Любов', 'Воєнні', 'Історичні', 'Родинні', 'Гумор', 'Детектив', 'Психологічні', 'Дитячі']
+
 function checkAuth(req: NextRequest): boolean {
   return req.cookies.get('admin_session')?.value === process.env.ADMIN_PASSWORD
 }
@@ -29,6 +32,10 @@ export async function POST(req: NextRequest) {
 ${text}
 ---
 
+Окрім аналізу, ВИЗНАЧ найдоречніший жанр і категорію для цього тексту, обираючи СТРОГО зі списків (поверни рівно одне значення з кожного списку, дослівно):
+Жанри: ${GENRES.join(', ')}
+Категорії: ${CATEGORIES.join(', ')}
+
 Поверни ТІЛЬКИ валідний JSON без markdown, без коментарів, без зайвого тексту:
 {
   "plagiarism": {
@@ -51,6 +58,10 @@ ${text}
     "verdict": "<без помилок | незначні помилки | багато помилок>",
     "details": "<загальна характеристика мовної якості>",
     "errors": ["<конкретна помилка або опечатка 1>", "<помилка 2>"]
+  },
+  "suggested": {
+    "genre": "<рівно один жанр зі списку жанрів вище>",
+    "category": "<рівно одна категорія зі списку категорій вище>"
   },
   "overall": {
     "recommendation": "<Рекомендовано | Потребує доопрацювання | Відхилити>",
@@ -78,6 +89,16 @@ ${text}
       report = JSON.parse(jsonMatch[0])
     } catch {
       return NextResponse.json({ error: 'Не вдалося розпарсити відповідь AI', raw }, { status: 500 })
+    }
+
+    // Лишаємо лише валідні підказки зі списків — інакше select їх не підставить
+    if (report && typeof report === 'object') {
+      const g = report.suggested?.genre
+      const c = report.suggested?.category
+      report.suggested = {
+        genre:    GENRES.includes(g) ? g : null,
+        category: CATEGORIES.includes(c) ? c : null,
+      }
     }
 
     return NextResponse.json({ report })
