@@ -2,68 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
+// Обкладинка зберігається з завантаженого фото БЕЗ ШІ-генерації —
+// так нема артефактів (криві руки тощо). Лише нормалізуємо розмір і якість.
 export async function POST(req: NextRequest) {
   try {
-    const { storyId, title, genre, category, photoBase64 } = await req.json()
+    const { storyId, photoBase64 } = await req.json()
 
     if (!storyId || !photoBase64) {
       return NextResponse.json({ error: 'storyId and photoBase64 required' }, { status: 400 })
     }
 
-    const token = process.env.REPLICATE_API_TOKEN
-    if (!token) {
-      return NextResponse.json({ error: 'REPLICATE_API_TOKEN not set' }, { status: 500 })
-    }
-
-    const seed = Math.floor(Math.random() * 2_000_000)
-    const scene = [category, genre].filter(Boolean).join(', ') || 'people in a quiet moment'
-    const prompt = `Close-up portrait photograph, ${scene} mood, head and face only, tightly cropped at the shoulders, face fills the frame, hands not visible, no hands in frame, natural lighting, headshot style, no text, no signs, no posters, no labels, no titles on the image, seed_${seed}`
-    const negative_prompt = `hands, fingers, arms, deformed hands, mutated hands, extra fingers, missing fingers, malformed fingers, distorted hands, bad anatomy, extra limbs, deformed body, text, letters, words, captions, logos, watermarks, signatures, typography, written words, BALABONI, БАЛАБОНИ, titles, subtitles, label, writing, font, alphabet, numbers, digits, inscription, cyrillic letters, latin letters, foreign script, gibberish, ornamental text, decorative lettering, handwriting, graffiti, book pages, newspaper, poster text, overlaid text, burned-in text, banner, headline`
-
-    const replicateRes = await fetch(
-      'https://api.replicate.com/v1/models/black-forest-labs/flux-dev/predictions',
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          Prefer: 'wait',
-        },
-        body: JSON.stringify({ input: { prompt, negative_prompt, image: photoBase64, prompt_strength: 0.55, guidance_scale: 7.5, num_inference_steps: 28, width: 1024, height: 1024, seed } }),
-      }
-    )
-
-    if (!replicateRes.ok) {
-      const errText = await replicateRes.text()
-      return NextResponse.json({ error: `Replicate error: ${errText}` }, { status: 502 })
-    }
-
-    let prediction = await replicateRes.json()
-
-    if (!prediction.output && prediction.id && prediction.status !== 'failed') {
-      for (let i = 0; i < 30; i++) {
-        await new Promise(r => setTimeout(r, 3000))
-        const poll = await fetch(`https://api.replicate.com/v1/predictions/${prediction.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        prediction = await poll.json()
-        if (prediction.status === 'succeeded' || prediction.status === 'failed') break
-      }
-    }
-
-    if (prediction.status === 'failed' || !prediction.output) {
-      return NextResponse.json({ error: 'Generation failed or timed out' }, { status: 502 })
-    }
-
-    const generatedUrl: string = Array.isArray(prediction.output)
-      ? prediction.output[0]
-      : prediction.output
-
-    const imgRes = await fetch(generatedUrl)
-    if (!imgRes.ok) {
-      return NextResponse.json({ error: 'Failed to download generated image' }, { status: 502 })
-    }
-    const rawBuffer = Buffer.from(await imgRes.arrayBuffer())
+    // Прибираємо префікс data:image/...;base64, якщо він є
+    const b64 = typeof photoBase64 === 'string' && photoBase64.includes(',')
+      ? photoBase64.split(',')[1]
+      : photoBase64
+    const rawBuffer = Buffer.from(b64, 'base64')
 
     const finalBuffer = await sharp(rawBuffer)
       .resize(1024, 1024, { fit: 'cover', position: 'attention' })
