@@ -86,7 +86,7 @@ export default async function StoriesPage({
   const allStories = await getStories()
   const stories = activeGenre
     ? allStories.filter((s) => normalize(s.genre ?? '') === normalize(activeGenre))
-    : allStories
+    : allStories.filter((s) => normalize(s.genre ?? '') !== 'казка')
 
   const heading = activeGenre
     ? GENRE_DISPLAY[normalize(activeGenre)] ?? activeGenre
