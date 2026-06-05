@@ -78,11 +78,18 @@ export async function POST(req: NextRequest) {
     const supabase = getSupabaseAdmin()
     const storyId  = crypto.randomUUID()
 
-    const slug = transliterate(title)
+    let slug = transliterate(title)
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
-      .slice(0, 80) || storyId
+      .slice(0, 72) || storyId
+
+    // Якщо slug уже зайнятий (та сама назва) — додаємо короткий унікальний суфікс
+    const { data: slugTaken } = await supabase
+      .from('content').select('id').eq('slug', slug).maybeSingle()
+    if (slugTaken) {
+      slug = `${slug}-${storyId.slice(0, 6)}`
+    }
 
     const { error: insertError } = await supabase.from('content').insert({
       id:                storyId,
