@@ -20,6 +20,7 @@ interface StoryRow {
   humanized_text:    string | null
   published_version: string | null
   cover_url:         string | null
+  images:            string[] | null
   approved_at:       string
 }
 
@@ -27,7 +28,7 @@ async function getStory(id: string): Promise<StoryRow | null> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('id, slug, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, approved_at')
+    .select('id, slug, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, images, approved_at')
     .eq('type', 'story')
     .eq('slug', id)
     .in('status', ['approved', 'published'])
@@ -109,8 +110,8 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
         {/* Story body */}
         <article
-          style={{ fontSize: 16, lineHeight: 1.9, color: '#dde6f0', fontFamily: FONT, wordBreak: 'break-word' }}
-          dangerouslySetInnerHTML={{ __html: toStoryHtml(body) }}
+          style={{ fontSize: 18, lineHeight: 1.9, color: '#dde6f0', fontFamily: FONT, wordBreak: 'break-word' }}
+          dangerouslySetInnerHTML={{ __html: toStoryHtml(body, story.images ?? []) }}
         />
 
         {/* Поширення */}
@@ -147,13 +148,39 @@ function escapeChars(str: string): string {
     .replace(/"/g, '&quot;')
 }
 
-// Розбиває текст на абзаци й обгортає кожен у <p> з відступом 14px —
-// так само, як рендеряться серії (.scene p{margin:0 0 14px}).
-function toStoryHtml(raw: string): string {
-  return raw
+// Розбиває текст на абзаци й обгортає кожен у <p> з відступом 14px.
+// Якщо є ілюстрації (казки) — рівномірно розставляє їх між абзацами,
+// за хронологією: малюнок 1 ближче до початку, останній — ближче до кінця.
+function toStoryHtml(raw: string, images: string[] = []): string {
+  const paras = raw
     .split(/\n+/)
     .map(p => p.trim())
     .filter(p => p.length > 0)
-    .map(p => `<p style="margin:0 0 14px 0">${escapeChars(p)}</p>`)
-    .join('')
+
+  const imgs = (images ?? []).filter(u => typeof u === 'string' && u.length > 0)
+
+  // Куди вставляти кожен малюнок: після абзацу з індексом pos
+  const insertAfter = new Map<number, string[]>()
+  if (imgs.length > 0 && paras.length > 0) {
+    for (let k = 0; k < imgs.length; k++) {
+      const pos = Math.min(
+        paras.length - 1,
+        Math.max(0, Math.round((paras.length * (k + 1)) / (imgs.length + 1)) - 1)
+      )
+      const arr = insertAfter.get(pos) ?? []
+      arr.push(imgs[k])
+      insertAfter.set(pos, arr)
+    }
+  }
+
+  const imgTag = (url: string) =>
+    `<img src="${url}" alt="" loading="lazy" style="display:block;width:100%;max-width:560px;margin:28px auto;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,0.35)" />`
+
+  let html = ''
+  paras.forEach((p, i) => {
+    html += `<p style="margin:0 0 14px 0">${escapeChars(p)}</p>`
+    const here = insertAfter.get(i)
+    if (here) here.forEach(u => { html += imgTag(u) })
+  })
+  return html
 }

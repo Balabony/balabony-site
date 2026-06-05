@@ -128,28 +128,37 @@ export async function POST(req: NextRequest) {
       if (insertError) throw insertError
     }
 
-    // Обкладинка: фото → пряме збереження; казка без фото → ШІ-ілюстрація
+    // Обкладинка: фото → пряме збереження; казка без фото → 4 ШІ-ілюстрації
     if (status === 'approved') {
       const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-      const endpoint = photoBase64
-        ? 'generate-cover'
-        : (genre === 'Казка' ? 'generate-fairytale-cover' : null)
 
-      if (endpoint) {
-        const body = photoBase64
-          ? JSON.stringify({ storyId, title, genre, category: resolvedCategory, photoBase64 })
-          : JSON.stringify({ storyId, title, text })
-
-        fetch(`${baseUrl}/api/admin/stories1/${endpoint}`, {
+      if (photoBase64) {
+        fetch(`${baseUrl}/api/admin/stories1/generate-cover`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body,
+          body:    JSON.stringify({ storyId, title, genre, category: resolvedCategory, photoBase64 }),
         })
           .then(async r => {
             if (!r.ok) return
             const { url: coverUrl } = await r.json() as { url?: string }
             if (coverUrl) {
               await supabase.from('content').update({ cover_url: coverUrl }).eq('id', storyId)
+            }
+          })
+          .catch(() => {})
+      } else if (genre === 'Казка') {
+        fetch(`${baseUrl}/api/admin/stories1/generate-fairytale-images`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ storyId, title, text }),
+        })
+          .then(async r => {
+            if (!r.ok) return
+            const { images } = await r.json() as { images?: string[] }
+            if (images && images.length > 0) {
+              await supabase.from('content')
+                .update({ cover_url: images[0], images })
+                .eq('id', storyId)
             }
           })
           .catch(() => {})
