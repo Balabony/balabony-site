@@ -2,21 +2,35 @@
 
 import { useState } from 'react'
 
-type GiftType = 'annual' | 'family-annual'
+type Tier = 'individual' | 'family'
+type Term = 'quarter' | 'half' | 'annual'
 
-const PACKAGES: Record<GiftType, { price: number; name: string; sub: string; perks: string[] }> = {
-  'annual': {
-    price: 890,
-    name: 'Річний',
-    sub: 'Цілий рік українських історій',
-    perks: ['Всі серії Балабонів', 'Без реклами', 'Офлайн-завантаження', 'Економія 658 ₴ проти місячної'],
-  },
-  'family-annual': {
-    price: 1390,
-    name: 'Сімейний річний',
-    sub: 'До 4 акаунтів — для всієї родини',
-    perks: ['До 4 акаунтів у родині', 'Усе те саме, що в Річному', 'По 29 ₴ на особу/міс', 'Економія 998 ₴'],
-  },
+const TERMS: { key: Term; label: string; months: number }[] = [
+  { key: 'quarter', label: '3 місяці',  months: 3 },
+  { key: 'half',    label: '6 місяців', months: 6 },
+  { key: 'annual',  label: '1 рік',     months: 12 },
+]
+
+const PRICES: Record<Tier, Record<Term, number>> = {
+  individual: { quarter: 349, half: 649, annual: 890 },
+  family:     { quarter: 549, half: 990, annual: 1390 },
+}
+
+const MONTHLY: Record<Tier, number> = { individual: 129, family: 199 }
+
+const PERKS: Record<Tier, string[]> = {
+  individual: ['Усі серії Балабонів', 'Історії та казки сучасних авторів', 'Без реклами'],
+  family:     ['До 4 акаунтів у родині', 'Усі серії Балабонів', 'Історії та казки сучасних авторів'],
+}
+
+function giftTypeKey(tier: Tier, term: Term): string {
+  return tier === 'family' ? `family-${term}` : term
+}
+
+function discountPct(tier: Tier, term: Term): number {
+  const months = TERMS.find(t => t.key === term)!.months
+  const full = MONTHLY[tier] * months
+  return Math.round((1 - PRICES[tier][term] / full) * 100)
 }
 
 function todayIso() {
@@ -24,7 +38,8 @@ function todayIso() {
 }
 
 export default function GiftPage() {
-  const [giftType, setGiftType]               = useState<GiftType>('annual')
+  const [tier, setTier]                       = useState<Tier>('individual')
+  const [term, setTerm]                       = useState<Term>('annual')
   const [senderName, setSenderName]           = useState('')
   const [senderEmail, setSenderEmail]         = useState('')
   const [recipientName, setRecipientName]     = useState('')
@@ -34,7 +49,7 @@ export default function GiftPage() {
   const [busy, setBusy]                       = useState(false)
   const [errorMsg, setErrorMsg]               = useState<string | null>(null)
 
-  const pkg = PACKAGES[giftType]
+  const price = PRICES[tier][term]
   const minDate = todayIso()
   const charCount = personalMessage.length
   const charLimit = 200
@@ -58,7 +73,7 @@ export default function GiftPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          giftType, senderName, senderEmail,
+          giftType: giftTypeKey(tier, term), senderName, senderEmail,
           recipientName, recipientEmail,
           activationDate, personalMessage,
         }),
@@ -114,38 +129,64 @@ export default function GiftPage() {
           </p>
         </header>
 
-        {/* Вибір пакету */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 32 }}>
-          {(['annual','family-annual'] as GiftType[]).map(t => {
-            const p = PACKAGES[t]
-            const selected = giftType === t
+        {/* Тип підписки: індивідуальний / сімейний */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 18, background: '#0f1e3a', padding: 6, borderRadius: 14, border: '1px solid rgba(200,212,232,0.12)' }}>
+          {([['individual','Індивідуальний'],['family','Сімейний (до 4)']] as [Tier,string][]).map(([t,label]) => {
+            const active = tier === t
+            return (
+              <button
+                key={t} type="button" onClick={() => setTier(t)}
+                style={{
+                  flex: 1, padding: '10px 8px', borderRadius: 10, cursor: 'pointer',
+                  border: 'none', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
+                  background: active ? 'var(--accent-gold)' : 'transparent',
+                  color: active ? '#0a1628' : '#c8d4e8', transition: 'all .15s',
+                }}>
+                {label}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Термін: 3 / 6 / 12 місяців */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 18 }}>
+          {TERMS.map(({ key, label, months }) => {
+            const selected = term === key
+            const p = PRICES[tier][key]
+            const disc = discountPct(tier, key)
+            const perMonth = Math.round(p / months)
             return (
               <div
-                key={t} onClick={() => setGiftType(t)}
+                key={key} onClick={() => setTerm(key)}
                 style={{
-                  background: selected ? 'rgba(239,159,39,0.08)' : '#0f1e3a',
+                  position: 'relative', background: selected ? 'rgba(239,159,39,0.08)' : '#0f1e3a',
                   border: selected ? '2px solid var(--accent-gold)' : '1px solid rgba(200,212,232,0.15)',
-                  borderRadius: 16, padding: 20, cursor: 'pointer', textAlign: 'left',
-                  color: '#f5f0e8', transition: 'all .2s',
+                  borderRadius: 16, padding: '18px 12px', cursor: 'pointer', textAlign: 'center',
+                  transition: 'all .2s',
                 }}>
-                <div style={{ fontSize: 12, color: '#8899bb', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 }}>
-                  {p.name}
-                </div>
-                <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent-gold)', marginBottom: 4 }}>
-                  {p.price} ₴
-                </div>
-                <div style={{ color: '#c8d4e8', fontSize: 13, marginBottom: 12 }}>{p.sub}</div>
-                <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: 13, color: '#c8d4e8' }}>
-                  {p.perks.map((x, i) => (
-                    <li key={i} style={{ paddingLeft: 14, position: 'relative', marginBottom: 4 }}>
-                      <span style={{ position: 'absolute', left: 0, color: 'var(--accent-gold)' }}>✓</span> {x}
-                    </li>
-                  ))}
-                </ul>
+                {disc > 0 && (
+                  <div style={{
+                    position: 'absolute', top: 8, right: 8, fontSize: 11, fontWeight: 700,
+                    color: '#0a1628', background: 'var(--accent-gold)', borderRadius: 6, padding: '2px 6px',
+                  }}>−{disc}%</div>
+                )}
+                <div style={{ fontSize: 32, marginBottom: 6 }} aria-hidden>🎁</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#f5f0e8', marginBottom: 6 }}>{label}</div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--accent-gold)' }}>{p} ₴</div>
+                <div style={{ fontSize: 12, color: '#8899bb', marginTop: 2 }}>≈ {perMonth} ₴/міс</div>
               </div>
             )
           })}
         </div>
+
+        {/* Що входить */}
+        <ul style={{ margin: '0 0 32px', padding: 0, listStyle: 'none', fontSize: 14, color: '#c8d4e8' }}>
+          {PERKS[tier].map((x, i) => (
+            <li key={i} style={{ paddingLeft: 18, position: 'relative', marginBottom: 6 }}>
+              <span style={{ position: 'absolute', left: 0, color: 'var(--accent-gold)' }}>✓</span> {x}
+            </li>
+          ))}
+        </ul>
 
         {/* Форма */}
         <form onSubmit={handleSubmit} style={{
@@ -203,7 +244,7 @@ export default function GiftPage() {
             boxShadow: busy ? 'none' : '0 0 24px rgba(239,159,39,0.4)',
             transition: 'all .2s',
           }}>
-            {busy ? 'Обробка…' : `Оплатити подарунок — ${pkg.price} ₴`}
+            {busy ? 'Обробка…' : `Оплатити подарунок — ${price} ₴`}
           </button>
 
           <p style={{ marginTop: 16, fontSize: 12, color: '#8899bb', textAlign: 'center' }}>

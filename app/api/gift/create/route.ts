@@ -8,13 +8,21 @@ const WEBHOOK_URL = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://balabony.com
 const RESULT_URL  = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://balabony.com'}/gift/success`
 
 const PRICES: Record<string, number> = {
-  'annual':        890,
-  'family-annual': 1390,
+  'quarter':        349,
+  'half':           649,
+  'annual':         890,
+  'family-quarter': 549,
+  'family-half':    990,
+  'family-annual':  1390,
 }
 
 const LABELS: Record<string, string> = {
-  'annual':        'Річна підписка Балабонів',
-  'family-annual': 'Сімейна річна підписка Балабонів',
+  'quarter':        '3 місяці підписки Балабонів',
+  'half':           '6 місяців підписки Балабонів',
+  'annual':         'Річна підписка Балабонів',
+  'family-quarter': 'Сімейна підписка, 3 місяці',
+  'family-half':    'Сімейна підписка, 6 місяців',
+  'family-annual':  'Сімейна річна підписка Балабонів',
 }
 
 function sign(data: string): string {

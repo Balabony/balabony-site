@@ -71,14 +71,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Не вдалося створити сесію' }, { status: 502 })
     }
 
-    // Рахуємо дату закінчення підписки: +1 рік від моменту активації
+    // Тривалість залежить від типу подарунка (3 / 6 / 12 місяців)
+    const giftMonths =
+      (gift.gift_type === 'quarter' || gift.gift_type === 'family-quarter') ? 3 :
+      (gift.gift_type === 'half'    || gift.gift_type === 'family-half')    ? 6 : 12
     const expiresAt = new Date()
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1)
+    expiresAt.setMonth(expiresAt.getMonth() + giftMonths)
     const expiresAtIso = expiresAt.toISOString()
 
     // Записуємо підписку в users (поля subscription_tier, subscription_until)
-    // ⚠️ Структура таблиці users може відрізнятись — це базовий патерн
-    const tier = gift.gift_type === 'family-annual' ? 'family-annual' : 'annual'
+    // tier = рівень доступу (родинний чи індивідуальний); термін несе subscription_until
+    const tier = String(gift.gift_type).startsWith('family') ? 'family-annual' : 'annual'
     const { error: updErr } = await sb
       .from('users')
       .update({
