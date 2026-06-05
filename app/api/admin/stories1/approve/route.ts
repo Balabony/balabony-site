@@ -128,22 +128,32 @@ export async function POST(req: NextRequest) {
       if (insertError) throw insertError
     }
 
-    // Fire cover generation asynchronously only on approval with photo
-    if (status === 'approved' && photoBase64) {
+    // Обкладинка: фото → пряме збереження; казка без фото → ШІ-ілюстрація
+    if (status === 'approved') {
       const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-      fetch(`${baseUrl}/api/admin/stories1/generate-cover`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ storyId, title, genre, category: resolvedCategory, photoBase64 }),
-      })
-        .then(async r => {
-          if (!r.ok) return
-          const { url: coverUrl } = await r.json() as { url?: string }
-          if (coverUrl) {
-            await supabase.from('content').update({ cover_url: coverUrl }).eq('id', storyId)
-          }
+      const endpoint = photoBase64
+        ? 'generate-cover'
+        : (genre === 'Казка' ? 'generate-fairytale-cover' : null)
+
+      if (endpoint) {
+        const body = photoBase64
+          ? JSON.stringify({ storyId, title, genre, category: resolvedCategory, photoBase64 })
+          : JSON.stringify({ storyId, title, text })
+
+        fetch(`${baseUrl}/api/admin/stories1/${endpoint}`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body,
         })
-        .catch(() => {})
+          .then(async r => {
+            if (!r.ok) return
+            const { url: coverUrl } = await r.json() as { url?: string }
+            if (coverUrl) {
+              await supabase.from('content').update({ cover_url: coverUrl }).eq('id', storyId)
+            }
+          })
+          .catch(() => {})
+      }
     }
 
     return NextResponse.json({
