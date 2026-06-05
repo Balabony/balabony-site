@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
 const GOLD      = '#f0a500'
@@ -144,6 +144,11 @@ function buildSegments(correctedText: string, changes: Change[]): Segment[] {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function Stories1Page() {
+  // Edit mode
+  const [editId,      setEditId]      = useState<string | null>(null)
+  const [storyList,   setStoryList]   = useState<{ id: string; title: string; is_adult: boolean }[]>([])
+  const [loadingEdit, setLoadingEdit] = useState(false)
+
   // Form
   const [authorName, setAuthorName] = useState('')
   const [title,      setTitle]      = useState('')
@@ -281,12 +286,14 @@ export default function Stories1Page() {
           publishedVersion: publishedVersion ?? 'original',
           category:        category || '',
           isAdult,
+          editId,
         }),
       })
       const data = await res.json() as { message?: string; error?: string; status?: string; coverGenerating?: boolean }
       if (!res.ok || data.error) { setActionMsg(data.error ?? 'Помилка'); setActionPhase('error'); return }
       setActionMsg((data.message ?? 'Готово') + (data.coverGenerating ? ' Обкладинка генерується у фоні (~60 с).' : ''))
       setActionStatus(data.status as typeof actionStatus); setActionPhase('done')
+      refreshList()
     } catch { setActionMsg("Помилка з'єднання"); setActionPhase('error') }
   }
 
@@ -301,6 +308,39 @@ export default function Stories1Page() {
     setCorrectEditMode(false); setCorrectDraft(''); setCorrectManuallyEdited(false)
     setHumanizeEditMode(false); setHumanizeDraft(''); setHumanizeManuallyEdited(false)
     setActionPhase('idle'); setActionMsg(''); setActionStatus(''); setAdminNotes('')
+    setEditId(null)
+  }
+
+  // ── Edit mode: load list + load one story ──────────────────────────────────
+  const refreshList = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/stories1/load')
+      const data = await res.json() as { stories?: { id: string; title: string; is_adult: boolean }[] }
+      setStoryList(data.stories ?? [])
+    } catch { /* ignore */ }
+  }, [])
+
+  useEffect(() => { refreshList() }, [refreshList])
+
+  const loadStory = async (id: string) => {
+    if (!id) { handleReset(); return }
+    setLoadingEdit(true)
+    try {
+      const res = await fetch('/api/admin/stories1/load?id=' + encodeURIComponent(id))
+      const data = await res.json() as { story?: Record<string, unknown>; error?: string }
+      if (!res.ok || !data.story) { setActionMsg(data.error ?? 'Не вдалося завантажити'); setActionPhase('error'); return }
+      const s = data.story
+      handleReset()
+      setEditId(String(s.id))
+      setAuthorName((s.author_name as string) ?? '')
+      setTitle((s.title as string) ?? '')
+      setGenre((s.genre as string) || GENRES[0])
+      setCategory((s.category as string) ?? '')
+      setText((s.text as string) ?? '')
+      setIsAdult(s.is_adult === true)
+      if (s.cover_url) setImgSrc(s.cover_url as string)
+    } catch { setActionMsg("Помилка завантаження"); setActionPhase('error') }
+    finally { setLoadingEdit(false) }
   }
 
   const selectStyle: React.CSSProperties = { ...inputBase, appearance: 'none', cursor: 'pointer' }
@@ -371,6 +411,35 @@ export default function Stories1Page() {
 
         {/* ━━━ 1 — Форма ━━━ */}
         <SectionCard n={1} title="Завантаження історії">
+          <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 10, background: editId ? 'rgba(129,140,248,0.12)' : 'rgba(255,255,255,0.03)', border: `1px solid ${editId ? '#818cf8' : 'rgba(255,255,255,0.12)'}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#a5b4fc', fontFamily: FONT, whiteSpace: 'nowrap' }}>✏️ Редагувати наявну:</span>
+              <select
+                value={editId ?? ''}
+                onChange={e => loadStory(e.target.value)}
+                disabled={loadingEdit}
+                style={{ ...selectStyle, flex: 1, minWidth: 180 }}
+              >
+                <option value="" style={{ background: NAVY }}>— Нова історія —</option>
+                {storyList.map(s => (
+                  <option key={s.id} value={s.id} style={{ background: NAVY }}>
+                    {s.is_adult ? '🔞 ' : ''}{s.title}
+                  </option>
+                ))}
+              </select>
+              {editId && (
+                <button onClick={handleReset} style={{ fontSize: 12, fontWeight: 700, color: '#a5b4fc', background: 'transparent', border: '1px solid #818cf8', borderRadius: 8, padding: '7px 12px', cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}>
+                  + Нова
+                </button>
+              )}
+            </div>
+            {editId && (
+              <div style={{ fontSize: 12, color: '#c4ccdb', fontFamily: FONT, marginTop: 8 }}>
+                Режим редагування — зміни оновлять наявну історію (без створення копії).
+              </div>
+            )}
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <Field label="Ім'я автора">
               <input style={inputBase} value={authorName} onChange={e => setAuthorName(e.target.value)} placeholder="Ім'я та прізвище" />

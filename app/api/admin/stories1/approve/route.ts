@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       authorName, title, genre, text, photoBase64, aiReport, action, adminNotes,
       correctedText, changes, publishedVersion,
       humanizedText, humanizeSummary,
-      category, isAdult,
+      category, isAdult, editId,
     } = await req.json()
 
     if (!title || !genre || !text || !action) {
@@ -76,25 +76,8 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = getSupabaseAdmin()
-    const storyId  = crypto.randomUUID()
 
-    let slug = transliterate(title)
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 72) || storyId
-
-    // Якщо slug уже зайнятий (та сама назва) — додаємо короткий унікальний суфікс
-    const { data: slugTaken } = await supabase
-      .from('content').select('id').eq('slug', slug).maybeSingle()
-    if (slugTaken) {
-      slug = `${slug}-${storyId.slice(0, 6)}`
-    }
-
-    const { error: insertError } = await supabase.from('content').insert({
-      id:                storyId,
-      type:              'story',
-      slug,
+    const record = {
       author_name:       authorName ?? '',
       title,
       genre,
@@ -110,9 +93,40 @@ export async function POST(req: NextRequest) {
       duration_minutes,
       category:          resolvedCategory,
       is_adult:          isAdult ?? false,
-    })
+    }
 
-    if (insertError) throw insertError
+    let storyId: string
+
+    if (editId) {
+      // Редагування наявної історії — оновлюємо за id, slug/id/type не чіпаємо
+      storyId = editId
+      const { error: updateError } = await supabase
+        .from('content').update(record).eq('id', editId)
+      if (updateError) throw updateError
+    } else {
+      // Нова історія — генеруємо id та унікальний slug, вставляємо
+      storyId = crypto.randomUUID()
+
+      let slug = transliterate(title)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 72) || storyId
+
+      const { data: slugTaken } = await supabase
+        .from('content').select('id').eq('slug', slug).maybeSingle()
+      if (slugTaken) {
+        slug = `${slug}-${storyId.slice(0, 6)}`
+      }
+
+      const { error: insertError } = await supabase.from('content').insert({
+        id:   storyId,
+        type: 'story',
+        slug,
+        ...record,
+      })
+      if (insertError) throw insertError
+    }
 
     // Fire cover generation asynchronously only on approval with photo
     if (status === 'approved' && photoBase64) {
