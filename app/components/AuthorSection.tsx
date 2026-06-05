@@ -70,7 +70,7 @@ export default function AuthorSection() {
         <h2 className="as-title">Стань автором Balabony</h2>
         <p className="as-lead">
           Пишеш історії? Публікуй їх на Balabony і отримуй гонорар з кожного прочитання.
-          Ми ділимо доходи чесно — обирай умови, що підходять саме тобі.
+          Ми ділимо доходи чесно — обирай умови, що підходять саме&nbsp;тобі.
         </p>
       </div>
 
@@ -146,7 +146,7 @@ export default function AuthorSection() {
         .as-eyebrow {
           font-size: 11px;
           font-weight: 800;
-          color: ${GOLD};
+          color: #FFFFFF;
           letter-spacing: 2.5px;
           text-transform: uppercase;
           margin-bottom: 10px;

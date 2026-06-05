@@ -132,6 +132,10 @@ export async function POST(req: NextRequest) {
       coverGenerating: status === 'approved' && !!photoBase64,
     })
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 })
+    const e = err as { message?: string; details?: string; hint?: string; code?: string }
+    const detail = [e?.code && `[${e.code}]`, e?.message, e?.details, e?.hint]
+      .filter(Boolean).join(' · ') || (typeof err === 'string' ? err : JSON.stringify(err))
+    console.error('approve error:', err)
+    return NextResponse.json({ error: detail || 'Невідома помилка' }, { status: 500 })
   }
 }

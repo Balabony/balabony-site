@@ -386,14 +386,14 @@ export default function Stories1Page() {
             </Field>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, padding: '12px 14px', borderRadius: 10, background: isAdult ? 'rgba(224,72,77,0.12)' : 'rgba(255,255,255,0.03)', border: `1px solid ${isAdult ? '#e0484d' : 'rgba(255,255,255,0.12)'}`, transition: 'all 0.2s' }}>
             <div
               onClick={() => setIsAdult(v => !v)}
-              style={{ width: 40, height: 22, borderRadius: 11, background: isAdult ? '#e0484d' : 'rgba(255,255,255,0.1)', border: `1px solid ${isAdult ? '#e0484d' : 'rgba(255,255,255,0.15)'}`, position: 'relative', flexShrink: 0, transition: 'background 0.2s', cursor: 'pointer' }}
+              style={{ width: 52, height: 28, borderRadius: 14, background: isAdult ? '#e0484d' : 'rgba(255,255,255,0.12)', border: `1px solid ${isAdult ? '#e0484d' : 'rgba(255,255,255,0.2)'}`, position: 'relative', flexShrink: 0, transition: 'background 0.2s', cursor: 'pointer' }}
             >
-              <div style={{ position: 'absolute', top: 2, left: isAdult ? 20 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
+              <div style={{ position: 'absolute', top: 2, left: isAdult ? 26 : 2, width: 22, height: 22, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
             </div>
-            <span style={{ fontSize: 13, color: isAdult ? '#f5f0e8' : '#8899bb', fontFamily: FONT }}>🔞 Тільки для дорослих (18+)</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: isAdult ? '#ff7a7e' : '#c4ccdb', fontFamily: FONT }}>🔞 Тільки для дорослих (18+)</span>
           </div>
 
           <Field label="Назва історії">

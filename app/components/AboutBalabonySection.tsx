@@ -24,7 +24,7 @@ import Link from 'next/link'
 const MISSION = {
   kicker: 'Наша місія',
   intro: 'Balabony — це український літературний простір для всіх, хто любить рідну мову і живі історії.',
-  threeThingsLine: 'Наші історії роблять три речі одночасно:',
+  threeThingsLine: 'Наші історії роблять три речі\u00A0одночасно:',
 
   functions: [
     {
@@ -338,7 +338,7 @@ export default function AboutBalabonySection() {
 
         .kicker {
           font-size: 18px;
-          color: #EF9F27;
+          color: #FFFFFF;
           margin: 0;
           text-transform: uppercase;
           letter-spacing: 0.14em;
