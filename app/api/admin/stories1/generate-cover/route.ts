@@ -17,8 +17,8 @@ export async function POST(req: NextRequest) {
 
     const seed = Math.floor(Math.random() * 2_000_000)
     const scene = [category, genre].filter(Boolean).join(', ') || 'people in a quiet moment'
-    const prompt = `Close-up portrait photograph, ${scene} mood, face and shoulders framing, face fills the frame, tight composition, natural lighting, headshot style, no text, no signs, no posters, no labels, no titles on the image, seed_${seed}`
-    const negative_prompt = `text, letters, words, captions, logos, watermarks, signatures, typography, written words, BALABONI, БАЛАБОНИ, titles, subtitles, label, writing, font, alphabet, numbers, digits, inscription, cyrillic letters, latin letters, foreign script, gibberish, ornamental text, decorative lettering, handwriting, graffiti, book pages, newspaper, poster text, overlaid text, burned-in text, banner, headline`
+    const prompt = `Close-up portrait photograph, ${scene} mood, head and face only, tightly cropped at the shoulders, face fills the frame, hands not visible, no hands in frame, natural lighting, headshot style, no text, no signs, no posters, no labels, no titles on the image, seed_${seed}`
+    const negative_prompt = `hands, fingers, arms, deformed hands, mutated hands, extra fingers, missing fingers, malformed fingers, distorted hands, bad anatomy, extra limbs, deformed body, text, letters, words, captions, logos, watermarks, signatures, typography, written words, BALABONI, БАЛАБОНИ, titles, subtitles, label, writing, font, alphabet, numbers, digits, inscription, cyrillic letters, latin letters, foreign script, gibberish, ornamental text, decorative lettering, handwriting, graffiti, book pages, newspaper, poster text, overlaid text, burned-in text, banner, headline`
 
     const replicateRes = await fetch(
       'https://api.replicate.com/v1/models/black-forest-labs/flux-dev/predictions',
