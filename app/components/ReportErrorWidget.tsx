@@ -169,7 +169,7 @@ export default function ReportErrorWidget({ selectionScope }: ReportErrorWidgetP
         href={buildHref()}
         style={{
           position: 'fixed',
-          bottom: 20,
+          bottom: 88,
           right: 20,
           background: 'rgba(15,30,58,0.92)',
           border: `1px solid ${GOLD}66`,
