@@ -101,7 +101,7 @@ interface AIReport {
   genre_match:  { score: number; verdict: string; details: string }
   grammar:      { score: number; verdict: string; details: string; errors?: string[] }
   overall:      { recommendation: string; summary: string; suggestions?: string[] }
-  suggested?:   { genre: string | null; category: string | null }
+  suggested?:   { genre: string | null; category: string | null; isAdult?: boolean }
 }
 
 interface Change { id: number; original: string; corrected: string; reason: string }
@@ -232,6 +232,8 @@ export default function Stories1Page() {
       // ШІ визначив жанр і категорію — підставляємо; редактор може змінити вручну
       if (data.report?.suggested?.genre)    setGenre(data.report.suggested.genre)
       if (data.report?.suggested?.category) setCategory(data.report.suggested.category)
+      // ШІ позначає 18+ автоматично; редактор може зняти вручну
+      if (data.report?.suggested?.isAdult) setIsAdult(true)
     } catch { setCheckError("Помилка з'єднання"); setCheckPhase('error') }
   }
 

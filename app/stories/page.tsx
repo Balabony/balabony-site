@@ -26,6 +26,7 @@ interface StoryRow {
   genre: string | null
   text: string
   cover_url: string | null
+  is_adult: boolean | null
 }
 
 // Старі/англомовні посилання → канонічний жанр у базі
@@ -57,7 +58,7 @@ async function getStories(): Promise<Story[]> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('slug, title, author_name, genre, text, cover_url, approved_at')
+    .select('slug, title, author_name, genre, text, cover_url, approved_at, is_adult')
     .eq('type', 'story')
     .in('status', ['approved', 'published'])
     .order('approved_at', { ascending: false })
@@ -72,6 +73,7 @@ async function getStories(): Promise<Story[]> {
     teaser: s.text.replace(/\s+/g, ' ').slice(0, 200),
     url: `/stories/${s.slug}`,
     genre: s.genre ?? undefined,
+    isAdult: s.is_adult ?? false,
   }))
 }
 

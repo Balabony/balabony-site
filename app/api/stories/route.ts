@@ -15,7 +15,7 @@ export async function GET(req: Request) {
 
     let query = supabase
       .from('content')
-      .select('id, slug, title, author_name, genre, text, cover_url, cover_position, published_version, corrected_text, humanized_text, approved_at, duration_minutes, category')
+      .select('id, slug, title, author_name, genre, text, cover_url, cover_position, published_version, corrected_text, humanized_text, approved_at, duration_minutes, category, is_adult')
       .eq('type', 'story')
       .in('status', ['approved', 'published'])
       .order('approved_at', { ascending: false, nullsFirst: false })
@@ -44,6 +44,7 @@ export async function GET(req: Request) {
       genre:            s.genre ?? undefined,
       duration_minutes: s.duration_minutes ?? undefined,
       category:         s.category ?? undefined,
+      isAdult:          s.is_adult ?? false,
     }))
 
     return NextResponse.json(stories)
