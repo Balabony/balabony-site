@@ -66,6 +66,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
       : story.text
 
   const wordCount = body.trim().split(/\s+/).length
+  const isFairytale = story.genre === 'Казка'
   const readMin   = Math.ceil(wordCount / 180)
   const date      = story.approved_at
     ? new Date(story.approved_at).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -79,7 +80,9 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         <div style={{ marginTop: 24 }}>
           <Breadcrumbs
             items={[
-              { label: 'Історії читачів', href: '/stories' },
+              isFairytale
+                ? { label: 'Казки', href: '/fairytales' }
+                : { label: 'Історії читачів', href: '/stories' },
               { label: story.title },
             ]}
           />
@@ -125,10 +128,10 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
             Автор: <strong style={{ color: '#c8d4e8' }}>{story.author_name}</strong>
           </div>
           <a
-            href="/"
+            href={isFairytale ? '/fairytales' : '/'}
             style={{ fontSize: 13, fontWeight: 700, color: GOLD, background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 10, padding: '8px 18px', textDecoration: 'none', fontFamily: FONT }}
           >
-            Більше історій →
+            {isFairytale ? 'Більше казок →' : 'Більше історій →'}
           </a>
         </div>
 
