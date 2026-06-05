@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import ReportErrorWidget from '@/app/components/ReportErrorWidget'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ShareButtons from '@/app/components/ShareButtons'
+import AgeGate from '@/app/components/AgeGate'
 
 const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
@@ -21,6 +22,7 @@ interface StoryRow {
   published_version: string | null
   cover_url:         string | null
   images:            string[] | null
+  is_adult:          boolean | null
   approved_at:       string
 }
 
@@ -28,7 +30,7 @@ async function getStory(id: string): Promise<StoryRow | null> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('id, slug, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, images, approved_at')
+    .select('id, slug, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, images, is_adult, approved_at')
     .eq('type', 'story')
     .eq('slug', id)
     .in('status', ['approved', 'published'])
@@ -112,10 +114,19 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         <div style={{ height: 1, background: 'linear-gradient(to right, transparent, rgba(239,159,39,0.4), transparent)', marginBottom: 36 }} />
 
         {/* Story body */}
-        <article
-          style={{ fontSize: 18, lineHeight: 1.9, color: '#dde6f0', fontFamily: FONT, wordBreak: 'break-word' }}
-          dangerouslySetInnerHTML={{ __html: toStoryHtml(body, story.images ?? []) }}
-        />
+        {story.is_adult ? (
+          <AgeGate>
+            <article
+              style={{ fontSize: 18, lineHeight: 1.9, color: '#dde6f0', fontFamily: FONT, wordBreak: 'break-word' }}
+              dangerouslySetInnerHTML={{ __html: toStoryHtml(body, story.images ?? []) }}
+            />
+          </AgeGate>
+        ) : (
+          <article
+            style={{ fontSize: 18, lineHeight: 1.9, color: '#dde6f0', fontFamily: FONT, wordBreak: 'break-word' }}
+            dangerouslySetInnerHTML={{ __html: toStoryHtml(body, story.images ?? []) }}
+          />
+        )}
 
         {/* Поширення */}
         <div style={{ marginTop: 40 }}>
