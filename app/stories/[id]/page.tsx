@@ -109,8 +109,8 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
         {/* Story body */}
         <article
-          style={{ fontSize: 16, lineHeight: 1.9, color: '#dde6f0', fontFamily: FONT, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
-          dangerouslySetInnerHTML={{ __html: escapeHtml(body) }}
+          style={{ fontSize: 16, lineHeight: 1.9, color: '#dde6f0', fontFamily: FONT, wordBreak: 'break-word' }}
+          dangerouslySetInnerHTML={{ __html: toStoryHtml(body) }}
         />
 
         {/* Поширення */}
@@ -139,11 +139,21 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
   )
 }
 
-function escapeHtml(str: string): string {
+function escapeChars(str: string): string {
   return str
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/\n/g, '<br/>')
+}
+
+// Розбиває текст на абзаци й обгортає кожен у <p> з відступом 14px —
+// так само, як рендеряться серії (.scene p{margin:0 0 14px}).
+function toStoryHtml(raw: string): string {
+  return raw
+    .split(/\n+/)
+    .map(p => p.trim())
+    .filter(p => p.length > 0)
+    .map(p => `<p style="margin:0 0 14px 0">${escapeChars(p)}</p>`)
+    .join('')
 }

@@ -1,7 +1,6 @@
 // components/FooterLegalSection.tsx
-// Юридична секція футера (реквізити ФОП + контакти + документи).
+// Юридична секція футера (реквізити ФОП + контакти).
 // Інлайн-стилі під спільну тему футера. Серверний компонент — контент видно без JS.
-import Link from "next/link";
 
 const headingStyle: React.CSSProperties = {
   color: "var(--accent-gold)",
@@ -18,10 +17,6 @@ const linkStyle: React.CSSProperties = {
   borderBottom: "1px solid rgba(255,255,255,0.2)",
   whiteSpace: "nowrap",
 };
-
-const sep = (
-  <span style={{ color: "rgba(255,255,255,0.3)", margin: "0 6px" }}>·</span>
-);
 
 export function FooterLegalSection() {
   return (
@@ -71,32 +66,6 @@ export function FooterLegalSection() {
             <a style={linkStyle} href="tel:+380505859141">
               +380 50 585 91 41
             </a>
-          </p>
-        </div>
-
-        {/* Документи */}
-        <div>
-          <h4 style={headingStyle}>Документи</h4>
-          <p style={{ margin: 0, display: "flex", flexWrap: "wrap", alignItems: "center", rowGap: 6 }}>
-            <Link style={linkStyle} href="/legal/offer">
-              Публічна оферта
-            </Link>
-            {sep}
-            <Link style={linkStyle} href="/legal/privacy">
-              Політика конфіденційності
-            </Link>
-            {sep}
-            <Link style={linkStyle} href="/legal/refund">
-              Правила повернення коштів
-            </Link>
-            {sep}
-            <Link style={linkStyle} href="/contacts">
-              Контакти
-            </Link>
-            {sep}
-            <Link style={linkStyle} href="/about">
-              Про автора
-            </Link>
           </p>
         </div>
       </div>

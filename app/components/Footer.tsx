@@ -32,6 +32,7 @@ const LEGAL_LINKS = [
   { title: 'Політика конфіденційності', href: '/legal/privacy' },
   { title: 'Угода користувача',         href: '/legal/terms' },
   { title: 'Публічна оферта',           href: '/legal/offer' },
+  { title: 'Правила повернення коштів', href: '/legal/refund' },
   { title: 'Політика Cookies',          href: '/legal/cookies' },
   { title: 'Захист дітей',              href: '/legal/child-safety' },
   { title: 'Договір з автором',         href: '/legal/author-contract' },

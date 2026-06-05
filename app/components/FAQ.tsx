@@ -87,17 +87,17 @@ export default function FAQ() {
   return (
     <section
       id="faq"
+      className="faq-shell"
       aria-labelledby="faq-title"
       style={{
         fontFamily: 'Montserrat, sans-serif',
         background: '#1a1f2e',
         borderRadius: 16,
-        padding: '2rem 2rem 1rem',
         position: 'relative',
         overflow: 'hidden',
         color: '#fff',
         margin: '0 auto 0.75rem',
-        maxWidth: 1200,
+        maxWidth: 920,
         scrollMarginTop: 80,
       }}
     >
@@ -123,7 +123,6 @@ export default function FAQ() {
           display: 'flex',
           flexDirection: 'column',
           gap: 14,
-          maxWidth: 820,
           margin: '0 auto',
           position: 'relative',
           zIndex: 1,
@@ -198,6 +197,14 @@ export default function FAQ() {
           border: 1px solid var(--accent-gold);
           animation: faq-float 4s ease-in-out infinite;
           text-transform: uppercase;
+        }
+        .faq-shell {
+          padding: 2rem 22px 1rem;
+        }
+        @media (max-width: 720px) {
+          .faq-shell {
+            padding: 2rem 14px 1rem;
+          }
         }
         .faq__title {
           font-size: 30px;

@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       authorName, title, genre, text, photoBase64, aiReport, action, adminNotes,
       correctedText, changes, publishedVersion,
       humanizedText, humanizeSummary,
-      category,
+      category, isAdult,
     } = await req.json()
 
     if (!title || !genre || !text || !action) {
@@ -102,6 +102,7 @@ export async function POST(req: NextRequest) {
       approved_at:       status === 'approved' ? new Date().toISOString() : null,
       duration_minutes,
       category:          resolvedCategory,
+      is_adult:          isAdult ?? false,
     })
 
     if (insertError) throw insertError
