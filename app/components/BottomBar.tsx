@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { useState, useEffect } from 'react'
 
 const NAVY = '#0f1e3a'
 const GOLD = 'var(--accent-gold)'
@@ -44,6 +45,23 @@ const TABS: Tab[] = [
 
 export default function BottomBar() {
   const pathname = usePathname() || '/'
+
+  const readerSlug = pathname.startsWith('/stories/')
+    ? pathname.split('/')[2] || ''
+    : ''
+  const [nav, setNav] = useState<{ prev: string | null; next: string | null }>({ prev: null, next: null })
+
+  useEffect(() => {
+    if (!readerSlug) { setNav({ prev: null, next: null }); return }
+    let alive = true
+    fetch('/api/reader-nav?slug=' + encodeURIComponent(readerSlug))
+      .then(r => r.json())
+      .then(d => { if (alive) setNav({ prev: d.prev ?? null, next: d.next ?? null }) })
+      .catch(() => { if (alive) setNav({ prev: null, next: null }) })
+    return () => { alive = false }
+  }, [readerSlug])
+
+  const showArrows = !!readerSlug
 
   return (
     <>
@@ -123,6 +141,42 @@ export default function BottomBar() {
             </a>
           )
         })}
+
+        {showArrows && (
+          <>
+            <span aria-hidden style={{ width: 1, alignSelf: 'center', height: 26, background: 'rgba(255,255,255,0.10)', margin: '0 2px' }} />
+            <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, gap: 4, paddingRight: 6 }}>
+              {[
+                { slug: nav.prev, left: true,  label: 'Попередня' },
+                { slug: nav.next, left: false, label: 'Наступна' },
+              ].map(({ slug, left, label }) => {
+                const icon = (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" width={20} height={20}>
+                    <path d={left ? 'M15 6l-6 6 6 6' : 'M9 6l6 6-6 6'} />
+                  </svg>
+                )
+                const box = {
+                  width: 40, height: 40, display: 'flex',
+                  alignItems: 'center', justifyContent: 'center', borderRadius: 10,
+                }
+                return slug ? (
+                  <a
+                    key={label}
+                    href={`/stories/${slug}`}
+                    aria-label={label}
+                    style={{ ...box, color: GOLD, background: 'rgba(239,159,39,0.12)', border: '1px solid rgba(239,159,39,0.30)', textDecoration: 'none' }}
+                  >
+                    {icon}
+                  </a>
+                ) : (
+                  <span key={label} aria-hidden style={{ ...box, color: 'rgba(245,240,232,0.22)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    {icon}
+                  </span>
+                )
+              })}
+            </div>
+          </>
+        )}
       </nav>
     </>
   )
