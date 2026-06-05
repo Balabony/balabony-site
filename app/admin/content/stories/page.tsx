@@ -174,7 +174,7 @@ export default function ContentStoriesPage() {
 
                 {/* Edit button */}
                 <a
-                  href={`/admin/content/stories/${item.id}/edit`}
+                  href={`/admin/stories1?edit=${item.id}`}
                   style={{
                     background: GOLD,
                     color: NAVY_DEEP,

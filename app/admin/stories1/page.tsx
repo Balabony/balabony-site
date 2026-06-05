@@ -322,6 +322,13 @@ export default function Stories1Page() {
 
   useEffect(() => { refreshList() }, [refreshList])
 
+  // Якщо прийшли зі списку контенту з ?edit=<id> — одразу вантажимо історію
+  useEffect(() => {
+    const editParam = new URLSearchParams(window.location.search).get('edit')
+    if (editParam) loadStory(editParam)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const loadStory = async (id: string) => {
     if (!id) { handleReset(); return }
     setLoadingEdit(true)
