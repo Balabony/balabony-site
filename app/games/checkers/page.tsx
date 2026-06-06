@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 /* ───────────────────────── Кольори бренду ───────────────────────── */
 const NAVY = '#0E1A2B'
@@ -238,21 +238,23 @@ export default function CheckersGamePage() {
 
   const DRAW_LIMIT = 40 // півходів без взяття → нічия
 
-  const finish = useCallback((b: Board, toMove: Color, movesNoCapture: number) => {
-    const w = gameWinner(b, toMove)
+  // Надійне визначення кінця партії: стежить за дошкою після кожного ходу.
+  useEffect(() => {
+    if (phase !== 'play' || result) return
+    const w = gameWinner(board, turn)
     if (w) {
-      setResult(w); setPhase('over')
+      setResult(w)
+      setPhase('over')
+      setThinking(false)
       if (mode === 'ai' && w === humanColor) {
         setWins((prev) => { const nv = prev + 1; try { window.localStorage.setItem(LS_KEY, String(nv)) } catch {} ; return nv })
       }
-      return true
+    } else if (msc >= DRAW_LIMIT) {
+      setResult('draw')
+      setPhase('over')
+      setThinking(false)
     }
-    if (movesNoCapture >= DRAW_LIMIT) {
-      setResult('draw'); setPhase('over')
-      return true
-    }
-    return false
-  }, [mode])
+  }, [board, turn, phase, result, msc, mode])
 
   // Хід ШІ
   useEffect(() => {
@@ -261,16 +263,16 @@ export default function CheckersGamePage() {
       setThinking(true)
       const t = setTimeout(() => {
         const mv = chooseAIMove(board, turn, level)
-        if (!mv) { finish(board, turn, msc); setThinking(false); return }
+        setThinking(false)
+        if (!mv) return // кінець зловить ефект завершення
         const nb = applyMove(board, mv)
         const nmsc = mv.captured.length > 0 ? 0 : msc + 1
-        setBoard(nb); setMsc(nmsc); setThinking(false)
-        if (!finish(nb, opp(turn), nmsc)) setTurn(opp(turn))
+        setBoard(nb); setMsc(nmsc); setTurn(opp(turn))
       }, 500)
       timers.current.push(t)
       return () => clearTimeout(t)
     }
-  }, [turn, phase, mode, result, board, level, msc, finish])
+  }, [turn, phase, mode, result, board, level, msc])
 
   const onCellTap = (r: number, c: number) => {
     if (phase !== 'play' || result || thinking) return
@@ -289,8 +291,7 @@ export default function CheckersGamePage() {
       if (mv) {
         const nb = applyMove(board, mv)
         const nmsc = mv.captured.length > 0 ? 0 : msc + 1
-        setBoard(nb); setMsc(nmsc); setSelected(null)
-        if (!finish(nb, opp(turn), nmsc)) setTurn(opp(turn))
+        setBoard(nb); setMsc(nmsc); setSelected(null); setTurn(opp(turn))
       }
     }
   }
