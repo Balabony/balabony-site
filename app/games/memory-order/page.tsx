@@ -297,7 +297,7 @@ export default function MemoryOrderPage() {
 
         {/* ───────── Нижня навігація ───────── */}
         <nav style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginTop: 28, borderTop: '1px solid rgba(255,255,255,0.12)', paddingTop: 22 }}>
-          <a href="/games/attention" style={navArrow}><span style={{ fontSize: 22, lineHeight: 1 }}>←</span><span>Подвійна увага</span></a>
+          <a href="/games" style={navArrow}><span style={{ fontSize: 22, lineHeight: 1 }}>←</span><span>Усі ігри</span></a>
           <a href="/" style={{ ...navArrow, textAlign: 'right' }}><span>Головна</span><span style={{ fontSize: 22, lineHeight: 1 }}>→</span></a>
         </nav>
       </div>
