@@ -247,19 +247,19 @@ export default function ChessPage() {
       : `Хід: ${state.turn === 'w' ? 'білі' : 'чорні'}${inCheck(state) ? ' — шах!' : ''}`;
 
   const ROW: React.CSSProperties = { display: 'flex', gap: 8, marginBottom: 12, width: 'min(92vw, 560px)' };
-  const btn: React.CSSProperties = { flex: '1 1 0', minWidth: 0, fontFamily: 'Montserrat, sans-serif', fontSize: 15, padding: '11px 6px', borderRadius: 12, border: '1.5px solid rgba(250,199,117,0.35)', background: CARD, color: GOLD_LIGHT, cursor: 'pointer', fontWeight: 700, textAlign: 'center', boxShadow: '0 0 14px rgba(239,159,39,0.14)' };
-  const btnActive: React.CSSProperties = { ...btn, background: GOLD, color: NAVY, borderColor: GOLD, boxShadow: '0 0 22px rgba(239,159,39,0.45)' };
-  const plaque = (active: boolean): React.CSSProperties => ({ flex: '1 1 0', minWidth: 0, padding: '9px 6px', borderRadius: 12, fontSize: 18, fontWeight: 700, textAlign: 'center', background: active ? GOLD : CARD, color: active ? NAVY : GOLD_LIGHT, border: active ? `1.5px solid ${GOLD}` : '1.5px solid rgba(250,199,117,0.3)', boxShadow: active ? '0 0 22px rgba(239,159,39,0.45)' : '0 0 12px rgba(239,159,39,0.1)' });
+  const btn: React.CSSProperties = { flex: '1 1 0', minWidth: 0, fontFamily: 'Montserrat, sans-serif', fontSize: 14, padding: '9px 6px', borderRadius: 10, border: '1.5px solid rgba(250,199,117,0.35)', background: CARD, color: GOLD_LIGHT, cursor: 'pointer', fontWeight: 700, textAlign: 'center', whiteSpace: 'nowrap', boxShadow: '0 0 12px rgba(239,159,39,0.12)' };
+  const btnActive: React.CSSProperties = { ...btn, background: GOLD, color: NAVY, borderColor: GOLD, boxShadow: '0 0 18px rgba(239,159,39,0.4)' };
+  const plaque = (active: boolean): React.CSSProperties => ({ flex: '1 1 0', minWidth: 0, padding: '8px 6px', borderRadius: 10, fontSize: 16, fontWeight: 700, textAlign: 'center', whiteSpace: 'nowrap', background: active ? GOLD : CARD, color: active ? NAVY : GOLD_LIGHT, border: active ? `1.5px solid ${GOLD}` : '1.5px solid rgba(250,199,117,0.3)', boxShadow: active ? '0 0 18px rgba(239,159,39,0.4)' : '0 0 10px rgba(239,159,39,0.1)' });
 
   return (
-    <div style={{ background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, color: TEXT_DESC, padding: '32px 5% calc(88px + env(safe-area-inset-bottom,0px))', fontFamily: 'Montserrat, sans-serif' }}>
+    <div style={{ background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, color: TEXT_DESC, padding: '28px 5% 32px', fontFamily: 'Montserrat, sans-serif' }}>
       <h1 style={{ fontFamily: 'Lora, serif', fontSize: 34, margin: '0 0 6px', color: GOLD_LIGHT }}>Шахи</h1>
       <p style={{ fontSize: 17, lineHeight: 1.5, margin: '0 0 20px', maxWidth: 620, color: TEXT_DESC }}>
         Грайте проти комп’ютера (три рівні) або вдвох на одному пристрої. Спокійно, без поспіху — тренування планування й передбачення ходів.
       </p>
 
       <div style={ROW}>
-        <button style={mode === 'ai' ? btnActive : btn} onClick={() => { setMode('ai'); newGame(); }}>Проти комп’ютера</button>
+        <button style={mode === 'ai' ? btnActive : btn} onClick={() => { setMode('ai'); newGame(); }}>Комп’ютер</button>
         <button style={mode === 'two' ? btnActive : btn} onClick={() => { setMode('two'); newGame(); }}>Удвох</button>
       </div>
 
@@ -301,17 +301,23 @@ export default function ChessPage() {
               {p && <img src={pieceSrc(p)} alt="" draggable={false} style={{ width: '86%', height: '86%', position: 'relative', userSelect: 'none' }} />}
               {isTarget && !p && <div style={{ position: 'absolute', width: '32%', height: '32%', borderRadius: '50%', background: 'rgba(14,26,43,0.35)' }} />}
               {isTarget && p && <div style={{ position: 'absolute', inset: 0, border: '4px solid rgba(14,26,43,0.5)', borderRadius: 4 }} />}
-              {/* координати */}
+              {/* координати: цифри лишаються в кутку клітинки, літери — окремим рядком під дошкою */}
               {c === (flip ? 7 : 0) && <span style={{ position: 'absolute', top: 2, left: 3, fontSize: 11, lineHeight: 1, fontWeight: 700, pointerEvents: 'none', color: lightSq ? LBL_LIGHT : LBL_DARK }}>{8 - r}</span>}
-              {r === (flip ? 0 : 7) && <span style={{ position: 'absolute', bottom: 2, right: 3, fontSize: 11, lineHeight: 1, fontWeight: 700, pointerEvents: 'none', color: lightSq ? LBL_LIGHT : LBL_DARK }}>{FILES[c]}</span>}
             </div>
           );
         })}
       </div>
 
+      {/* літери a–h під дошкою */}
+      <div style={{ display: 'flex', width: 'min(92vw, 560px)', marginTop: 4 }}>
+        {(flip ? [...FILES].reverse() : [...FILES]).map((f) => (
+          <div key={f} style={{ flex: '1 1 0', textAlign: 'center', fontSize: 13, fontWeight: 700, color: TEXT_SOFT }}>{f}</div>
+        ))}
+      </div>
+
       <div style={{ ...ROW, marginTop: 18, marginBottom: 0 }}>
         <button style={btn} onClick={newGame}>Нова гра</button>
-        <button style={btn} onClick={() => setFlip((f) => !f)}>Перевернути дошку</button>
+        <button style={btn} onClick={() => setFlip((f) => !f)}>Перевернути</button>
       </div>
 
       {/* вибір фігури при перетворенні пішака */}
