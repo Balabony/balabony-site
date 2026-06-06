@@ -48,6 +48,24 @@ export default function ContentStoriesPage() {
       .catch(() => { setError("Помилка з'єднання"); setPhase('error') })
   }, [])
 
+  // ── Видалення ────────────────────────────────────────────────────
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  async function handleDelete(id: string, title: string) {
+    if (!window.confirm(`Видалити «${title}»?\n\nЦю дію не можна скасувати.`)) return
+    setDeletingId(id)
+    try {
+      const res = await fetch(`/api/admin/content/${id}`, { method: 'DELETE' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Не вдалося видалити')
+      setItems(prev => prev.filter(s => s.id !== id))
+    } catch (e) {
+      alert('Помилка видалення: ' + String(e))
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   // ── Унікальні жанри для фільтру ──────────────────────────────────
   const allGenres = [...new Set(items.map(s => s.genre).filter(Boolean) as string[])].sort()
 
@@ -172,24 +190,44 @@ export default function ContentStoriesPage() {
                   </div>
                 </div>
 
-                {/* Edit button */}
-                <a
-                  href={`/admin/stories1?edit=${item.id}`}
-                  style={{
-                    background: GOLD,
-                    color: NAVY_DEEP,
-                    padding: '8px 14px',
-                    borderRadius: 8,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    textDecoration: 'none',
-                    fontFamily: FONT,
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0,
-                  }}
-                >
-                  Редагувати
-                </a>
+                {/* Дії */}
+                <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                  <a
+                    href={`/admin/stories1?edit=${item.id}`}
+                    style={{
+                      background: GOLD,
+                      color: NAVY_DEEP,
+                      padding: '8px 14px',
+                      borderRadius: 8,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      textDecoration: 'none',
+                      fontFamily: FONT,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Редагувати
+                  </a>
+                  <button
+                    onClick={() => handleDelete(item.id, item.title)}
+                    disabled={deletingId === item.id}
+                    style={{
+                      background: 'transparent',
+                      color: '#e0484d',
+                      padding: '8px 14px',
+                      borderRadius: 8,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      border: '1.5px solid rgba(224,72,77,0.6)',
+                      fontFamily: FONT,
+                      whiteSpace: 'nowrap',
+                      cursor: deletingId === item.id ? 'default' : 'pointer',
+                      opacity: deletingId === item.id ? 0.5 : 1,
+                    }}
+                  >
+                    {deletingId === item.id ? 'Видаляю…' : 'Видалити'}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
