@@ -31,6 +31,7 @@ function Icon({ kind }: { kind: string }) {
       return (<svg {...p}><rect x="6" y="11" width="16" height="21" rx="3" fill="none" stroke={GOLD_LIGHT} strokeWidth="2.8" /><rect x="26" y="17" width="16" height="21" rx="3" fill="none" stroke={GOLD_BRIGHT} strokeWidth="2.8" /><path d="M10 21 l3 3 l5 -6" fill="none" stroke={GOLD_LIGHT} strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" /><path d="M30 27 l3 3 l5 -6" fill="none" stroke={GOLD_BRIGHT} strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" /></svg>)
     case 'checkers':
       return (<svg {...p}><circle cx="17" cy="29" r="11" fill="none" stroke={GOLD_LIGHT} strokeWidth="2.8" /><circle cx="30" cy="19" r="11" fill={GOLD_LIGHT} stroke={GOLD} strokeWidth="1.5" /><path d="M24 20 l2.5 2 l3.5 -4 l3.5 4 l2.5 -2 v4 h-12 z" fill="#14253B" /></svg>)
+    case 'chess': return (<svg {...p}><g fill="none" stroke={GOLD_LIGHT} strokeWidth="2.8" strokeLinejoin="round" strokeLinecap="round"><path d="M24 6 v6 M21 9 h6"/><path d="M24 14 c-5 0 -8 4 -8 8 l2 12 h12 l2 -12 c0 -4 -3 -8 -8 -8 z"/><path d="M14 38 h20 v4 h-20 z"/></g></svg>)
     default:
       return null
   }
@@ -46,6 +47,7 @@ const USEFUL: Game[] = [
   { href: '/games/memory-order', kind: 'order', title: 'Запам’ятай порядок', desc: 'Тренує робочу пам’ять. Кілька коротких занять на тиждень дають помітний результат.' },
   { href: '/games/colors', kind: 'colors', title: 'Який колір?', desc: 'Тренує самоконтроль і увагу: назви колір літер, а не читай слово. Спокійна вправа на зосередженість.' },
   { href: '/games/pairs', kind: 'pairs', title: 'Знайди пару', desc: 'Тренує зорову пам’ять. Приємно грати разом із дітьми чи онуками.' },
+  { href: '/games/chess', kind: 'chess', title: 'Шахи', desc: 'Класичні шахи — проти машини (три рівні) або вдвох. Тренують планування й передбачення ходів.' },
   { href: '/games/checkers', kind: 'checkers', title: 'Шашки', desc: 'Класичні шашки — проти комп’ютера (три рівні) або вдвох. Тренують планування й передбачення ходів.' },
 ]
 
