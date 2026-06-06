@@ -152,6 +152,7 @@ export default function ColorsGamePage() {
   return (
     <main lang="uk" style={{ minHeight: '100vh', background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, padding: '32px 5% calc(120px + env(safe-area-inset-bottom, 0px))', fontFamily: "'Montserrat', sans-serif", color: '#fff' }}>
       <div style={{ maxWidth: 640, margin: '0 auto' }}>
+        {phase === 'intro' && (<>
         <nav style={{ marginBottom: 18, fontSize: 13, letterSpacing: 0.5 }}>
           <a href="/" style={{ color: GOLD, textDecoration: 'none' }}>Головна</a>
           <span style={{ color: 'rgba(255,255,255,0.35)', margin: '0 8px' }}>·</span>
@@ -162,8 +163,7 @@ export default function ColorsGamePage() {
           Який колір?
         </h1>
 
-        {/* Плашка й опис — лише до початку гри */}
-        {phase === 'intro' && (<>
+        
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(239,159,39,0.08)', border: '1px solid rgba(239,159,39,0.4)', borderRadius: 14, padding: '12px 16px', margin: '4px 0 22px' }}>
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
             <path d="M12 2 L20 5 V11 C20 16 16.5 20 12 22 C7.5 20 4 16 4 11 V5 Z" /><path d="M9 12 l2 2 l4 -4" />
@@ -233,11 +233,11 @@ export default function ColorsGamePage() {
             {(phase === 'question' || phase === 'feedback') && round && (
               <div style={{ width: '100%' }}>
                 <p style={{ fontSize: 15, color: '#7A6A48', margin: '0 0 6px' }}>Якого кольору літери?</p>
-                <div className="bb-word-in" style={{ fontFamily: "'Lora', serif", fontWeight: 700, fontSize: 'clamp(28px, 9.5vw, 46px)', color: round.wordColor.hex, margin: '0 0 22px', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
+                <div className="bb-word-in" style={{ fontFamily: "'Lora', serif", fontWeight: 700, fontSize: 'clamp(28px, 9.5vw, 46px)', color: round.wordColor.hex, margin: '0 0 14px', lineHeight: 1.1, whiteSpace: 'nowrap' }}>
                   {round.wordText.name}
                 </div>
 
-                <div style={{ display: 'grid', gap: 10, maxWidth: 340, margin: '0 auto' }}>
+                <div style={{ display: 'grid', gap: 8, maxWidth: 340, margin: '0 auto' }}>
                   {round.options.map((c) => {
                     const isPicked = picked?.key === c.key
                     const isCorrect = c.key === round.wordColor.key
@@ -249,7 +249,7 @@ export default function ColorsGamePage() {
                     }
                     return (
                       <button key={c.key} onClick={() => phase === 'question' && answer(c)} disabled={phase === 'feedback'}
-                        style={{ background: bg, border, borderRadius: 16, padding: '14px 18px', minHeight: 56, cursor: phase === 'question' ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 12, boxSizing: 'border-box' }}>
+                        style={{ background: bg, border, borderRadius: 16, padding: '12px 18px', minHeight: 50, cursor: phase === 'question' ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 12, boxSizing: 'border-box' }}>
                         <span style={{ width: 20, height: 20, borderRadius: '50%', background: c.hex, flexShrink: 0, border: '1px solid rgba(0,0,0,0.15)' }} />
                         <span style={{ fontSize: 18, fontWeight: 700, color: NAVY, whiteSpace: 'nowrap' }}>{c.name}</span>
                       </button>

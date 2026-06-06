@@ -452,6 +452,7 @@ export default function FlashGamePage() {
   return (
     <main lang="uk" style={{ minHeight: '100vh', background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, padding: '32px 5% calc(120px + env(safe-area-inset-bottom, 0px))', fontFamily: "'Montserrat', sans-serif", color: '#fff' }}>
       <div style={{ maxWidth: 640, margin: '0 auto' }}>
+        {phase === 'intro' && (<>
         <nav style={{ marginBottom: 18, fontSize: 13, letterSpacing: 0.5 }}>
           <a href="/" style={{ color: GOLD, textDecoration: 'none' }}>Головна</a>
           <span style={{ color: 'rgba(255,255,255,0.35)', margin: '0 8px' }}>·</span>
@@ -462,8 +463,7 @@ export default function FlashGamePage() {
           Що промайнуло?
         </h1>
 
-        {/* Плашка й опис — лише до початку гри */}
-        {phase === 'intro' && (<>
+        
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(239,159,39,0.08)', border: '1px solid rgba(239,159,39,0.4)', borderRadius: 14, padding: '12px 16px', margin: '4px 0 22px' }}>
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
             <path d="M12 2 L20 5 V11 C20 16 16.5 20 12 22 C7.5 20 4 16 4 11 V5 Z" /><path d="M9 12 l2 2 l4 -4" />
