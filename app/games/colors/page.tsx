@@ -162,7 +162,8 @@ export default function ColorsGamePage() {
           Який колір?
         </h1>
 
-        {/* Плашка наукової основи */}
+        {/* Плашка й опис — лише до початку гри */}
+        {phase === 'intro' && (<>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(239,159,39,0.08)', border: '1px solid rgba(239,159,39,0.4)', borderRadius: 14, padding: '12px 16px', margin: '4px 0 22px' }}>
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
             <path d="M12 2 L20 5 V11 C20 16 16.5 20 12 22 C7.5 20 4 16 4 11 V5 Z" /><path d="M9 12 l2 2 l4 -4" />
@@ -182,6 +183,7 @@ export default function ColorsGamePage() {
           звичку (читати слово) і робити те, що потрібно зараз. Це «гальмівний контроль» —
           опора уваги та самовладання. <b style={{ color: GOLD }}>Користь дає регулярність.</b>
         </p>
+        </>)}
 
         {/* ───────── Ігрове поле ───────── */}
         <section style={{ background: CREAM, borderRadius: 24, border: `2px solid ${GOLD_LIGHT}`, padding: '28px 22px', color: NAVY, boxShadow: '0 18px 40px rgba(0,0,0,0.28)' }}>
@@ -193,7 +195,7 @@ export default function ColorsGamePage() {
             </div>
           )}
 
-          <div style={{ minHeight: 230, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+          <div style={{ minHeight: 190, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
             {/* INTRO */}
             {phase === 'intro' && (
               <div style={{ width: '100%' }}>
