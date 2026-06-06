@@ -45,10 +45,10 @@ const IconGames = (
 )
 
 const TABS: Tab[] = [
-  { href: '/',         label: 'Р“РѕР»РѕРІРЅР°', icon: IconHome,     isActive: (p) => p === '/' },
-  { href: '/sitemap',  label: 'Р РѕР·РґС–Р»Рё', icon: IconSections, isActive: (p) => p.startsWith('/sitemap') },
+  { href: '/',         label: 'Головна', icon: IconHome,     isActive: (p) => p === '/' },
+  { href: '/sitemap',  label: 'Розділи', icon: IconSections, isActive: (p) => p.startsWith('/sitemap') },
   { href: '/games', label: 'Ігри', icon: IconGames, isActive: (p) => p.startsWith('/games') },
-  { href: '/episodes', label: 'Р§РёС‚Р°С‚Рё',  icon: IconRead,     isActive: (p) => p.startsWith('/episodes') || p.startsWith('/series') || p.startsWith('/stories') },
+  { href: '/episodes', label: 'Читати',  icon: IconRead,     isActive: (p) => p.startsWith('/episodes') || p.startsWith('/series') || p.startsWith('/stories') },
 ]
 
 export default function BottomBar() {
@@ -73,8 +73,6 @@ export default function BottomBar() {
 
   return (
     <>
-      {/* РўС–Р»СЊРєРё РјРѕР±С–Р»СЊРЅРёР№; РЅР° РґРµСЃРєС‚РѕРїС– С…РѕРІР°С”РјРѕ (С‚Р°Рј РЅР°РІС–РіР°С†С–СЏ Сѓ С€Р°РїС†С–).
-          --bb-offset РїС–РґРЅС–РјР°С” С„С–РєСЃРѕРІР°РЅРёР№ AudioPlayer РЅР°Рґ Р±Р°СЂРѕРј РЅР° РјРѕР±С–Р»СЊРЅРѕРјСѓ. */}
       <style>{`
         @media (min-width: 768px) { .bb-root { display: none !important; } }
         @media (max-width: 767px) {
@@ -86,7 +84,7 @@ export default function BottomBar() {
 
       <nav
         className="bb-root"
-        aria-label="РќРёР¶РЅСЏ РЅР°РІС–РіР°С†С–СЏ"
+        aria-label="Нижня навігація"
         style={{
           position: 'fixed',
           left: 0,
@@ -155,8 +153,8 @@ export default function BottomBar() {
             <span aria-hidden style={{ width: 1, alignSelf: 'center', height: 26, background: 'rgba(255,255,255,0.10)', margin: '0 2px' }} />
             <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, gap: 4, paddingRight: 6 }}>
               {[
-                { slug: nav.prev, left: true,  label: 'РџРѕРїРµСЂРµРґРЅСЏ' },
-                { slug: nav.next, left: false, label: 'РќР°СЃС‚СѓРїРЅР°' },
+                { slug: nav.prev, left: true,  label: 'Попередня' },
+                { slug: nav.next, left: false, label: 'Наступна' },
               ].map(({ slug, left, label }) => {
                 const icon = (
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" width={20} height={20}>
