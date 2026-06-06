@@ -93,6 +93,14 @@ export default function PairsGamePage() {
   const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = [] }
   useEffect(() => () => clearTimers(), [])
 
+  // Прокрутити вгору при старті гри (щоб ігрове поле було зверху, без порожнечі)
+  const prevPhaseRef = useRef(phase)
+  useEffect(() => {
+    if (prevPhaseRef.current === 'intro' && phase !== 'intro') {
+      if (typeof window !== 'undefined') window.scrollTo({ top: 0 })
+    }
+    prevPhaseRef.current = phase
+  }, [phase])
   const cfg = LEVELS[level]
   const bestKey = (lv: Level) => `balabony_pairs_best_${lv}`
 
@@ -166,7 +174,7 @@ export default function PairsGamePage() {
   const playing = phase === 'playing'
 
   return (
-    <main lang="uk" style={{ minHeight: '100vh', background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, padding: '32px 5% calc(120px + env(safe-area-inset-bottom, 0px))', fontFamily: "'Montserrat', sans-serif", color: '#fff' }}>
+    <main lang="uk" style={{ minHeight: '100vh', background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, padding: '32px 5% calc(88px + env(safe-area-inset-bottom, 0px))', fontFamily: "'Montserrat', sans-serif", color: '#fff' }}>
       <div style={{ maxWidth: 640, margin: '0 auto' }}>
         {phase === 'intro' && (<>
         <nav style={{ marginBottom: 18, fontSize: 13, letterSpacing: 0.5 }}>
