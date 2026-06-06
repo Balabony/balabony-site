@@ -397,6 +397,10 @@ export default function CheckersGamePage() {
                 <button onClick={reset} style={btnGhostDark}>Завершити партію</button>
               </div>
             )}
+
+            <div style={{ marginTop: 14, textAlign: 'center', fontSize: 12, color: '#FAC775', fontFamily: 'monospace', background: 'rgba(0,0,0,0.25)', borderRadius: 8, padding: '6px 8px' }}>
+              діаг: фаза={phase} · хід={turn} · світлих={countPieces(board, 'w')} темних={countPieces(board, 'b')} · легальних={moves.length} · результат={result ?? '—'} · думає={thinking ? 'так' : 'ні'} · безВзяття={msc}
+            </div>
           </>
         )}
 
