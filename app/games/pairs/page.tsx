@@ -174,7 +174,7 @@ export default function PairsGamePage() {
   const playing = phase === 'playing'
 
   return (
-    <main lang="uk" style={{ minHeight: '100vh', background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, padding: '32px 5% calc(88px + env(safe-area-inset-bottom, 0px))', fontFamily: "'Montserrat', sans-serif", color: '#fff' }}>
+    <main lang="uk" style={{ background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, padding: '32px 5% calc(88px + env(safe-area-inset-bottom, 0px))', fontFamily: "'Montserrat', sans-serif", color: '#fff' }}>
       <div style={{ maxWidth: 640, margin: '0 auto' }}>
         {phase === 'intro' && (<>
         <nav style={{ marginBottom: 18, fontSize: 13, letterSpacing: 0.5 }}>
@@ -314,7 +314,7 @@ export default function PairsGamePage() {
             <p><b>Скільки за раз.</b><br />5–10 хвилин, у своєму темпі. Одна гра — 6 або 8 пар на вибір.</p>
             <p><b>Як часто.</b><br />3–5 разів на тиждень короткими сеансами; кілька тижнів поспіль дають помітніший результат.</p>
             <p><b>Якщо складно.</b><br />Почніть із «Легкого» (6 пар). Що частіше граєте, то легше запам’ятовувати розташування.</p>
-            <p><b>Чи це лікує?</b> Ні. Це тренувальна вправа для підтримки пам’яті, а не ліки й не заміна консультації лікаря.</p>
+            <p><b>Чи це лікує?</b><br />Ні. Це тренувальна вправа для підтримки пам’яті, а не ліки й не заміна консультації лікаря.</p>
           </div>
         </details>
 

@@ -148,7 +148,7 @@ export default function MemoryOrderPage() {
   const playing = phase !== 'intro' && phase !== 'over'
 
   return (
-    <main lang="uk" style={{ minHeight: '100vh', background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, padding: '32px 5% calc(88px + env(safe-area-inset-bottom, 0px))', fontFamily: "'Montserrat', sans-serif", color: '#fff' }}>
+    <main lang="uk" style={{ background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, padding: '32px 5% calc(88px + env(safe-area-inset-bottom, 0px))', fontFamily: "'Montserrat', sans-serif", color: '#fff' }}>
       <div style={{ maxWidth: 640, margin: '0 auto' }}>
         {phase === 'intro' && (<>
         <nav style={{ marginBottom: 18, fontSize: 13, letterSpacing: 0.5 }}>
@@ -297,7 +297,7 @@ export default function MemoryOrderPage() {
             <p><b>Скільки за раз.</b><br />5–10 хвилин, не до втоми. Щойно стало важко зосередитися — завершуйте.</p>
             <p><b>Як часто.</b><br />3–5 разів на тиждень короткими сеансами. Кілька тижнів поспіль дають помітніший результат.</p>
             <p><b>Якщо складно.</b><br />Це нормально: послідовність росте поступово, і навіть короткі ланцюжки — корисне тренування. Не засмучуйтеся помилкам.</p>
-            <p><b>Чи це лікує?</b> Ні. Це тренувальна вправа для підтримки когнітивних функцій, а не ліки й не заміна консультації лікаря.</p>
+            <p><b>Чи це лікує?</b><br />Ні. Це тренувальна вправа для підтримки когнітивних функцій, а не ліки й не заміна консультації лікаря.</p>
           </div>
         </details>
 

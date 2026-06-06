@@ -69,7 +69,7 @@ function GameCard({ game, evidence }: { game: Game; evidence: boolean }) {
 
 export default function GamesPage() {
   return (
-    <main lang="uk" style={{ minHeight: '100vh', background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, padding: '32px 5% calc(88px + env(safe-area-inset-bottom, 0px))', fontFamily: "'Montserrat', sans-serif", color: '#fff' }}>
+    <main lang="uk" style={{ background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, padding: '32px 5% calc(88px + env(safe-area-inset-bottom, 0px))', fontFamily: "'Montserrat', sans-serif", color: '#fff' }}>
       <div style={{ maxWidth: 640, margin: '0 auto' }}>
         <nav style={{ marginBottom: 18, fontSize: 13, letterSpacing: 0.5 }}>
           <a href="/" style={{ color: GOLD, textDecoration: 'none' }}>← Головна</a>

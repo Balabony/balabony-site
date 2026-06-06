@@ -281,7 +281,7 @@ export default function AttentionGamePage() {
   const bothOk = centerOk && dirOk
 
   return (
-    <main lang="uk" style={{ minHeight: '100vh', background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, padding: '32px 5% calc(88px + env(safe-area-inset-bottom, 0px))', fontFamily: "'Montserrat', sans-serif", color: '#fff' }}>
+    <main lang="uk" style={{ background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, padding: '32px 5% calc(88px + env(safe-area-inset-bottom, 0px))', fontFamily: "'Montserrat', sans-serif", color: '#fff' }}>
       <div style={{ maxWidth: 640, margin: '0 auto' }}>
         {phase === 'intro' && (<>
         <nav style={{ marginBottom: 18, fontSize: 13, letterSpacing: 0.5 }}>
@@ -458,7 +458,7 @@ export default function AttentionGamePage() {
             <p><b>Скільки грати за раз.</b><br />Орієнтовно 5–10 хвилин, не до втоми. Щойно відчули, що увага «попливла», — завершуйте. Коротко, але якісно краще, ніж довго через силу.</p>
             <p><b>Як часто.</b><br />Користь дає регулярність. Розумний орієнтир — 3–5 разів на тиждень короткими сеансами. Кілька тижнів поспіль дадуть більше, ніж марафон за один день.</p>
             <p><b>Якщо складно.</b><br />Це нормально — почніть із «Легкого» рівня. Подвійна увага складніша за просте впізнавання, тож не засмучуйтеся помилкам: саме невеликий виклик і тренує мозок.</p>
-            <p><b>Чи це лікує?</b> Ні. Це тренувальна вправа для підтримки когнітивних функцій, а не ліки й не заміна реабілітації чи консультації лікаря.</p>
+            <p><b>Чи це лікує?</b><br />Ні. Це тренувальна вправа для підтримки когнітивних функцій, а не ліки й не заміна реабілітації чи консультації лікаря.</p>
           </div>
         </details>
 
