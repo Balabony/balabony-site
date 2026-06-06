@@ -5,15 +5,15 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 /* ───────────────────────── Кольори бренду ───────────────────────── */
 const NAVY = '#0E1A2B'
 const NAVY2 = '#14253B'
-const GOLD = '#EF9F27'        // яскравий — для тексту на темному
-const GOLD_DARK = '#B5710C'   // насичений — для тексту на світлому
+const GOLD = '#EF9F27'
+const GOLD_DARK = '#B5710C'
 const GOLD_LIGHT = '#FAC775'
 const CREAM = '#FFF8EE'
 const TEXT_SOFT = '#B5D4F4'
 const GREEN = '#2E8B57'
 const RED_SOFT = '#E0484D'
 
-/* ───────────────────────── Картинки ───────────────────────── */
+/* ───────────────────────── Картинки (60) ───────────────────────── */
 type ShapeKey =
   | 'sun' | 'flower' | 'cat' | 'fish' | 'house' | 'tree'
   | 'star' | 'butterfly' | 'mushroom' | 'heart' | 'bird' | 'ball'
@@ -22,7 +22,9 @@ type ShapeKey =
   | 'bee' | 'snail' | 'frog' | 'carrot' | 'strawberry' | 'ladybug'
   | 'dog' | 'bear' | 'mouse' | 'owl' | 'turtle' | 'duck'
   | 'pear' | 'lemon' | 'cherry' | 'grape' | 'rainbow' | 'snowflake'
-  | 'gift' | 'candle' | 'drop'
+  | 'gift' | 'candle' | 'drop' | 'hedgehog' | 'pig' | 'sheep'
+  | 'penguin' | 'crab' | 'elephant' | 'snake' | 'tomato' | 'pumpkin'
+  | 'watermelon' | 'orange' | 'plane' | 'rocket' | 'clock' | 'book'
 
 const SHAPE_NAMES: Record<ShapeKey, string> = {
   sun: 'Сонечко', flower: 'Квітка', cat: 'Котик', fish: 'Рибка',
@@ -37,6 +39,10 @@ const SHAPE_NAMES: Record<ShapeKey, string> = {
   turtle: 'Черепашка', duck: 'Каченя', pear: 'Грушка', lemon: 'Лимончик',
   cherry: 'Вишенька', grape: 'Виноград', rainbow: 'Веселка', snowflake: 'Сніжинка',
   gift: 'Подарунок', candle: 'Свічка', drop: 'Краплинка',
+  hedgehog: 'Їжачок', pig: 'Поросятко', sheep: 'Овечка', penguin: 'Пінгвін',
+  crab: 'Крабик', elephant: 'Слоник', snake: 'Змійка', tomato: 'Помідор',
+  pumpkin: 'Гарбуз', watermelon: 'Кавун', orange: 'Апельсин', plane: 'Літачок',
+  rocket: 'Ракета', clock: 'Годинник', book: 'Книжка',
 }
 
 const ALL_SHAPES = Object.keys(SHAPE_NAMES) as ShapeKey[]
@@ -224,6 +230,82 @@ function Shape({ kind, size = 150 }: { kind: ShapeKey; size?: number }) {
         <rect x="40" y="44" width="20" height="42" rx="3" fill="#E8C57A" /><path d="M50 26 Q44 34 50 44 Q56 34 50 26 Z" fill={GOLD} /><circle cx="50" cy="36" r="3" fill="#FFF3DF" /></svg>)
     case 'drop':
       return (<svg {...c} {...a}><path d="M50 16 C50 16 26 50 26 64 A24 24 0 0 0 74 64 C74 50 50 16 50 16 Z" fill="#3FA0C4" /><ellipse cx="42" cy="62" rx="5" ry="8" fill="#9FC6E8" opacity="0.7" /></svg>)
+    case 'hedgehog':
+      return (<svg {...c} {...a}>
+        {[...Array(11)].map((_, i) => { const x = 24 + i * 5
+          return <line key={i} x1={x} y1="58" x2={x - 4} y2={34 + (i % 2) * 4} stroke="#7A5A38" strokeWidth="3" strokeLinecap="round" /> })}
+        <path d="M22 58 A30 18 0 0 1 82 58 Z" fill="#9A7B52" />
+        <ellipse cx="78" cy="60" rx="12" ry="9" fill="#C9A878" /><circle cx="84" cy="58" r="2.5" fill={NAVY} /><circle cx="88" cy="62" r="2.5" fill={NAVY} /></svg>)
+    case 'pig':
+      return (<svg {...c} {...a}>
+        <polygon points="30,30 26,16 42,26" fill="#E89BB0" /><polygon points="70,30 74,16 58,26" fill="#E89BB0" />
+        <circle cx="50" cy="56" r="30" fill="#F0A9BD" /><ellipse cx="50" cy="62" rx="14" ry="10" fill="#E07898" />
+        <circle cx="45" cy="62" r="2.5" fill="#B0506C" /><circle cx="55" cy="62" r="2.5" fill="#B0506C" />
+        <circle cx="40" cy="48" r="3.5" fill={NAVY} /><circle cx="60" cy="48" r="3.5" fill={NAVY} /></svg>)
+    case 'sheep':
+      return (<svg {...c} {...a}>
+        {[[38,40],[50,34],[62,40],[32,52],[68,52],[40,62],[60,62],[50,66]].map(([x, y], i) =>
+          <circle key={i} cx={x} cy={y} r="13" fill="#F0EEE8" />)}
+        <ellipse cx="50" cy="58" rx="14" ry="13" fill="#6A6258" /><circle cx="45" cy="56" r="3" fill={CREAM} /><circle cx="55" cy="56" r="3" fill={CREAM} /></svg>)
+    case 'penguin':
+      return (<svg {...c} {...a}>
+        <ellipse cx="50" cy="54" rx="24" ry="32" fill={NAVY} /><ellipse cx="50" cy="60" rx="15" ry="24" fill={CREAM} />
+        <circle cx="42" cy="40" r="3.5" fill={CREAM} /><circle cx="58" cy="40" r="3.5" fill={CREAM} />
+        <polygon points="46,46 54,46 50,54" fill={GOLD} /><ellipse cx="40" cy="86" rx="8" ry="4" fill={GOLD} /><ellipse cx="60" cy="86" rx="8" ry="4" fill={GOLD} /></svg>)
+    case 'crab':
+      return (<svg {...c} {...a}>
+        <ellipse cx="50" cy="58" rx="26" ry="18" fill="#D8424A" />
+        <circle cx="42" cy="48" r="4" fill={NAVY} /><circle cx="58" cy="48" r="4" fill={NAVY} />
+        <path d="M24 56 Q12 50 16 40 Q24 44 28 52" fill="#C0383F" /><path d="M76 56 Q88 50 84 40 Q76 44 72 52" fill="#C0383F" />
+        <line x1="30" y1="70" x2="22" y2="80" stroke="#D8424A" strokeWidth="3" /><line x1="70" y1="70" x2="78" y2="80" stroke="#D8424A" strokeWidth="3" /></svg>)
+    case 'elephant':
+      return (<svg {...c} {...a}>
+        <circle cx="48" cy="48" r="26" fill="#9AA6B0" /><ellipse cx="26" cy="50" rx="14" ry="18" fill="#8A96A0" />
+        <path d="M62 56 Q78 60 76 80 Q70 82 68 72 Q66 64 60 64 Z" fill="#9AA6B0" />
+        <circle cx="44" cy="44" r="3.5" fill={NAVY} /><circle cx="58" cy="44" r="3.5" fill={NAVY} /></svg>)
+    case 'snake':
+      return (<svg {...c} {...a}>
+        <path d="M24 78 Q48 78 44 58 Q40 40 56 38 Q72 36 70 22" fill="none" stroke="#4DBE7A" strokeWidth="11" strokeLinecap="round" />
+        <circle cx="70" cy="22" r="8" fill="#3FA66A" /><circle cx="73" cy="20" r="2" fill={NAVY} />
+        <line x1="70" y1="14" x2="70" y2="9" stroke="#D8424A" strokeWidth="2" /></svg>)
+    case 'tomato':
+      return (<svg {...c} {...a}>
+        <circle cx="50" cy="58" r="28" fill="#D8424A" />
+        <path d="M50 36 L42 26 M50 36 L58 26 M50 36 L50 24 M50 36 L40 32 M50 36 L60 32" stroke="#3FA66A" strokeWidth="4" strokeLinecap="round" />
+        <circle cx="50" cy="34" r="5" fill="#2E8B57" /></svg>)
+    case 'pumpkin':
+      return (<svg {...c} {...a}>
+        <ellipse cx="50" cy="60" rx="32" ry="24" fill="#E8913F" /><ellipse cx="50" cy="60" rx="18" ry="24" fill="#F0A24E" />
+        <ellipse cx="30" cy="60" rx="10" ry="22" fill="#D8812F" /><ellipse cx="70" cy="60" rx="10" ry="22" fill="#D8812F" />
+        <rect x="46" y="30" width="8" height="12" rx="3" fill="#6A8A3A" /></svg>)
+    case 'watermelon':
+      return (<svg {...c} {...a}>
+        <path d="M16 30 A50 50 0 0 1 84 78 Z" fill="#3FA66A" transform="rotate(8 50 54)" />
+        <path d="M22 34 A42 42 0 0 1 80 74 Z" fill="#E0484D" transform="rotate(8 50 54)" />
+        <circle cx="42" cy="52" r="2.4" fill={NAVY} /><circle cx="54" cy="50" r="2.4" fill={NAVY} /><circle cx="52" cy="62" r="2.4" fill={NAVY} /></svg>)
+    case 'orange':
+      return (<svg {...c} {...a}>
+        <circle cx="50" cy="54" r="30" fill="#F0902E" /><circle cx="40" cy="44" r="5" fill="#F7B05E" opacity="0.6" />
+        <path d="M50 26 Q58 18 66 22 Q60 28 50 26 Z" fill="#3FA66A" /><rect x="48" y="22" width="4" height="6" fill="#7A4A2A" /></svg>)
+    case 'plane':
+      return (<svg {...c} {...a}>
+        <path d="M20 52 L80 44 L88 50 L80 56 Z" fill="#9FC6E8" /><polygon points="40,48 56,28 50,48" fill="#3FA0C4" />
+        <polygon points="40,52 56,72 50,52" fill="#3FA0C4" /><polygon points="74,46 84,38 80,48" fill="#2C7FA0" /></svg>)
+    case 'rocket':
+      return (<svg {...c} {...a}>
+        <path d="M50 14 C62 26 62 50 58 64 H42 C38 50 38 26 50 14 Z" fill="#E8E8EC" />
+        <circle cx="50" cy="38" r="7" fill="#3FA0C4" /><polygon points="42,58 30,72 42,68" fill="#D8424A" /><polygon points="58,58 70,72 58,68" fill="#D8424A" />
+        <path d="M44 64 Q50 84 56 64 Z" fill={GOLD} /></svg>)
+    case 'clock':
+      return (<svg {...c} {...a}>
+        <circle cx="50" cy="52" r="32" fill={CREAM} stroke="#7A6A48" strokeWidth="4" />
+        <line x1="50" y1="52" x2="50" y2="32" stroke={NAVY} strokeWidth="4" strokeLinecap="round" /><line x1="50" y1="52" x2="66" y2="58" stroke={NAVY} strokeWidth="4" strokeLinecap="round" />
+        <circle cx="50" cy="52" r="3" fill={GOLD_DARK} /></svg>)
+    case 'book':
+      return (<svg {...c} {...a}>
+        <path d="M50 30 C40 24 26 24 20 28 V74 C26 70 40 70 50 76 Z" fill="#C0563E" />
+        <path d="M50 30 C60 24 74 24 80 28 V74 C74 70 60 70 50 76 Z" fill="#D8704E" />
+        <line x1="50" y1="30" x2="50" y2="76" stroke="#8A3A28" strokeWidth="3" /></svg>)
   }
 }
 
@@ -237,11 +319,6 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-function pickOptions(target: ShapeKey): ShapeKey[] {
-  const others = shuffle(ALL_SHAPES.filter((s) => s !== target)).slice(0, 3)
-  return shuffle([target, ...others])
-}
-
 const PRAISE = ['Чудово!', 'Влучно!', 'Так і є!', 'Чітко!', 'Браво!']
 
 type Phase = 'intro' | 'countdown' | 'flash' | 'gap' | 'answer' | 'feedback'
@@ -251,7 +328,17 @@ const DEMO_MS = 1500
 const MIN_MS = 140
 const MAX_MS = 1100
 const LS_KEY = 'balabony_flash_best'
-const NO_REPEAT = 8 // не повторювати ціль протягом останніх N раундів
+const RECENT_ROUNDS = 6 // не показувати ці ж картинки протягом N раундів
+
+/* ───────────────────────── Аналітика ───────────────────────── */
+function Stat({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div style={{ background: '#fff', border: `1px solid ${GOLD_LIGHT}`, borderRadius: 14, padding: '8px 16px', textAlign: 'center', minWidth: 92 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#9A8C6E', textTransform: 'uppercase', letterSpacing: 0.6 }}>{label}</div>
+      <div style={{ fontSize: 21, fontWeight: 700, color, marginTop: 2, fontFamily: "'Lora', serif" }}>{value}</div>
+    </div>
+  )
+}
 
 /* ───────────────────────── Компонент ───────────────────────── */
 export default function FlashGamePage() {
@@ -280,11 +367,18 @@ export default function FlashGamePage() {
 
   const startRound = useCallback((demo: boolean) => {
     clearTimers()
-    const pool = ALL_SHAPES.filter((s) => !recent.current.includes(s))
-    const t = pool[Math.floor(Math.random() * pool.length)]
-    recent.current = [t, ...recent.current].slice(0, NO_REPEAT)
+    // пул без нещодавно показаних (і цілей, і варіантів)
+    const excluded = new Set(recent.current)
+    let pool = ALL_SHAPES.filter((s) => !excluded.has(s))
+    if (pool.length < 4) pool = [...ALL_SHAPES]
+    const shuffled = shuffle(pool)
+    const t = shuffled[0]
+    const others = shuffled.slice(1, 4)
+    const opts = shuffle([t, ...others])
+    // запам'ятати всі 4 показані картинки
+    recent.current = [...opts, ...recent.current].slice(0, RECENT_ROUNDS * 4)
     setTarget(t)
-    setOptions(pickOptions(t))
+    setOptions(opts)
     setPicked(null)
     setIsDemo(demo)
     setCount(3)
@@ -353,17 +447,10 @@ export default function FlashGamePage() {
   }
 
   const playing = phase !== 'intro'
+  const sec = (ms: number) => `${(ms / 1000).toFixed(1).replace('.', ',')} c`
 
   return (
-    <main
-      style={{
-        minHeight: '100vh',
-        background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`,
-        padding: '32px 5% 64px',
-        fontFamily: "'Montserrat', sans-serif",
-        color: '#fff',
-      }}
-    >
+    <main lang="uk" style={{ minHeight: '100vh', background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, padding: '32px 5% 64px', fontFamily: "'Montserrat', sans-serif", color: '#fff' }}>
       <div style={{ maxWidth: 640, margin: '0 auto' }}>
         <nav style={{ marginBottom: 18, fontSize: 13, letterSpacing: 0.5 }}>
           <a href="/" style={{ color: GOLD, textDecoration: 'none' }}>Головна</a>
@@ -381,12 +468,9 @@ export default function FlashGamePage() {
             <path d="M12 2 L20 5 V11 C20 16 16.5 20 12 22 C7.5 20 4 16 4 11 V5 Z" /><path d="M9 12 l2 2 l4 -4" />
           </svg>
           <div>
-            <div style={{ fontSize: 15.5, fontWeight: 700, color: '#fff', lineHeight: 1.35 }}>
-              Ґрунтується на методиці, яку у США досліджують понад 25 років
-            </div>
-            <div style={{ fontSize: 13, color: TEXT_SOFT, lineHeight: 1.4, marginTop: 3 }}>
-              Клінічне дослідження ACTIVE за підтримки Національних інститутів здоров’я США (NIH) · 20-річні результати опубліковано у 2026 році
-            </div>
+            <div style={{ fontSize: 15.5, fontWeight: 700, color: '#fff', lineHeight: 1.35 }}>Ґрунтується на методиці, яку у США досліджують понад 25 років</div>
+            <div style={{ fontSize: 13, color: TEXT_SOFT, lineHeight: 1.4, marginTop: 3 }}>Клінічне дослідження ACTIVE за підтримки Національних інститутів здоров’я США (NIH) · 20-річні результати опубліковано у 2026 році</div>
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: GOLD, lineHeight: 1.4, marginTop: 6 }}>Пов’язана з кращою увагою, швидкістю мислення та нижчим ризиком вікового зниження пам’яті.</div>
           </div>
         </div>
 
@@ -408,10 +492,10 @@ export default function FlashGamePage() {
         {/* ───────── Ігрове поле ───────── */}
         <section style={{ background: CREAM, borderRadius: 24, border: `2px solid ${GOLD_LIGHT}`, padding: '28px 22px', color: NAVY, boxShadow: '0 18px 40px rgba(0,0,0,0.28)' }}>
           {playing && (
-            <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 18, marginBottom: 18, fontSize: 15, fontWeight: 600, color: '#5C5240' }}>
-              <span>Правильних: {right}{total > 0 ? ` / ${total}` : ''}</span>
-              <span>Показ: {(flashMs / 1000).toFixed(1).replace('.', ',')} c</span>
-              {best !== null && <span style={{ color: GOLD_DARK }}>Найкращий: {(best / 1000).toFixed(1).replace('.', ',')} c</span>}
+            <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 22 }}>
+              <Stat label="Правильних" value={total > 0 ? `${right} / ${total}` : '0'} color={GREEN} />
+              <Stat label="Показ" value={sec(flashMs)} color={NAVY} />
+              {best !== null && <Stat label="Найкращий" value={sec(best)} color={GOLD_DARK} />}
             </div>
           )}
 
@@ -466,12 +550,12 @@ export default function FlashGamePage() {
                       if (isPicked && !isTarget) { bg = '#FBE9E9'; border = `3px solid ${RED_SOFT}` }
                     }
                     return (
-                      <button key={opt} onClick={() => phase === 'answer' && answer(opt)} disabled={phase === 'feedback'}
+                      <button key={opt} onClick={() => phase === 'answer' && answer(opt)} disabled={phase === 'feedback'} className="bb-opt"
                         style={{
-                          background: bg, border, borderRadius: 16, padding: '14px 6px',
-                          fontSize: 'clamp(15px, 4.3vw, 18px)', fontWeight: 600, fontFamily: "'Montserrat', sans-serif",
+                          background: bg, border, borderRadius: 16, padding: '14px 10px',
+                          fontSize: 'clamp(13px, 3.6vw, 16px)', fontWeight: 600, fontFamily: "'Montserrat', sans-serif",
                           color: NAVY, cursor: phase === 'answer' ? 'pointer' : 'default',
-                          minHeight: 62, minWidth: 0, lineHeight: 1.2, boxSizing: 'border-box', overflowWrap: 'break-word',
+                          minHeight: 62, minWidth: 0, lineHeight: 1.25, boxSizing: 'border-box',
                         }}>
                         {SHAPE_NAMES[opt]}
                       </button>
@@ -509,6 +593,7 @@ export default function FlashGamePage() {
             <p><b>Що саме виявили.</b> Через 20 років у групи, яка тренувала швидкість і мала повторні сесії, виявили на 25% менше діагнозів деменції, ніж у контрольній — це був єдиний тип тренування з таким тривалим ефектом. На 10-му році ця ж група мала на 29% нижчу захворюваність. Раніші результати показували також менше труднощів у повсякденних справах і менше ДТП.</p>
             <p><b>Чому це працює.</b> Дослідники вважають, що тренування швидкості було особливо дієвим саме тому, що воно адаптивне — складність підлаштовувалася під рівень кожної людини. Тому й тут показ коротшає поступово, під ваш темп.</p>
             <p><b>Що кажуть учені.</b> Один із керівників дослідження, професор Майкл Марсіске (Університет Флориди), визнав, що тривалість ефекту здивувала навіть команду. За його словами, 20-річні дані переконливо свідчать, що когнітивне тренування не шкодить і може давати суттєву користь.</p>
+            <p><b>Що дає регулярне тренування — простими словами.</b> Мозок звикає «схоплювати» побачене швидше. На практиці це означає швидшу реакцію, легкість у повсякденних справах (читання, орієнтування, дрібні рішення), упевненіше відчуття за кермом — а в дослідженні ця користь трималася роками. Коротко: тренуєте те, як швидко й чітко мозок обробляє те, що бачать очі.</p>
             <p className="bb-cream-note"><b>Чесні межі.</b> Ефект був лише у тих, хто тренувався <i>і</i> ходив на повторні сесії — отже, працює регулярність, а не одна спроба. Діагнози рахували за медичними записами (наближена оцінка). Це <i>зв’язок</i>, а не обіцянка результату для конкретної людини. Одна зі співавторок пов’язана з компанією, що продає комерційну версію тренажера (кажемо це для прозорості). Наша гра — <b>не сертифікований медичний тренажер</b>, а проста вправа за тим самим принципом, і вона не замінює лікування чи реабілітацію.</p>
             <p><b>Підсумок.</b> Доказів достатньо, щоб спробувати — вправа безпечна й приємна. Але користь дає регулярність, а не разова гра. Сприймайте це як корисну звичку, а не ліки.</p>
           </div>
@@ -533,14 +618,8 @@ export default function FlashGamePage() {
 
         {/* ───────── Нижня навігація ───────── */}
         <nav style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginTop: 28, borderTop: '1px solid rgba(255,255,255,0.12)', paddingTop: 22 }}>
-          <a href="/" style={navArrow}>
-            <span style={{ fontSize: 22, lineHeight: 1 }}>←</span>
-            <span>Головна</span>
-          </a>
-          <a href="/stories" style={{ ...navArrow, textAlign: 'right' }}>
-            <span>Читати історії</span>
-            <span style={{ fontSize: 22, lineHeight: 1 }}>→</span>
-          </a>
+          <a href="/" style={navArrow}><span style={{ fontSize: 22, lineHeight: 1 }}>←</span><span>Головна</span></a>
+          <a href="/stories" style={{ ...navArrow, textAlign: 'right' }}><span>Читати історії</span><span style={{ fontSize: 22, lineHeight: 1 }}>→</span></a>
         </nav>
       </div>
 
@@ -555,6 +634,7 @@ export default function FlashGamePage() {
         .bb-details b { color: ${GOLD}; }
         .bb-cream-note { background: #FFF3DF; border-radius: 12px; padding: 14px 16px; color: ${NAVY}; }
         .bb-cream-note b { color: ${GOLD_DARK}; }
+        .bb-opt { hyphens: auto; -webkit-hyphens: auto; overflow-wrap: normal; word-break: normal; }
       `}</style>
     </main>
   )
@@ -566,35 +646,26 @@ const btnPrimary: React.CSSProperties = {
   padding: '14px 34px', fontSize: 19, fontWeight: 700, fontFamily: "'Montserrat', sans-serif",
   cursor: 'pointer', maxWidth: '100%', boxSizing: 'border-box',
 }
-
-const btnNext: React.CSSProperties = {
-  ...btnPrimary, fontSize: 19, padding: '15px 30px', whiteSpace: 'normal', overflowWrap: 'break-word',
-}
-
+const btnNext: React.CSSProperties = { ...btnPrimary, padding: '15px 30px', whiteSpace: 'normal' }
 const btnGhost: React.CSSProperties = {
   background: 'transparent', color: '#7A6A48', border: '2px solid rgba(122,106,72,0.35)', borderRadius: 24,
   padding: '11px 24px', fontSize: 16, fontWeight: 600, fontFamily: "'Montserrat', sans-serif",
   cursor: 'pointer', maxWidth: '100%', boxSizing: 'border-box',
 }
-
 const btnGhostDark: React.CSSProperties = {
   background: 'transparent', color: TEXT_SOFT, border: '1px solid rgba(181,212,244,0.4)', borderRadius: 22,
   padding: '9px 22px', fontSize: 14, fontWeight: 600, fontFamily: "'Montserrat', sans-serif", cursor: 'pointer',
 }
-
 const navArrow: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: 8, color: GOLD, fontWeight: 700, fontSize: 16,
   textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
 }
-
 const detailsBox: React.CSSProperties = {
   marginTop: 16, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(239,159,39,0.3)', borderRadius: 16, overflow: 'hidden',
 }
-
 const summaryStyle: React.CSSProperties = {
   cursor: 'pointer', padding: '16px 20px', fontSize: 17, fontWeight: 700, color: GOLD, fontFamily: "'Montserrat', sans-serif",
 }
-
 const detailsBody: React.CSSProperties = {
   padding: '0 20px 18px', fontSize: 15.5, lineHeight: 1.65, color: TEXT_SOFT,
 }

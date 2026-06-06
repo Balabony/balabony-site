@@ -127,6 +127,28 @@ export default function FairytalesSection() {
             </a>
           ))}
         </div>
+
+        {/* Усі казки */}
+        <div style={{ textAlign: 'center', marginTop: 24 }}>
+          <a
+            href="/fairytales"
+            style={{
+              display: 'inline-block',
+              border: `2px solid ${GOLD}`,
+              color: GOLD,
+              background: 'transparent',
+              padding: '11px 30px',
+              borderRadius: 24,
+              fontSize: 15,
+              fontWeight: 700,
+              textDecoration: 'none',
+              fontFamily: FONT,
+              letterSpacing: 0.5,
+            }}
+          >
+            Усі казки →
+          </a>
+        </div>
       </div>
     </section>
   )
