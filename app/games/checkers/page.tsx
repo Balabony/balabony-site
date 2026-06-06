@@ -10,7 +10,6 @@ const GOLD_DARK = '#B5710C'
 const GOLD_LIGHT = '#FAC775'
 const CREAM = '#FFF8EE'
 const TEXT_SOFT = '#B5D4F4'
-const GREEN = '#2E8B57'
 
 /* клітини дошки */
 const LIGHT_SQ = '#D7DAD8'
@@ -206,7 +205,8 @@ export default function CheckersGamePage() {
   const [board, setBoard] = useState<Board>(() => initBoard())
   const [turn, setTurn] = useState<Color>('w')
   const [selected, setSelected] = useState<Pos | null>(null)
-  const [win, setWin] = useState<Color | null>(null)
+  const [result, setResult] = useState<Color | 'draw' | null>(null)
+  const [msc, setMsc] = useState(0)
   const [wins, setWins] = useState(0)
   const [thinking, setThinking] = useState(false)
 
@@ -226,23 +226,29 @@ export default function CheckersGamePage() {
 
   // гравець у режимі ai — білі (низ)
   const humanColor: Color = 'w'
-  const moves = phase === 'play' && !win ? legalMoves(board, turn) : []
+  const moves = phase === 'play' && !result ? legalMoves(board, turn) : []
   const mustCapture = moves.some((m) => m.captured.length > 0)
 
   const begin = (m: Mode, lv: 'easy' | 'normal' | 'hard') => {
     clearTimers()
     setMode(m); setLevel(lv)
-    setBoard(initBoard()); setTurn('w'); setSelected(null); setWin(null); setThinking(false)
+    setBoard(initBoard()); setTurn('w'); setSelected(null); setResult(null); setMsc(0); setThinking(false)
     setPhase('play')
   }
 
-  const finish = useCallback((b: Board, toMove: Color) => {
+  const DRAW_LIMIT = 40 // півходів без взяття → нічия
+
+  const finish = useCallback((b: Board, toMove: Color, movesNoCapture: number) => {
     const w = gameWinner(b, toMove)
     if (w) {
-      setWin(w); setPhase('over')
+      setResult(w); setPhase('over')
       if (mode === 'ai' && w === humanColor) {
         setWins((prev) => { const nv = prev + 1; try { window.localStorage.setItem(LS_KEY, String(nv)) } catch {} ; return nv })
       }
+      return true
+    }
+    if (movesNoCapture >= DRAW_LIMIT) {
+      setResult('draw'); setPhase('over')
       return true
     }
     return false
@@ -250,22 +256,23 @@ export default function CheckersGamePage() {
 
   // Хід ШІ
   useEffect(() => {
-    if (phase !== 'play' || win) return
+    if (phase !== 'play' || result) return
     if (mode === 'ai' && turn !== humanColor) {
       setThinking(true)
       const t = setTimeout(() => {
         const mv = chooseAIMove(board, turn, level)
-        if (!mv) { finish(board, turn); setThinking(false); return }
+        if (!mv) { finish(board, turn, msc); setThinking(false); return }
         const nb = applyMove(board, mv)
-        setBoard(nb); setThinking(false)
-        if (!finish(nb, opp(turn))) setTurn(opp(turn))
+        const nmsc = mv.captured.length > 0 ? 0 : msc + 1
+        setBoard(nb); setMsc(nmsc); setThinking(false)
+        if (!finish(nb, opp(turn), nmsc)) setTurn(opp(turn))
       }, 500)
       timers.current.push(t)
     }
-  }, [turn, phase, mode, win, board, level, finish])
+  }, [turn, phase, mode, result, board, level, msc, finish])
 
   const onCellTap = (r: number, c: number) => {
-    if (phase !== 'play' || win || thinking) return
+    if (phase !== 'play' || result || thinking) return
     if (mode === 'ai' && turn !== humanColor) return
     const piece = board[r][c]
     // обрати свою шашку
@@ -280,13 +287,14 @@ export default function CheckersGamePage() {
         && m.path[m.path.length - 1].r === r && m.path[m.path.length - 1].c === c)
       if (mv) {
         const nb = applyMove(board, mv)
-        setBoard(nb); setSelected(null)
-        if (!finish(nb, opp(turn))) setTurn(opp(turn))
+        const nmsc = mv.captured.length > 0 ? 0 : msc + 1
+        setBoard(nb); setMsc(nmsc); setSelected(null)
+        if (!finish(nb, opp(turn), nmsc)) setTurn(opp(turn))
       }
     }
   }
 
-  const reset = () => { clearTimers(); setPhase('intro'); setSelected(null); setWin(null) }
+  const reset = () => { clearTimers(); setPhase('intro'); setSelected(null); setResult(null) }
 
   // цілі для підсвічування
   const targets = selected
@@ -330,8 +338,8 @@ export default function CheckersGamePage() {
         {phase !== 'intro' && (
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, gap: 10 }}>
-              <span style={{ fontSize: 16, fontWeight: 700, color: win ? GREEN : GOLD_LIGHT }}>
-                {win ? (mode === 'ai' ? (win === humanColor ? 'Ви перемогли!' : 'Переміг комп’ютер') : (win === 'w' ? 'Перемогли світлі' : 'Перемогли темні')) : (thinking ? 'Комп’ютер думає…' : turnLabel)}
+              <span style={{ fontSize: 16, fontWeight: 700, color: GOLD_LIGHT }}>
+                {result ? 'Партію завершено' : (thinking ? 'Комп’ютер думає…' : turnLabel)}
               </span>
               <span style={{ fontSize: 13, color: TEXT_SOFT, whiteSpace: 'nowrap' }}>● {countPieces(board, 'w')} : {countPieces(board, 'b')} ○</span>
             </div>
@@ -357,16 +365,36 @@ export default function CheckersGamePage() {
               }))}
             </div>
 
-            {mustCapture && !win && !thinking && (mode === 'duo' || turn === humanColor) && (
+            {mustCapture && !result && !thinking && (mode === 'duo' || turn === humanColor) && (
               <p style={{ textAlign: 'center', color: GOLD_LIGHT, fontSize: 14, marginTop: 10 }}>Є обов’язкове взяття — треба бити.</p>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 18 }}>
-              {win
-                ? <button onClick={() => begin(mode, level)} style={btnPrimary}>Грати знову</button>
-                : <button onClick={reset} style={btnGhostDark}>Завершити партію</button>}
-              {win && <button onClick={reset} style={btnGhost}>Змінити режим</button>}
-            </div>
+            {result ? (
+              <div style={{ textAlign: 'center', marginTop: 20, background: 'rgba(239,159,39,0.1)', border: '2px solid rgba(239,159,39,0.5)', borderRadius: 16, padding: '20px 18px' }}>
+                <div style={{ fontFamily: "'Lora', serif", fontWeight: 700, fontSize: 26, color: GOLD_LIGHT, lineHeight: 1.2 }}>
+                  {result === 'draw'
+                    ? 'Нічия'
+                    : mode === 'ai'
+                      ? (result === humanColor ? 'Ви перемогли!' : 'Ви програли')
+                      : (result === 'w' ? 'Перемогли світлі' : 'Перемогли темні')}
+                </div>
+                <div style={{ fontSize: 16, color: TEXT_SOFT, marginTop: 8, lineHeight: 1.45 }}>
+                  {result === 'draw'
+                    ? 'Сили рівні — нічия.'
+                    : mode === 'ai'
+                      ? (result === humanColor ? 'Гарна гра! Зіграємо реванш?' : 'Переміг комп’ютер. Спробуєте реванш?')
+                      : 'Зіграєте реванш?'}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 18, flexWrap: 'wrap' }}>
+                  <button onClick={() => begin(mode, level)} style={btnPrimary}>Реванш</button>
+                  <button onClick={reset} style={btnGhost}>Інший режим</button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 18 }}>
+                <button onClick={reset} style={btnGhostDark}>Завершити партію</button>
+              </div>
+            )}
           </>
         )}
 
