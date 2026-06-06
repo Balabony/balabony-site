@@ -371,36 +371,36 @@ export default function CheckersGamePage() {
               <p style={{ textAlign: 'center', color: GOLD_LIGHT, fontSize: 14, marginTop: 10 }}>Є обов’язкове взяття — треба бити.</p>
             )}
 
-            {result ? (
-              <div style={{ textAlign: 'center', marginTop: 20, background: 'rgba(239,159,39,0.1)', border: '2px solid rgba(239,159,39,0.5)', borderRadius: 16, padding: '20px 18px' }}>
-                <div style={{ fontFamily: "'Lora', serif", fontWeight: 700, fontSize: 26, color: GOLD_LIGHT, lineHeight: 1.2 }}>
-                  {result === 'draw'
-                    ? 'Нічия'
-                    : mode === 'ai'
-                      ? (result === humanColor ? 'Ви перемогли!' : 'Ви програли')
-                      : (result === 'w' ? 'Перемогли світлі' : 'Перемогли темні')}
-                </div>
-                <div style={{ fontSize: 16, color: TEXT_SOFT, marginTop: 8, lineHeight: 1.45 }}>
-                  {result === 'draw'
-                    ? 'Сили рівні — нічия.'
-                    : mode === 'ai'
-                      ? (result === humanColor ? 'Гарна гра! Зіграємо реванш?' : 'Переміг комп’ютер. Спробуєте реванш?')
-                      : 'Зіграєте реванш?'}
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 18, flexWrap: 'wrap' }}>
-                  <button onClick={() => begin(mode, level)} style={btnPrimary}>Реванш</button>
-                  <button onClick={reset} style={btnGhost}>Інший режим</button>
-                </div>
-              </div>
-            ) : (
+            {!result && (
               <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 18 }}>
                 <button onClick={reset} style={btnGhostDark}>Завершити партію</button>
               </div>
             )}
 
-            <div style={{ marginTop: 14, textAlign: 'center', fontSize: 12, color: '#FAC775', fontFamily: 'monospace', background: 'rgba(0,0,0,0.25)', borderRadius: 8, padding: '6px 8px' }}>
-              діаг: фаза={phase} · хід={turn} · світлих={countPieces(board, 'w')} темних={countPieces(board, 'b')} · легальних={moves.length} · результат={result ?? '—'} · думає={thinking ? 'так' : 'ні'} · безВзяття={msc}
-            </div>
+            {result && (
+              <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, background: 'rgba(8,15,26,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, zIndex: 9999 }}>
+                <div style={{ background: NAVY2, border: '2px solid rgba(239,159,39,0.6)', borderRadius: 20, padding: '30px 26px', maxWidth: 360, width: '100%', textAlign: 'center', boxShadow: '0 0 40px rgba(239,159,39,0.35), 0 20px 60px rgba(0,0,0,0.5)' }}>
+                  <div style={{ fontFamily: "'Lora', serif", fontWeight: 700, fontSize: 30, color: GOLD_LIGHT, lineHeight: 1.2 }}>
+                    {result === 'draw'
+                      ? 'Нічия'
+                      : mode === 'ai'
+                        ? (result === humanColor ? 'Ви перемогли!' : 'Ви програли')
+                        : (result === 'w' ? 'Перемогли світлі' : 'Перемогли темні')}
+                  </div>
+                  <div style={{ fontSize: 16.5, color: TEXT_SOFT, marginTop: 10, lineHeight: 1.5 }}>
+                    {result === 'draw'
+                      ? 'Сили рівні — нічия.'
+                      : mode === 'ai'
+                        ? (result === humanColor ? 'Гарна гра! Зіграємо реванш?' : 'Переміг комп’ютер. Спробуєте реванш?')
+                        : 'Зіграєте реванш?'}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 22 }}>
+                    <button onClick={() => begin(mode, level)} style={{ ...btnPrimary, width: '100%' }}>Реванш</button>
+                    <button onClick={reset} style={{ ...btnGhost, width: '100%' }}>Інший режим</button>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
 
