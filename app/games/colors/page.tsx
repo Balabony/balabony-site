@@ -236,7 +236,7 @@ export default function ColorsGamePage() {
                   {round.wordText.name}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 12 }}>
+                <div style={{ display: 'grid', gap: 10, maxWidth: 340, margin: '0 auto' }}>
                   {round.options.map((c) => {
                     const isPicked = picked?.key === c.key
                     const isCorrect = c.key === round.wordColor.key
@@ -248,9 +248,9 @@ export default function ColorsGamePage() {
                     }
                     return (
                       <button key={c.key} onClick={() => phase === 'question' && answer(c)} disabled={phase === 'feedback'}
-                        style={{ background: bg, border, borderRadius: 16, padding: '13px 8px', minHeight: 62, cursor: phase === 'question' ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, minWidth: 0, boxSizing: 'border-box' }}>
-                        <span style={{ width: 16, height: 16, borderRadius: '50%', background: c.hex, flexShrink: 0, border: '1px solid rgba(0,0,0,0.15)' }} />
-                        <span style={{ fontSize: 'clamp(12px,3.3vw,17px)', fontWeight: 700, color: NAVY, minWidth: 0, overflowWrap: 'break-word', lineHeight: 1.2 }}>{c.name}</span>
+                        style={{ background: bg, border, borderRadius: 16, padding: '14px 18px', minHeight: 56, cursor: phase === 'question' ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 12, boxSizing: 'border-box' }}>
+                        <span style={{ width: 20, height: 20, borderRadius: '50%', background: c.hex, flexShrink: 0, border: '1px solid rgba(0,0,0,0.15)' }} />
+                        <span style={{ fontSize: 18, fontWeight: 700, color: NAVY, whiteSpace: 'nowrap' }}>{c.name}</span>
                       </button>
                     )
                   })}
