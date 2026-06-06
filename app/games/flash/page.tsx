@@ -333,9 +333,9 @@ const RECENT_ROUNDS = 6 // не показувати ці ж картинки п
 /* ───────────────────────── Аналітика ───────────────────────── */
 function Stat({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div style={{ background: '#fff', border: `1px solid ${GOLD_LIGHT}`, borderRadius: 14, padding: '8px 16px', textAlign: 'center', minWidth: 92 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#9A8C6E', textTransform: 'uppercase', letterSpacing: 0.6 }}>{label}</div>
-      <div style={{ fontSize: 21, fontWeight: 700, color, marginTop: 2, fontFamily: "'Lora', serif" }}>{value}</div>
+    <div style={{ flex: '1 1 0', minWidth: 0, background: '#fff', border: `1px solid ${GOLD_LIGHT}`, borderRadius: 12, padding: '7px 6px', textAlign: 'center' }}>
+      <div style={{ fontSize: 9.5, fontWeight: 700, color: '#9A8C6E', textTransform: 'uppercase', letterSpacing: 0.3, whiteSpace: 'nowrap' }}>{label}</div>
+      <div style={{ fontSize: 17, fontWeight: 700, color, marginTop: 1, fontFamily: "'Lora', serif", whiteSpace: 'nowrap' }}>{value}</div>
     </div>
   )
 }
@@ -492,7 +492,7 @@ export default function FlashGamePage() {
         {/* ───────── Ігрове поле ───────── */}
         <section style={{ background: CREAM, borderRadius: 24, border: `2px solid ${GOLD_LIGHT}`, padding: '28px 22px', color: NAVY, boxShadow: '0 18px 40px rgba(0,0,0,0.28)' }}>
           {playing && (
-            <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 22 }}>
+            <div style={{ display: 'flex', gap: 8, maxWidth: 400, margin: '0 auto 22px' }}>
               <Stat label="Правильних" value={total > 0 ? `${right} / ${total}` : '0'} color={GREEN} />
               <Stat label="Показ" value={sec(flashMs)} color={NAVY} />
               {best !== null && <Stat label="Найкращий" value={sec(best)} color={GOLD_DARK} />}
