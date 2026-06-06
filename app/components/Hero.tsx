@@ -2,7 +2,8 @@ export default function Hero() {
   const navItems = [
     { label: 'ІСТОРІЇ', href: '/stories' },
     { label: 'СЕРІЇ', href: '/episodes' },
-    { label: 'КАЗКИ', href: '/fairytales' },
+    { label: 'ІГРИ', href: '/games' },
+    { label: 'КАЗКИ', href: '/stories?genre=Казка' },
   ]
 
   return (
@@ -23,7 +24,7 @@ export default function Hero() {
             style={{
               display: 'flex',
               justifyContent: 'center',
-              gap: 10,
+              gap: 6,
               flexWrap: 'nowrap',
               marginBottom: 28,
             }}
@@ -31,14 +32,14 @@ export default function Hero() {
             {navItems.map((item, i) => (
               <span
                 key={item.label}
-                style={{ display: 'flex', alignItems: 'center', gap: 18 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8 }}
               >
                 {i > 0 && (
                   <span
                     aria-hidden="true"
                     style={{
                       color: 'rgba(239,159,39,0.4)',
-                      fontSize: 14,
+                      fontSize: 12,
                     }}
                   >
                     ·
@@ -49,10 +50,11 @@ export default function Hero() {
                   style={{
                     color: '#EF9F27',
                     fontWeight: 700,
-                    fontSize: 13,
+                    fontSize: 12,
                     textDecoration: 'none',
                     fontFamily: "'Montserrat', sans-serif",
-                    letterSpacing: 1.8,
+                    letterSpacing: 1,
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   {item.label}
