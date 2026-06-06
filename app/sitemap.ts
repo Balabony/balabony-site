@@ -4,20 +4,20 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 const BASE_URL = 'https://balabony.com'
 
 /**
- * Файл /sitemap.xml — карта сайту для пошуковиків.
- * Next.js App Router генерує його з цього модуля автоматично.
+ * Р¤Р°Р№Р» /sitemap.xml вЂ” РєР°СЂС‚Р° СЃР°Р№С‚Сѓ РґР»СЏ РїРѕС€СѓРєРѕРІРёРєС–РІ.
+ * Next.js App Router РіРµРЅРµСЂСѓС” Р№РѕРіРѕ Р· С†СЊРѕРіРѕ РјРѕРґСѓР»СЏ Р°РІС‚РѕРјР°С‚РёС‡РЅРѕ.
  *
- * Включає:
- *  - статичні сторінки (фіксований список)
- *  - усі опубліковані серії з Supabase (type='balabony')
- *  - усі опубліковані історії з Supabase (type='story')
+ * Р’РєР»СЋС‡Р°С”:
+ *  - СЃС‚Р°С‚РёС‡РЅС– СЃС‚РѕСЂС–РЅРєРё (С„С–РєСЃРѕРІР°РЅРёР№ СЃРїРёСЃРѕРє)
+ *  - СѓСЃС– РѕРїСѓР±Р»С–РєРѕРІР°РЅС– СЃРµСЂС–С— Р· Supabase (type='balabony')
+ *  - СѓСЃС– РѕРїСѓР±Р»С–РєРѕРІР°РЅС– С–СЃС‚РѕСЂС–С— Р· Supabase (type='story')
  *
- * Кожен запис має priority (важливість 0-1) і changeFrequency (частота оновлень).
+ * РљРѕР¶РµРЅ Р·Р°РїРёСЃ РјР°С” priority (РІР°Р¶Р»РёРІС–СЃС‚СЊ 0-1) С– changeFrequency (С‡Р°СЃС‚РѕС‚Р° РѕРЅРѕРІР»РµРЅСЊ).
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
 
-  // 1. Статичні сторінки
+  // 1. РЎС‚Р°С‚РёС‡РЅС– СЃС‚РѕСЂС–РЅРєРё
   const staticPages: MetadataRoute.Sitemap = [
     { url: `${BASE_URL}`,                       lastModified: now, changeFrequency: 'daily',   priority: 1.0 },
     { url: `${BASE_URL}/stories`,               lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
@@ -37,9 +37,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/legal/refund`,          lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
     { url: `${BASE_URL}/legal/author-contract`, lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
     { url: `${BASE_URL}/legal/child-safety`,    lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE_URL}/games`,               lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE_URL}/games/flash`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/attention`,     lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/memory-order`,  lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/colors`,        lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/pairs`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
   ]
 
-  // 2. Динамічні: серії та історії з Supabase
+  // 2. Р”РёРЅР°РјС–С‡РЅС–: СЃРµСЂС–С— С‚Р° С–СЃС‚РѕСЂС–С— Р· Supabase
   let dynamicPages: MetadataRoute.Sitemap = []
   try {
     const supabase = getSupabaseAdmin()
@@ -63,8 +69,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         })
     }
   } catch (e) {
-    // Якщо Supabase недоступна — просто повертаємо статичні сторінки.
-    // Не блокуємо генерацію sitemap.
+    // РЇРєС‰Рѕ Supabase РЅРµРґРѕСЃС‚СѓРїРЅР° вЂ” РїСЂРѕСЃС‚Рѕ РїРѕРІРµСЂС‚Р°С”РјРѕ СЃС‚Р°С‚РёС‡РЅС– СЃС‚РѕСЂС–РЅРєРё.
+    // РќРµ Р±Р»РѕРєСѓС”РјРѕ РіРµРЅРµСЂР°С†С–СЋ sitemap.
     console.error('Sitemap: failed to fetch dynamic pages from Supabase', e)
   }
 
