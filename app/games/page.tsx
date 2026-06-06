@@ -29,6 +29,8 @@ function Icon({ kind }: { kind: string }) {
       return (<svg {...p}><circle cx="19" cy="18" r="11.5" fill="#E8434B" /><circle cx="30" cy="20" r="11.5" fill="#3D7FDC" opacity="0.92" /><circle cx="24" cy="30" r="11.5" fill="#36AB62" opacity="0.92" /></svg>)
     case 'pairs':
       return (<svg {...p}><rect x="6" y="11" width="16" height="21" rx="3" fill="none" stroke={GOLD_LIGHT} strokeWidth="2.8" /><rect x="26" y="17" width="16" height="21" rx="3" fill="none" stroke={GOLD_BRIGHT} strokeWidth="2.8" /><path d="M10 21 l3 3 l5 -6" fill="none" stroke={GOLD_LIGHT} strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" /><path d="M30 27 l3 3 l5 -6" fill="none" stroke={GOLD_BRIGHT} strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" /></svg>)
+    case 'checkers':
+      return (<svg {...p}><circle cx="17" cy="29" r="11" fill="none" stroke={GOLD_LIGHT} strokeWidth="2.8" /><circle cx="30" cy="19" r="11" fill={GOLD_LIGHT} stroke={GOLD} strokeWidth="1.5" /><path d="M24 20 l2.5 2 l3.5 -4 l3.5 4 l2.5 -2 v4 h-12 z" fill="#14253B" /></svg>)
     default:
       return null
   }
@@ -44,6 +46,7 @@ const USEFUL: Game[] = [
   { href: '/games/memory-order', kind: 'order', title: 'Запам’ятай порядок', desc: 'Тренує робочу пам’ять. Кілька коротких занять на тиждень дають помітний результат.' },
   { href: '/games/colors', kind: 'colors', title: 'Який колір?', desc: 'Тренує самоконтроль і увагу: назви колір літер, а не читай слово. Спокійна вправа на зосередженість.' },
   { href: '/games/pairs', kind: 'pairs', title: 'Знайди пару', desc: 'Тренує зорову пам’ять. Приємно грати разом із дітьми чи онуками.' },
+  { href: '/games/checkers', kind: 'checkers', title: 'Шашки', desc: 'Класичні шашки — проти комп’ютера (три рівні) або вдвох. Тренують планування й передбачення ходів.' },
 ]
 
 function GameCard({ game, evidence }: { game: Game; evidence: boolean }) {
