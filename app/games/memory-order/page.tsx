@@ -319,9 +319,9 @@ export default function MemoryOrderPage() {
 /* ───────────────────────── Аналітика ───────────────────────── */
 function Stat({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div style={{ flex: '1 1 calc(50% - 4px)', minWidth: 0, background: '#fff', border: `1px solid ${GOLD_LIGHT}`, borderRadius: 12, padding: '8px 12px', textAlign: 'center' }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: '#5C5240', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
-      <div style={{ fontSize: 24, fontWeight: 700, color, marginTop: 2, fontFamily: "'Lora', serif", whiteSpace: 'nowrap' }}>{value}</div>
+    <div style={{ flex: '1 1 calc(50% - 4px)', minWidth: 0, overflow: 'hidden', background: '#fff', border: `1px solid ${GOLD_LIGHT}`, borderRadius: 12, padding: '8px 6px', textAlign: 'center' }}>
+      <div style={{ fontSize: 'clamp(10px, 3vw, 13px)', fontWeight: 700, color: '#5C5240', textTransform: 'uppercase', letterSpacing: 0.3, whiteSpace: 'nowrap' }}>{label}</div>
+      <div style={{ fontSize: 'clamp(18px, 5.5vw, 24px)', fontWeight: 700, color, marginTop: 2, fontFamily: "'Lora', serif", whiteSpace: 'nowrap' }}>{value}</div>
     </div>
   )
 }
