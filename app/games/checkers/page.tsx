@@ -268,6 +268,7 @@ export default function CheckersGamePage() {
         if (!finish(nb, opp(turn), nmsc)) setTurn(opp(turn))
       }, 500)
       timers.current.push(t)
+      return () => clearTimeout(t)
     }
   }, [turn, phase, mode, result, board, level, msc, finish])
 
