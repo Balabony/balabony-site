@@ -104,6 +104,7 @@ export default function NardePage() {
   const [headUsed, setHeadUsed] = useState(false);
   const [sel, setSel] = useState<number | null>(null);     // вибраний пункт-джерело (фізичний)
   const [msg, setMsg] = useState('');
+  const [needRoll, setNeedRoll] = useState(false);
   const sRef = useRef(s); sRef.current = s;
   const aiTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (aiTimer.current) clearTimeout(aiTimer.current); }, []);
@@ -112,11 +113,15 @@ export default function NardePage() {
     if (aiTimer.current) clearTimeout(aiTimer.current);
     const ns = initState();
     setS(ns); setPhase('play'); setSel(null); setHeadUsed(false); setMsg('');
-    // перший хід — гравець
-    const d = rollDice();
-    setTurn('W'); setRolled(d); setDice(d[0] === d[1] ? [d[0], d[0], d[0], d[0]] : [d[0], d[1]]);
+    setTurn('W'); setRolled(null); setDice([]); setNeedRoll(true);
   };
   function rollDice(): [number, number] { return [1 + Math.floor(Math.random() * 6), 1 + Math.floor(Math.random() * 6)]; }
+
+  const rollForPlayer = () => {
+    const d = rollDice(); const dl = d[0] === d[1] ? [d[0], d[0], d[0], d[0]] : [d[0], d[1]];
+    setRolled(d); setDice(dl); setNeedRoll(false); setHeadUsed(false); setSel(null); setMsg('');
+    if (!playerHasMove(sRef.current, dl, false)) { setMsg('Немає ходу — пропуск'); aiTimer.current = setTimeout(() => endPlayerTurn(sRef.current), 1100); }
+  };
 
   // легальні ходи гравця з поточними кубиками
   const playerHasMove = useCallback((st: S, dl: number[], hu: boolean) => {
@@ -155,11 +160,8 @@ export default function NardePage() {
     const { state } = bestSequence(st, 'B', diceList, li);
     setS(state);
     if (won(state)) { setPhase('over'); setMsg(''); return; }
-    // назад до гравця
-    const nd = rollDice(); setRolled(nd); setTurn('W'); setHeadUsed(false); setSel(null);
-    const dl = nd[0] === nd[1] ? [nd[0], nd[0], nd[0], nd[0]] : [nd[0], nd[1]];
-    setDice(dl); setMsg('');
-    if (!playerHasMove(state, dl, false)) { setMsg('У вас немає ходу — пропуск'); aiTimer.current = setTimeout(() => endPlayerTurn(state), 900); }
+    // назад до гравця — кидає кубики сам
+    setTurn('W'); setHeadUsed(false); setSel(null); setRolled(null); setDice([]); setNeedRoll(true); setMsg('');
   };
 
   // підрахунок для відображення
@@ -195,13 +197,14 @@ export default function NardePage() {
     };
     const discs = Math.min(cnt, 5);
     return (
-      <div onClick={onTap} className={isDest ? 'bb-dest' : isSel ? 'bb-srcsel' : undefined} style={{ flex: '1 1 0', minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: top ? 'flex-start' : 'flex-end', gap: 2, padding: '4px 0', cursor: (isSrc || isDest) ? 'pointer' : 'default', background: isSel ? 'rgba(239,159,39,0.18)' : isDest ? 'rgba(127,209,139,0.16)' : 'transparent', borderRadius: 6, position: 'relative', border: isDest ? `1.5px dashed ${GOLD_LIGHT}` : '1.5px solid transparent' }}>
+      <div onClick={onTap} className={isDest ? 'bb-dest' : isSel ? 'bb-srcsel' : isSrc ? 'bb-srcavail' : undefined} style={{ flex: '1 1 0', minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: top ? 'flex-start' : 'flex-end', gap: 2, padding: '4px 0', cursor: (isSrc || isDest) ? 'pointer' : 'default', background: isSel ? 'rgba(239,159,39,0.28)' : isDest ? 'rgba(127,209,139,0.18)' : isSrc ? 'rgba(239,159,39,0.14)' : 'transparent', borderRadius: 6, position: 'relative', border: isDest ? `1.5px dashed #7FD18B` : isSrc ? `1.5px solid rgba(239,159,39,0.8)` : '1.5px solid transparent' }}>
         <span style={{ position: 'absolute', [top ? 'bottom' : 'top']: 1, fontSize: 8, color: 'rgba(207,227,250,0.4)' } as React.CSSProperties}>{p}</span>
         {color && Array.from({ length: discs }).map((_, k) => (
           <div key={k} className={isSrc && k === discs - 1 ? 'bb-topglow' : undefined} style={{ width: 'min(6.2vw,22px)', height: 'min(6.2vw,22px)', borderRadius: '50%', background: color, border: wc > 0 ? `1.5px solid #cdb68a` : `1.5px solid ${GOLD}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: '0 0 auto' }}>
             {k === discs - 1 && cnt > 5 && <span style={{ fontSize: 10, fontWeight: 700, color: wc > 0 ? NAVY : GOLD_LIGHT }}>{cnt}</span>}
           </div>
         ))}
+        {isDest && <div style={{ width: 'min(6vw,20px)', height: 'min(6vw,20px)', borderRadius: '50%', border: `2.5px solid #7FD18B`, background: 'rgba(127,209,139,0.3)', flex: '0 0 auto' }} />}
       </div>
     );
   };
@@ -225,12 +228,16 @@ export default function NardePage() {
           .bb-cream-note b { color: #B5710C; }
           @keyframes bbSrc { 0%,100% { background: rgba(239,159,39,0.16); box-shadow: inset 0 0 4px rgba(239,159,39,0.2); } 50% { background: rgba(239,159,39,0.3); box-shadow: inset 0 0 16px rgba(239,159,39,0.5); } }
           .bb-srcsel { animation: bbSrc 1.4s ease-in-out infinite; }
+          @keyframes bbAvail { 0%,100% { box-shadow: inset 0 0 6px rgba(239,159,39,0.3); } 50% { box-shadow: inset 0 0 13px rgba(239,159,39,0.6); } }
+          .bb-srcavail { animation: bbAvail 1.7s ease-in-out infinite; }
           @keyframes bbDest { 0%,100% { box-shadow: 0 0 6px rgba(127,209,139,0.35); } 50% { box-shadow: 0 0 18px rgba(127,209,139,0.8); } }
           .bb-dest { animation: bbDest 1.1s ease-in-out infinite; }
           @keyframes bbTop { 0%,100% { box-shadow: 0 0 6px rgba(239,159,39,0.6); } 50% { box-shadow: 0 0 16px rgba(239,159,39,1); } }
           .bb-topglow { animation: bbTop 1.3s ease-in-out infinite; }
           @keyframes bbDie { 0% { transform: scale(0.6); opacity: 0.3; } 60% { transform: scale(1.12); } 100% { transform: scale(1); opacity: 1; } }
           .bb-die { animation: bbDie .3s ease-out; }
+          @keyframes bbAvail { 0%,100% { border-color: rgba(239,159,39,0.55); } 50% { border-color: rgba(239,159,39,1); } }
+          .bb-srcavail { animation: bbAvail 1.5s ease-in-out infinite; }
         `}</style>
 
         <nav style={{ marginBottom: 14, fontSize: 13 }}><a href="/games" style={{ color: GOLD, textDecoration: 'none' }}>← Ігри</a></nav>
@@ -266,20 +273,24 @@ export default function NardePage() {
 
             {/* панель ходу */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, gap: 10, flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                {rolled && <><Die key={'d1-' + rolled.join('-')} v={rolled[0]} dim={!dice.includes(rolled[0]) && turn === 'W'} /><Die key={'d2-' + rolled.join('-')} v={rolled[1]} dim={!dice.includes(rolled[1]) && turn === 'W'} /></>}
-                {turn === 'W' && dice.length > 0 && rolled && rolled[0] === rolled[1] && <span style={{ fontSize: 13, color: GOLD_LIGHT }}>дубль ×{dice.length}</span>}
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center', minHeight: 44 }}>
+                {turn === 'W' && needRoll && phase === 'play'
+                  ? <button style={bigBtn} onClick={rollForPlayer}>Кинути кубики</button>
+                  : rolled && <><Die key={'d1-' + rolled.join('-')} v={rolled[0]} dim={!dice.includes(rolled[0]) && turn === 'W'} /><Die key={'d2-' + rolled.join('-')} v={rolled[1]} dim={!dice.includes(rolled[1]) && turn === 'W'} /></>}
+                {turn === 'W' && !needRoll && dice.length > 0 && rolled && rolled[0] === rolled[1] && <span style={{ fontSize: 13, color: GOLD_LIGHT }}>дубль ×{dice.length}</span>}
               </div>
               <div style={{ fontSize: 14, color: GOLD_LIGHT, fontWeight: 700, flex: '1 1 auto', textAlign: 'center', minWidth: 120 }}>
-                {phase === 'over' ? '' : turn === 'W' ? (movableSources.size ? 'Ваш хід' : 'Немає ходу') : (msg || 'Хід компʼютера…')}
+                {phase === 'over' ? '' : turn === 'W' ? (needRoll ? 'Ваш хід — киньте кубики' : (msg || (movableSources.size ? 'Ваш хід' : 'Немає ходу'))) : (msg || 'Хід компʼютера…')}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                {phase === 'play' && turn === 'W' && canBearOff && sel != null && <button style={bigBtn} onClick={() => { const d = dests.find((x) => x.kind === 'off'); if (d) playerMove(sel, d); }}>Винести</button>}
-                {phase === 'play' && turn === 'W' && movableSources.size === 0 && <button style={bigBtn} onClick={playerPass}>Пропустити</button>}
+                {phase === 'play' && turn === 'W' && !needRoll && canBearOff && sel != null && <button style={bigBtn} onClick={() => { const d = dests.find((x) => x.kind === 'off'); if (d) playerMove(sel, d); }}>Винести</button>}
+                {phase === 'play' && turn === 'W' && !needRoll && !msg && movableSources.size === 0 && <button style={bigBtn} onClick={playerPass}>Пропустити</button>}
                 <button style={ghost} onClick={() => newGame(li)}>Нова</button>
               </div>
             </div>
-            {sel != null && <p style={{ fontSize: 13, color: TEXT_SOFT, marginTop: 8, textAlign: 'center' }}>Оберіть, куди походити (зелене), або «Винести».</p>}
+            {phase === 'play' && turn === 'W' && needRoll && <p style={{ fontSize: 13, color: TEXT_SOFT, marginTop: 8, textAlign: 'center' }}>Натисніть «Кинути кубики», щоб зробити хід.</p>}
+            {phase === 'play' && turn === 'W' && !needRoll && sel != null && <p style={{ fontSize: 13, color: TEXT_SOFT, marginTop: 8, textAlign: 'center' }}>Тепер торкніться <b style={{ color: '#7FD18B' }}>зеленого</b> пункту, або «Винести».</p>}
+            {phase === 'play' && turn === 'W' && !needRoll && sel == null && movableSources.size > 0 && <p style={{ fontSize: 13, color: TEXT_SOFT, marginTop: 8, textAlign: 'center' }}>Торкніться шашки <b style={{ color: GOLD_LIGHT }}>у золотій рамці</b>, далі — зеленого пункту.</p>}
           </>
         )}
 
