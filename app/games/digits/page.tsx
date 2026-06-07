@@ -101,10 +101,10 @@ export default function DigitsPage() {
   const inner: React.CSSProperties = { width: '100%', maxWidth: 480 };
   const ROW: React.CSSProperties = { display: 'flex', gap: 8, marginBottom: 12, width: '100%' };
   const plaque = (active: boolean): React.CSSProperties => ({ flex: '1 1 0', minWidth: 0, padding: '9px 6px', borderRadius: 10, fontSize: 15, fontWeight: 700, textAlign: 'center', whiteSpace: 'nowrap', cursor: 'pointer', background: active ? GOLD : CARD, color: active ? NAVY : GOLD_LIGHT, border: active ? `1.5px solid ${GOLD}` : '1.5px solid rgba(250,199,117,0.3)', boxShadow: active ? '0 0 18px rgba(239,159,39,0.4)' : '0 0 10px rgba(239,159,39,0.1)' });
-  const padBtn: React.CSSProperties = { aspectRatio: '1 / 1', borderRadius: 14, border: '1.5px solid rgba(250,199,117,0.4)', background: CARD, color: GOLD_LIGHT, fontSize: 26, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 12px rgba(239,159,39,0.12)' };
+  const padBtn: React.CSSProperties = { height: 50, borderRadius: 12, border: '1.5px solid rgba(250,199,117,0.4)', background: CARD, color: GOLD_LIGHT, fontSize: 22, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 10px rgba(239,159,39,0.1)' };
   const bigBtn: React.CSSProperties = { fontSize: 19, fontWeight: 700, padding: '14px 30px', borderRadius: 12, border: 'none', background: GOLD, color: NAVY, cursor: 'pointer' };
   const detailsBox: React.CSSProperties = { marginTop: 16, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(239,159,39,0.3)', borderRadius: 16, overflow: 'hidden' };
-  const summaryStyle: React.CSSProperties = { cursor: 'pointer', padding: '16px 20px', fontSize: 17, fontWeight: 700, color: GOLD, fontFamily: 'Montserrat, sans-serif' };
+  const summaryStyle: React.CSSProperties = { cursor: 'pointer', padding: '16px 20px', fontSize: 17, fontWeight: 700, color: GOLD, fontFamily: 'Montserrat, sans-serif', lineHeight: 1.3 };
   const detailsBody: React.CSSProperties = { padding: '0 20px 18px', fontSize: 15.5, lineHeight: 1.65, color: TEXT_SOFT };
   const navArrow: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 8, color: GOLD, fontWeight: 700, fontSize: 15, textDecoration: 'none' };
 
@@ -123,7 +123,7 @@ export default function DigitsPage() {
           details > summary::-webkit-details-marker { display: none; }
           .bb-details p { margin: 0 0 14px; }
           .bb-details p:last-child { margin-bottom: 0; }
-          .bb-details b { color: ${GOLD}; }
+          .bb-details b { color: ${GOLD}; line-height: 1.3; }
           .bb-cream-note { background: #FFF3DF; border-radius: 12px; padding: 14px 16px; color: ${NAVY}; }
           .bb-cream-note b { color: #B5710C; }
         `}</style>
@@ -145,7 +145,7 @@ export default function DigitsPage() {
         )}
 
         {/* екран гри */}
-        <div style={{ background: CARD, borderRadius: 16, border: '1.5px solid rgba(250,199,117,0.25)', minHeight: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '22px 16px', textAlign: 'center', boxShadow: '0 0 24px rgba(239,159,39,0.12)' }}>
+        <div style={{ background: CARD, borderRadius: 16, border: '1.5px solid rgba(250,199,117,0.25)', minHeight: 118, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px 14px', textAlign: 'center', boxShadow: '0 0 24px rgba(239,159,39,0.12)' }}>
           {phase === 'idle' && (
             <>
               <p style={{ fontSize: 16, color: TEXT_SOFT, margin: '0 0 16px', lineHeight: 1.5 }}>Цифри зʼявлятимуться по одній. Запамʼятайте їх — і введіть навпаки.</p>
@@ -154,7 +154,7 @@ export default function DigitsPage() {
           )}
 
           {phase === 'show' && (
-            <div className={flash !== null ? 'bb-flash' : undefined} key={`${flash}-${seq.length}`} style={{ fontFamily: 'Lora, serif', fontSize: 72, fontWeight: 700, color: GOLD_LIGHT, lineHeight: 1, minHeight: 80, display: 'flex', alignItems: 'center' }}>
+            <div className={flash !== null ? 'bb-flash' : undefined} key={`${flash}-${seq.length}`} style={{ fontFamily: 'Lora, serif', fontSize: 58, fontWeight: 700, color: GOLD_LIGHT, lineHeight: 1, minHeight: 64, display: 'flex', alignItems: 'center' }}>
               {flash !== null ? flash : ''}
             </div>
           )}
@@ -164,7 +164,7 @@ export default function DigitsPage() {
               <p style={{ fontSize: 15, color: TEXT_SOFT, margin: '0 0 12px' }}>Введіть навпаки:</p>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', minHeight: 44 }}>
                 {Array.from({ length: seq.length }).map((_, k) => (
-                  <div key={k} style={{ width: 34, height: 44, borderRadius: 8, border: `2px solid ${entry[k] !== undefined ? GOLD : 'rgba(250,199,117,0.3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Lora, serif', fontSize: 26, fontWeight: 700, color: GOLD_LIGHT, background: NAVY2 }}>
+                  <div key={k} style={{ width: 30, height: 40, borderRadius: 8, border: `2px solid ${entry[k] !== undefined ? GOLD : 'rgba(250,199,117,0.3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Lora, serif', fontSize: 22, fontWeight: 700, color: GOLD_LIGHT, background: NAVY2 }}>
                     {entry[k] !== undefined ? entry[k] : ''}
                   </div>
                 ))}
@@ -184,7 +184,7 @@ export default function DigitsPage() {
 
         {/* цифрова клавіатура */}
         {phase === 'input' && (
-          <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
               <button key={d} className="bb-pad" style={padBtn} onClick={() => tapDigit(d)}>{d}</button>
             ))}
