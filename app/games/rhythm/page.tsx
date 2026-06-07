@@ -8,40 +8,57 @@ const CARD = '#193049', GOLD_LIGHT = '#FAC775', TEXT_SOFT = '#CFE3FA', TEXT_DESC
 const RED_SOFT = '#E8A0A0', GREEN_SOFT = '#7FD18B';
 
 /* ===================== ЛОГІКА ===================== */
-type Dir = 'L' | 'R';
-type G = { arrow: Dir | null; answered: boolean; lives: number; correct: number; streak: number; interval: number; over: boolean; last: 'ok' | 'bad' | 'miss' | null };
+type Kind = 'L' | 'R' | 'STOP';
+type G = { kind: Kind | null; answered: boolean; lives: number; correct: number; streak: number; interval: number; over: boolean; last: 'ok' | 'bad' | 'miss' | null };
 
 const START_LIVES = 3, FLOOR = 480, STEP = 70, SPEEDUP_EVERY = 5;
+const opp = (k: Kind) => (k === 'L' ? 'R' : 'L');
 
-function onPress(s: G, dir: Dir): G {
-  if (s.over || s.answered || s.arrow == null) return s;
-  if (dir === s.arrow) {
-    const streak = s.streak + 1;
-    const interval = streak % SPEEDUP_EVERY === 0 ? Math.max(FLOOR, s.interval - STEP) : s.interval;
-    return { ...s, correct: s.correct + 1, streak, interval, answered: true, last: 'ok' };
-  }
+function applyCorrect(s: G): G {
+  const streak = s.streak + 1;
+  const interval = streak % SPEEDUP_EVERY === 0 ? Math.max(FLOOR, s.interval - STEP) : s.interval;
+  return { ...s, correct: s.correct + 1, streak, interval, answered: true, last: 'ok' };
+}
+function applyError(s: G): G {
   const lives = s.lives - 1;
   return { ...s, lives, streak: 0, answered: true, last: 'bad', over: lives <= 0 };
 }
-function onBeat(s: G, newArrow: Dir): G {
+function onPress(s: G, dir: 'L' | 'R'): G {
+  if (s.over || s.answered || s.kind == null) return s;
+  if (s.kind === 'STOP') return applyError(s);
+  return dir === opp(s.kind) ? applyCorrect(s) : applyError(s);
+}
+function onBeat(s: G, nk: Kind): G {
   let st = s;
-  if (s.arrow != null && !s.answered) { const lives = s.lives - 1; st = { ...s, lives, streak: 0, last: 'miss', over: lives <= 0 }; }
+  if (s.kind != null && !s.answered) {
+    if (s.kind === 'STOP') st = applyCorrect(s);
+    else { const lives = s.lives - 1; st = { ...s, lives, streak: 0, answered: true, last: 'miss', over: lives <= 0 }; }
+  }
   if (st.over) return st;
-  return { ...st, arrow: newArrow, answered: false };
+  return { ...st, kind: nk, answered: false };
+}
+function genKind(prev: Kind | null, stopProb: number): Kind {
+  if (stopProb > 0 && prev !== 'STOP' && prev != null && Math.random() < stopProb) return 'STOP';
+  return Math.random() < 0.5 ? 'L' : 'R';
 }
 
-type Level = { label: string; start: number };
-const LEVELS: Level[] = [{ label: 'Легкий', start: 1300 }, { label: 'Середній', start: 1050 }, { label: 'Складний', start: 850 }];
+type Level = { label: string; start: number; stopProb: number };
+const LEVELS: Level[] = [
+  { label: 'Легкий', start: 1300, stopProb: 0 },
+  { label: 'Середній', start: 1050, stopProb: 0.22 },
+  { label: 'Складний', start: 850, stopProb: 0.3 },
+];
 type Phase = 'idle' | 'count' | 'run' | 'done';
 
 export default function RhythmPage() {
   const [li, setLi] = useState(0);
   const [phase, setPhase] = useState<Phase>('idle');
-  const [g, setG] = useState<G>({ arrow: null, answered: true, lives: START_LIVES, correct: 0, streak: 0, interval: LEVELS[0].start, over: false, last: null });
+  const [g, setG] = useState<G>({ kind: null, answered: true, lives: START_LIVES, correct: 0, streak: 0, interval: LEVELS[0].start, over: false, last: null });
   const [pulse, setPulse] = useState(0);
   const [countVal, setCountVal] = useState(3);
   const [best, setBest] = useState<[number, number, number]>([0, 0, 0]);
   const gRef = useRef(g);
+  const stopProbRef = useRef(0);
   const beatTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -56,15 +73,15 @@ export default function RhythmPage() {
 
   const scheduleBeat = () => { beatTimer.current = setTimeout(tick, gRef.current.interval); };
   const tick = () => {
-    const newArrow: Dir = Math.random() < 0.5 ? 'L' : 'R';
-    const next = onBeat(gRef.current, newArrow);
+    const nk = genKind(gRef.current.kind, stopProbRef.current);
+    const next = onBeat(gRef.current, nk);
     gRef.current = next; setG(next);
     if (next.over) { endGame(next); return; }
     setPulse((p) => p + 1);
     scheduleBeat();
   };
 
-  const press = (dir: Dir) => {
+  const press = (dir: 'L' | 'R') => {
     if (phase !== 'run') return;
     const next = onPress(gRef.current, dir);
     if (next === gRef.current) return;
@@ -74,15 +91,15 @@ export default function RhythmPage() {
 
   const start = () => {
     clearTimers();
-    const init: G = { arrow: null, answered: true, lives: START_LIVES, correct: 0, streak: 0, interval: LEVELS[li].start, over: false, last: null };
-    gRef.current = init; setG(init);
+    stopProbRef.current = LEVELS[li].stopProb;
+    const initG: G = { kind: null, answered: true, lives: START_LIVES, correct: 0, streak: 0, interval: LEVELS[li].start, over: false, last: null };
+    gRef.current = initG; setG(initG);
     setPhase('count'); setCountVal(3);
-    const stepCd = (n: number) => {
-      setCountVal(n);
-      cdTimer.current = setTimeout(() => { if (n > 1) stepCd(n - 1); else { setPhase('run'); tick(); } }, 750);
-    };
+    const stepCd = (n: number) => { setCountVal(n); cdTimer.current = setTimeout(() => { if (n > 1) stepCd(n - 1); else { setPhase('run'); tick(); } }, 750); };
     stepCd(3);
   };
+
+  const chooseLevel = (i: number) => { clearTimers(); setLi(i); setPhase('idle'); const ng: G = { kind: null, answered: true, lives: START_LIVES, correct: 0, streak: 0, interval: LEVELS[i].start, over: false, last: null }; gRef.current = ng; setG(ng); };
 
   // клавіатура
   useEffect(() => {
@@ -93,7 +110,8 @@ export default function RhythmPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
-  const ringColor = g.last === 'ok' ? GREEN_SOFT : (g.last === 'bad' || g.last === 'miss') ? RED_SOFT : GOLD;
+  const ringColor = g.kind === 'STOP' ? RED_SOFT : g.last === 'ok' ? GREEN_SOFT : (g.last === 'bad' || g.last === 'miss') ? RED_SOFT : GOLD;
+  const hasStops = LEVELS[li].stopProb > 0;
 
   /* ---- стилі ---- */
   const wrap: React.CSSProperties = { background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, color: TEXT_DESC, padding: '28px 5% 36px', fontFamily: 'Montserrat, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center' };
@@ -127,15 +145,15 @@ export default function RhythmPage() {
         <nav style={{ marginBottom: 14, fontSize: 13 }}><a href="/games" style={{ color: GOLD, textDecoration: 'none' }}>← Ігри</a></nav>
         <h1 style={{ fontFamily: 'Lora, serif', fontSize: 'clamp(28px,6vw,40px)', fontWeight: 600, color: GOLD_LIGHT, margin: '0 0 8px', textShadow: '0 0 22px rgba(239,159,39,0.45)' }}>Ритм і вибір</h1>
         <p style={{ fontSize: 15.5, lineHeight: 1.55, color: TEXT_SOFT, margin: '0 0 18px' }}>
-          На кожен удар пульсу зʼявляється стрілка — встигніть натиснути <b style={{ color: GOLD_LIGHT }}>правильний бік</b> до наступного удару. Дві справи воднораз: ритм і вибір.
+          Тримайте ритм і водночас гасіть автоматизм: на кожен удар тисніть у бік, <b style={{ color: GOLD_LIGHT }}>протилежний</b> до стрілки. Дві справи воднораз — рух і самоконтроль.
         </p>
 
         <div style={ROW}>
-          {LEVELS.map((l, i) => <button key={l.label} style={plaque(i === li)} onClick={() => { if (phase === 'idle' || phase === 'done') setLi(i); }}>{l.label}</button>)}
+          {LEVELS.map((l, i) => <button key={l.label} style={plaque(i === li)} onClick={() => chooseLevel(i)}>{l.label}</button>)}
         </div>
 
         {phase !== 'idle' && phase !== 'done' && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <div style={{ fontSize: 22, letterSpacing: 3 }}>
               {Array.from({ length: START_LIVES }).map((_, i) => <span key={i} style={{ color: i < g.lives ? GOLD : 'rgba(255,255,255,0.18)' }}>●</span>)}
             </div>
@@ -143,11 +161,20 @@ export default function RhythmPage() {
           </div>
         )}
 
+        {(phase === 'run' || phase === 'count') && (
+          <p style={{ fontSize: 13.5, color: GOLD_LIGHT, textAlign: 'center', margin: '0 0 10px', fontWeight: 700 }}>
+            Тисни НАВПАКИ{hasStops ? ' · червоне коло — не тискай' : ''}
+          </p>
+        )}
+
         {/* екран */}
         <div style={{ background: CARD, borderRadius: 16, border: '1.5px solid rgba(250,199,117,0.25)', minHeight: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center', boxShadow: '0 0 24px rgba(239,159,39,0.12)' }}>
           {phase === 'idle' && (
             <div>
-              <p style={{ fontSize: 16, color: TEXT_SOFT, margin: '0 0 16px', lineHeight: 1.5 }}>Тримайте ритм: на кожен удар тисніть стрілку в той бік, куди вона вказує. Темп пришвидшуватиметься.</p>
+              <p style={{ fontSize: 16, color: TEXT_SOFT, margin: '0 0 12px', lineHeight: 1.5 }}>
+                Правило просте, але хитре: тисніть у <b style={{ color: GOLD_LIGHT }}>протилежний</b> бік. Бачите <b style={{ color: GOLD_LIGHT }}>←</b> — тисніть <b style={{ color: GOLD_LIGHT }}>→</b>; бачите <b style={{ color: GOLD_LIGHT }}>→</b> — тисніть <b style={{ color: GOLD_LIGHT }}>←</b>.
+              </p>
+              <p style={{ fontSize: 14, color: 'rgba(207,227,250,0.75)', margin: '0 0 18px', lineHeight: 1.5 }}>На «Середньому» й «Складному» інколи блимає <b style={{ color: RED_SOFT }}>червоне коло</b> — тоді не тискайте взагалі. Усе — вчасно, у такт пульсу.</p>
               <button style={bigBtn} onClick={start}>Почати</button>
             </div>
           )}
@@ -155,46 +182,47 @@ export default function RhythmPage() {
             <div key={countVal} className="bb-ring" style={{ fontFamily: 'Lora, serif', fontSize: 70, fontWeight: 700, color: GOLD_LIGHT }}>{countVal}</div>
           )}
           {phase === 'run' && (
-            <div key={pulse} className="bb-ring" style={{ width: 130, height: 130, borderRadius: '50%', border: `5px solid ${ringColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 30px ${ringColor}66`, transition: 'border-color .15s' }}>
-              <span style={{ fontSize: 70, fontWeight: 700, color: GOLD_LIGHT, lineHeight: 1 }}>{g.arrow === 'L' ? '←' : g.arrow === 'R' ? '→' : ''}</span>
+            <div key={pulse} className="bb-ring" style={{ width: 130, height: 130, borderRadius: '50%', border: `5px solid ${ringColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 30px ${ringColor}66`, background: g.kind === 'STOP' ? 'rgba(232,160,160,0.12)' : 'transparent', transition: 'border-color .12s' }}>
+              {g.kind === 'STOP'
+                ? <span style={{ fontSize: 30, fontWeight: 700, color: RED_SOFT, letterSpacing: 1 }}>СТОП</span>
+                : <span style={{ fontSize: 70, fontWeight: 700, color: GOLD_LIGHT, lineHeight: 1 }}>{g.kind === 'L' ? '←' : g.kind === 'R' ? '→' : ''}</span>}
             </div>
           )}
         </div>
 
         {(phase === 'run' || phase === 'count') && (
-          <div style={{ display: 'flex', gap: 12, marginTop: 14 }}>
-            <button className="bb-ab" style={arrowBtn} onClick={() => press('L')} aria-label="Ліворуч">←</button>
-            <button className="bb-ab" style={arrowBtn} onClick={() => press('R')} aria-label="Праворуч">→</button>
-          </div>
-        )}
-
-        {(phase === 'run' || phase === 'count') && (
-          <div style={{ marginTop: 12, textAlign: 'center' }}>
-            <button onClick={() => endGame(gRef.current)} style={{ fontSize: 14, padding: '9px 18px', borderRadius: 10, border: '1.5px solid rgba(250,199,117,0.35)', background: 'transparent', color: GOLD_LIGHT, cursor: 'pointer', fontWeight: 700 }}>Завершити</button>
-          </div>
+          <>
+            <div style={{ display: 'flex', gap: 12, marginTop: 14 }}>
+              <button className="bb-ab" style={arrowBtn} onClick={() => press('L')} aria-label="Ліворуч">←</button>
+              <button className="bb-ab" style={arrowBtn} onClick={() => press('R')} aria-label="Праворуч">→</button>
+            </div>
+            <div style={{ marginTop: 12, textAlign: 'center' }}>
+              <button onClick={() => endGame(gRef.current)} style={{ fontSize: 14, padding: '9px 18px', borderRadius: 10, border: '1.5px solid rgba(250,199,117,0.35)', background: 'transparent', color: GOLD_LIGHT, cursor: 'pointer', fontWeight: 700 }}>Завершити</button>
+            </div>
+          </>
         )}
 
         {/* обґрунтування */}
         <details style={detailsBox} className="bb-details">
           <summary style={summaryStyle}>Чи це справді працює? — докладно</summary>
           <div style={detailsBody}>
-            <p><b>Що це за вправа.</b><br />Ви робите <b>дві справи воднораз</b>: тримаєте ритм (рухова частина) і щоразу вирішуєте, у який бік стрілка (вибір). Це «подвійна задача» — як іти й одночасно розмовляти.</p>
-            <p><b>Чому це важливо.</b><br />Здатність робити дві речі разом з віком слабшає, і це навантажує виконавчі функції — планування, переключення, гальмування (робота лобових часток). Погіршення в подвійних задачах (наприклад, людина зупиняється, коли під час ходьби починає говорити) повʼязують із підвищеним ризиком зниження памʼяті й падінь.</p>
-            <p><b>Що показали дослідження.</b><br />Десятки рандомізованих досліджень у різних країнах, узагальнені в оглядах 2024–2025 років, виявили: тренування подвійних задач у літніх покращує виконавчі функції, ходу й рівновагу та знижує ризик падінь — особливо в людей із когнітивним зниженням.</p>
-            <p><b>Як це влаштовано тут.</b><br />Пульс задає темп; на кожен удар треба встигнути натиснути правильний бік. З успіхами темп пришвидшується. Ми вимірюємо «встигли / ні», без мілісекундної точності — щоб працювало надійно на телефоні.</p>
-            <p className="bb-cream-note"><b>Чесні межі.</b><br />Найсильніші докази — для <i>рухових</i> подвійних задач (хода, рівновага). Наша «пальцева» версія тренує радше поділ уваги й переключення, а не ходу, і результати в дослідженнях різняться — потрібні більші роботи. Це <b>не заміна</b> фізичних вправ на рівновагу й не лікування. Якщо є проблеми з рівновагою чи падіннями — тренуйтеся рухово під наглядом фахівця.</p>
-            <p><b>Підсумок.</b><br />Корисний і бадьорий спосіб тренувати «двозадачність». Гарантій немає; користь дає регулярність, а не одна спроба.</p>
+            <p><b>Що це за вправа.</b><br />Ви робите <b>дві справи воднораз</b>: тримаєте ритм (рухова частина) і на кожен удар гасите автоматичний порив — тиснете у <b>протилежний</b> бік від стрілки, а на «стоп»-сигнал стримуєтесь. Це навантажує гальмування й переключення — серцевину виконавчих функцій (робота лобових часток).</p>
+            <p><b>Чому це важливо.</b><br />Здатність робити дві речі разом з віком слабшає. Її погіршення (наприклад, людина зупиняється, коли під час ходьби починає говорити) повʼязують із підвищеним ризиком зниження памʼяті й падінь.</p>
+            <p><b>Що показали дослідження.</b><br />Десятки рандомізованих досліджень із різних країн (Азія, Європа, Північна Америка), зведених у метааналізах 2024–2025 років, виявили користь подвійних задач для виконавчих функцій, ходи й рівноваги. Наприклад, корейське дослідження 2022 року (58 літніх людей із падіннями в анамнезі): 6 тижнів тренувань подвійних задач покращили рівновагу й виконавчі функції більше, ніж звичайні вправи на рівновагу.</p>
+            <p><b>Як це влаштовано тут.</b><br />Пульс задає темп; на кожен удар треба вчасно дати правильну відповідь за правилом «навпаки». З успіхами темп пришвидшується. Ми вимірюємо «встигли / ні», без мілісекундної точності — щоб працювало надійно на телефоні.</p>
+            <p className="bb-cream-note"><b>Чесні межі.</b><br />Найсильніші докази — для <i>рухових</i> подвійних задач (хода, рівновага). Наша «пальцева» версія тренує радше гальмування й переключення уваги, а не ходу. До того ж сила ефекту в різних дослідженнях різниться, а вплив саме на профілактику падінь поки контроверсійний — потрібні більші й триваліші роботи. Це <b>не заміна</b> фізичних вправ на рівновагу й не лікування. Якщо є проблеми з рівновагою чи падіннями — тренуйтеся рухово під наглядом фахівця.</p>
+            <p><b>Підсумок.</b><br />Корисний і бадьорий спосіб тренувати «двозадачність» і самоконтроль. Гарантій немає; користь дає регулярність, а не одна спроба.</p>
           </div>
         </details>
 
         <details style={detailsBox} className="bb-details">
           <summary style={summaryStyle}>Кому, скільки, як часто</summary>
           <div style={detailsBody}>
-            <p><b>Кому підійде.</b><br />Будь-якому дорослому для тренування уваги й швидкості реакції. Можна змагатися з рідними — хто протримається довше.</p>
+            <p><b>Кому підійде.</b><br />Будь-якому дорослому для тренування уваги, самоконтролю й швидкості реакції. Можна змагатися з рідними — хто протримається довше.</p>
             <p><b>Кому бути обережним.</b><br />Якщо швидкий темп дратує або втомлює — знизьте рівень чи завершіть. Гра не призначена для діагностики чи самолікування.</p>
             <p><b>Скільки за раз.</b><br />Кілька підходів по кілька хвилин — досить. Не до втоми.</p>
             <p><b>Як часто.</b><br />Користь дає регулярність — розумний орієнтир 3–5 разів на тиждень короткими сеансами.</p>
-            <p><b>Якщо складно.</b><br />Почніть із «Легкого» — там повільніший темп. Не біда, якщо спочатку плутаєте боки: саме це й тренує мозок.</p>
+            <p><b>Якщо складно.</b><br />Почніть із «Легкого» — там повільніший темп і без «стопів». Спершу плутати боки — нормально: саме це й тренує мозок.</p>
             <p><b>Чи це лікує.</b><br />Ні. Це тренувальна вправа для підтримки когнітивних функцій, а не ліки й не заміна консультації лікаря.</p>
           </div>
         </details>
