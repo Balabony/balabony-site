@@ -298,6 +298,12 @@ export default function ChessPage() {
 
   const newGame = () => { const init = startState(); histRef.current = [posKey(init)]; setState(init); setSel(null); setLegal([]); setLast(null); setResult(null); setClock({ w: 0, b: 0 }); setPromo(null); };
 
+  const resign = () => {
+    if (result) return;
+    const loser: 'w' | 'b' = mode === 'ai' ? 'w' : state.turn; // з комп'ютером здається гравець (білі)
+    setResult({ winner: loser === 'w' ? 'b' : 'w', reason: 'здача' });
+  };
+
   const checkSq = inCheck(state) ? kingSq(state.board, state.turn) : -1;
   const order = flip ? [...Array(64).keys()].reverse() : [...Array(64).keys()];
   const sideLabel = (w: 'w' | 'b') => (w === 'w' ? 'білі' : 'чорні');
@@ -380,8 +386,9 @@ export default function ChessPage() {
       </div>
 
       <div style={{ ...ROW, marginTop: 18, marginBottom: 0 }}>
-        <button style={btn} onClick={newGame}>Нова гра</button>
-        <button style={btn} onClick={() => setFlip((f) => !f)}>Перевернути</button>
+        <button style={{ ...btn, fontSize: 13, padding: '9px 4px' }} onClick={newGame}>Нова гра</button>
+        <button style={{ ...btn, fontSize: 13, padding: '9px 4px', color: '#E8A0A0', borderColor: 'rgba(226,75,74,0.45)' }} onClick={resign}>Здаюсь</button>
+        <button style={{ ...btn, fontSize: 13, padding: '9px 4px' }} onClick={() => setFlip((f) => !f)}>Перевернути</button>
       </div>
 
       {/* вибір фігури при перетворенні пішака */}
