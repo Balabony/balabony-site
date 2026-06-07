@@ -32,6 +32,8 @@ function Icon({ kind }: { kind: string }) {
     case 'checkers':
       return (<svg {...p}><circle cx="17" cy="29" r="11" fill="none" stroke={GOLD_LIGHT} strokeWidth="2.8" /><circle cx="30" cy="19" r="11" fill={GOLD_LIGHT} stroke={GOLD} strokeWidth="1.5" /><path d="M24 20 l2.5 2 l3.5 -4 l3.5 4 l2.5 -2 v4 h-12 z" fill="#14253B" /></svg>)
     case 'chess': return (<svg {...p}><g fill="none" stroke={GOLD_LIGHT} strokeWidth="2.8" strokeLinejoin="round" strokeLinecap="round"><path d="M24 6 v6 M21 9 h6"/><path d="M24 14 c-5 0 -8 4 -8 8 l2 12 h12 l2 -12 c0 -4 -3 -8 -8 -8 z"/><path d="M14 38 h20 v4 h-20 z"/></g></svg>)
+    case 'maze':
+      return (<svg {...p}><rect x="7" y="7" width="34" height="34" rx="4" fill="none" stroke={GOLD_LIGHT} strokeWidth="2.8" /><g fill="none" stroke={GOLD_BRIGHT} strokeWidth="2.6" strokeLinecap="round"><path d="M7 18 h12 M19 7 v12 M19 30 h10 M29 18 v18 M29 24 h8" /></g><circle cx="13" cy="13" r="2.6" fill={GOLD_LIGHT} /></svg>)
     default:
       return null
   }
@@ -44,6 +46,7 @@ const EVIDENCE: Game[] = [
   { href: '/games/attention', kind: 'attention', title: 'Подвійна увага', desc: 'Вчить утримувати увагу на двох речах одразу — найближча до вправи з відомого дослідження про деменцію.' },
 ]
 const USEFUL: Game[] = [
+  { href: '/games/maze', kind: 'maze', title: 'Лабіринт', desc: 'Тренує просторове мислення й уявну «карту» місцевості. Орієнтація в просторі першою слабшає з віком.' },
   { href: '/games/memory-order', kind: 'order', title: 'Запам’ятай порядок', desc: 'Тренує робочу пам’ять. Кілька коротких занять на тиждень дають помітний результат.' },
   { href: '/games/colors', kind: 'colors', title: 'Який колір?', desc: 'Тренує самоконтроль і увагу: назви колір літер, а не читай слово. Спокійна вправа на зосередженість.' },
   { href: '/games/pairs', kind: 'pairs', title: 'Знайди пару', desc: 'Тренує зорову пам’ять. Приємно грати разом із дітьми чи онуками.' },
