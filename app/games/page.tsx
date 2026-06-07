@@ -38,6 +38,8 @@ function Icon({ kind }: { kind: string }) {
       return (<svg {...p}><g fill="none" stroke={GOLD_LIGHT} strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 24 a16 16 0 1 0 5 -11.6 L8 17" /><polyline points="8,7 8,17 18,17" /></g></svg>)
     case 'fluency':
       return (<svg {...p}><path d="M9 10 h30 a4 4 0 0 1 4 4 v16 a4 4 0 0 1 -4 4 h-17 l-9 8 v-8 h-4 a4 4 0 0 1 -4 -4 v-16 a4 4 0 0 1 4 -4 z" fill="none" stroke={GOLD_LIGHT} strokeWidth="2.8" strokeLinejoin="round" /><circle cx="17" cy="22" r="2.4" fill={GOLD_BRIGHT} /><circle cx="24" cy="22" r="2.4" fill={GOLD_BRIGHT} /><circle cx="31" cy="22" r="2.4" fill={GOLD_BRIGHT} /></svg>)
+    case 'rhythm':
+      return (<svg {...p}><g fill="none" stroke={GOLD_LIGHT} strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 24 H9 M13 20 l-4 4 l4 4" /><path d="M31 24 H39 M35 20 l4 4 l-4 4" /></g><circle cx="24" cy="24" r="6" fill={GOLD_BRIGHT} /></svg>)
     default:
       return null
   }
@@ -54,6 +56,7 @@ const USEFUL: Game[] = [
   { href: '/games/memory-order', kind: 'order', title: 'Запам’ятай порядок', desc: 'Тренує робочу пам’ять. Кілька коротких занять на тиждень дають помітний результат.' },
   { href: '/games/digits', kind: 'digits', title: 'Цифри навпаки', desc: 'Запамʼятайте ряд цифр і введіть його у зворотному порядку — класичний тест Векслера на робочу памʼять.' },
   { href: '/games/fluency', kind: 'fluency', title: 'Назви якнайбільше', desc: 'Називайте вголос якнайбільше слів на тему чи літеру за хвилину. Словесна побіжність — чутливий показник стану мозку.' },
+  { href: '/games/rhythm', kind: 'rhythm', title: 'Ритм і вибір', desc: 'На кожен удар пульсу тисніть правильний бік. Подвійна задача — ритм і вибір воднораз — тренує увагу й виконавчі функції.' },
   { href: '/games/colors', kind: 'colors', title: 'Який колір?', desc: 'Тренує самоконтроль і увагу: назви колір літер, а не читай слово. Спокійна вправа на зосередженість.' },
   { href: '/games/pairs', kind: 'pairs', title: 'Знайди пару', desc: 'Тренує зорову пам’ять. Приємно грати разом із дітьми чи онуками.' },
   { href: '/games/chess', kind: 'chess', title: 'Шахи', desc: 'Класичні шахи — проти машини (три рівні) або вдвох. Тренують планування й передбачення ходів.' },
