@@ -120,13 +120,23 @@ export default function MazePage() {
 
   const showWalls = !memory || peek;
   const goal = size * size - 1;
+  const goalR = Math.floor(goal / size), goalC = goal % size;
+  const posR = Math.floor(pos / size), posC = pos % size;
+  let wallPath = '';
+  for (let i = 0; i < cells.length; i++) {
+    const r = Math.floor(i / size), c = i % size, cl = cells[i];
+    if (cl.n) wallPath += `M${c} ${r}h1`;
+    if (cl.s) wallPath += `M${c} ${r + 1}h1`;
+    if (cl.w) wallPath += `M${c} ${r}v1`;
+    if (cl.e) wallPath += `M${c + 1} ${r}v1`;
+  }
 
   /* ---- стилі ---- */
   const wrap: React.CSSProperties = { background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY2} 50%, ${NAVY} 100%)`, color: TEXT_DESC, padding: '28px 5% 36px', fontFamily: 'Montserrat, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center' };
   const inner: React.CSSProperties = { width: '100%', maxWidth: 480 };
   const ROW: React.CSSProperties = { display: 'flex', gap: 8, marginBottom: 12, width: '100%' };
   const plaque = (active: boolean): React.CSSProperties => ({ flex: '1 1 0', minWidth: 0, padding: '9px 6px', borderRadius: 10, fontSize: 15, fontWeight: 700, textAlign: 'center', whiteSpace: 'nowrap', cursor: 'pointer', background: active ? GOLD : CARD, color: active ? NAVY : GOLD_LIGHT, border: active ? `1.5px solid ${GOLD}` : '1.5px solid rgba(250,199,117,0.3)', boxShadow: active ? '0 0 18px rgba(239,159,39,0.4)' : '0 0 10px rgba(239,159,39,0.1)' });
-  const dpadBtn: React.CSSProperties = { width: 64, height: 64, borderRadius: 14, border: `1.5px solid rgba(250,199,117,0.4)`, background: CARD, color: GOLD_LIGHT, fontSize: 28, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 12px rgba(239,159,39,0.14)' };
+  const dpadBtn: React.CSSProperties = { width: 54, height: 54, borderRadius: 13, border: `1.5px solid rgba(250,199,117,0.4)`, background: CARD, color: GOLD_LIGHT, fontSize: 24, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 12px rgba(239,159,39,0.14)' };
   const linkBtn: React.CSSProperties = { flex: '1 1 0', fontSize: 14, padding: '11px 6px', borderRadius: 10, border: '1.5px solid rgba(250,199,117,0.35)', background: CARD, color: GOLD_LIGHT, cursor: 'pointer', fontWeight: 700, textAlign: 'center', whiteSpace: 'nowrap' };
   const detailsBox: React.CSSProperties = { marginTop: 16, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(239,159,39,0.3)', borderRadius: 16, overflow: 'hidden' };
   const summaryStyle: React.CSSProperties = { cursor: 'pointer', padding: '16px 20px', fontSize: 17, fontWeight: 700, color: GOLD, fontFamily: 'Montserrat, sans-serif' };
@@ -174,30 +184,30 @@ export default function MazePage() {
           Кроків: {moves}{solved ? '' : <span style={{ color: TEXT_SOFT, fontWeight: 400 }}> · найкоротший шлях: {opt}</span>}
         </div>
 
-        {/* лабіринт */}
-        <div style={{ position: 'relative', width: 'min(92vw, 420px)', aspectRatio: '1 / 1', margin: '0 auto', border: `3px solid ${WALL}`, borderRadius: 6, overflow: 'hidden', display: 'grid', gridTemplateColumns: `repeat(${size}, 1fr)`, gridTemplateRows: `repeat(${size}, 1fr)`, background: CELL, boxShadow: '0 0 28px rgba(239,159,39,0.2)' }}>
-          {cells.map((cell, i) => {
-            const onPath = path.has(i);
-            const w = (on: boolean) => (showWalls && on ? `3px solid ${WALL}` : '3px solid transparent');
-            return (
-              <div key={i} style={{ position: 'relative', borderTop: w(cell.n), borderRight: w(cell.e), borderBottom: w(cell.s), borderLeft: w(cell.w), background: onPath ? CELL_PATH : 'transparent', boxShadow: onPath ? 'inset 0 0 9px rgba(239,159,39,0.22)' : undefined, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {i === goal && (
-                  <svg viewBox="0 0 24 24" className="bb-goal" aria-hidden style={{ width: '66%', height: '66%' }}>
-                    <rect x="6" y="3.5" width="2" height="17" rx="1" fill={GOLD} />
-                    <circle cx="7" cy="3.5" r="1.7" fill={GOLD} />
-                    <path d="M8 4.5 L19.5 8 L8 11.5 Z" fill={GOLD} stroke={CREAM} strokeWidth="0.9" strokeLinejoin="round" />
-                  </svg>
-                )}
-                {i === pos && <div className="bb-player" style={{ position: 'absolute', width: '58%', height: '58%', borderRadius: '50%', background: `radial-gradient(circle at 35% 30%, ${GOLD_LIGHT}, ${GOLD})`, boxShadow: '0 0 16px rgba(239,159,39,0.85)', border: `2px solid ${CREAM}` }} />}
-              </div>
-            );
-          })}
+        {/* лабіринт — чисті лінії, розмір обмежений висотою екрана */}
+        <div style={{ position: 'relative', width: 'min(86vw, 44vh, 400px)', aspectRatio: '1 / 1', margin: '0 auto' }}>
+          <svg viewBox={`0 0 ${size} ${size}`} width="100%" style={{ display: 'block', borderRadius: 6, boxShadow: '0 0 28px rgba(239,159,39,0.2)' }} aria-hidden>
+            <rect x="0" y="0" width={size} height={size} fill={CELL} />
+            {[...path].map((i) => { const r = Math.floor(i / size), c = i % size; return <rect key={i} x={c} y={r} width="1" height="1" fill={CELL_PATH} />; })}
+            {showWalls && <path d={wallPath} stroke={WALL} strokeWidth="3" strokeLinecap="round" fill="none" vectorEffect="non-scaling-stroke" />}
+            <rect x="0" y="0" width={size} height={size} fill="none" stroke={WALL} strokeWidth="3.5" vectorEffect="non-scaling-stroke" />
+          </svg>
+          <div style={{ position: 'absolute', left: `${goalC * 100 / size}%`, top: `${goalR * 100 / size}%`, width: `${100 / size}%`, height: `${100 / size}%`, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+            <svg viewBox="0 0 24 24" className="bb-goal" aria-hidden style={{ width: '70%', height: '70%' }}>
+              <rect x="6" y="3.5" width="2" height="17" rx="1" fill={GOLD} />
+              <circle cx="7" cy="3.5" r="1.7" fill={GOLD} />
+              <path d="M8 4.5 L19.5 8 L8 11.5 Z" fill={GOLD} stroke={CREAM} strokeWidth="0.9" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <div style={{ position: 'absolute', left: `${posC * 100 / size}%`, top: `${posR * 100 / size}%`, width: `${100 / size}%`, height: `${100 / size}%`, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+            <div className="bb-player" style={{ width: '60%', height: '60%', borderRadius: '50%', background: `radial-gradient(circle at 35% 30%, ${GOLD_LIGHT}, ${GOLD})`, boxShadow: '0 0 16px rgba(239,159,39,0.85)', border: `2px solid ${CREAM}` }} />
+          </div>
         </div>
 
         {/* керування — хрестовина */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, margin: '18px 0 6px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, margin: '10px 0 4px' }}>
           <button aria-label="Вгору" className="bb-dpad" style={dpadBtn} onClick={() => move('n')}>↑</button>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 7 }}>
             <button aria-label="Ліворуч" className="bb-dpad" style={dpadBtn} onClick={() => move('w')}>←</button>
             <button aria-label="Униз" className="bb-dpad" style={dpadBtn} onClick={() => move('s')}>↓</button>
             <button aria-label="Праворуч" className="bb-dpad" style={dpadBtn} onClick={() => move('e')}>→</button>
@@ -214,7 +224,7 @@ export default function MazePage() {
           <summary style={summaryStyle}>Чи це справді працює? — докладно</summary>
           <div style={detailsBody}>
             <p><b>Що це за вправа.</b><br />Лабіринт тренує просторову орієнтацію: прокласти маршрут і втримати «карту» в голові. Режим «по пам’яті» додатково тренує уявну карту.</p>
-            <p><b>Чому це важливо для мозку.</b><br />За орієнтацію відповідають гіпокамп і енторинальна кора (їхні «нейрони місця і решітки» відзначені Нобелівською премією з медицини 2014 року — Велика Британія та Норвегія). Енторинальна кора уражається однією з перших при Альцгеймері, тому проблеми з орієнтацією часто зʼявляються раніше за проблеми з памʼяттю.</p>
+            <p><b>Чому це важливо для мозку.</b><br />За орієнтацію відповідають гіпокамп і енторинальна кора. У 2014 році вчені (Джон О’Кіф — Велика Британія, Мей-Брітт та Едвард Мозери — Норвегія) отримали Нобелівську премію з медицини за відкриття «клітин місця і решітки» — внутрішньої системи орієнтації мозку саме в цих ділянках. Енторинальна кора уражається однією з перших при Альцгеймері, тому проблеми з орієнтацією часто зʼявляються раніше за проблеми з памʼяттю.</p>
             <p><b>Орієнтація як ранній сигнал.</b><br />Sea Hero Quest — мобільна гра-навігація, створена у Великій Британії (UCL та Університет Східної Англії з Alzheimer’s Research UK), понад 4 млн гравців зі світу. У дослідженні 2019 року люди з геном ризику Альцгеймера (APOE-ε4) орієнтувалися гірше — ще не маючи жодних проблем із памʼяттю.</p>
             <p><b>Навігація змінює мозок.</b><br />Дослідження UCL (Велика Британія, 2000 рік): у лондонських таксистів, які вивчили все місто, задня частина гіпокампа була більшою — і тим більшою, чим довший стаж. Повторне дослідження 2011 року показало, що вона зростала вже після навчання. Тобто практика орієнтування фізично впливає на мозок.</p>
             <p className="bb-cream-note"><b>Чесні межі.</b><br />Sea Hero Quest — про <i>раннє виявлення</i> ризику, а не доказ, що лабіринти <i>запобігають</i> деменції. Таксисти — це здорові люди й досвід, а не профілактика хвороби. Великого клінічного випробування, яке б довело, що лабіринти знижують ризик деменції, поки немає. Це проста корисна вправа, <b>не медичний тренажер</b> і не заміна лікування.</p>
