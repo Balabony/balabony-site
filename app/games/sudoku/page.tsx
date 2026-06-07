@@ -65,6 +65,7 @@ export default function SudokuPage() {
   const [sel, setSel] = useState<number | null>(null);
   const [checking, setChecking] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [flash, setFlash] = useState<{ pos: number; key: number }>({ pos: -1, key: 0 });
 
   const newGame = (level: number) => {
     setBusy(true); setPhase('play'); setSel(null); setChecking(false);
@@ -77,7 +78,9 @@ export default function SudokuPage() {
 
   const setCell = (v: number) => {
     if (sel == null || given[sel] !== 0 || phase !== 'play') return;
-    setCells((cs) => { const n = [...cs]; n[sel] = n[sel] === v ? 0 : v; return n; });
+    const nv = cells[sel] === v ? 0 : v;
+    setCells((cs) => { const n = [...cs]; n[sel] = nv; return n; });
+    if (nv !== 0) setFlash({ pos: sel, key: flash.key + 1 });
     setChecking(false);
   };
   const erase = () => { if (sel == null || given[sel] !== 0) return; setCells((cs) => { const n = [...cs]; n[sel] = 0; return n; }); };
@@ -122,6 +125,12 @@ export default function SudokuPage() {
           .bb-cream-note { background: #FFF3DF; border-radius: 12px; padding: 14px 16px; color: ${NAVY}; }
           .bb-cream-note b { color: #B5710C; }
           .bb-cell { transition: background .12s; }
+          @keyframes bbPop { 0% { transform: scale(1); } 40% { transform: scale(1.24); text-shadow: 0 0 16px rgba(250,199,117,0.95); } 100% { transform: scale(1); } }
+          .bb-pop { display: inline-block; animation: bbPop .26s ease-out; }
+          @keyframes bbSelGlow { 0%,100% { box-shadow: inset 0 0 0 2.5px ${GOLD}, inset 0 0 10px rgba(239,159,39,0.4); } 50% { box-shadow: inset 0 0 0 2.5px ${GOLD}, inset 0 0 18px rgba(239,159,39,0.7); } }
+          .bb-sel { animation: bbSelGlow 1.6s ease-in-out infinite; }
+          .bb-np { transition: transform .08s, box-shadow .12s, background .12s; }
+          .bb-np:active { transform: scale(0.93); background: #22426a !important; box-shadow: 0 0 20px rgba(239,159,39,0.7) !important; }
         `}</style>
 
         <nav style={{ marginBottom: 14, fontSize: 13 }}><a href="/games" style={{ color: GOLD, textDecoration: 'none' }}>← Ігри</a></nav>
@@ -151,7 +160,7 @@ export default function SudokuPage() {
             {busy ? (
               <div style={{ width: 'min(92vw, 56vh, 460px)', aspectRatio: '1/1', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', color: GOLD_LIGHT, fontSize: 18, background: CARD, borderRadius: 10 }}>Генерую…</div>
             ) : (
-              <div style={{ width: 'min(92vw, 56vh, 460px)', aspectRatio: '1/1', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', background: GOLD, border: `2.5px solid ${GOLD}`, borderRadius: 6, overflow: 'hidden' }}>
+              <div style={{ width: 'min(92vw, 56vh, 460px)', aspectRatio: '1/1', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', background: GOLD, border: `2.5px solid ${GOLD}`, borderRadius: 6, overflow: 'hidden', boxShadow: '0 0 30px rgba(239,159,39,0.28)' }}>
                 {cells.map((v, i) => {
                   const r = (i / 9) | 0, c = i % 9;
                   const isGiven = given[i] !== 0;
@@ -161,17 +170,18 @@ export default function SudokuPage() {
                   let bg = NAVY2;
                   if (peer) bg = '#1d3552';
                   if (sameVal) bg = '#274a6e';
-                  if (isSel) bg = '#33597e';
+                  if (isSel) bg = '#3a6286';
                   const showWrong = (checking && v !== 0 && v !== solution[i]) || bad[i];
+                  const isFlash = flash.pos === i;
                   return (
-                    <div key={i} className="bb-cell" onClick={() => setSel(i)} style={{
+                    <div key={i} className={'bb-cell' + (isSel ? ' bb-sel' : '')} onClick={() => setSel(i)} style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                       background: bg,
                       borderRight: `${c % 3 === 2 && c !== 8 ? 2.5 : 1}px solid ${c % 3 === 2 && c !== 8 ? GOLD : 'rgba(250,199,117,0.18)'}`,
                       borderBottom: `${r % 3 === 2 && r !== 8 ? 2.5 : 1}px solid ${r % 3 === 2 && r !== 8 ? GOLD : 'rgba(250,199,117,0.18)'}`,
                       fontFamily: "'Lora', serif", fontSize: 'clamp(16px, 5vw, 26px)', fontWeight: isGiven ? 700 : 600,
                       color: showWrong ? RED_SOFT : isGiven ? CREAM : GOLD_LIGHT,
-                    }}>{v !== 0 ? v : ''}</div>
+                    }}>{v !== 0 ? <span key={isFlash ? flash.key : 'x'} className={isFlash ? 'bb-pop' : undefined} style={{ textShadow: sameVal ? '0 0 10px rgba(250,199,117,0.75)' : 'none' }}>{v}</span> : ''}</div>
                   );
                 })}
               </div>
@@ -181,9 +191,9 @@ export default function SudokuPage() {
             {!busy && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 7, marginTop: 14, maxWidth: 'min(92vw, 56vh, 460px)', marginLeft: 'auto', marginRight: 'auto' }}>
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-                  <button key={n} onClick={() => setCell(n)} style={{ height: 50, borderRadius: 10, border: '1.5px solid rgba(250,199,117,0.4)', background: CARD, color: GOLD_LIGHT, fontSize: 22, fontWeight: 700, fontFamily: "'Lora', serif", cursor: 'pointer' }}>{n}</button>
+                  <button key={n} className="bb-np" onClick={() => setCell(n)} style={{ height: 50, borderRadius: 10, border: '1.5px solid rgba(250,199,117,0.4)', background: CARD, color: GOLD_LIGHT, fontSize: 22, fontWeight: 700, fontFamily: "'Lora', serif", cursor: 'pointer' }}>{n}</button>
                 ))}
-                <button onClick={erase} aria-label="Стерти" style={{ height: 50, borderRadius: 10, border: '1.5px solid rgba(250,199,117,0.4)', background: CARD, color: GOLD_LIGHT, fontSize: 18, cursor: 'pointer' }}>⌫</button>
+                <button onClick={erase} className="bb-np" aria-label="Стерти" style={{ height: 50, borderRadius: 10, border: '1.5px solid rgba(250,199,117,0.4)', background: CARD, color: GOLD_LIGHT, fontSize: 18, cursor: 'pointer' }}>⌫</button>
               </div>
             )}
 
