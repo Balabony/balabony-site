@@ -7,8 +7,8 @@ const NAVY = '#0E1A2B', NAVY2 = '#14253B', GOLD = '#EF9F27', CREAM = '#FFF8EE';
 const CARD = '#193049', GOLD_LIGHT = '#FAC775', TEXT_SOFT = '#CFE3FA', TEXT_DESC = '#E3EFFB';
 
 /* ===================== ДАНІ ===================== */
-const BROAD = ['тварини', 'їжа', 'одяг', 'меблі', 'транспорт', 'рослини', 'посуд', 'спортивні ігри'];
-const NARROW = ['птахи', 'овочі', 'фрукти', 'риби', 'дикі тварини', 'дерева', 'квіти', 'професії', 'музичні інструменти', 'міста України'];
+const BROAD = ['тварини', 'їжа', 'одяг', 'меблі', 'транспорт', 'рослини', 'посуд', 'професії', 'птахи', 'риби', 'овочі', 'фрукти', 'дерева', 'квіти', 'кольори', 'частини тіла', 'інструменти', 'музичні інструменти', 'спортивні ігри', 'побутова техніка', 'напої', 'солодощі', 'іграшки', 'комахи', 'дикі тварини'];
+const NARROW = ['свійські тварини', 'морські тварини', 'тварини Африки', 'хижі тварини', 'перелітні птахи', 'ягоди', 'гриби', 'спеції та приправи', 'молочні продукти', 'кухонне начиння', 'шкільне приладдя', 'настільні ігри', 'зимові види спорту', 'літні види спорту', 'головні убори', 'взуття', 'прикраси', 'метали', 'коштовне каміння', 'міста України', 'країни Європи', 'ріки України', 'професії в лікарні', 'шкільні предмети', 'почуття та емоції'];
 const LETTERS = ['П', 'К', 'М', 'С', 'Т', 'Б', 'В', 'Н', 'Р', 'Л', 'Д', 'Г', 'З'];
 
 type Level = { label: string; pool: string[]; isLetter: boolean };
@@ -91,8 +91,11 @@ export default function FluencyPage() {
     <main lang="uk" style={wrap}>
       <div style={inner}>
         <style>{`
-          .bb-tap { transition: transform .08s, background .12s; }
-          .bb-tap:active { transform: scale(0.97); background: #1f3b59; }
+          @keyframes bbGlow { 0%,100% { box-shadow: 0 0 20px rgba(239,159,39,0.22); } 50% { box-shadow: 0 0 40px rgba(239,159,39,0.55); } }
+          @keyframes bbCountPop { 0% { transform: scale(1); } 35% { transform: scale(1.24); } 100% { transform: scale(1); } }
+          .bb-tap { transition: transform .08s, background .12s; animation: bbGlow 2.4s ease-in-out infinite; }
+          .bb-tap:active { transform: scale(0.96); background: #20405f; box-shadow: 0 0 50px rgba(250,199,117,0.8) !important; }
+          .bb-count { display: inline-block; animation: bbCountPop 0.25s ease-out; text-shadow: 0 0 18px rgba(250,199,117,0.65); }
           details > summary { list-style: none; }
           details > summary::-webkit-details-marker { display: none; }
           .bb-details p { margin: 0 0 14px; }
@@ -133,7 +136,7 @@ export default function FluencyPage() {
               <div style={{ height: '100%', width: `${(left / DURATION) * 100}%`, background: lowTime ? '#E8A0A0' : GOLD, transition: 'width .25s linear' }} />
             </div>
             <button className="bb-tap" onClick={add} style={{ width: '100%', height: 150, borderRadius: 18, border: `2px solid ${GOLD}`, background: CARD, color: GOLD_LIGHT, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 28px rgba(239,159,39,0.18)' }}>
-              <span style={{ fontFamily: 'Lora, serif', fontSize: 64, fontWeight: 700, lineHeight: 1 }}>{count}</span>
+              <span className="bb-count" key={count} style={{ fontFamily: 'Lora, serif', fontSize: 64, fontWeight: 700, lineHeight: 1 }}>{count}</span>
               <span style={{ fontSize: 15, marginTop: 6, color: TEXT_SOFT }}>натисніть за кожне слово</span>
             </button>
             <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
@@ -181,13 +184,13 @@ export default function FluencyPage() {
       {/* результат */}
       {phase === 'done' && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(14,26,43,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 20 }}>
-          <div style={{ background: CREAM, borderRadius: 18, padding: '30px 34px', textAlign: 'center', maxWidth: 420, boxShadow: '0 10px 40px rgba(0,0,0,0.3)' }}>
-            <p style={{ fontFamily: 'Lora, serif', fontSize: 30, margin: '0 0 8px', color: '#B5710C' }}>Ваш результат</p>
-            <p style={{ fontSize: 19, margin: '0 0 6px', color: NAVY2 }}>Ви назвали <b>{count}</b> {pluralWords(count)}</p>
-            <p style={{ fontSize: 15, margin: '0 0 20px', color: '#5a534c' }}>
-              {best[li] > count ? `Ваш найкращий результат: ${best[li]}. Спробуйте побити!` : 'Гарно! Наступного разу спробуйте назвати ще більше.'}
+          <div style={{ background: CREAM, borderRadius: 18, padding: '24px 26px', textAlign: 'center', maxWidth: 360, boxShadow: '0 10px 40px rgba(0,0,0,0.3)' }}>
+            <p style={{ fontFamily: 'Lora, serif', fontSize: 26, margin: '0 0 6px', lineHeight: 1.2, color: '#B5710C' }}>Ваш результат</p>
+            <p style={{ fontSize: 18, margin: '0 0 6px', lineHeight: 1.3, color: NAVY2 }}>Ви назвали <b>{count}</b> {pluralWords(count)}</p>
+            <p style={{ fontSize: 14.5, margin: '0 0 18px', lineHeight: 1.4, color: '#5a534c' }}>
+              {best[li] > count ? `Ваш найкращий результат: ${best[li]}. Спробуйте побити!` : 'Гарно! Наступного разу — ще більше.'}
             </p>
-            <button style={bigBtn} onClick={start}>Ще раз</button>
+            <button style={{ ...bigBtn, padding: '12px 26px', fontSize: 18 }} onClick={start}>Ще раз</button>
           </div>
         </div>
       )}
