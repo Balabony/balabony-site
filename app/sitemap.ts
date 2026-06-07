@@ -48,6 +48,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/games/pairs`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/games/chess`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/games/checkers`,      lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/domino`,        lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
   ]
 
   // 2. Р В РІР‚СњР В РЎвЂР В Р вЂ¦Р В Р’В°Р В РЎВР РЋРІР‚вЂњР РЋРІР‚РЋР В Р вЂ¦Р РЋРІР‚вЂњ: Р РЋР С“Р В Р’ВµР РЋР вЂљР РЋРІР‚вЂњР РЋРІР‚вЂќ Р РЋРІР‚С™Р В Р’В° Р РЋРІР‚вЂњР РЋР С“Р РЋРІР‚С™Р В РЎвЂўР РЋР вЂљР РЋРІР‚вЂњР РЋРІР‚вЂќ Р В Р’В· Supabase

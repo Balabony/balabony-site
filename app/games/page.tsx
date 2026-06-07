@@ -40,6 +40,8 @@ function Icon({ kind }: { kind: string }) {
       return (<svg {...p}><path d="M9 10 h30 a4 4 0 0 1 4 4 v16 a4 4 0 0 1 -4 4 h-17 l-9 8 v-8 h-4 a4 4 0 0 1 -4 -4 v-16 a4 4 0 0 1 4 -4 z" fill="none" stroke={GOLD_LIGHT} strokeWidth="2.8" strokeLinejoin="round" /><circle cx="17" cy="22" r="2.4" fill={GOLD_BRIGHT} /><circle cx="24" cy="22" r="2.4" fill={GOLD_BRIGHT} /><circle cx="31" cy="22" r="2.4" fill={GOLD_BRIGHT} /></svg>)
     case 'rhythm':
       return (<svg {...p}><g fill="none" stroke={GOLD_LIGHT} strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 24 H9 M13 20 l-4 4 l4 4" /><path d="M31 24 H39 M35 20 l4 4 l-4 4" /></g><circle cx="24" cy="24" r="6" fill={GOLD_BRIGHT} /></svg>)
+    case 'domino':
+      return (<svg {...p}><rect x="11" y="6" width="26" height="36" rx="5" fill="none" stroke={GOLD_LIGHT} strokeWidth="2.8" /><line x1="11" y1="24" x2="37" y2="24" stroke={GOLD_LIGHT} strokeWidth="2.4" /><g fill={GOLD_BRIGHT}><circle cx="19" cy="14" r="2.5" /><circle cx="29" cy="14" r="2.5" /><circle cx="24" cy="33" r="2.7" /></g></svg>)
     default:
       return null
   }
@@ -61,6 +63,7 @@ const USEFUL: Game[] = [
   { href: '/games/pairs', kind: 'pairs', title: 'Знайди пару', desc: 'Тренує зорову пам’ять. Приємно грати разом із дітьми чи онуками.' },
   { href: '/games/chess', kind: 'chess', title: 'Шахи', desc: 'Класичні шахи — проти машини (три рівні) або вдвох. Тренують планування й передбачення ходів.' },
   { href: '/games/checkers', kind: 'checkers', title: 'Шашки', desc: 'Класичні шашки — проти комп’ютера (три рівні) або вдвох. Тренують планування й передбачення ходів.' },
+  { href: '/games/domino', kind: 'domino', title: 'Доміно', desc: 'Класичне «центрове» доміно проти комп’ютера — три рівні. Підрахунок очок і планування ходів; приємна гра для будь-якого віку.' },
 ]
 
 function GameCard({ game, evidence }: { game: Game; evidence: boolean }) {
