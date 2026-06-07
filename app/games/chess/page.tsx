@@ -7,7 +7,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 type Sq = number;
 type Castle = { wK: boolean; wQ: boolean; bK: boolean; bQ: boolean };
-type GState = { board: string[]; turn: 'w' | 'b'; castle: Castle; ep: number | null };
+type GState = { board: string[]; turn: 'w' | 'b'; castle: Castle; ep: number | null; half: number };
 type Move = { from: Sq; to: Sq; promo?: string; cap?: boolean; castle?: 'K' | 'Q'; epCap?: boolean; dbl?: boolean };
 
 const START_BOARD = (): string[] => {
@@ -16,7 +16,7 @@ const START_BOARD = (): string[] => {
   for (let i = 0; i < 8; i++) { b[i] = back[i]; b[8 + i] = 'p'; b[48 + i] = 'P'; b[56 + i] = back[i].toUpperCase(); }
   return b;
 };
-const startState = (): GState => ({ board: START_BOARD(), turn: 'w', castle: { wK: true, wQ: true, bK: true, bQ: true }, ep: null });
+const startState = (): GState => ({ board: START_BOARD(), turn: 'w', castle: { wK: true, wQ: true, bK: true, bQ: true }, ep: null, half: 0 });
 
 const isW = (p: string) => !!p && p === p.toUpperCase();
 const colorOf = (p: string): 'w' | 'b' | null => (p ? (isW(p) ? 'w' : 'b') : null);
@@ -101,7 +101,8 @@ function makeMove(state: GState, m: Move): GState {
   const corners: Record<number, keyof Castle> = { 56: 'wQ', 63: 'wK', 0: 'bQ', 7: 'bK' };
   if (corners[m.from]) castle[corners[m.from]] = false;
   if (corners[m.to]) castle[corners[m.to]] = false;
-  return { board, turn: opp, castle, ep };
+  const half = (p.toUpperCase() === 'P' || !!m.cap || !!m.epCap) ? 0 : state.half + 1;
+  return { board, turn: opp, castle, ep, half };
 }
 
 function legalMoves(state: GState): Move[] {
@@ -115,18 +116,46 @@ function legalMoves(state: GState): Move[] {
 }
 const inCheck = (s: GState) => attacked(s.board, kingSq(s.board, s.turn), s.turn === 'w' ? 'b' : 'w');
 
-/* ===================== ШТУЧНИЙ ІНТЕЛЕКТ (мінімакс + альфа-бета) ===================== */
-const VAL: Record<string, number> = { P: 100, N: 320, B: 330, R: 500, Q: 900, K: 20000 };
+/* ===================== ШТУЧНИЙ ІНТЕЛЕКТ (мінімакс + альфа-бета + позиційна оцінка) ===================== */
+const VAL: Record<string, number> = { P: 100, N: 320, B: 330, R: 500, Q: 900, K: 0 };
+// таблиці позицій (з погляду білих; рядок 0 = 8-ма горизонталь)
+const PST_P = [0,0,0,0,0,0,0,0, 50,50,50,50,50,50,50,50, 10,10,20,30,30,20,10,10, 5,5,10,25,25,10,5,5, 0,0,0,20,20,0,0,0, 5,-5,-10,0,0,-10,-5,5, 5,10,10,-20,-20,10,10,5, 0,0,0,0,0,0,0,0];
+const PST_N = [-50,-40,-30,-30,-30,-30,-40,-50, -40,-20,0,0,0,0,-20,-40, -30,0,10,15,15,10,0,-30, -30,5,15,20,20,15,5,-30, -30,0,15,20,20,15,0,-30, -30,5,10,15,15,10,5,-30, -40,-20,0,5,5,0,-20,-40, -50,-40,-30,-30,-30,-30,-40,-50];
+const PST_B = [-20,-10,-10,-10,-10,-10,-10,-20, -10,0,0,0,0,0,0,-10, -10,0,5,10,10,5,0,-10, -10,5,5,10,10,5,5,-10, -10,0,10,10,10,10,0,-10, -10,10,10,10,10,10,10,-10, -10,5,0,0,0,0,5,-10, -20,-10,-10,-10,-10,-10,-10,-20];
+const PST_R = [0,0,0,0,0,0,0,0, 5,10,10,10,10,10,10,5, -5,0,0,0,0,0,0,-5, -5,0,0,0,0,0,0,-5, -5,0,0,0,0,0,0,-5, -5,0,0,0,0,0,0,-5, -5,0,0,0,0,0,0,-5, 0,0,0,5,5,0,0,0];
+const PST_Q = [-20,-10,-10,-5,-5,-10,-10,-20, -10,0,0,0,0,0,0,-10, -10,0,5,5,5,5,0,-10, -5,0,5,5,5,5,0,-5, 0,0,5,5,5,5,0,-5, -10,5,5,5,5,5,0,-10, -10,0,5,0,0,0,0,-10, -20,-10,-10,-5,-5,-10,-10,-20];
+const PST_KM = [-30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -20,-30,-30,-40,-40,-30,-30,-20, -10,-20,-20,-20,-20,-20,-20,-10, 20,20,0,0,0,0,20,20, 20,30,10,0,0,10,30,20];
+const PST_KE = [-50,-40,-30,-20,-20,-30,-40,-50, -30,-20,-10,0,0,-10,-20,-30, -30,-10,20,30,30,20,-10,-30, -30,-10,30,40,40,30,-10,-30, -30,-10,30,40,40,30,-10,-30, -30,-10,20,30,30,20,-10,-30, -30,-30,0,0,0,0,-30,-30, -50,-30,-30,-30,-30,-30,-30,-50];
+const mirror = (i: number) => (7 - Math.floor(i / 8)) * 8 + (i % 8);
 function evaluate(s: GState): number {
-  let sc = 0;
-  for (let i = 0; i < 64; i++) { const p = s.board[i]; if (!p) continue; const v = VAL[p.toUpperCase()]; sc += isW(p) ? v : -v; }
+  let sc = 0, npm = 0;
+  for (let i = 0; i < 64; i++) { const p = s.board[i]; if (!p) continue; const t = p.toUpperCase(); if (t !== 'P' && t !== 'K') npm += VAL[t]; }
+  const eg = npm <= 1300 ? 1 : npm >= 2600 ? 0 : (2600 - npm) / 1300; // 0 = дебют, 1 = ендшпіль
+  for (let i = 0; i < 64; i++) {
+    const p = s.board[i]; if (!p) continue; const t = p.toUpperCase(); const w = isW(p);
+    const j = w ? i : mirror(i);
+    let pos = 0;
+    if (t === 'P') pos = PST_P[j]; else if (t === 'N') pos = PST_N[j]; else if (t === 'B') pos = PST_B[j];
+    else if (t === 'R') pos = PST_R[j]; else if (t === 'Q') pos = PST_Q[j]; else pos = PST_KM[j] * (1 - eg) + PST_KE[j] * eg;
+    const v = VAL[t] + pos;
+    sc += w ? v : -v;
+  }
   return sc; // позитив — добре для білих
 }
+function orderMoves(s: GState, moves: Move[]) {
+  moves.sort((a, b) => {
+    const va = (a.cap ? 100 + (VAL[(s.board[a.to] || 'P').toUpperCase()] || 0) : 0) + (a.promo ? 90 : 0);
+    const vb = (b.cap ? 100 + (VAL[(s.board[b.to] || 'P').toUpperCase()] || 0) : 0) + (b.promo ? 90 : 0);
+    return vb - va;
+  });
+}
+let SEARCH_DEADLINE = Infinity;
 function search(s: GState, depth: number, alpha: number, beta: number): number {
+  if (Date.now() > SEARCH_DEADLINE) return evaluate(s);
   if (depth === 0) return evaluate(s);
   const moves = legalMoves(s);
   if (moves.length === 0) return inCheck(s) ? (s.turn === 'w' ? -100000 - depth : 100000 + depth) : 0;
-  moves.sort((a, b) => (b.cap ? 1 : 0) - (a.cap ? 1 : 0)); // спершу взяття
+  orderMoves(s, moves);
   if (s.turn === 'w') {
     let best = -Infinity;
     for (const m of moves) { best = Math.max(best, search(makeMove(s, m), depth - 1, alpha, beta)); alpha = Math.max(alpha, best); if (beta <= alpha) break; }
@@ -137,17 +166,40 @@ function search(s: GState, depth: number, alpha: number, beta: number): number {
     return best;
   }
 }
-function bestMove(s: GState, depth: number): Move | null {
+function searchRoot(s: GState, depth: number): Move | null {
   const moves = legalMoves(s);
   if (moves.length === 0) return null;
-  moves.sort((a, b) => (b.cap ? 1 : 0) - (a.cap ? 1 : 0));
-  let chosen = moves[0]; let bestScore = s.turn === 'w' ? -Infinity : Infinity;
-  for (const m of moves) {
-    const sc = search(makeMove(s, m), depth - 1, -Infinity, Infinity);
-    if (s.turn === 'w' ? sc > bestScore : sc < bestScore) { bestScore = sc; chosen = m; }
+  orderMoves(s, moves);
+  const scored = moves.map((m) => ({ m, sc: search(makeMove(s, m), depth - 1, -Infinity, Infinity) }));
+  const best = s.turn === 'w' ? Math.max(...scored.map((x) => x.sc)) : Math.min(...scored.map((x) => x.sc));
+  const pool = scored.filter((x) => Math.abs(x.sc - best) <= 5); // рандом серед рівних — різні партії
+  return pool[Math.floor(Math.random() * pool.length)].m;
+}
+function bestMove(s: GState, maxDepth: number): Move | null {
+  const moves = legalMoves(s);
+  if (moves.length === 0) return null;
+  SEARCH_DEADLINE = Date.now() + 1400; // не морозити інтерфейс довше ~1.4 с
+  let chosen: Move = moves[0];
+  for (let d = 1; d <= maxDepth; d++) {
+    const m = searchRoot(s, d);
+    if (d > 1 && Date.now() > SEARCH_DEADLINE) break; // глибину не дорахували — відкидаємо
+    if (m) chosen = m;
   }
+  SEARCH_DEADLINE = Infinity;
   return chosen;
 }
+
+/* ===================== НІЧИЙНІ ПРАВИЛА ===================== */
+function insufficientMaterial(board: string[]): boolean {
+  let wMin = 0, bMin = 0;
+  for (const p of board) {
+    if (!p) continue; const t = p.toUpperCase();
+    if (t === 'P' || t === 'R' || t === 'Q') return false;
+    if (t === 'N' || t === 'B') { if (isW(p)) wMin++; else bMin++; }
+  }
+  return wMin <= 1 && bMin <= 1; // K-K, K+легка-K, K+легка-K+легка
+}
+const posKey = (s: GState) => s.board.join('') + s.turn + (s.castle.wK ? 'K' : '') + (s.castle.wQ ? 'Q' : '') + (s.castle.bK ? 'k' : '') + (s.castle.bQ ? 'q' : '') + ':' + s.ep;
 
 /* ===================== ВІЗУАЛ ===================== */
 const NAVY = '#0E1A2B', NAVY2 = '#14253B', GOLD = '#EF9F27', GREY = '#C9CDCB', CREAM = '#FFF8EE', BLUE = '#B5D4F4';
@@ -167,10 +219,11 @@ export default function ChessPage() {
   const [legal, setLegal] = useState<Move[]>([]);
   const [last, setLast] = useState<{ from: number; to: number } | null>(null);
   const [promo, setPromo] = useState<{ from: number; to: number } | null>(null);
-  const [result, setResult] = useState<string | null>(null);
+  const [result, setResult] = useState<{ winner: 'w' | 'b' | null; reason: string } | null>(null);
   const [thinking, setThinking] = useState(false);
   const [clock, setClock] = useState({ w: 0, b: 0 });
   const [flip, setFlip] = useState(false);
+  const histRef = useRef<string[]>([posKey(startState())]);
 
   const allLegal = useCallback((s: GState) => legalMoves(s), []);
   const depth = level === 1 ? 2 : level === 3 ? 4 : 3;
@@ -186,15 +239,20 @@ export default function ChessPage() {
   const checkEnd = useCallback((s: GState) => {
     const moves = legalMoves(s);
     if (moves.length === 0) {
-      if (inCheck(s)) setResult(s.turn === 'w' ? 'Мат. Перемогли чорні.' : 'Мат. Перемогли білі.');
-      else setResult('Пат — нічия.');
+      if (inCheck(s)) setResult({ winner: s.turn === 'w' ? 'b' : 'w', reason: 'Мат' });
+      else setResult({ winner: null, reason: 'Пат' });
       return true;
     }
+    if (insufficientMaterial(s.board)) { setResult({ winner: null, reason: 'недостатньо матеріалу для мату' }); return true; }
+    if (s.half >= 100) { setResult({ winner: null, reason: 'правило 50 ходів' }); return true; }
+    const key = posKey(s);
+    if (histRef.current.filter((k) => k === key).length >= 3) { setResult({ winner: null, reason: 'трикратне повторення' }); return true; }
     return false;
   }, []);
 
   const applyMove = useCallback((s: GState, m: Move) => {
     const ns = makeMove(s, m);
+    histRef.current.push(posKey(ns));
     setState(ns); setLast({ from: m.from, to: m.to }); setSel(null); setLegal([]);
     checkEnd(ns);
     return ns;
@@ -238,13 +296,19 @@ export default function ChessPage() {
     setPromo(null);
   };
 
-  const newGame = () => { setState(startState()); setSel(null); setLegal([]); setLast(null); setResult(null); setClock({ w: 0, b: 0 }); setPromo(null); };
+  const newGame = () => { const init = startState(); histRef.current = [posKey(init)]; setState(init); setSel(null); setLegal([]); setLast(null); setResult(null); setClock({ w: 0, b: 0 }); setPromo(null); };
 
   const checkSq = inCheck(state) ? kingSq(state.board, state.turn) : -1;
   const order = flip ? [...Array(64).keys()].reverse() : [...Array(64).keys()];
-  const status = result ? result
-    : thinking ? 'Комп’ютер думає…'
-      : `Хід: ${state.turn === 'w' ? 'білі' : 'чорні'}${inCheck(state) ? ' — шах!' : ''}`;
+  const sideLabel = (w: 'w' | 'b') => (w === 'w' ? 'білі' : 'чорні');
+  const sideFull = (w: 'w' | 'b') => sideLabel(w) + (mode === 'ai' ? (w === 'w' ? ' (ви)' : ' (комп’ютер)') : '');
+  const outcomeText = !result ? null
+    : result.winner === null ? `Нічия — ${result.reason}`
+      : mode === 'ai' ? (result.winner === 'w' ? 'Ви виграли!' : 'Ви програли')
+        : `Перемогли ${sideLabel(result.winner)}`;
+  const status = outcomeText
+    ?? (thinking ? 'Комп’ютер думає…'
+      : `Хід: ${state.turn === 'w' ? 'білі' : 'чорні'}${inCheck(state) ? ' — шах!' : ''}`);
 
   const ROW: React.CSSProperties = { display: 'flex', gap: 8, marginBottom: 12, width: 'min(92vw, 560px)' };
   const btn: React.CSSProperties = { flex: '1 1 0', minWidth: 0, fontFamily: 'Montserrat, sans-serif', fontSize: 14, padding: '9px 6px', borderRadius: 10, border: '1.5px solid rgba(250,199,117,0.35)', background: CARD, color: GOLD_LIGHT, cursor: 'pointer', fontWeight: 700, textAlign: 'center', whiteSpace: 'nowrap', boxShadow: '0 0 12px rgba(239,159,39,0.12)' };
@@ -339,10 +403,20 @@ export default function ChessPage() {
       {/* модальний результат */}
       {result && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(14,26,43,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: CREAM, borderRadius: 18, padding: '32px 36px', textAlign: 'center', maxWidth: 420, boxShadow: '0 10px 40px rgba(0,0,0,0.3)' }}>
-            <p style={{ fontFamily: 'Lora, serif', fontSize: 28, margin: '0 0 8px', color: NAVY }}>Гру завершено</p>
-            <p style={{ fontSize: 20, margin: '0 0 22px', color: NAVY2 }}>{result}</p>
-            <button style={{ ...btnActive, fontSize: 19, padding: '14px 28px' }} onClick={newGame}>Реванш</button>
+          <div style={{ background: CREAM, borderRadius: 18, padding: '30px 36px', textAlign: 'center', maxWidth: 440, boxShadow: '0 10px 40px rgba(0,0,0,0.3)' }}>
+            <p style={{ fontFamily: 'Lora, serif', fontSize: 30, margin: '0 0 10px', color: result.winner === null ? NAVY : '#B5710C' }}>
+              {result.winner === null ? 'Нічия' : (mode === 'ai' ? (result.winner === 'w' ? 'Ви виграли!' : 'Ви програли') : `Перемогли ${sideLabel(result.winner)}`)}
+            </p>
+            {result.winner === null ? (
+              <p style={{ fontSize: 18, margin: '0 0 22px', color: NAVY2 }}>{result.reason}</p>
+            ) : (
+              <div style={{ margin: '4px 0 22px' }}>
+                <p style={{ fontSize: 19, fontWeight: 700, color: '#B5710C', margin: '0 0 4px' }}>♛ Переможець — {sideFull(result.winner)}</p>
+                <p style={{ fontSize: 16, color: '#9a8f80', margin: '0 0 8px' }}>Програли — {sideFull(result.winner === 'w' ? 'b' : 'w')}</p>
+                <p style={{ fontSize: 15, color: NAVY2, margin: 0 }}>Причина: {result.reason.toLowerCase()}</p>
+              </div>
+            )}
+            <button style={{ ...btnActive, fontSize: 19, padding: '14px 28px', flex: 'none' }} onClick={newGame}>Реванш</button>
           </div>
         </div>
       )}
