@@ -44,6 +44,8 @@ function Icon({ kind }: { kind: string }) {
       return (<svg {...p}><rect x="11" y="6" width="26" height="36" rx="5" fill="none" stroke={GOLD_LIGHT} strokeWidth="2.8" /><line x1="11" y1="24" x2="37" y2="24" stroke={GOLD_LIGHT} strokeWidth="2.4" /><g fill={GOLD_BRIGHT}><circle cx="19" cy="14" r="2.5" /><circle cx="29" cy="14" r="2.5" /><circle cx="24" cy="33" r="2.7" /></g></svg>)
     case 'sudoku':
       return (<svg {...p}><rect x="8" y="8" width="32" height="32" rx="4" fill="none" stroke={GOLD_LIGHT} strokeWidth="2.6" /><g stroke={GOLD_LIGHT} strokeWidth="1.4" opacity="0.6"><line x1="18.7" y1="8" x2="18.7" y2="40" /><line x1="29.3" y1="8" x2="29.3" y2="40" /><line x1="8" y1="18.7" x2="40" y2="18.7" /><line x1="8" y1="29.3" x2="40" y2="29.3" /></g><g fill={GOLD_BRIGHT} fontFamily="Georgia, serif"><text x="11" y="17" fontSize="9" fontWeight="700">5</text><text x="32.5" y="27.5" fontSize="9" fontWeight="700">3</text><text x="21.5" y="38" fontSize="9" fontWeight="700">7</text></g></svg>)
+    case 'narde':
+      return (<svg {...p}><path d="M9 9 H22 L15.5 27 Z" fill={GOLD_LIGHT} /><path d="M39 39 H26 L32.5 21 Z" fill={GOLD} opacity="0.55" /><circle cx="32" cy="13" r="5.5" fill={GOLD_BRIGHT} stroke={GOLD_LIGHT} strokeWidth="1.5" /></svg>)
     default:
       return null
   }
@@ -67,6 +69,7 @@ const USEFUL: Game[] = [
   { href: '/games/checkers', kind: 'checkers', title: 'Шашки', desc: 'Класичні шашки — проти комп’ютера (три рівні) або вдвох. Тренують планування й передбачення ходів.' },
   { href: '/games/domino', kind: 'domino', title: 'Доміно', desc: 'Класичне «центрове» доміно проти комп’ютера — три рівні. Підрахунок очок і планування ходів; приємна гра для будь-якого віку.' },
   { href: '/games/sudoku', kind: 'sudoku', title: 'Судоку', desc: 'Класична логічна головоломка з цифрами — три рівні, у кожної єдиний розвʼязок. Мова не потрібна. Тренує логіку й зосередженість.' },
+  { href: '/games/narde', kind: 'narde', title: 'Довгі нарди', desc: 'Класичні довгі нарди проти комп’ютера — три рівні. Проведіть 15 шашок додому й винесіть першими. Підрахунок ходів і планування.' },
 ]
 
 function GameCard({ game, evidence }: { game: Game; evidence: boolean }) {
