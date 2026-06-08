@@ -320,8 +320,9 @@ export default function Footer() {
           </h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {[
-              { label: 'Рідер',  href: '/#reader'  },
-              { label: 'Тарифи', href: '/#pricing' },
+              { label: 'Рідер',    href: '/#reader'  },
+              { label: 'Тарифи',   href: '/#pricing' },
+              { label: 'Правопис', href: '/pravopys' },
             ].map(item => (
               <li key={item.label} style={{ marginBottom: 5 }}>
                 <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 14 }}>
