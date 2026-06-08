@@ -5,6 +5,23 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // ============================================
+  // 0) Захист API адмінки: 401 JSON (не редирект).
+  //    Раніше /api/admin/* не покривався proxy — 18 роутів були відкриті,
+  //    включно з генеративними (palили AI-бюджет) і редакційними.
+  //    Login/logout — у винятку, щоб можна було заходити.
+  // ============================================
+  if (pathname.startsWith('/api/admin')) {
+    if (pathname === '/api/admin/login' || pathname === '/api/admin/logout') {
+      return NextResponse.next()
+    }
+    const adminSession = request.cookies.get('admin_session')?.value
+    if (!adminSession || adminSession !== process.env.ADMIN_PASSWORD) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    return NextResponse.next()
+  }
+
+  // ============================================
   // 1) Захист адмінки/редакторів (стара логіка)
   // ============================================
   const isAdminScope =
