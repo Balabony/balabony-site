@@ -94,7 +94,7 @@ function NewEpisodeCard({ episode }: { episode: BalabonyEpisode }) {
 
 function ChooseSeriesCard({ freeEpisode }: { freeEpisode: BalabonyEpisode | null }) {
   return (
-    <Link href="/series" className="bb-card">
+    <Link href="/episodes" className="bb-card">
       <div className="bb-cover">
         {freeEpisode?.cover_url ? (
           <img src={freeEpisode.cover_url} alt={freeEpisode.title} className="bb-cover-img" />
@@ -114,7 +114,7 @@ function ChooseSeriesCard({ freeEpisode }: { freeEpisode: BalabonyEpisode | null
 
 function ArchiveCard({ totalCount }: { totalCount: number }) {
   return (
-    <Link href="/series" className="bb-card">
+    <Link href="/episodes" className="bb-card">
       <div className="bb-cover">
         <img src="/panas-archive.jpg" alt="Архів Балабонів" className="bb-cover-img" />
         <div className="bb-sub-badge">Усі серії</div>

@@ -96,7 +96,7 @@ export default function Footer() {
               WhatsApp +380 50 585 9141
             </a>
             <a
-              href="/contact"
+              href="/contacts"
               className="footer-cta-write"
               style={{
                 display: 'inline-block', padding: '7px 16px',
