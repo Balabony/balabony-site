@@ -1198,7 +1198,7 @@ function UkrainianContent({
 
           <div className="sup-faq-item">
             <h3>На кого спрямовані донати?</h3>
-            <p>Платформа balabony.com — це україномовний серіал «Балабони», доступний у двох режимах:</p>
+            <p>Платформа balabony.com — україномовний портал для поширення історій, серій і казок сучасних українських авторів. Тут також є ігри для тренування памʼяті, уваги та логіки й функції доступності для читачів з особливими потребами. Контент доступний у двох режимах:</p>
             <ol>
               <li><strong>Звичайний доступ</strong> — для всіх користувачів за стандартним тарифом платформи</li>
               <li><strong>Пільговий доступ за 1 грн/рік</strong> — для учасників бойових дій (УБД) та людей з підтвердженою інвалідністю</li>
@@ -1255,11 +1255,13 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
         <div className="sup-intl-sub">International Donations &amp; Grant Partnerships</div>
 
         <p>
-          The <strong>balabony.com</strong> platform is an independent Ukrainian cultural initiative
-          that develops <strong>accessible audio content</strong> — audio narrations of <strong>stories
-          and fairy tales by Ukrainian writers</strong>. The platform is designed to make Ukrainian
-          literature available to a broad audience, including people with visual impairments, combat
-          veterans, people with disabilities, and the Ukrainian-speaking diaspora worldwide.
+          <strong>balabony.com</strong> is a Ukrainian-language portal for sharing stories, series
+          and fairy tales by contemporary Ukrainian authors. It also offers games for training
+          memory, attention and logic, along with accessibility features for readers with special
+          needs. As part of its mission, the platform is developing <strong>accessible audio
+          narration</strong> of its texts — voiced by consenting editors and writers — to make
+          Ukrainian literature available to people with visual impairments, combat veterans,
+          people with disabilities, and the Ukrainian-speaking diaspora worldwide.
         </p>
 
         <p>
@@ -1361,12 +1363,14 @@ function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails
         <div className="sup-intl-sub">Internationale Spenden und Förderpartnerschaften</div>
 
         <p>
-          Die Plattform <strong>balabony.com</strong> ist eine unabhängige ukrainische
-          Kulturinitiative, die <strong>barrierefreie Audioinhalte</strong> entwickelt —
-          Audionarrationen von <strong>Geschichten und Märchen ukrainischer Autoren</strong>.
-          Die Plattform soll ukrainische Literatur einem breiten Publikum zugänglich machen,
-          einschließlich Menschen mit Sehbehinderungen, Kriegsveteranen, Menschen mit Behinderungen
-          sowie der ukrainischsprachigen Diaspora weltweit.
+          <strong>balabony.com</strong> ist ein ukrainischsprachiges Portal zur Verbreitung von
+          Geschichten, Serien und Märchen zeitgenössischer ukrainischer Autoren. Außerdem bietet
+          es Spiele zum Training von Gedächtnis, Aufmerksamkeit und Logik sowie
+          Barrierefreiheitsfunktionen für Leser mit besonderen Bedürfnissen. Im Rahmen ihrer
+          Mission entwickelt die Plattform <strong>barrierefreie Audionarrationen</strong> ihrer
+          Texte — gesprochen von einwilligenden Redakteuren und Autoren —, um ukrainische Literatur
+          Menschen mit Sehbehinderungen, Kriegsveteranen, Menschen mit Behinderungen sowie der
+          ukrainischsprachigen Diaspora weltweit zugänglich zu machen.
         </p>
 
         <p>
