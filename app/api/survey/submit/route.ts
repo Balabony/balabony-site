@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
       frequency:    body.frequency ?? null,
       format:       body.format ?? null,
       audio:        body.audio ?? null,
+      narration_order: body.narration_order ?? null,
       duration:     body.duration ?? null,
       genres:       body.genres ?? [],
       genre_other:  body.genre_other ?? null,

@@ -69,6 +69,12 @@ const QUESTIONS: Question[] = [
     options: ['Так', 'Ні', 'Інколи'],
   },
   {
+    id: 'narration_order',
+    label: 'Якби ви публікували свою історію, чи замовили б платне озвучення?',
+    type: 'radio',
+    options: ['Так', 'Можливо, залежно від ціни', 'Ні'],
+  },
+  {
     id: 'duration',
     label: 'Скільки часу на день готові читати?',
     type: 'radio',
