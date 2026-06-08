@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
+import NarrationOrderForm from '@/app/components/NarrationOrderForm'
 
 export const dynamic = 'force-dynamic'
 
@@ -219,6 +220,10 @@ export default async function AuthorDashboardPage() {
               </table>
             </div>
           )}
+        </div>
+
+        <div style={{ marginTop: '1.5rem' }}>
+          <NarrationOrderForm variant="cream" />
         </div>
 
         <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.8rem', marginTop: '1rem', lineHeight: 1.5 }}>
