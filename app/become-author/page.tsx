@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
+import NarrationOrderForm from '@/app/components/NarrationOrderForm'
 
 const GOLD = 'var(--accent-gold)'
 const FONT = "'Montserrat', Arial, sans-serif"
@@ -200,6 +201,9 @@ export default function BecomeAuthorPage() {
               Написати нам →
             </a>
           </SectionCard>
+
+          {/* Замовити озвучення */}
+          <NarrationOrderForm />
 
         </div>
       </div>
