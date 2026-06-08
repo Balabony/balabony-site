@@ -21,10 +21,23 @@ interface Rule {
   updated_at: string
 }
 
-const EMPTY = {
+interface FormState {
+  id: number
+  topic: string
+  category: string
+  rule_short: string
+  examples: string
+  norm_type: 'mandatory' | 'variant'
+  audience: 'editor' | 'all'
+  status: 'draft' | 'verified'
+  source: string
+  sort_order: number
+}
+
+const EMPTY: FormState = {
   id: 0, topic: '', category: '', rule_short: '', examples: '',
-  norm_type: 'mandatory' as const, audience: 'all' as const,
-  status: 'draft' as const, source: '', sort_order: 0,
+  norm_type: 'mandatory', audience: 'all',
+  status: 'draft', source: '', sort_order: 0,
 }
 
 const inputStyle: React.CSSProperties = {
@@ -39,7 +52,7 @@ const labelStyle: React.CSSProperties = {
 export default function SpellingAdminPage() {
   const [rules, setRules] = useState<Rule[]>([])
   const [loading, setLoading] = useState(true)
-  const [form, setForm] = useState<typeof EMPTY>({ ...EMPTY })
+  const [form, setForm] = useState<FormState>({ ...EMPTY })
   const [editingId, setEditingId] = useState<number | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
