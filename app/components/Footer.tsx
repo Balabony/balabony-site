@@ -60,7 +60,7 @@ export default function Footer() {
     <footer className="footer-root" style={{ background: 'var(--dark)', color: '#94a3b8', padding: '24px 5% 72px', marginTop: 24 }}>
 
       {/* ════════ ОСНОВНІ 4 КОЛОНКИ ════════ */}
-      <div style={{
+      <div className="footer-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
         gap: 32,
@@ -519,6 +519,15 @@ export default function Footer() {
           30%      { transform: scale(1); }
           45%      { transform: scale(1.15); }
           60%      { transform: scale(1); }
+        }
+
+        /* ── Fix mobile horizontal overflow: let grid columns shrink so flex-wrap works ── */
+        .footer-root :global(.footer-grid) > div {
+          min-width: 0;
+        }
+        .footer-root :global(.footer-grid) a,
+        .footer-root :global(.footer-grid) p {
+          overflow-wrap: break-word;
         }
       `}</style>
     </footer>
