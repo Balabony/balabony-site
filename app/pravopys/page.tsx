@@ -66,10 +66,29 @@ export default async function PravopysPage() {
         <p style={{ color: LIGHTBLUE, fontSize: 16, lineHeight: 1.7, marginBottom: 8 }}>
           Короткий практичний довідник для студентів і всіх, хто хоче писати правильно. Кожне правило — простими словами, з прикладами.
         </p>
-        <p style={{ color: 'rgba(255,248,238,0.55)', fontSize: 13, lineHeight: 1.7, marginBottom: 36 }}>
+        <p style={{ color: 'rgba(255,248,238,0.55)', fontSize: 13, lineHeight: 1.7, marginBottom: 16 }}>
           Джерело — чинний стандарт державної мови «Український правопис» (рішення Національної комісії зі стандартів державної мови №47 від 01.03.2026, чинний з 28.03.2026).
           Офіційний текст: <a href="https://mova.gov.ua/diyalnist-i-proyekti/termini/pravopys-ukrainskoi-movy" target="_blank" rel="noopener" style={{ color: GOLD }}>mova.gov.ua</a>.
         </p>
+
+        <div style={{ marginBottom: 36 }}>
+          <a
+            href="https://mova.gov.ua/storage/app/sites/19/2026/rishennja-komisiji/01-03/sdm-ukrayinskii-pravopis-vidannia.pdf"
+            target="_blank"
+            rel="noopener"
+            style={{
+              display: 'inline-block', padding: '11px 20px',
+              background: 'rgba(239,159,39,0.15)', border: `1px solid ${GOLD}`,
+              borderRadius: 10, color: GOLD, fontSize: 15, fontWeight: 700,
+              textDecoration: 'none',
+            }}
+          >
+            ⬇ Завантажити офіційний правопис (PDF)
+          </a>
+          <p style={{ color: 'rgba(255,248,238,0.45)', fontSize: 12, lineHeight: 1.6, margin: '8px 0 0' }}>
+            Офіційне видання, 2026 · рішення Комісії №47 · поширюється за ліцензією Creative Commons Attribution 4.0. Файл відкривається з офіційного сайту mova.gov.ua.
+          </p>
+        </div>
 
         {rules.length === 0 ? (
           <div style={{ background: CARD, borderRadius: 16, padding: 28, color: 'rgba(255,248,238,0.7)' }}>
