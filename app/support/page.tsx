@@ -108,13 +108,7 @@ export default function SupportPage() {
   const handleAmountClick = (amount: number) => {
     setSelectedAmount(amount);
     setCustomAmount('');
-    if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
-      (window as any).gtag('event', 'conversion', {
-        send_to: 'AW-16967022103/ZnRmCKPyh70aEJfswJo_',
-        value: amount,
-        currency: activeCurrency
-      });
-    }
+    // Конверсію прибрано: клік по сумі — не донат. Реальна конверсія — на копіюванні реквізитів (handleCopyConversion).
   };
 // Google Ads conversion tracking — копіювання донат-реквізитів
   const handleCopyConversion = () => {
