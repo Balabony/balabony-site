@@ -304,6 +304,11 @@ export default function Footer() {
           </h4>
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: 8 }}>
             <li style={{ marginBottom: 5 }}>
+              <a href="/pro-balabony" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+                Про проєкт
+              </a>
+            </li>
+            <li style={{ marginBottom: 5 }}>
               <a href="/about" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
                 Про автора
               </a>
