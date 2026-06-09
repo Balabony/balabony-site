@@ -66,6 +66,18 @@ export default async function PravopysPage() {
         <p style={{ color: LIGHTBLUE, fontSize: 16, lineHeight: 1.7, marginBottom: 8 }}>
           Короткий практичний довідник для студентів і всіх, хто хоче писати правильно. Кожне правило — простими словами, з прикладами.
         </p>
+
+        <a
+          href="/pravopys/dity"
+          style={{
+            display: 'inline-block', marginBottom: 16, padding: '10px 18px',
+            background: 'rgba(181,212,244,0.12)', border: `1px solid ${LIGHTBLUE}`,
+            borderRadius: 10, color: LIGHTBLUE, fontSize: 15, fontWeight: 700,
+            textDecoration: 'none',
+          }}
+        >
+          👧 Для дітей — з підказками й картинками →
+        </a>
         <p style={{ color: 'rgba(255,248,238,0.55)', fontSize: 13, lineHeight: 1.7, marginBottom: 16 }}>
           Джерело — чинний стандарт державної мови «Український правопис» (рішення Національної комісії зі стандартів державної мови №47 від 01.03.2026, чинний з 28.03.2026).
           Офіційний текст: <a href="https://mova.gov.ua/diyalnist-i-proyekti/termini/pravopys-ukrainskoi-movy" target="_blank" rel="noopener" style={{ color: GOLD }}>mova.gov.ua</a>.
