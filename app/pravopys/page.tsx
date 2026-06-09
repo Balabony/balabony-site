@@ -57,7 +57,7 @@ export default async function PravopysPage() {
       <div style={{ maxWidth: 820, margin: '0 auto' }}>
 
         <a href="/" style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 700, color: GOLD, textDecoration: 'none' }}>
-          Balabony<sup style={{ fontSize: 9 }}>®</sup>
+          Balabony
         </a>
 
         <h1 style={{ fontFamily: SERIF, color: GOLD, fontSize: 34, lineHeight: 1.2, margin: '28px 0 12px' }}>

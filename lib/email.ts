@@ -24,7 +24,7 @@ export async function sendEditorEmail({
 <html lang="uk">
 <body style="font-family:Arial,sans-serif;background:#0a1628;color:#f5f0e8;padding:32px;max-width:680px;margin:0 auto;">
 <div style="background:#0f1e3a;border-radius:16px;padding:28px;border:1px solid rgba(240,165,0,0.3);">
-  <div style="font-size:22px;font-weight:700;color:#f0a500;margin-bottom:4px;">Balabony<sup style="font-size:11px">®</sup></div>
+  <div style="font-size:22px;font-weight:700;color:#f0a500;margin-bottom:4px;">Balabony</div>
   <div style="font-size:11px;color:#8899bb;letter-spacing:2px;text-transform:uppercase;margin-bottom:24px;">Редакція</div>
   <p style="color:#c8d4e8;margin-bottom:6px;">Вітаємо, <strong style="color:#f5f0e8;">${editorName}</strong>!</p>
   <p style="color:#c8d4e8;margin-bottom:20px;">Серія <strong style="color:#f0a500;">${filename}</strong> (${wordCount} слів) очікує вашого погодження.</p>
@@ -93,7 +93,7 @@ export async function sendGiftPurchaseEmail({
 <html lang="uk">
 <body style="font-family:Arial,sans-serif;background:#0a1628;color:#f5f0e8;padding:32px;max-width:680px;margin:0 auto;">
 <div style="background:#0f1e3a;border-radius:16px;padding:28px;border:1px solid rgba(240,165,0,0.3);">
-  <div style="font-size:22px;font-weight:700;color:#f0a500;margin-bottom:4px;">Balabony<sup style="font-size:11px">®</sup></div>
+  <div style="font-size:22px;font-weight:700;color:#f0a500;margin-bottom:4px;">Balabony</div>
   <div style="font-size:11px;color:#8899bb;letter-spacing:2px;text-transform:uppercase;margin-bottom:24px;">Подарунок</div>
   <p style="color:#c8d4e8;margin-bottom:6px;">Привіт, <strong style="color:#f5f0e8;">${senderName}</strong>!</p>
   <p style="color:#c8d4e8;margin-bottom:20px;">Ми отримали оплату за ваш подарунок: <strong style="color:#f0a500;">${giftLabel}</strong>.</p>
@@ -144,7 +144,7 @@ export async function sendGiftDeliveryEmail({
 <html lang="uk">
 <body style="font-family:Arial,sans-serif;background:#0a1628;color:#f5f0e8;padding:32px;max-width:680px;margin:0 auto;">
 <div style="background:#0f1e3a;border-radius:16px;padding:28px;border:1px solid rgba(240,165,0,0.3);">
-  <div style="font-size:22px;font-weight:700;color:#f0a500;margin-bottom:4px;">Balabony<sup style="font-size:11px">®</sup></div>
+  <div style="font-size:22px;font-weight:700;color:#f0a500;margin-bottom:4px;">Balabony</div>
   <div style="font-size:11px;color:#8899bb;letter-spacing:2px;text-transform:uppercase;margin-bottom:24px;">Для вас подарунок</div>
   <p style="color:#c8d4e8;margin-bottom:6px;">Вітаємо, <strong style="color:#f5f0e8;">${recipientName}</strong>!</p>
   <p style="color:#c8d4e8;margin-bottom:20px;"><strong style="color:#f0a500;">${senderName}</strong> дарує вам ${giftLabel} — цілий рік українських історій і серій.</p>

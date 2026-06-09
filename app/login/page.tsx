@@ -52,7 +52,7 @@ export default function LoginPage() {
           letterSpacing: '-0.5px',
         }}>
           Balabony
-          <span style={{ fontSize: '0.85rem', verticalAlign: 'super', marginLeft: '2px' }}>®</span>
+          
         </span>
       </Link>
 

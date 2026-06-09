@@ -216,7 +216,7 @@ export default function SurveyPage() {
 
         <div style={{ marginBottom: 36 }}>
           <a href="/" style={{ fontFamily: "'Comfortaa', cursive", fontSize: 22, fontWeight: 700, color: GOLD, textDecoration: 'none' }}>
-            Balabony<sup style={{ fontSize: 9 }}>®</sup>
+            Balabony
           </a>
         </div>
 

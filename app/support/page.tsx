@@ -1087,7 +1087,7 @@ function UkrainianContent({
           <ul>
             <li><strong>Пільговий доступ для УБД та людей з інвалідністю</strong> — підтримка модуля «1 грн на рік», який дає повний доступ до платформи учасникам бойових дій і людям з підтвердженою інвалідністю</li>
             <li><strong>Розширений модуль доступності</strong> — підтримка скрінрідерів (JAWS, NVDA, VoiceOver), голосовий пошук, додаткові шрифти для дислексії</li>
-            <li><strong>Якісна україномовна ШІ-озвучка субтитрів</strong> — клоновані голоси персонажів через ElevenLabs Pro для аудіодоступу слабкозорих</li>
+            <li><strong>Якісна україномовна ШІ-озвучка субтитрів</strong> — аудіодоступ для слабкозорих — за умови підтримки відповідною програмою</li>
             <li><strong>Пілотний жестомовний переклад</strong> — за умови залучення партнерів з Українського товариства глухих (УТОГ)</li>
             <li><strong>Розвиток платформи balabony.com</strong> — підтримка серверів, домен, оплата SaaS-сервісів, доопрацювання інтерфейсу</li>
           </ul>
@@ -1274,7 +1274,7 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
         <p>The project is currently in active development. All funds raised through international donations are directed exclusively to:</p>
         <ul>
           <li><strong>Inclusion of users with disabilities and combat veterans (UBD)</strong> — supporting the platform's preferential-access module, which provides full content access for 1 UAH per year to people with confirmed disability status and military veterans of the Russian-Ukrainian war</li>
-          <li><strong>Accessibility features development</strong> — screen-reader compatibility, high-contrast and dyslexia-friendly modes, audio narration of text content with cloned voices of professional readers</li>
+          <li><strong>Accessibility features development</strong> — screen-reader compatibility, high-contrast and dyslexia-friendly modes, audio narration of text content, subject to dedicated program funding</li>
           <li><strong>Platform engineering and infrastructure</strong> — programming, server hosting, domain maintenance, third-party SaaS services required for the technical operation of the inclusive audio module</li>
         </ul>
 

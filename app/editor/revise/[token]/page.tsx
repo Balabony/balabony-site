@@ -148,7 +148,7 @@ export default function RevisePage() {
       <div style={cardStyle}>
         {/* Header */}
         <div style={{ fontSize: 22, fontWeight: 700, color: GOLD, marginBottom: 4 }}>
-          Balabony<sup style={{ fontSize: 11 }}>®</sup>
+          Balabony
         </div>
         <div style={{ fontSize: 11, color: '#8899bb', letterSpacing: 2, textTransform: 'uppercase' as const, marginBottom: 24 }}>
           Редакція
