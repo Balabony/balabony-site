@@ -14,9 +14,16 @@ async function initSpellingTable() {
     status TEXT NOT NULL DEFAULT 'draft',
     source TEXT,
     sort_order INTEGER DEFAULT 0,
+    child_mode BOOLEAN NOT NULL DEFAULT false,
+    child_mnemonic TEXT,
+    image_url TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
   )`)
+  // авто-міграція для таблиць, створених раніше (без цих полів) — ручний SQL не потрібен
+  await dbQuery(`ALTER TABLE spelling_rules ADD COLUMN IF NOT EXISTS child_mode BOOLEAN NOT NULL DEFAULT false`)
+  await dbQuery(`ALTER TABLE spelling_rules ADD COLUMN IF NOT EXISTS child_mnemonic TEXT`)
+  await dbQuery(`ALTER TABLE spelling_rules ADD COLUMN IF NOT EXISTS image_url TEXT`)
 }
 
 const ALLOWED_NORM = ['mandatory', 'variant']
@@ -27,7 +34,7 @@ export async function GET() {
   try {
     await initSpellingTable()
     const result = await dbQuery(
-      `SELECT id, topic, category, rule_short, examples, norm_type, audience, status, source, sort_order, updated_at
+      `SELECT id, topic, category, rule_short, examples, norm_type, audience, status, source, sort_order, child_mode, child_mnemonic, image_url, updated_at
        FROM spelling_rules
        ORDER BY category NULLS LAST, sort_order ASC, topic ASC`
     )
@@ -50,10 +57,11 @@ export async function POST(request: NextRequest) {
     const norm_type = ALLOWED_NORM.includes(String(b.norm_type)) ? String(b.norm_type) : 'mandatory'
     const audience = ALLOWED_AUDIENCE.includes(String(b.audience)) ? String(b.audience) : 'all'
     const status = ALLOWED_STATUS.includes(String(b.status)) ? String(b.status) : 'draft'
+    const child_mode = b.child_mode === true || b.child_mode === 'true'
     const result = await dbQuery(
-      `INSERT INTO spelling_rules (topic, category, rule_short, examples, norm_type, audience, status, source, sort_order)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-       RETURNING id, topic, category, rule_short, examples, norm_type, audience, status, source, sort_order, updated_at`,
+      `INSERT INTO spelling_rules (topic, category, rule_short, examples, norm_type, audience, status, source, sort_order, child_mode, child_mnemonic, image_url)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+       RETURNING id, topic, category, rule_short, examples, norm_type, audience, status, source, sort_order, child_mode, child_mnemonic, image_url, updated_at`,
       [
         topic,
         b.category ? String(b.category).trim() : null,
@@ -62,6 +70,9 @@ export async function POST(request: NextRequest) {
         norm_type, audience, status,
         b.source ? String(b.source).trim() : null,
         Number.isFinite(Number(b.sort_order)) ? Number(b.sort_order) : 0,
+        child_mode,
+        b.child_mnemonic ? String(b.child_mnemonic).trim() : null,
+        b.image_url ? String(b.image_url).trim() : null,
       ]
     )
     return NextResponse.json({ rule: result.rows[0] })
@@ -87,11 +98,12 @@ export async function PATCH(request: NextRequest) {
     const norm_type = ALLOWED_NORM.includes(String(b.norm_type)) ? String(b.norm_type) : 'mandatory'
     const audience = ALLOWED_AUDIENCE.includes(String(b.audience)) ? String(b.audience) : 'all'
     const status = ALLOWED_STATUS.includes(String(b.status)) ? String(b.status) : 'draft'
+    const child_mode = b.child_mode === true || b.child_mode === 'true'
     const result = await dbQuery(
       `UPDATE spelling_rules
-       SET topic=$1, category=$2, rule_short=$3, examples=$4, norm_type=$5, audience=$6, status=$7, source=$8, sort_order=$9, updated_at=NOW()
-       WHERE id=$10
-       RETURNING id, topic, category, rule_short, examples, norm_type, audience, status, source, sort_order, updated_at`,
+       SET topic=$1, category=$2, rule_short=$3, examples=$4, norm_type=$5, audience=$6, status=$7, source=$8, sort_order=$9, child_mode=$10, child_mnemonic=$11, image_url=$12, updated_at=NOW()
+       WHERE id=$13
+       RETURNING id, topic, category, rule_short, examples, norm_type, audience, status, source, sort_order, child_mode, child_mnemonic, image_url, updated_at`,
       [
         topic,
         b.category ? String(b.category).trim() : null,
@@ -100,6 +112,9 @@ export async function PATCH(request: NextRequest) {
         norm_type, audience, status,
         b.source ? String(b.source).trim() : null,
         Number.isFinite(Number(b.sort_order)) ? Number(b.sort_order) : 0,
+        child_mode,
+        b.child_mnemonic ? String(b.child_mnemonic).trim() : null,
+        b.image_url ? String(b.image_url).trim() : null,
         id,
       ]
     )
