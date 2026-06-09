@@ -18,6 +18,9 @@ interface Rule {
   status: 'draft' | 'verified'
   source: string | null
   sort_order: number
+  child_mode: boolean
+  child_mnemonic: string | null
+  image_url: string | null
   updated_at: string
 }
 
@@ -32,12 +35,16 @@ interface FormState {
   status: 'draft' | 'verified'
   source: string
   sort_order: number
+  child_mode: boolean
+  child_mnemonic: string
+  image_url: string
 }
 
 const EMPTY: FormState = {
   id: 0, topic: '', category: '', rule_short: '', examples: '',
   norm_type: 'mandatory', audience: 'all',
   status: 'draft', source: '', sort_order: 0,
+  child_mode: false, child_mnemonic: '', image_url: '',
 }
 
 const inputStyle: React.CSSProperties = {
@@ -82,6 +89,7 @@ export default function SpellingAdminPage() {
       id: r.id, topic: r.topic, category: r.category ?? '', rule_short: r.rule_short,
       examples: r.examples ?? '', norm_type: r.norm_type, audience: r.audience,
       status: r.status, source: r.source ?? '', sort_order: r.sort_order,
+      child_mode: r.child_mode ?? false, child_mnemonic: r.child_mnemonic ?? '', image_url: r.image_url ?? '',
     })
     setEditingId(r.id)
     setMsg(null); setErr(null)
@@ -196,6 +204,23 @@ export default function SpellingAdminPage() {
           <label style={labelStyle}>Джерело (посилання на пункт стандарту на mova.gov.ua)</label>
           <input style={inputStyle} value={form.source} onChange={e => setForm({ ...form, source: e.target.value })} placeholder="https://mova.gov.ua/..." />
 
+          {/* ДИТЯЧИЙ РЕЖИМ */}
+          <div style={{ border: '1px solid rgba(96,165,250,0.3)', borderRadius: 10, padding: '14px 16px', marginBottom: 12, background: 'rgba(96,165,250,0.05)' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', marginBottom: form.child_mode ? 14 : 0 }}>
+              <input type="checkbox" checked={form.child_mode} onChange={e => setForm({ ...form, child_mode: e.target.checked })} style={{ width: 18, height: 18, cursor: 'pointer' }} />
+              <span style={{ fontSize: 14, color: '#93c5fd', fontWeight: 600 }}>Показувати в дитячому режимі (/pravopys/dity)</span>
+            </label>
+            {form.child_mode && (
+              <>
+                <label style={labelStyle}>Мнемо-підказка для дітей (коротко, грайливо)</label>
+                <textarea style={{ ...inputStyle, minHeight: 50, resize: 'vertical' }} value={form.child_mnemonic} onChange={e => setForm({ ...form, child_mnemonic: e.target.value })} placeholder="Напр.: Проєкт — з Є, як у слові Європа!" />
+                <label style={labelStyle}>Картинка (URL) — необов'язково, можна додати пізніше</label>
+                <input style={{ ...inputStyle, marginBottom: 0 }} value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })} placeholder="https://... (поки можна лишити порожнім)" />
+              </>
+            )}
+          </div>
+
+
           {err && <p style={{ color: '#ff8080', fontSize: 13, marginBottom: 10 }}>{err}</p>}
           {msg && <p style={{ color: '#7ee787', fontSize: 13, marginBottom: 10 }}>{msg}</p>}
 
@@ -242,6 +267,7 @@ export default function SpellingAdminPage() {
                         {r.status === 'verified' ? '✓ Вивірено' : 'Чернетка'}
                       </span>
                       {r.norm_type === 'variant' && <span style={tag('rgba(96,165,250,0.18)', '#93c5fd')}>Варіантна</span>}
+                      {r.child_mode && <span style={tag('rgba(96,165,250,0.18)', '#93c5fd')}>дітям</span>}
                       {r.audience === 'editor' && <span style={tag('rgba(255,255,255,0.08)', 'rgba(255,255,255,0.6)')}>лише редакція</span>}
                     </div>
                     <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', lineHeight: 1.6, margin: '0 0 6px' }}>{r.rule_short}</p>
