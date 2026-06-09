@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Balabony — українські історії та казки для кожного</title>
+<style>
+  :root{
+    --navy:#0F1E3A; --navy2:#14253B; --gold:#EF9F27; --amber:#FFB347;
+    --ice:#CADCFC; --slate:#64748B; --text:#1E293B; --light:#F4F7FB; --white:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Montserrat','Segoe UI',Arial,sans-serif;color:var(--text);line-height:1.6;background:var(--white);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px;}
+  .hero{background:linear-gradient(135deg,#0E1A2B,#14253B);color:var(--white);padding:54px 0 52px;}
+  .brand{color:var(--gold);font-weight:800;font-size:1.25rem;letter-spacing:.02em;margin:0 0 22px;}
+  .hero h1{font-size:2.05rem;line-height:1.25;margin:0 0 18px;font-weight:700;}
+  .hero p{font-size:1.1rem;color:var(--ice);margin:0 0 14px;max-width:780px;}
+  .hero p:last-child{margin-bottom:0;}
+  .hero .kicker{color:var(--gold);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.78rem;margin:0 0 14px;}
+  section{padding:30px 0;border-bottom:1px solid #E7ECF3;}
+  section:last-of-type{border-bottom:none;}
+  h2{color:var(--gold);font-size:.95rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin:0 0 14px;}
+  p{margin:0 0 12px;}
+  ul{margin:8px 0 0;padding-left:20px;}
+  li{margin-bottom:7px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px;}
+  .card{background:var(--light);border-radius:12px;padding:18px 20px;}
+  .card h3{margin:0 0 6px;color:var(--navy);font-size:1.05rem;text-transform:none;letter-spacing:0;}
+  .stat{display:flex;align-items:baseline;gap:14px;background:var(--light);border-radius:12px;padding:18px 22px;margin-top:14px;}
+  .stat .big{font-size:2.6rem;font-weight:800;color:var(--gold);line-height:1;}
+  .stat .lbl{color:var(--text);font-size:.98rem;}
+  .sdg{display:inline-block;background:var(--gold);color:var(--navy);font-weight:700;border-radius:8px;padding:3px 10px;margin-right:8px;font-size:.92rem;letter-spacing:0;}
+  .social{background:var(--light);border-radius:12px;padding:18px 22px;}
+  .status{background:var(--navy2);color:var(--ice);border-radius:12px;padding:18px 22px;}
+  footer{background:linear-gradient(135deg,#0E1A2B,#14253B);color:var(--ice);padding:40px 0;}
+  footer a{color:var(--gold);text-decoration:none;}
+  footer .name{color:var(--white);font-weight:700;margin-bottom:4px;}
+  .cta{display:inline-block;background:var(--gold);color:var(--navy);font-weight:700;padding:13px 26px;border-radius:10px;text-decoration:none;margin:6px 0 20px;font-size:1.02rem;}
+  .cta-note{color:var(--ice);font-size:.92rem;margin:0 0 22px;}
+  @media(max-width:640px){.grid{grid-template-columns:1fr;}.hero h1{font-size:1.55rem;}}
+</style>
+</head>
+<body>
+
+  <header class="hero">
+    <div class="wrap">
+      <p class="brand">Balabony</p>
+      <p class="kicker">Доступність передусім · Українська мова · EdTech</p>
+      <h1>Balabony — українські історії та казки для кожного</h1>
+      <p>Ми будуємо Balabony — україномовну платформу історій і казок, які можна читати й слухати. Її особливість — голосовий доступ (Zero-UI): користуватися платформою можна переважно голосом, слухати й керувати нею, кажучи що робити, майже не торкаючись екрана.</p>
+      <p>Наша мета — повернути доступ до української літератури, грамотності й когнітивного розвитку тим, кого залишає позаду звичайний інтерфейс: родинам внутрішньо переміщених осіб, ветеранам, людям старшого віку та людям з інвалідністю.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <section>
+      <h2>Проблема</h2>
+      <p>Мільйони українців відрізані від культури й навчання не браком контенту, а інтерфейсом, яким вони не можуть скористатися: малі екрани, застосунки «спочатку текст», обмежений зір чи моторика, низька цифрова грамотність. Війна поглибила це — діти переміщених і прифронтових родин втратили стабільне навчання, а багато ізольованих читачів не мають зручного способу дотягтися до україномовного контенту взагалі.</p>
+    </section>
+
+    <section>
+      <h2>Рішення</h2>
+      <p>Платформа будується навколо <strong>голосового керування (Zero-UI)</strong> — підходу, за якого людина слухає й керує голосом, а екран та кнопки зведено до мінімуму. Це робить літературу й навчання доступними «без рук» і «майже без екрана» — для дитини без стабільної школи, ветерана у відновленні, читача старшого віку чи людини з порушеннями зору або моторики.</p>
+      <p>Ми поєднуємо:</p>
+      <ul>
+        <li>оригінальні українські історії та казки (текст і професійне аудіо);</li>
+        <li><strong>практичний довідник українського правопису</strong> — простими словами, з окремою дитячою версією (вже доступний на платформі);</li>
+        <li><strong>когнітивні ігри</strong> — вправи на увагу, пам'ять, мову й логіку;</li>
+        <li>дизайн із пріоритетом доступності (WCAG 2.1 AA);</li>
+        <li>офлайн-міст: QR-коди в друкованих газетах з'єднують родини без надійного інтернету з аудіоконтентом через будь-який смартфон із камерою.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Когнітивні ігри</h2>
+      <p>Окрім читання й слухання, Balabony пропонує <strong>набір когнітивних ігор для тренування уваги, пам'яті, мови та логічного мислення</strong>, побудованих на українському мовному й культурному матеріалі. Серед них — вправи на робочу пам'ять і словесну побіжність, ігри на просторове мислення та зосередженість, а також класичні логічні ігри (шахи, шашки, доміно, судоку, нарди) з кількома рівнями складності. Ігри доступні голосом і підходять різному віку — від дітей, які опановують грамоту, до старших користувачів, що хочуть тримати розум активним. Це частина того самого україномовного середовища, а не окремий продукт.</p>
+    </section>
+
+    <section>
+      <h2>Кому це служить</h2>
+      <p>Діти внутрішньо переміщених осіб і звільнених громад, діти родин ветеранів і поранених військових, діти з інвалідністю, родини у сільській місцевості без надійного доступу до інтернету, а також читачі старшого віку.</p>
+    </section>
+
+    <section>
+      <h2>Технологія</h2>
+      <p>ШІ-шар голосу й читання (україномовний синтез мовлення, голосова навігація, адаптивне читання) — <strong>у розробці</strong>. Чинна основа платформи вже працює, зокрема довідник правопису та когнітивні ігри; технологічна готовність — рівень TRL 6.</p>
+    </section>
+
+    <section>
+      <h2>Що нас вирізняє</h2>
+      <p>20+ років роботи з найменш охопленими громадами України та власна мережа поширення: чотири друковані видання накладом близько <strong>1,56 млн примірників на рік</strong> через «Укрпошту». Ця мережа — міст від друкованого читача до цифрової платформи через QR-коди.</p>
+      <div class="stat">
+        <span class="big">1,56 млн</span>
+        <span class="lbl">друкованих примірників на рік — офлайн-міст до цифрової платформи через QR-коди</span>
+      </div>
+    </section>
+
+    <section>
+      <h2>Вплив</h2>
+      <p>Прямий внесок у Цілі сталого розвитку ООН:</p>
+      <div class="grid">
+        <div class="card"><h3><span class="sdg">ЦСР 4</span>Якісна освіта</h3><p>Повернення грамотності й доступу до україномовного контенту дітям, яких зачепила війна.</p></div>
+        <div class="card"><h3><span class="sdg">ЦСР 10</span>Зменшення нерівності</h3><p>Доступність передусім — для тих, кого виключає інвалідність, вік чи цифровий розрив.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Прозорість і соціальна місія</h2>
+      <div class="social">
+        <p style="margin:0;">Balabony — соціальний проєкт. Ми дотримуватимемося <strong>принципу роздільного обліку</strong> грантового фінансування та доходів платформи: грантові й донорські кошти спрямовуватимуться виключно на місійні цілі (безкоштовний і пільговий доступ для вразливих груп та створення доступного контенту) і не змішуватимуться з комерційними доходами від передплат. Це забезпечить цільове використання коштів грантодавців і прозору звітність.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Статус</h2>
+      <div class="status">Стадія концепту-прототипу. Дата запуску — орієнтовна й залежить від грантового фінансування проєкту та підтримки благодійників.</div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <h2 style="color:var(--gold);">Підтримати проєкт</h2>
+      <p class="cta-note">Грантодавці й донори можуть знайти банківські реквізити та способи підтримки нашої ГО «Інститут громадянського суспільства» на окремій сторінці:</p>
+      <a class="cta" href="https://balabony.com/support">Підтримати та реквізити →</a>
+      <div class="name">Назар Колодій — засновник і CEO</div>
+      <div><a href="mailto:nazar@balabony.com">nazar@balabony.com</a> &nbsp;·&nbsp; <a href="https://balabony.com">balabony.com</a></div>
+    </div>
+  </footer>
+
+</body>
+</html>
