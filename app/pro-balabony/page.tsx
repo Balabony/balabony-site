@@ -113,9 +113,16 @@ export default function ProBalabonyPage() {
 
           <section style={sectionStyle}>
             <h2 style={h2Style}>Кому це служить</h2>
-            <p style={pLastStyle}>
-              Внутрішньо переміщені особи, діти, УБД, люди з інвалідністю, родини у сільській місцевості
-              без надійного доступу до інтернету, а також читачі старшого віку.
+            <p style={pStyle}>
+              За офіційними даними, аудиторія охоплює близько 4,6 млн внутрішньо переміщених осіб,
+              близько 5,6 млн українців за кордоном, близько 5,7 млн дітей, понад 1,3 млн ветеранів (УБД), близько 3,4 млн людей з інвалідністю та
+              близько 10,2 млн пенсіонерів, а також родини в сільській місцевості без надійного доступу до
+              інтернету. Категорії частково перетинаються, тож це не сума, а масштаб потреби, яку звичайний
+              інтерфейс залишає позаду.
+            </p>
+            <p style={{ ...pLastStyle, fontSize: 13, color: "#78716c" }}>
+              Джерела: Мінсоцполітики, Мінветеранів, Пенсійний фонд України, Центр економічної стратегії, UNICEF
+              (дані 2025–2026).
             </p>
           </section>
 
@@ -235,9 +242,16 @@ export default function ProBalabonyPage() {
 
           <section style={sectionStyle}>
             <h2 style={h2Style}>Who it serves</h2>
-            <p style={pLastStyle}>
-              Internally displaced people, children, war veterans (UBD), people with disabilities, families
-              in rural areas without reliable internet access, and older readers.
+            <p style={pStyle}>
+              According to official data, the audience spans around 4.6 million internally displaced people,
+              around 5.6 million Ukrainians abroad, around 5.7 million children, over 1.3 million veterans (UBD), around 3.4 million people with
+              disabilities, and around 10.2 million pensioners — plus families in rural areas without reliable
+              internet access. These groups overlap, so this is not a sum but the scale of the need that the
+              ordinary interface leaves behind.
+            </p>
+            <p style={{ ...pLastStyle, fontSize: 13, color: "#78716c" }}>
+              Sources: Ministry of Social Policy, Ministry of Veterans Affairs, Pension Fund of Ukraine,
+              Centre for Economic Strategy, UNICEF (2025–2026 data).
             </p>
           </section>
 
