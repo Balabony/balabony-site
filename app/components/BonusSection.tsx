@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import StreakBadge from './StreakBadge'
+import LevelBadge from './LevelBadge'
 
 const GOLD = '#EF9F27'
 const FONT = "'Montserrat', Arial, sans-serif"
@@ -75,6 +76,8 @@ export default function BonusSection() {
       </div>
 
       <StreakBadge />
+
+      <LevelBadge />
 
       <div className="bn-balance">
         <div className="bn-balance-row">
