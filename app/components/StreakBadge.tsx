@@ -13,9 +13,8 @@ interface StreakData {
 
 function dayWord(n: number): string {
   const m10 = n % 10, m100 = n % 100
-  if (m10 === 1 && m100 !== 11) return 'день'
-  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return 'дні'
-  return 'днів'
+  if (m10 === 1 && m100 !== 11) return 'day'
+  return 'days'
 }
 
 export default function StreakBadge() {
@@ -39,19 +38,21 @@ export default function StreakBadge() {
       border: `1.5px solid ${active ? GOLD : 'rgba(239,159,39,0.3)'}`,
       borderRadius: 16, padding: '18px 22px',
     }}>
-      <div style={{ fontSize: 38, lineHeight: 1, flexShrink: 0 }}>{active ? '??' : '?'}</div>
+      <div style={{ fontSize: 36, lineHeight: 1, flexShrink: 0, color: GOLD, fontWeight: 900, fontFamily: "'Lora', serif" }}>
+        {data.current}
+      </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 24, fontWeight: 900, color: '#fff', fontFamily: FONT, lineHeight: 1.1 }}>
-          {active ? `${data.current} ${dayWord(data.current)} поспіль` : 'Почни свій стрік'}
+        <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', fontFamily: FONT, lineHeight: 1.1 }}>
+          {active ? `${data.current} ${dayWord(data.current)} read streak` : 'Start your streak'}
         </div>
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', fontFamily: FONT, marginTop: 4 }}>
           {active
-            ? `Читай щодня, щоб не згубити вогник.${data.longest > data.current ? ` Рекорд: ${data.longest}.` : ''}`
-            : 'Прочитай серію сьогодні — і вогник засвітиться.'}
+            ? `Read daily to keep the flame.${data.longest > data.current ? ` Best: ${data.longest}.` : ''}`
+            : 'Read an episode today to light it up.'}
         </div>
         {active && data.freezes > 0 && (
           <div style={{ fontSize: 12, color: GOLD, fontFamily: FONT, marginTop: 6, fontWeight: 700 }}>
-            ? Заморозок про запас: {data.freezes} (пропуск дня не згубить стрік)
+            Freezes left: {data.freezes}
           </div>
         )}
       </div>
