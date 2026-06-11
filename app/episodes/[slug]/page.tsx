@@ -9,7 +9,6 @@ import EpisodeCliffhanger from '@/app/components/EpisodeCliffhanger'
 
 const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
-const NAVY      = '#0f1e3a'
 const FONT      = "'Montserrat', Arial, sans-serif"
 
 interface EpisodeRow {
@@ -116,23 +115,16 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
       <div style={{ maxWidth: 720, margin: '0 auto', padding: episode.cover_url ? '0 20px 80px' : '60px 20px 80px' }}>
 
         <div style={{ marginTop: 24 }}>
-          <Breadcrumbs
-            items={[
-              { label: 'Серії', href: '/episodes' },
-              { label: episode.title },
-            ]}
-          />
+          <Breadcrumbs items={[{ label: 'Серії', href: '/episodes' }, { label: episode.title }]} />
         </div>
 
         <div style={{ marginBottom: 36 }}>
           <span style={{ fontSize: 11, fontWeight: 700, color: GOLD, background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 20, padding: '3px 10px', textTransform: 'capitalize', fontFamily: FONT, letterSpacing: 0.4 }}>
             Сезон {episode.season_number} · Серія {episode.episode_number}
           </span>
-
           <h1 style={{ fontSize: 28, fontWeight: 800, color: '#f5f0e8', lineHeight: 1.25, margin: '14px 0 10px', fontFamily: FONT }}>
             {episode.title}
           </h1>
-
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 15, fontWeight: 700, color: GOLD, fontFamily: FONT }}>Балабони</span>
             {date && <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--on-dark-muted)', fontFamily: FONT }}>{date}</span>}
@@ -142,12 +134,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
 
         <div style={{ height: 1, background: 'linear-gradient(to right, transparent, rgba(239,159,39,0.4), transparent)', marginBottom: 36 }} />
 
-        <EpisodePaywall
-          html={formatEpisodeText(body)}
-          fontFamily={FONT}
-          seasonNumber={episode.season_number}
-          episodeNumber={episode.episode_number}
-        />
+        <EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={episode.episode_number} />
 
         <div style={{ marginTop: 40 }}>
           <ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} />
@@ -174,12 +161,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           <div style={{ fontSize: 13, color: 'var(--on-dark-muted)', fontFamily: FONT }}>
             Сезон {episode.season_number} · Серія {episode.episode_number}
           </div>
-          
-            href="/"
-            style={{ fontSize: 13, fontWeight: 700, color: GOLD, background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 10, padding: '8px 18px', textDecoration: 'none', fontFamily: FONT }}
-          >
-            Більше епізодів →
-          </a>
+          <a href="/" style={{ fontSize: 13, fontWeight: 700, color: GOLD, background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 10, padding: '8px 18px', textDecoration: 'none', fontFamily: FONT }}>Більше епізодів →</a>
         </div>
 
       </div>
@@ -210,37 +192,26 @@ function escapeRegex(s: string): string {
 }
 
 function escapeHtmlChars(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
 function formatEpisodeText(raw: string): string {
   const scenes = raw.split(/\n{2,}/)
-
   const renderedScenes = scenes.map((scene, sceneIdx) => {
     const paragraphs = scene.split(/\n/).filter(p => p.trim().length > 0)
-
     const renderedParagraphs = paragraphs.map(p => {
       const trimmed = p.trim()
       const match = trimmed.match(SPEAKER_REGEX)
-
       if (match) {
         const speaker = match[1]
         const rest = trimmed.slice(match[0].length)
         return `<p class="speaker"><strong style="color:${GOLD};font-weight:700">${escapeHtmlChars(speaker)}:</strong> ${escapeHtmlChars(rest)}</p>`
       }
-
       return `<p class="narrative">${escapeHtmlChars(trimmed)}</p>`
     }).join('')
-
     const sceneClass = sceneIdx === 0 ? 'scene scene-first' : 'scene'
     return `<div class="${sceneClass}">${renderedParagraphs}</div>`
   }).join('')
-
   const styles = `<style>.scene{margin-top:28px}.scene-first{margin-top:0}.scene p{margin:0 0 14px 0}.scene p:last-child{margin-bottom:0}.speaker{padding-left:0}.narrative{}</style>`
-
   return styles + renderedScenes
 }
