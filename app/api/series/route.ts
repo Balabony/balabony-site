@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 // Якщо тривалість не задана в базі — рахуємо орієнтовний час читання з тексту (~150 слів/хв).
@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     const supabase = getSupabaseAdmin()
     let query = supabase
       .from('content')
-      .select('slug, episode_number, season_number, title, cover_url, audio_status, description, duration_minutes, text')
+      .select('slug, episode_number, season_number, title, cover_url, audio_status, description, duration_minutes, text, hook, next_teaser, next_release_date')
       .eq('type', 'balabony')
       .eq('status', 'published')
       .order('season_number', { ascending })
@@ -42,6 +42,9 @@ export async function GET(req: Request) {
       url: `/episodes/${r.slug}`,
       description: r.description,
       duration_minutes: r.duration_minutes ?? estimateMinutes(r.text),
+      hook: r.hook ?? null,
+      next_teaser: r.next_teaser ?? null,
+      next_release_date: r.next_release_date ?? null,
     }))
 
     return NextResponse.json(mapped)

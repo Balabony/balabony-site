@@ -1,10 +1,11 @@
-import { notFound } from 'next/navigation'
+﻿import { notFound } from 'next/navigation'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
 import EpisodePaywall from './EpisodePaywall'
 import ReportErrorWidget from '@/app/components/ReportErrorWidget'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ShareButtons from '@/app/components/ShareButtons'
+import EpisodeCliffhanger from '@/app/components/EpisodeCliffhanger'
 
 const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
@@ -24,13 +25,16 @@ interface EpisodeRow {
   published_version: string | null
   cover_url:         string | null
   approved_at:       string
+  hook:              string | null
+  next_teaser:       string | null
+  next_release_date: string | null
 }
 
 async function getEpisode(slug: string): Promise<EpisodeRow | null> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('id, slug, title, description, season_number, episode_number, text, corrected_text, humanized_text, published_version, cover_url, approved_at')
+    .select('id, slug, title, description, season_number, episode_number, text, corrected_text, humanized_text, published_version, cover_url, approved_at, hook, next_teaser, next_release_date')
     .eq('type', 'balabony')
     .eq('slug', slug)
     .eq('status', 'published')
@@ -38,6 +42,29 @@ async function getEpisode(slug: string): Promise<EpisodeRow | null> {
 
   if (error || !data) return null
   return data as EpisodeRow
+}
+
+interface NextRow {
+  slug:           string
+  season_number:  number
+  episode_number: number
+  cover_url:      string | null
+}
+
+async function getNextEpisode(season: number, episode: number): Promise<NextRow | null> {
+  const supabase = getSupabaseAdmin()
+  const { data, error } = await supabase
+    .from('content')
+    .select('slug, season_number, episode_number, cover_url')
+    .eq('type', 'balabony')
+    .eq('status', 'published')
+    .or(`season_number.gt.${season},and(season_number.eq.${season},episode_number.gt.${episode})`)
+    .order('season_number', { ascending: true })
+    .order('episode_number', { ascending: true })
+    .limit(1)
+
+  if (error || !data || data.length === 0) return null
+  return data[0] as NextRow
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -60,6 +87,8 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
   const episode = await getEpisode(slug)
   if (!episode) notFound()
 
+  const nextEp = await getNextEpisode(episode.season_number, episode.episode_number)
+
   const v    = episode.published_version ?? 'original'
   const body = (v === 'humanized' || v === 'corrected_humanized') && episode.humanized_text
     ? episode.humanized_text
@@ -76,7 +105,6 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
   return (
     <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT }}>
 
-      {/* Cover */}
       {episode.cover_url && (
         <div style={{ position: 'relative', maxWidth: 720, margin: '0 auto', aspectRatio: '1 / 1', overflow: 'hidden' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -87,7 +115,6 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
 
       <div style={{ maxWidth: 720, margin: '0 auto', padding: episode.cover_url ? '0 20px 80px' : '60px 20px 80px' }}>
 
-        {/* Хлібні крихти — заміна старого back link */}
         <div style={{ marginTop: 24 }}>
           <Breadcrumbs
             items={[
@@ -97,19 +124,15 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           />
         </div>
 
-        {/* Header */}
         <div style={{ marginBottom: 36 }}>
-          {/* Season/episode tag */}
           <span style={{ fontSize: 11, fontWeight: 700, color: GOLD, background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 20, padding: '3px 10px', textTransform: 'capitalize', fontFamily: FONT, letterSpacing: 0.4 }}>
             Сезон {episode.season_number} · Серія {episode.episode_number}
           </span>
 
-          {/* Title */}
           <h1 style={{ fontSize: 28, fontWeight: 800, color: '#f5f0e8', lineHeight: 1.25, margin: '14px 0 10px', fontFamily: FONT }}>
             {episode.title}
           </h1>
 
-          {/* Meta row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 15, fontWeight: 700, color: GOLD, fontFamily: FONT }}>Балабони</span>
             {date && <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--on-dark-muted)', fontFamily: FONT }}>{date}</span>}
@@ -117,10 +140,8 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           </div>
         </div>
 
-        {/* Divider */}
         <div style={{ height: 1, background: 'linear-gradient(to right, transparent, rgba(239,159,39,0.4), transparent)', marginBottom: 36 }} />
 
-        {/* Episode body (із перевіркою paywall) */}
         <EpisodePaywall
           html={formatEpisodeText(body)}
           fontFamily={FONT}
@@ -128,17 +149,32 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           episodeNumber={episode.episode_number}
         />
 
-        {/* Поширення */}
         <div style={{ marginTop: 40 }}>
           <ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} />
         </div>
 
-        {/* Footer */}
+        {(episode.hook || episode.next_teaser || nextEp) && (
+          <div style={{ marginTop: 44, marginLeft: -20, marginRight: -20 }}>
+            <EpisodeCliffhanger
+              hook={episode.hook ?? undefined}
+              next={(episode.next_teaser || nextEp) ? {
+                season:      nextEp?.season_number ?? episode.season_number,
+                number:      nextEp?.episode_number ?? episode.episode_number + 1,
+                teaser:      episode.next_teaser ?? '',
+                coverUrl:    nextEp?.cover_url ?? undefined,
+                releaseDate: episode.next_release_date ?? undefined,
+                readUrl:     nextEp ? `/episodes/${nextEp.slug}` : undefined,
+              } : undefined}
+              allSeriesUrl="/episodes"
+            />
+          </div>
+        )}
+
         <div style={{ marginTop: 52, paddingTop: 24, borderTop: '0.5px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div style={{ fontSize: 13, color: 'var(--on-dark-muted)', fontFamily: FONT }}>
             Сезон {episode.season_number} · Серія {episode.episode_number}
           </div>
-          <a
+          
             href="/"
             style={{ fontSize: 13, fontWeight: 700, color: GOLD, background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 10, padding: '8px 18px', textDecoration: 'none', fontFamily: FONT }}
           >
@@ -148,13 +184,11 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
 
       </div>
 
-      {/* Віджет «Знайшли помилку?» — тост при виділенні + фіксована кнопка */}
       <ReportErrorWidget />
     </div>
   )
 }
 
-// Список персонажів-носіїв реплік. При додаванні нових — просто розширити масив.
 const CHARACTERS = [
   'Панас', 'Ганя', 'Максим', 'Стьопа', 'Орися', 'Віталій',
   'Люба', 'Микола', 'Мотря', 'Семен', 'Степан', 'Борько',
@@ -165,7 +199,6 @@ const CHARACTERS = [
   'Баба Ганя', 'Баба Орися', 'Баба Мотря', 'Баба Параска',
   'Дід Панас', 'Онук Максим', 'Дід Оверко', 'Поштар Петро', 'Коваль Степан', 'Сашко', 'Петро', 'Степанич', 'Вадим', 'Іван', 'Галина', 'Христина', 'Віра', 'Василь', 'Роман', 'Зоя', 'Опанас Тракторист', 'Кандиба', 'Отець Павло', 'Юхим', 'Захар', 'Тетяна', 'Марія', 'Стефа', 'Тодось', 'Даринка', 'Денис', 'Охрім', 'Савка', 'Одарка', 'Оксана', 'Галька', 'Марфа', 'Губернатор', 'Баба Зоя', 'Галина Сергіївна', 'Степан', 'Хор',
 ]
-// Сортуємо за спаданням довжини, щоб «Дід Панас» матчилось раніше за «Панас»
 const CHAR_PATTERN = CHARACTERS
   .sort((a, b) => b.length - a.length)
   .map(escapeRegex)
@@ -184,15 +217,7 @@ function escapeHtmlChars(str: string): string {
     .replace(/"/g, '&quot;')
 }
 
-// Перетворює сирий текст серії на HTML:
-// 1) екранує спецсимволи
-// 2) рядки що починаються з «Ім'я:» оборачує у <p class="speaker">
-//    де ім'я з двокрапкою виділене золотим жирним
-// 3) звичайні абзаци в <p class="narrative">
-// 4) подвійний порожній рядок = розділювач сцен (більший відступ)
 function formatEpisodeText(raw: string): string {
-  // Розбиваємо на блоки по подвійному переносу (сцени)
-  // Всередині сцени блоки розділені одинарним переносом — то абзаци/репліки
   const scenes = raw.split(/\n{2,}/)
 
   const renderedScenes = scenes.map((scene, sceneIdx) => {
@@ -211,12 +236,10 @@ function formatEpisodeText(raw: string): string {
       return `<p class="narrative">${escapeHtmlChars(trimmed)}</p>`
     }).join('')
 
-    // Додаємо клас сцени тільки для не-першої сцени (відступ ЗВЕРХУ)
     const sceneClass = sceneIdx === 0 ? 'scene scene-first' : 'scene'
     return `<div class="${sceneClass}">${renderedParagraphs}</div>`
   }).join('')
 
-  // Інлайнимо стилі через <style>, бо EpisodeBody рендерить чистий HTML
   const styles = `<style>.scene{margin-top:28px}.scene-first{margin-top:0}.scene p{margin:0 0 14px 0}.scene p:last-child{margin-bottom:0}.speaker{padding-left:0}.narrative{}</style>`
 
   return styles + renderedScenes
