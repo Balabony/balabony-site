@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Pool } from 'pg'
+import { getOrCreateAnonUserId } from '@/lib/anon-user'
+import { awardPoints, POINTS } from '@/lib/points'
 
 let pool: Pool | null = null
 
@@ -49,6 +51,9 @@ export async function POST(request: NextRequest) {
        VALUES ($1, $2, $3, $4, $5, $6)`,
       [contentType, contentId, authorId ?? null, rating, comment ?? null, userId ?? null]
     )
+    // Бали за відгук: раз на одиницю контенту (анти-фарм повторних відгуків).
+    const uid = await getOrCreateAnonUserId()
+    await awardPoints(uid, 'review', `${contentType}:${contentId}`, POINTS.review)
     return NextResponse.json({ ok: true, stored: 'db' })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Database error'

@@ -1,5 +1,7 @@
 ﻿'use client'
 
+import { useState, useEffect } from 'react'
+
 import StreakBadge from './StreakBadge'
 import LevelBadge from './LevelBadge'
 
@@ -11,6 +13,7 @@ interface Quest {
   title: string
   desc: string
   reward: string
+  soon?: boolean
   Icon: () => React.ReactElement
 }
 
@@ -52,13 +55,22 @@ function SurveyIcon() {
 }
 
 const QUESTS: Quest[] = [
-  { id: 'invite',  title: 'Запроси друга',     desc: 'Обидва отримуєте по 50 балів', reward: '+50', Icon: InviteIcon },
-  { id: 'share',   title: 'Поділись історією', desc: '10 балів за кожен шерінг',     reward: '+10', Icon: ShareIcon  },
-  { id: 'review',  title: 'Залиш відгук',      desc: '10 балів за кожен коментар',   reward: '+10', Icon: ReviewIcon },
+  { id: 'review',  title: 'Залиш відгук',      desc: '15 балів за відгук на твір',   reward: '+15', Icon: ReviewIcon },
   { id: 'survey',  title: 'Пройди опитування', desc: '3 хвилини · одноразово',       reward: '+50', Icon: SurveyIcon },
+  { id: 'invite',  title: 'Запроси друга',     desc: 'Скоро',                        reward: '+50', soon: true, Icon: InviteIcon },
+  { id: 'share',   title: 'Поділись історією', desc: 'Скоро',                        reward: '+10', soon: true, Icon: ShareIcon  },
 ]
 
 export default function BonusSection() {
+  const [balance, setBalance] = useState<number | null>(null)
+
+  useEffect(() => {
+    fetch('/api/points')
+      .then(r => r.json())
+      .then((d: { balance: number }) => setBalance(d.balance ?? 0))
+      .catch(() => {})
+  }, [])
+
   return (
     <section className="bn-section">
 
@@ -83,11 +95,11 @@ export default function BonusSection() {
         <div className="bn-balance-row">
           <div>
             <div className="bn-balance-label">Твій баланс</div>
-            <div className="bn-balance-amount">— <span className="bn-balance-unit">балів</span></div>
+            <div className="bn-balance-amount">{balance === null ? '…' : balance} <span className="bn-balance-unit">балів</span></div>
           </div>
           <div className="bn-coin">Б</div>
         </div>
-        <div className="bn-balance-foot">Увійдіть, щоб бачити свій баланс і отримувати бонуси.</div>
+        <div className="bn-balance-foot">Читай серії, тримай стрік і лишай відгуки — бали зростають самі.</div>
       </div>
 
       <div className="bn-quests">
@@ -99,7 +111,7 @@ export default function BonusSection() {
               <div className="bn-quest-body">
                 <div className="bn-quest-head">
                   <div className="bn-quest-title">{q.title}</div>
-                  <span className="bn-quest-reward">{q.reward}</span>
+                  <span className="bn-quest-reward" style={q.soon ? { opacity: 0.45 } : undefined}>{q.soon ? 'Скоро' : q.reward}</span>
                 </div>
                 <div className="bn-quest-desc">{q.desc}</div>
               </div>

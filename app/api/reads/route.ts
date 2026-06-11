@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getOrCreateAnonUserId } from '@/lib/anon-user'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { awardPoints, POINTS } from '@/lib/points'
 
 async function countReads(userId: string): Promise<number> {
   const db = getSupabaseAdmin()
@@ -34,6 +35,7 @@ export async function POST(req: Request) {
       { user_id: userId, episode_slug: slug },
       { onConflict: 'user_id,episode_slug', ignoreDuplicates: true },
     )
+    await awardPoints(userId, 'read', slug, POINTS.read)
     return NextResponse.json({ total: await countReads(userId) })
   } catch {
     return NextResponse.json({ total: 0 })

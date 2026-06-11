@@ -1,11 +1,19 @@
 import { NextResponse } from 'next/server'
 import { getOrCreateAnonUserId } from '@/lib/anon-user'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { awardPoints, POINTS } from '@/lib/points'
 
 const MAX_FREEZES = 2
 
-function todayUTC(): string {
-  return new Date().toISOString().slice(0, 10)
+// Дата «сьогодні» за київським часом (Europe/Kyiv).
+// Локаль en-CA дає формат YYYY-MM-DD. Перехід літо/зима враховується автоматично.
+function todayKyiv(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Kyiv',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date())
 }
 
 function daysBetween(from: string, to: string): number {
@@ -36,7 +44,7 @@ export async function GET() {
     }
 
     const row = data as StreakRow
-    const gap = daysBetween(row.last_read_date, todayUTC())
+    const gap = daysBetween(row.last_read_date, todayKyiv())
     let current = row.current_streak
     if (gap > 1) {
       const missed = gap - 1
@@ -57,7 +65,8 @@ export async function POST() {
   try {
     const userId = await getOrCreateAnonUserId()
     const supabase = getSupabaseAdmin()
-    const today = todayUTC()
+    const today = todayKyiv()
+    await awardPoints(userId, 'streak', today, POINTS.streak)
 
     const { data } = await supabase
       .from('user_streaks')
