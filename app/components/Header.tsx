@@ -1,6 +1,7 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
+import { useTheme } from '../context/ThemeContext'
 import AuthMenu from './AuthMenu'
 
 const FONT_SIZES = [
@@ -12,11 +13,27 @@ const FONT_SIZES = [
 export default function Header() {
   const [fontIdx, setFontIdx] = useState(0)
   const [eyeCare, setEyeCare] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+  const { isNight, toggle: toggleNight } = useTheme()
+
+  // Спочатку читаємо збережені налаштування (один раз при маунті),
+  // і лише після цього дозволяємо запис — інакше ефекти-писарі затирали
+  // localStorage дефолтами (fontIdx=0) ще до читання.
+  useEffect(() => {
+    const savedFont = localStorage.getItem('balabony-font-size')
+    const savedEye  = localStorage.getItem('balabony-eyecare')
+    if (savedFont !== null) {
+      const i = parseInt(savedFont, 10)
+      if (Number.isFinite(i) && i >= 0 && i < FONT_SIZES.length) setFontIdx(i)
+    }
+    if (savedEye === 'true') setEyeCare(true)
+    setLoaded(true)
+  }, [])
 
   useEffect(() => {
     document.documentElement.style.setProperty('--base-font-size', FONT_SIZES[fontIdx].value)
-    localStorage.setItem('balabony-font-size', String(fontIdx))
-  }, [fontIdx])
+    if (loaded) localStorage.setItem('balabony-font-size', String(fontIdx))
+  }, [fontIdx, loaded])
 
   useEffect(() => {
     if (eyeCare) {
@@ -28,15 +45,8 @@ export default function Header() {
       document.documentElement.style.removeProperty('--muted')
       document.documentElement.style.removeProperty('--white')
     }
-    localStorage.setItem('balabony-eyecare', String(eyeCare))
-  }, [eyeCare])
-
-  useEffect(() => {
-    const savedFont = localStorage.getItem('balabony-font-size')
-    const savedEye  = localStorage.getItem('balabony-eyecare')
-    if (savedFont) setFontIdx(parseInt(savedFont))
-    if (savedEye === 'true') setEyeCare(true)
-  }, [])
+    if (loaded) localStorage.setItem('balabony-eyecare', String(eyeCare))
+  }, [eyeCare, loaded])
 
   return (
     <>
@@ -180,6 +190,31 @@ export default function Header() {
             <circle cx="12" cy="12" r="3"/>
           </svg>
           Захист
+        </button>
+
+        {/* Day/Night toggle */}
+        <button
+          onClick={toggleNight}
+          title={isNight ? 'Денний режим' : 'Нічний режим'}
+          style={{
+            width: 54, height: 28, borderRadius: 14, position: 'relative',
+            background: isNight ? '#1a2e4a' : '#f0e6cc',
+            border: `1.5px solid ${isNight ? 'rgba(239,159,39,0.3)' : 'rgba(239,159,39,0.55)'}`,
+            cursor: 'pointer', flexShrink: 0, transition: 'background 0.3s',
+            padding: 0,
+          }}
+        >
+          <span style={{
+            position: 'absolute', top: 3, left: isNight ? 3 : 25,
+            width: 20, height: 20, borderRadius: '50%',
+            background: 'var(--accent-gold)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 11, lineHeight: 1,
+            transition: 'left 0.28s cubic-bezier(.4,0,.2,1)',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
+          }}>
+            {isNight ? '🌙' : '☀️'}
+          </span>
         </button>
 
       </div>
