@@ -6,6 +6,7 @@ import ReportErrorWidget from '@/app/components/ReportErrorWidget'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ShareButtons from '@/app/components/ShareButtons'
 import EpisodeCliffhanger from '@/app/components/EpisodeCliffhanger'
+import StreakTracker from '@/app/components/StreakTracker'
 
 const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
@@ -103,6 +104,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
 
   return (
     <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT }}>
+<StreakTracker />
 
       {episode.cover_url && (
         <div style={{ position: 'relative', maxWidth: 720, margin: '0 auto', aspectRatio: '1 / 1', overflow: 'hidden' }}>

@@ -1,4 +1,6 @@
-'use client'
+﻿'use client'
+
+import StreakBadge from './StreakBadge'
 
 const GOLD = '#EF9F27'
 const FONT = "'Montserrat', Arial, sans-serif"
@@ -71,6 +73,8 @@ export default function BonusSection() {
           <div className="bn-title">Бонусна програма</div>
         </div>
       </div>
+
+      <StreakBadge />
 
       <div className="bn-balance">
         <div className="bn-balance-row">
