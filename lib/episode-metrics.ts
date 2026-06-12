@@ -49,10 +49,12 @@ function detectHook(text: string): boolean {
   return firstPara.length >= 150
 }
 
-// Діалоги: рахуємо рядки прямої мови, що починаються з тире (—, –, -).
+// Діалоги: рахуємо репліки у форматі «Ім'я: …» (рядок починається з імені + двокрапка),
+// а також, про всяк випадок, старий формат із тире.
 export function countDialogueLines(text: string): number {
-  const matches = (text || '').match(/(^|\n)\s*[—–-]\s+\S/gu)
-  return matches ? matches.length : 0
+  const speaker = (text.match(/(^|\n)\s*[А-ЯҐЄІЇ][А-Яа-яҐґЄєІіЇї'’ ]{1,22}:\s/gu) || []).length
+  const dash    = (text.match(/(^|\n)\s*[—–-]\s+\S/gu) || []).length
+  return Math.max(speaker, dash)
 }
 
 // Висновок: змістовний завершальний абзац.

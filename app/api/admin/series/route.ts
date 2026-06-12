@@ -11,7 +11,7 @@ export async function GET() {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('id, slug, title, season_number, episode_number, created_at, audio_status, cover_url, analyze_report')
+    .select('id, slug, title, season_number, episode_number, created_at, audio_status, cover_url, analyze_report, is_premium')
     .eq('type', 'balabony')
     .order('season_number', { ascending: false })
     .order('episode_number', { ascending: false })
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { title, season, episode, description, hasAudio, analyzeReport } = await req.json()
+    const { title, season, episode, description, hasAudio, analyzeReport, isPremium } = await req.json()
 
     if (!title || !season || !episode) {
       return NextResponse.json({ error: 'title, season, episode required' }, { status: 400 })
@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
       cover_url:      null,
       audio_status:   hasAudio ? 'ready' : 'pending',
       analyze_report: analyzeReport ?? null,
+      is_premium:     isPremium === true,
     }, { onConflict: 'slug' })
 
     if (insertError) throw insertError

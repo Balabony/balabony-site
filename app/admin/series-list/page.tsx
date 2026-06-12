@@ -18,6 +18,7 @@ interface SeriesRow {
   audio_status:   string | null
   cover_url:      string | null
   analyze_report: AnalysisResult | null
+  is_premium:     boolean | null
 }
 
 type SortMode = 'newest' | 'oldest' | 'rating-desc' | 'rating-asc'
@@ -161,6 +162,9 @@ export default function SeriesListPage() {
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: GOLD, fontFamily: FONT, flexShrink: 0 }}>{ep}</span>
                   <span style={{ fontSize: 14, fontWeight: 600, color: '#f5f0e8', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</span>
+                  {s.is_premium && (
+                    <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: GOLD, background: `${GOLD}1a`, border: `1px solid ${GOLD}55`, borderRadius: 12, padding: '2px 8px', fontFamily: FONT, letterSpacing: 0.3, whiteSpace: 'nowrap' }}>🔒 Тільки річні</span>
+                  )}
                 </div>
                 {/* Row 2: tags */}
                 {tags.length > 0 && (
