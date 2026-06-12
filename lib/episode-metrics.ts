@@ -1,7 +1,8 @@
 // lib/episode-metrics.ts
 // Єдиний модуль контролю якості серії «Балабони»:
 //  • тривалість 9–10 хв (за темпом озвучення ~150 слів/хв → 1350–1500 слів)
-//  • композиція не змінюється: гачок на початку + висновок («Приказка серії») у кінці
+//  • композиція: плавний вхід + гачок на початку, висновок наприкінці
+//  • переважно ДІАЛОГИ різних персонажів (бо озвучка багатоголоса)
 // Використовується і в адмінці (індикатор), і в підказках генерації.
 
 export const WORDS_PER_MIN = 150
@@ -14,14 +15,18 @@ export const TARGET_MAX_MINUTES = 10
 export const MIN_WORDS = 1350
 export const MAX_WORDS = 1500
 
+// Мінімум реплік прямої мови, щоб серія годилась для багатоголосої озвучки
+export const MIN_DIALOGUE_LINES = 8
+
 export interface EpisodeMetrics {
   words: number
   minutes: number          // округлено до 0.1
   lengthState: 'short' | 'ok' | 'long'
-  hasHook: boolean         // є виражений гачок на початку
-  hasProverb: boolean      // є «Приказка серії» (маркер висновку)
+  hasHook: boolean         // є змістовний (плавний) зачин на початку
+  dialogueLines: number    // скільки реплік прямої мови
+  hasDialogue: boolean     // достатньо діалогів для озвучки
   hasConclusion: boolean   // є фінал/висновок наприкінці
-  structureOk: boolean     // гачок + висновок присутні
+  structureOk: boolean     // зачин + діалоги + висновок присутні
   ok: boolean              // довжина в межах І структура коректна
   hints: string[]          // людські підказки, що підправити
 }
@@ -37,26 +42,24 @@ export function estimateMinutes(text: string): number {
   return Math.round((w / WORDS_PER_MIN) * 10) / 10
 }
 
-// Гачок: явний маркер «Гачок/Hook» АБО змістовний перший абзац (>200 символів),
-// що одразу вводить у дію, а не починається з технічної ремарки.
+// Зачин: змістовний перший абзац (>150 символів без технічних ремарок),
+// що плавно вводить у місце/час/настрій.
 function detectHook(text: string): boolean {
-  if (/\b(гачок|hook)\b/iu.test(text.slice(0, 400))) return true
   const firstPara = (text.trim().split(/\n{2,}/)[0] || '').replace(/\([^)]*\)/g, '').trim()
-  return firstPara.length >= 200
+  return firstPara.length >= 150
 }
 
-// Висновок: наявність «Приказка серії» (канонічний маркер кінцівки)
-// або змістовний завершальний абзац.
-function detectProverb(text: string): boolean {
-  return /приказк[аи]\s+сер[іи]ї/iu.test(text)
+// Діалоги: рахуємо рядки прямої мови, що починаються з тире (—, –, -).
+export function countDialogueLines(text: string): number {
+  const matches = (text || '').match(/(^|\n)\s*[—–-]\s+\S/gu)
+  return matches ? matches.length : 0
 }
 
+// Висновок: змістовний завершальний абзац.
 function detectConclusion(text: string): boolean {
-  if (detectProverb(text)) return true
-  if (/\b(фінал|висновок|епілог)\b/iu.test(text)) return true
   const paras = text.trim().split(/\n{2,}/).filter(Boolean)
   const last = (paras[paras.length - 1] || '').replace(/\([^)]*\)/g, '').trim()
-  return last.length >= 120
+  return last.length >= 100
 }
 
 export function analyzeEpisode(text: string): EpisodeMetrics {
@@ -67,9 +70,10 @@ export function analyzeEpisode(text: string): EpisodeMetrics {
     words < MIN_WORDS ? 'short' : words > MAX_WORDS ? 'long' : 'ok'
 
   const hasHook = detectHook(text)
-  const hasProverb = detectProverb(text)
+  const dialogueLines = countDialogueLines(text)
+  const hasDialogue = dialogueLines >= MIN_DIALOGUE_LINES
   const hasConclusion = detectConclusion(text)
-  const structureOk = hasHook && hasConclusion
+  const structureOk = hasHook && hasDialogue && hasConclusion
 
   const hints: string[] = []
   if (lengthState === 'short') {
@@ -79,13 +83,13 @@ export function analyzeEpisode(text: string): EpisodeMetrics {
     const over = words - MAX_WORDS
     hints.push(`Задовго на ~${over} слів — підріж до 9–10 хв (≈ ${MIN_WORDS}–${MAX_WORDS} слів).`)
   }
-  if (!hasHook) hints.push('Немає вираженого гачка на початку — додай інтригу/подію в перший абзац.')
+  if (!hasHook) hints.push('Немає плавного зачину — додай атмосферний вступ (місце, час, настрій) у перший абзац.')
+  if (!hasDialogue) hints.push(`Замало діалогів (${dialogueLines}) — для багатоголосої озвучки потрібні репліки різних персонажів (мін. ${MIN_DIALOGUE_LINES}).`)
   if (!hasConclusion) hints.push('Немає чіткого висновку наприкінці.')
-  if (!hasProverb) hints.push('Бракує рядка «Приказка серії: …» у фіналі.')
 
   return {
     words, minutes, lengthState,
-    hasHook, hasProverb, hasConclusion, structureOk,
+    hasHook, dialogueLines, hasDialogue, hasConclusion, structureOk,
     ok: lengthState === 'ok' && structureOk,
     hints,
   }

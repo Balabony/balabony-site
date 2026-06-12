@@ -514,7 +514,7 @@ export default function StoriesAdminPage() {
                   {chip('9–10 хв', m.lengthState === 'ok')}
                   {chip('гачок', m.hasHook)}
                   {chip('висновок', m.hasConclusion)}
-                  {chip('приказка серії', m.hasProverb)}
+                  {chip('діалоги', m.hasDialogue)}
                 </div>
                 {m.hints.length > 0 && (
                   <ul style={{ margin: '8px 0 0', paddingLeft: 18, color: '#9fb0c8', fontSize: 12, fontFamily: FONT, lineHeight: 1.6 }}>
