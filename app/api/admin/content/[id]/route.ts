@@ -30,7 +30,7 @@ export async function GET(req: NextRequest, ctx: RouteContext) {
     const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
       .from('content')
-      .select('id, slug, title, author_name, genre, category, cover_url, cover_position, status, approved_at, text, type, season_number, episode_number, description, duration_minutes')
+      .select('id, slug, title, author_name, genre, category, cover_url, cover_position, status, approved_at, text, type, season_number, episode_number, description, duration_minutes, is_premium')
       .eq('id', id)
       .single()
 
@@ -55,6 +55,7 @@ interface PatchBody {
   cover_position?: string
   description?: string | null
   text?: string
+  is_premium?: boolean
 }
 
 export async function PATCH(req: NextRequest, ctx: RouteContext) {
@@ -79,6 +80,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
     if (body.cover_position !== undefined) update.cover_position = body.cover_position
     if (body.description    !== undefined) update.description    = body.description
     if (body.text           !== undefined) update.text           = body.text
+    if (body.is_premium     !== undefined) update.is_premium     = body.is_premium === true
 
     if (Object.keys(update).length === 0) {
       return NextResponse.json({ error: 'nothing to update' }, { status: 400 })
