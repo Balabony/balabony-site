@@ -266,16 +266,29 @@ export default function StoriesAdminPage() {
   // ── AI generation ────────────────────────────────────────────────────────
 
   const generateAI = async () => {
-    setAiLoading(true); setAiError('')
+    setAiLoading(true); setAiError(''); setText('')
     try {
       const res = await fetch('/api/admin/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, season, episode, character, genre, summary, styleContext }),
       })
-      const data = await res.json() as { text?: string; error?: string }
-      if (!res.ok || data.error) { setAiError(data.error ?? 'Помилка генерації'); return }
-      setText(data.text ?? '')
+      if (!res.ok || !res.body) {
+        const msg = await res.text().catch(() => '')
+        setAiError(msg || 'Помилка генерації')
+        return
+      }
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let acc = ''
+      for (;;) {
+        const { done, value } = await reader.read()
+        if (done) break
+        acc += decoder.decode(value, { stream: true })
+        setText(acc)
+      }
+      acc += decoder.decode()
+      setText(acc.trim())
     } catch {
       setAiError("Помилка з'єднання з API")
     } finally {

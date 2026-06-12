@@ -1,8 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { MIN_WORDS, MAX_WORDS, TARGET_MIN_MINUTES, TARGET_MAX_MINUTES, countWords } from '@/lib/episode-metrics'
+import { MIN_WORDS, MAX_WORDS, TARGET_MIN_MINUTES, TARGET_MAX_MINUTES } from '@/lib/episode-metrics'
 
-export const maxDuration = 60
+// Edge-рантайм + стрімінг: перший байт приходить швидко, тому 10-секундний ліміт
+// Hobby-плану не спрацьовує (зʼєднання живе, поки тече текст).
+export const runtime = 'edge'
 
 const CHARACTERS_BIBLE = `Повний реєстр персонажів серіалу «БАЛАБОНИ»
 
@@ -97,23 +99,16 @@ interface GenerateBody {
   styleContext?: string
 }
 
-// Прибирає будь-яке Markdown-форматування (на випадок, якщо модель усе ж його поставить),
-// бо текст іде на озвучення й читання — символи виділення там зайві.
-function sanitizeMarkdown(s: string): string {
-  return s
-    .replace(/\*\*([^*]+)\*\*/g, '$1')               // **жирний**
-    .replace(/\*([^*\n]+)\*/g, '$1')                 // *курсив*
-    .replace(/__([^_]+)__/g, '$1')                   // __жирний__
-    .replace(/(^|[\s(])_([^_\n]+)_(?=[\s).,!?]|$)/g, '$1$2') // _курсив_
-    .replace(/`+/g, '')                              // зворотні лапки
-    .replace(/^\s{0,3}#{1,6}\s+/gm, '')              // # заголовки
-    .replace(/\*/g, '')                              // будь-які залишкові зірочки
+// Легке прибирання markdown-символів по ходу стріму (зірочки/лапки),
+// бо текст іде на озвучення й читання.
+function stripInline(s: string): string {
+  return s.replace(/[*`]/g, '')
 }
 
 export async function POST(request: NextRequest) {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
-    return NextResponse.json({ error: 'GEMINI_API_KEY не налаштовано' }, { status: 500 })
+    return new Response('GEMINI_API_KEY не налаштовано', { status: 500 })
   }
 
   const body = await request.json() as GenerateBody
@@ -138,23 +133,37 @@ export async function POST(request: NextRequest) {
       model: 'gemini-2.5-flash',
     }, { apiVersion: 'v1beta' })
 
-    const gen = async (contents: Array<{ role: string; parts: Array<{ text: string }> }>): Promise<string> => {
-      const r = await model.generateContent({ contents })
-      return r.response.text()
-    }
+    const result = await model.generateContentStream({
+      contents: [
+        { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
+        { role: 'user', parts: [{ text: userMessage }] },
+      ],
+    })
 
-    // Одна генерація — швидко, без ризику таймауту на Hobby-плані.
-    // Довжину 9–10 хв тримає сам промпт (цілиться у верхню межу 1350–1500 слів),
-    // а живий бейдж в адмінці підкаже, якщо коротко — тоді просто згенерувати ще раз.
-    const raw = await gen([
-      { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
-      { role: 'user', parts: [{ text: userMessage }] },
-    ])
-    const text = sanitizeMarkdown(raw)
+    const encoder = new TextEncoder()
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        try {
+          for await (const chunk of result.stream) {
+            const t = chunk.text()
+            if (t) controller.enqueue(encoder.encode(stripInline(t)))
+          }
+          controller.close()
+        } catch (e) {
+          controller.error(e)
+        }
+      },
+    })
 
-    return NextResponse.json({ text, words: countWords(text) })
+    return new Response(stream, {
+      headers: {
+        'Content-Type':  'text/plain; charset=utf-8',
+        'Cache-Control': 'no-store',
+        'X-Accel-Buffering': 'no',
+      },
+    })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Помилка API'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return new Response(msg, { status: 500 })
   }
 }
