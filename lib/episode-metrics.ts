@@ -57,11 +57,19 @@ export function countDialogueLines(text: string): number {
   return Math.max(speaker, dash)
 }
 
-// Висновок: змістовний завершальний абзац.
+// Висновок: змістовний авторський (не реплічний) текст у фінальній зоні серії.
+// Дивимось останні абзаци, а не лише найостанніший — бо після авторської думки
+// серія може закінчуватися ще 1–2 репліками, і це нормально.
 function detectConclusion(text: string): boolean {
-  const paras = text.trim().split(/\n{2,}/).filter(Boolean)
-  const last = (paras[paras.length - 1] || '').replace(/\([^)]*\)/g, '').trim()
-  return last.length >= 100
+  const paras = text.trim().split(/\n{2,}/).map(p => p.replace(/\([^)]*\)/g, '').trim()).filter(Boolean)
+  if (paras.length === 0) return false
+  const speakerRe = /^[А-ЯҐЄІЇ][А-Яа-яҐґЄєІіЇї'’ ]{1,22}:\s/u
+  // Фінальна зона — останні 4 абзаци; сумуємо довжину авторських (не-реплічних)
+  const narrativeLen = paras
+    .slice(-4)
+    .filter(p => !speakerRe.test(p))
+    .reduce((sum, p) => sum + p.length, 0)
+  return narrativeLen >= 90
 }
 
 export function analyzeEpisode(text: string): EpisodeMetrics {
