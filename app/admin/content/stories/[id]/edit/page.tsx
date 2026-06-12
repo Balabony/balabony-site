@@ -98,8 +98,9 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
   // ── Редакторські AI-інструменти (грамотність / олюднення / аналіз) ──────────
   const [aiBusy,   setAiBusy]   = useState<'idle' | 'correct' | 'humanize' | 'check'>('idle')
   const [aiMsg,    setAiMsg]    = useState('')
-  const [prevText, setPrevText] = useState<string | null>(null)
   const [report,   setReport]   = useState('')
+  // Пропозиція правки на розгляд редактора (не застосовується автоматично)
+  const [pending,  setPending]  = useState<{ mode: 'correct' | 'humanize'; text: string; changes: string[] } | null>(null)
 
   const [uploadingCover, setUploadingCover] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -156,10 +157,10 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
   }, [])
 
   // ── Збереження ────────────────────────────────────────────────────
-  // Грамотність / Олюднення — підставляє новий текст, зберігаючи попередній для відкату
-  const applyEdit = useCallback(async (mode: 'correct' | 'humanize') => {
+  // Грамотність / Олюднення — готує ПРОПОЗИЦІЮ (не застосовує одразу); рішення приймає редактор
+  const proposeEdit = useCallback(async (mode: 'correct' | 'humanize') => {
     if (!text.trim()) { setAiMsg('Текст порожній'); return }
-    setAiBusy(mode); setAiMsg(''); setReport('')
+    setAiBusy(mode); setAiMsg(''); setReport(''); setPending(null)
     try {
       const res = await fetch(`/api/admin/stories1/${mode}`, {
         method: 'POST',
@@ -167,17 +168,18 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
         body: JSON.stringify({ text, genre }),
       })
       const data = await res.json() as {
-        corrected_text?: string; humanized_text?: string; changes?: unknown[]; error?: string
+        corrected_text?: string; humanized_text?: string
+        changes?: unknown[]; changes_summary?: unknown[]; error?: string
       }
       if (!res.ok || data.error) { setAiMsg(data.error ?? 'Помилка'); return }
       const next = mode === 'correct' ? data.corrected_text : data.humanized_text
-      if (next) {
-        setPrevText(text)
-        setText(next)
-        const n = Array.isArray(data.changes) ? data.changes.length : 0
+      if (next && next.trim()) {
+        const rawChanges = data.changes_summary ?? data.changes ?? []
+        const changes = Array.isArray(rawChanges) ? rawChanges.map(c => String(c)) : []
+        setPending({ mode, text: next, changes })
         setAiMsg(mode === 'correct'
-          ? `Грамотність: внесено правок — ${n}. Перевір і збережи.`
-          : 'Олюднено. Перевір текст і збережи зміни.')
+          ? 'Готова пропозиція щодо грамотності — переглянь і виріши.'
+          : 'Готова пропозиція олюднення — переглянь «було/стало» і виріши.')
       } else {
         setAiMsg('AI не повернув тексту')
       }
@@ -188,10 +190,22 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
     }
   }, [text, genre])
 
+  const applyPending = useCallback(() => {
+    if (!pending) return
+    setText(pending.text)
+    setAiMsg('Застосовано. Не забудь натиснути «Зберегти зміни».')
+    setPending(null)
+  }, [pending])
+
+  const rejectPending = useCallback(() => {
+    setPending(null)
+    setAiMsg('Пропозицію відхилено — текст лишився без змін.')
+  }, [])
+
   // Аналіз — редакторський звіт, не змінює текст
   const runCheck = useCallback(async () => {
     if (!text.trim()) { setAiMsg('Текст порожній'); return }
-    setAiBusy('check'); setAiMsg(''); setReport('')
+    setAiBusy('check'); setAiMsg(''); setReport(''); setPending(null)
     try {
       const res = await fetch('/api/admin/stories1/check', {
         method: 'POST',
@@ -206,17 +220,13 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
       const data = await res.json() as { report?: unknown; error?: string }
       if (!res.ok || data.error) { setAiMsg(data.error ?? 'Помилка аналізу'); return }
       setReport(JSON.stringify(data.report ?? {}, null, 2))
-      setAiMsg('Аналіз готовий — див. звіт нижче.')
+      setAiMsg('Аналіз готовий — див. звіт нижче. Далі раджу «Олюднити».')
     } catch {
       setAiMsg("Помилка з'єднання")
     } finally {
       setAiBusy('idle')
     }
   }, [text, author, title, genre])
-
-  const revertText = useCallback(() => {
-    if (prevText !== null) { setText(prevText); setPrevText(null); setAiMsg('Повернуто попередній текст.') }
-  }, [prevText])
 
   const handleSave = useCallback(async () => {
     setPhase('saving')
@@ -458,35 +468,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
         <SectionCard title="Редакторські інструменти">
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
             <button
-              onClick={() => applyEdit('correct')}
-              disabled={aiBusy !== 'idle'}
-              style={{
-                background: 'rgba(240,165,0,0.12)', color: GOLD,
-                border: '1px solid rgba(240,165,0,0.35)', borderRadius: 10,
-                padding: '10px 16px', fontSize: 13, fontWeight: 700,
-                cursor: aiBusy === 'idle' ? 'pointer' : 'wait', fontFamily: FONT,
-                opacity: aiBusy !== 'idle' && aiBusy !== 'correct' ? 0.5 : 1,
-              }}
-            >
-              {aiBusy === 'correct' ? 'Перевіряю…' : 'Перевірити грамотність'}
-            </button>
-
-            <button
-              onClick={() => applyEdit('humanize')}
-              disabled={aiBusy !== 'idle'}
-              style={{
-                background: 'rgba(255,255,255,0.06)', color: '#f5f0e8',
-                border: '1px solid rgba(255,255,255,0.15)', borderRadius: 10,
-                padding: '10px 16px', fontSize: 13, fontWeight: 700,
-                cursor: aiBusy === 'idle' ? 'pointer' : 'wait', fontFamily: FONT,
-                opacity: aiBusy !== 'idle' && aiBusy !== 'humanize' ? 0.5 : 1,
-              }}
-            >
-              {aiBusy === 'humanize' ? 'Олюднюю…' : 'Олюднити'}
-            </button>
-
-            <button
-              onClick={runCheck}
+              onClick={() => runCheck()}
               disabled={aiBusy !== 'idle'}
               style={{
                 background: 'rgba(255,255,255,0.06)', color: '#f5f0e8',
@@ -496,32 +478,98 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                 opacity: aiBusy !== 'idle' && aiBusy !== 'check' ? 0.5 : 1,
               }}
             >
-              {aiBusy === 'check' ? 'Аналізую…' : 'Аналіз'}
+              {aiBusy === 'check' ? 'Аналізую…' : '1. Аналіз'}
             </button>
 
-            {prevText !== null && (
-              <button
-                onClick={revertText}
-                disabled={aiBusy !== 'idle'}
-                style={{
-                  background: 'transparent', color: '#8899bb',
-                  border: '1px solid rgba(255,255,255,0.15)', borderRadius: 10,
-                  padding: '10px 16px', fontSize: 13, fontWeight: 600,
-                  cursor: 'pointer', fontFamily: FONT, marginLeft: 'auto',
-                }}
-              >
-                ↩ Повернути попередній
-              </button>
-            )}
+            <button
+              onClick={() => proposeEdit('humanize')}
+              disabled={aiBusy !== 'idle'}
+              style={{
+                background: 'rgba(240,165,0,0.12)', color: GOLD,
+                border: '1px solid rgba(240,165,0,0.35)', borderRadius: 10,
+                padding: '10px 16px', fontSize: 13, fontWeight: 700,
+                cursor: aiBusy === 'idle' ? 'pointer' : 'wait', fontFamily: FONT,
+                opacity: aiBusy !== 'idle' && aiBusy !== 'humanize' ? 0.5 : 1,
+              }}
+            >
+              {aiBusy === 'humanize' ? 'Олюднюю…' : '2. Олюднити (проти штампів)'}
+            </button>
+
+            <button
+              onClick={() => proposeEdit('correct')}
+              disabled={aiBusy !== 'idle'}
+              style={{
+                background: 'rgba(255,255,255,0.06)', color: '#f5f0e8',
+                border: '1px solid rgba(255,255,255,0.15)', borderRadius: 10,
+                padding: '10px 16px', fontSize: 13, fontWeight: 700,
+                cursor: aiBusy === 'idle' ? 'pointer' : 'wait', fontFamily: FONT,
+                opacity: aiBusy !== 'idle' && aiBusy !== 'correct' ? 0.5 : 1,
+              }}
+            >
+              {aiBusy === 'correct' ? 'Перевіряю…' : 'Грамотність'}
+            </button>
           </div>
 
           {aiMsg && (
             <div style={{
               fontSize: 13, color: '#cbd5e1', fontFamily: FONT,
               padding: '10px 14px', background: 'rgba(255,255,255,0.04)',
-              borderRadius: 10, marginBottom: report ? 12 : 0,
+              borderRadius: 10, marginBottom: 12,
             }}>
               {aiMsg}
+            </div>
+          )}
+
+          {/* Пропозиція на розгляд: було/стало + рішення */}
+          {pending && (
+            <div style={{
+              border: `1px solid ${GOLD}55`, borderRadius: 12,
+              background: 'rgba(240,165,0,0.05)', padding: 14, marginBottom: 12,
+            }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: GOLD, fontFamily: FONT, marginBottom: 10 }}>
+                {pending.mode === 'humanize' ? 'Пропозиція олюднення' : 'Пропозиція щодо грамотності'} — рішення за тобою
+              </div>
+
+              {pending.changes.length > 0 && (
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#cbd5e1', fontFamily: FONT, marginBottom: 6 }}>Що змінено:</div>
+                  <ul style={{ margin: 0, paddingLeft: 18, color: '#cbd5e1', fontSize: 12, fontFamily: FONT, lineHeight: 1.6 }}>
+                    {pending.changes.map((c, i) => <li key={i}>{c}</li>)}
+                  </ul>
+                </div>
+              )}
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#8899bb', fontFamily: FONT, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>Було</div>
+                  <div style={{ fontSize: 12, color: '#9fb0c8', fontFamily: 'Georgia, serif', lineHeight: 1.6, background: 'rgba(0,0,0,0.2)', borderRadius: 8, padding: 10, maxHeight: 260, overflow: 'auto', whiteSpace: 'pre-wrap' }}>{text}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, fontFamily: FONT, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>Стало (пропозиція)</div>
+                  <div style={{ fontSize: 12, color: '#dde6f0', fontFamily: 'Georgia, serif', lineHeight: 1.6, background: 'rgba(240,165,0,0.06)', border: `1px solid ${GOLD}33`, borderRadius: 8, padding: 10, maxHeight: 260, overflow: 'auto', whiteSpace: 'pre-wrap' }}>{pending.text}</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <button
+                  onClick={applyPending}
+                  style={{
+                    background: GOLD, color: NAVY_DEEP, border: 'none', borderRadius: 10,
+                    padding: '10px 20px', fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: FONT,
+                  }}
+                >
+                  ✓ Застосувати
+                </button>
+                <button
+                  onClick={rejectPending}
+                  style={{
+                    background: 'transparent', color: '#f87171', border: '1px solid rgba(248,113,113,0.4)',
+                    borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FONT,
+                  }}
+                >
+                  ✗ Відхилити
+                </button>
+              </div>
             </div>
           )}
 
@@ -536,8 +584,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
           )}
 
           <div style={{ fontSize: 11, color: '#667799', fontFamily: FONT, marginTop: 10, lineHeight: 1.5 }}>
-            «Грамотність» і «Олюднити» змінюють текст у редакторі — перевір і натисни «Зберегти зміни».
-            Кнопка «Повернути попередній» відкочує останню AI-правку. «Аналіз» лише показує звіт і тексту не чіпає.
+            Рекомендований порядок: <b>1. Аналіз</b> (звіт, текст не чіпає) → <b>2. Олюднити</b> (прибирає штампи) → переглянь «було/стало» → <b>Застосувати</b> або <b>Відхилити</b>. Після «Застосувати» не забудь «Зберегти зміни».
           </div>
         </SectionCard>
 
