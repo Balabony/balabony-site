@@ -1,5 +1,12 @@
 import { NextRequest } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenerativeAI, type GenerationConfig } from '@google/generative-ai'
+
+// SDK 0.24.1 ще не має thinkingConfig у типах, але рантайм прокидає
+// generationConfig у v1beta-запит цілком, тож поле дійде до API.
+// Розширюємо тип чисто, без any/unknown.
+type GenConfigWithThinking = GenerationConfig & {
+  thinkingConfig?: { thinkingBudget?: number }
+}
 import { MIN_WORDS, MAX_WORDS, TARGET_MIN_MINUTES, TARGET_MAX_MINUTES } from '@/lib/episode-metrics'
 
 // Edge-рантайм + стрімінг: перший байт приходить швидко, тому 10-секундний ліміт
@@ -131,16 +138,20 @@ export async function POST(request: NextRequest) {
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey)
+    const generationConfig: GenConfigWithThinking = {
+      // Помірний ліміт тексту: вистачає на 1350–1500 слів кирилицею з запасом.
+      maxOutputTokens: 10240,
+      temperature: 1.0,
+      // КРИТИЧНО для Hobby+Edge: вимикаємо «міркування». gemini-2.5-flash інакше
+      // думає ДО першого текстового токена — байт приходить пізно і стрім падає
+      // по таймауту (FUNCTION_INVOCATION_TIMEOUT). thinkingBudget:0 → миттєвий
+      // старт стріму + увесь бюджет токенів іде на сам текст серії.
+      thinkingConfig: { thinkingBudget: 0 },
+    }
+
     const model = genAI.getGenerativeModel({
       model: 'gemini-2.5-flash',
-      // Великий ліміт виходу: gemini-2.5-flash — thinking-модель і без явного
-      // maxOutputTokens вона упирається в дефолтний бюджет, з якого «міркування»
-      // ще й відкушує токени → текст недодається (~940–1250 слів замість 1350–1500).
-      // 16384 лишає простір і для thinking, і для повних 1350–1500 слів кирилицею.
-      generationConfig: {
-        maxOutputTokens: 16384,
-        temperature: 1.0,
-      },
+      generationConfig,
     }, { apiVersion: 'v1beta' })
 
     const result = await model.generateContentStream({
