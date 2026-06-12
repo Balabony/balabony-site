@@ -168,6 +168,8 @@ export default function StoriesAdminPage() {
   // AI generation
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError,   setAiError]   = useState('')
+  const [expandLoading, setExpandLoading] = useState(false)
+  const [expandError,   setExpandError]   = useState('')
 
   // photo
   const [imgSrc,   setImgSrc]   = useState('')
@@ -299,6 +301,44 @@ export default function StoriesAdminPage() {
       setAiError("Помилка з'єднання з API")
     } finally {
       setAiLoading(false)
+    }
+  }
+
+  // Дотягнути закоротку серію до 1350–1500 слів (окремий прохід, не чіпає generate)
+  const expandAI = async () => {
+    if (!text.trim()) return
+    setExpandLoading(true); setExpandError('')
+    try {
+      const res = await fetch('/api/admin/expand', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      if (!res.ok || !res.body) {
+        const msg = await res.text().catch(() => '')
+        setExpandError(msg || 'Помилка розширення')
+        return
+      }
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let acc = ''
+      for (;;) {
+        const { done, value } = await reader.read()
+        if (done) break
+        acc += decoder.decode(value, { stream: true })
+        setText(acc)
+      }
+      acc += decoder.decode()
+      const cleaned = acc
+        .replace(/[ \t]*\([^)]*\)/g, '')
+        .replace(/[ \t]{2,}/g, ' ')
+        .replace(/ +\n/g, '\n')
+        .trim()
+      setText(cleaned)
+    } catch {
+      setExpandError("Помилка з'єднання з API")
+    } finally {
+      setExpandLoading(false)
     }
   }
 
@@ -541,6 +581,25 @@ export default function StoriesAdminPage() {
                   <ul style={{ margin: '8px 0 0', paddingLeft: 18, color: '#9fb0c8', fontSize: 12, fontFamily: FONT, lineHeight: 1.6 }}>
                     {m.hints.map((h, i) => <li key={i}>{h}</li>)}
                   </ul>
+                )}
+                {m.lengthState === 'short' && (
+                  <div style={{ marginTop: 10 }}>
+                    <button
+                      type="button"
+                      onClick={expandAI}
+                      disabled={expandLoading || aiLoading}
+                      style={{
+                        fontSize: 13, fontWeight: 800, fontFamily: FONT,
+                        color: '#1a1205', background: expandLoading ? '#caa24a' : GOLD,
+                        border: 'none', borderRadius: 10, padding: '9px 16px',
+                        cursor: expandLoading || aiLoading ? 'default' : 'pointer',
+                      }}>
+                      {expandLoading ? 'Дотягую обсяг…' : '↑ Дотягнути обсяг (додати діалоги)'}
+                    </button>
+                    {expandError && (
+                      <div style={{ fontSize: 12, color: '#f87171', marginTop: 8, fontFamily: FONT }}>{expandError}</div>
+                    )}
+                  </div>
                 )}
               </div>
             )
