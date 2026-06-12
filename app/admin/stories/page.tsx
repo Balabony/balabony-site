@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import GeminiAnalyzer from '@/components/admin/GeminiAnalyzer'
 import type { AnalysisResult } from '@/components/admin/GeminiAnalyzer'
 import { analyzeEpisode } from '@/lib/episode-metrics'
+import EditorialTools from '@/components/admin/EditorialTools'
 
 const FONT       = "'Montserrat', Arial, sans-serif"
 const GOLD       = '#f0a500'
@@ -187,6 +188,7 @@ export default function StoriesAdminPage() {
 
   // publish
   const [hasAudio,     setHasAudio]     = useState(false)
+  const [isPremium,    setIsPremium]    = useState(false)
   const [publishState, setPublishState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [publishMsg,   setPublishMsg]   = useState('')
   const [analysisData, setAnalysisData] = useState<AnalysisResult | null>(null)
@@ -292,7 +294,7 @@ export default function StoriesAdminPage() {
       const res = await fetch('/api/admin/series', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ title, season, episode, description: summary, hasAudio, analyzeReport: analysisData }),
+        body:    JSON.stringify({ title, season, episode, description: summary, hasAudio, analyzeReport: analysisData, isPremium }),
       })
       const data = await res.json() as { message?: string; error?: string }
       if (!res.ok) { setPublishMsg(data.error ?? 'Помилка'); setPublishState('error'); return }
@@ -532,6 +534,20 @@ export default function StoriesAdminPage() {
             onApplyImprovedText={(improved) => setText(improved)}
             onAnalysisComplete={setAnalysisData}
           />
+
+          {text.trim() && (
+            <div style={{ marginTop: 18, paddingTop: 18, borderTop: '0.5px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12, fontFamily: FONT }}>Олюднення тексту</div>
+              <EditorialTools
+                text={text}
+                genre={genre}
+                title={title}
+                authorName={character}
+                onApply={setText}
+                showAnalysis={false}
+              />
+            </div>
+          )}
         </SectionCard>
 
         {/* ━━━ SECTION 2 — Cover Photo ━━━ */}
@@ -760,6 +776,17 @@ export default function StoriesAdminPage() {
                 <div style={{ position: 'absolute', top: 2, left: hasAudio ? 20 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
               </div>
               <span style={{ fontSize: 13, color: hasAudio ? '#f5f0e8' : '#8899bb', fontFamily: FONT }}>🎧 Аудіо готове</span>
+            </label>
+
+            {/* isPremium toggle — закрита серія (тільки річні) */}
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, cursor: 'pointer' }}>
+              <div
+                onClick={() => setIsPremium(v => !v)}
+                style={{ width: 40, height: 22, borderRadius: 11, background: isPremium ? GOLD : 'rgba(255,255,255,0.1)', border: `1px solid ${isPremium ? GOLD : 'rgba(255,255,255,0.15)'}`, position: 'relative', flexShrink: 0, transition: 'background 0.2s', cursor: 'pointer' }}
+              >
+                <div style={{ position: 'absolute', top: 2, left: isPremium ? 20 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
+              </div>
+              <span style={{ fontSize: 13, color: isPremium ? GOLD : '#8899bb', fontFamily: FONT, fontWeight: isPremium ? 700 : 400 }}>🔒 Закрита серія (тільки річні)</span>
             </label>
 
             <button
