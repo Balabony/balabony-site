@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { title, season, episode, description, hasAudio, analyzeReport, isPremium } = await req.json()
+    const { title, season, episode, description, hasAudio, analyzeReport, isPremium, coverUrl } = await req.json()
 
     if (!title || !season || !episode) {
       return NextResponse.json({ error: 'title, season, episode required' }, { status: 400 })
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       description:    description ?? null,
       episode_number: parseInt(String(episode), 10),
       season_number:  parseInt(String(season), 10),
-      cover_url:      null,
+      cover_url:      coverUrl || null,
       audio_status:   hasAudio ? 'ready' : 'pending',
       analyze_report: analyzeReport ?? null,
       is_premium:     isPremium === true,
@@ -56,21 +56,24 @@ export async function POST(req: NextRequest) {
 
     if (insertError) throw insertError
 
-    // Fire cover generation asynchronously (30–90 s); update DB when done
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-    fetch(`${baseUrl}/api/generate-cover`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ seriesId: id, title, description }),
-    })
-      .then(async r => {
-        if (!r.ok) return
-        const { url: coverUrl } = await r.json() as { url?: string }
-        if (coverUrl) {
-          await supabase.from('content').update({ cover_url: coverUrl }).eq('slug', id)
-        }
+    // Fire cover generation asynchronously (30–90 s) only if no cover provided.
+    // Якщо обкладинку вже згенерували у формі — беремо її й не платимо за повтор.
+    if (!coverUrl) {
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+      fetch(`${baseUrl}/api/generate-cover`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ seriesId: id, title, description }),
       })
-      .catch(() => {})
+        .then(async r => {
+          if (!r.ok) return
+          const { url: coverUrlGen } = await r.json() as { url?: string }
+          if (coverUrlGen) {
+            await supabase.from('content').update({ cover_url: coverUrlGen }).eq('slug', id)
+          }
+        })
+        .catch(() => {})
+    }
 
     return NextResponse.json({
       id,

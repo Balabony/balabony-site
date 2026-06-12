@@ -175,6 +175,8 @@ export default function StoriesAdminPage() {
   const [imgSrc,   setImgSrc]   = useState('')
   const [urlDraft, setUrlDraft] = useState('')
   const [dragOver, setDragOver] = useState(false)
+  const [covLoading, setCovLoading] = useState(false)
+  const [covError,   setCovError]   = useState('')
 
   // music
   const [mood,          setMood]          = useState(MOODS[0].label)
@@ -342,6 +344,34 @@ export default function StoriesAdminPage() {
     }
   }
 
+  // Згенерувати обкладинку серії (Панас у сцені) — без завантаження фото
+  const generateCover = async () => {
+    if (!title || !season || !episode) {
+      setCovError('Спершу заповніть назву, сезон і номер серії')
+      return
+    }
+    const seriesId = `s${season}e${episode.padStart(2, '0')}`
+    setCovLoading(true); setCovError('')
+    try {
+      const res = await fetch('/api/generate-cover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seriesId, title, description: summary }),
+      })
+      const data = await res.json() as { url?: string; error?: string }
+      if (!res.ok || !data.url) {
+        setCovError(data.error || 'Не вдалося згенерувати обкладинку')
+        return
+      }
+      setImgSrc(data.url)
+      setUrlDraft('')
+    } catch {
+      setCovError("Помилка з'єднання з API")
+    } finally {
+      setCovLoading(false)
+    }
+  }
+
   // ── Publish ──────────────────────────────────────────────────────────────
 
   const handlePublish = async () => {
@@ -353,7 +383,7 @@ export default function StoriesAdminPage() {
       const res = await fetch('/api/admin/series', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ title, season, episode, description: summary, hasAudio, analyzeReport: analysisData, isPremium }),
+        body:    JSON.stringify({ title, season, episode, description: summary, hasAudio, analyzeReport: analysisData, isPremium, coverUrl: imgSrc.startsWith('http') ? imgSrc : (urlDraft || '') }),
       })
       const data = await res.json() as { message?: string; error?: string }
       if (!res.ok) { setPublishMsg(data.error ?? 'Помилка'); setPublishState('error'); return }
@@ -629,15 +659,34 @@ export default function StoriesAdminPage() {
         </SectionCard>
 
         {/* ━━━ SECTION 2 — Cover Photo ━━━ */}
-        <SectionCard n={2} title="Фото обкладинки">
+        <SectionCard n={2} title="Обкладинка">
+          <button
+            type="button"
+            onClick={generateCover}
+            disabled={covLoading}
+            style={{
+              width: '100%', fontSize: 14, fontWeight: 800, fontFamily: FONT,
+              color: '#1a1205', background: covLoading ? '#caa24a' : GOLD,
+              border: 'none', borderRadius: 12, padding: '14px 18px',
+              cursor: covLoading ? 'default' : 'pointer', marginBottom: 8,
+            }}>
+            {covLoading ? 'Генерую обкладинку…' : '✨ Згенерувати обкладинку (Панас у сцені серії)'}
+          </button>
+          <div style={{ fontSize: 11, color: '#6b7d92', fontFamily: FONT, marginBottom: covError ? 6 : 16 }}>
+            Малюється автоматично на базі образу Панаса — фото завантажувати не треба. ~60–90 с.
+          </div>
+          {covError && (
+            <div style={{ fontSize: 12, color: '#f87171', marginBottom: 14, fontFamily: FONT }}>{covError}</div>
+          )}
+
+          <div style={{ fontSize: 11, color: '#445566', fontFamily: FONT, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>або своє фото</div>
           <div
             onDragOver={e => { e.preventDefault(); setDragOver(true) }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
             onClick={() => fileRef.current?.click()}
-            style={{ border: `1.5px dashed ${dragOver ? GOLD : 'rgba(255,255,255,0.15)'}`, borderRadius: 12, padding: '30px 20px', textAlign: 'center', cursor: 'pointer', background: dragOver ? 'rgba(240,165,0,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.2s', marginBottom: 14 }}
+            style={{ border: `1.5px dashed ${dragOver ? GOLD : 'rgba(255,255,255,0.15)'}`, borderRadius: 12, padding: '18px 20px', textAlign: 'center', cursor: 'pointer', background: dragOver ? 'rgba(240,165,0,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.2s', marginBottom: 14 }}
           >
-            <div style={{ fontSize: 30, marginBottom: 8 }}>🖼</div>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#f5f0e8', marginBottom: 4, fontFamily: FONT }}>Перетягніть фото сюди або клікніть</div>
             <div style={{ fontSize: 11, color: '#445566', fontFamily: FONT }}>PNG · JPG · WEBP · до 10 МБ</div>
             <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) loadFile(f) }} />
