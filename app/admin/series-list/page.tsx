@@ -9,6 +9,7 @@ const NAVY      = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 
 interface SeriesRow {
+  id:             string
   slug:           string
   title:          string
   season_number:  number
@@ -189,6 +190,19 @@ export default function SeriesListPage() {
               }}>
                 {rating ?? '—'}
               </div>
+
+              {/* Edit link */}
+              <a
+                href={`/admin/content/stories/${s.id}/edit`}
+                style={{
+                  flexShrink: 0, padding: '8px 12px', borderRadius: 8,
+                  background: 'rgba(240,165,0,0.12)', color: GOLD,
+                  border: '1px solid rgba(240,165,0,0.3)', fontFamily: FONT,
+                  fontSize: 12, fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap',
+                }}
+              >
+                Редагувати
+              </a>
 
             </div>
           )

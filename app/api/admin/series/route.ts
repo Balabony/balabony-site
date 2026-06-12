@@ -11,7 +11,7 @@ export async function GET() {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('slug, title, season_number, episode_number, created_at, audio_status, cover_url, analyze_report')
+    .select('id, slug, title, season_number, episode_number, created_at, audio_status, cover_url, analyze_report')
     .eq('type', 'balabony')
     .order('season_number', { ascending: false })
     .order('episode_number', { ascending: false })

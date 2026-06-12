@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import GeminiAnalyzer from '@/components/admin/GeminiAnalyzer'
 import type { AnalysisResult } from '@/components/admin/GeminiAnalyzer'
+import { analyzeEpisode } from '@/lib/episode-metrics'
 
 const FONT       = "'Montserrat', Arial, sans-serif"
 const GOLD       = '#f0a500'
@@ -11,6 +12,55 @@ const NAVY_DEEP  = '#0a1628'
 const JAMENDO_ID = 'a4f04bbe'
 
 const GENRES = ['Казка', 'Оповідання', 'Детектив', 'Пригода', 'Романтика', 'Фантастика', 'Інше']
+
+// ── Канонічний стиль для автозаповнення поля «Стиль та контекст» ──────────────
+const STYLE_CTX = 'Тепла комедія характерів про живу українську мову. Двигун серії — зіткнення Панасових «інновацій» зі здоровим глуздом села. Дід Панас («Оце я вкляв!», синій блокнот), баба Ганя з ополоником («АНУ ЦИТЬ!»), Орися-«радіо», Мотря з картами, голова Григорій із синьою хусткою. Без сарказму й політичної злоби, без моралі в лоб. Композиція: гачок → основна частина (3–5 персонажів) → висновок. Останній рядок — «Приказка серії: …». Обсяг 9–10 хв (≈1350–1500 слів).'
+
+interface PlannedEp { ep: number; season: number; title: string; desc: string }
+
+// Заплановані нові серії 81–120 (81–87 — пріоритетні ідеї; 88–120 — резерв, звірено без дублів)
+const PLANNED: PlannedEp[] = [
+  { ep: 81, season: 5, title: 'Обрання сільського голови', desc: 'У Балабонах оголошують вибори голови: Григорій іде на новий термін, а проти нього несподівано висувається кандидат із гучною програмою. Дебати в клубі, агітація через Орисю-«радіо» та Панасові обіцянки перетворюють вибори на сільський фестиваль.' },
+  { ep: 82, season: 5, title: 'Страшна вірус-інфекція у селі', desc: 'Селом шириться чутка про «страшну інфекцію», і Балабони йдуть на «карантин»: Мотря лікує картами, Панас винаходить «знезаражувач», Віра повертає всіх до здорового глузду. «Епідемія» виявляється звичайною застудою після купання в холодному ставку.' },
+  { ep: 83, season: 5, title: 'Забудовники проти села', desc: 'До Балабонів приїздять «товстосуми з міста» з планом знести хати під багатоповерхівки. Село піднімається на захист: Григорій воює паперами, Панас «винаходить» причини неможливості будівництва, Орися мобілізує громаду. Забудовники відступають перед єдністю.' },
+  { ep: 84, season: 5, title: 'Дід Панас зайнявся спортом', desc: 'Начитавшись про ЗОЖ від Аліни, Панас оголошує «спортивну революцію»: тренажери з відер, «протеїн» із гороху. Усе село втягується, поки Ганя рахує побиті городи. Фініш: найкращий спорт у Балабонах — це косовиця й утеча від ополоника.' },
+  { ep: 85, season: 5, title: 'Баба Ганя пише книгу рецептів', desc: 'Ганя береться писати «Книгу балабонських рецептів», і село стає гастрономічним полем бою: кожна господиня вимагає, щоб її борщ був «канонічним». Книга виходить — і головним рецептом виявляється тепло, з яким готують.' },
+  { ep: 86, season: 5, title: 'Футбольний матч на селі', desc: 'Балабони викликають сусіднє село на футбол, і Панас стає «тренером-новатором» зі схемами в синьому блокноті. Воротар Стьопа, нападник Петро на велосипеді й коза-«талісман» творять хаос. Головна перемога — село грає разом.' },
+  { ep: 87, season: 5, title: 'Розлучення Панаса і Гані (понарошку)', desc: 'Після чергової витівки Панас і Ганя демонстративно «розлучаються» й беруться «ділити майно»: ополоник, блокнот, корову, кота. Орися веде «репортаж», Мотря «віщує примирення». Під вечір обоє згадують, що одне без одного не варять навіть борщу — і «розлучення» завершується вечерею вдвох.' },
+  { ep: 88, season: 5, title: 'Зірка в Балабонах', desc: 'У село на концерт приїздить відома співачка; Панас «озвучує» сцену з відер і старих колонок.' },
+  { ep: 89, season: 5, title: 'День Балабонів', desc: 'Суперечка про дату заснування села перетворюється на свято; Тодось згадує легенду про Мамая.' },
+  { ep: 90, season: 5, title: 'Перший дзвоник', desc: 'Сільській школі бракує учнів — і село «нагонить клас» усіма правдами й неправдами.' },
+  { ep: 91, season: 5, title: 'Газ у Балабони', desc: 'Газифікація грузне в бюрократії, і Панас винаходить «біогаз із капусти».' },
+  { ep: 92, season: 5, title: 'Перепис у Балабонах', desc: 'Переписувачі приїздять у село; Орися «допомагає», а Панас вписує у форму свої винаходи.' },
+  { ep: 93, season: 5, title: 'Пожежна команда', desc: 'Стьопа стає «брандмайстром» добровільної пожежної дружини з відром і мотопомпою Панаса.' },
+  { ep: 94, season: 5, title: 'Виставка гарбузів', desc: 'Конкурс на найбільший гарбуз; Панасів «селекційний монстр» лякає півсела.' },
+  { ep: 95, season: 5, title: 'Бджолиний рій', desc: 'У Тодося тікає рій, і Панас будує «дрон для бджіл» із вентилятора.' },
+  { ep: 96, season: 5, title: 'Велике відключення', desc: 'Вечір без світла; Панас запускає генератор із велосипеда, село співає при свічках.' },
+  { ep: 97, season: 5, title: 'Нова пошта в селі', desc: 'У Балабонах відкривають пункт видачі посилок — пряма конкуренція поштарю Петру.' },
+  { ep: 98, season: 5, title: 'Мандрівний театр', desc: 'Бродячий театр застрягає в селі, і Балабони ставлять власну виставу.' },
+  { ep: 99, season: 5, title: 'Музей Балабонів', desc: 'Село сперечається, чий експонат найстаріший і гідний «музею».' },
+  { ep: 100, season: 5, title: 'Гості здалеку', desc: 'Іноземні волонтери приїздять у село; мовні непорозуміння й спільний борщ.' },
+  { ep: 101, season: 6, title: 'Міс Балабони', desc: 'Конкурс краси, у фінал якого несподівано виходять сільські бабусі.' },
+  { ep: 102, season: 6, title: 'Толока на дорогу', desc: 'Село гуртом лагодить вибоїну; Панас пропонує «асфальт із власного рецепту».' },
+  { ep: 103, season: 6, title: 'Великдень у Балабонах', desc: 'Конкурс писанок; Отець Павло й Мотря змагаються за «найправильнішу» традицію.' },
+  { ep: 104, season: 6, title: 'Сватання', desc: 'До сільської вдовиці шлють свати; Орися «веде перемовини» від обох сторін.' },
+  { ep: 105, season: 6, title: 'День матері', desc: 'Чоловіки села беруться куховарити; Панас будує «машину для компліментів».' },
+  { ep: 106, season: 6, title: 'Перший сніг', desc: 'Панас майструє «снігоприбиральник» із трактора й вентилятора.' },
+  { ep: 107, season: 6, title: 'Йордан', desc: 'Водохреще біля ополонки; Панас занурюється в «термокостюмі» власного винаходу.' },
+  { ep: 108, season: 6, title: 'Масниця', desc: 'Тиждень млинців і змагання, чий млинець тонший; Ганя проти всіх.' },
+  { ep: 109, season: 6, title: 'Полювання Тодося', desc: '«Велике полювання» на кабана, що толочить городи, обертається комедією.' },
+  { ep: 110, season: 6, title: 'Риболовний турнір', desc: 'Легенда про сома; Гена «Мільйонер» продає право вилову.' },
+  { ep: 111, season: 6, title: 'Грибний сезон', desc: 'Хто більше; Панасів «грибний радар» зводить усіх з розуму.' },
+  { ep: 112, season: 6, title: 'Сільське вино', desc: 'Дегустація домашнього вина переростає у філософські дебати.' },
+  { ep: 113, season: 6, title: 'Лелеки повернулися', desc: 'Еколог кільцює лелек, а село «допомагає» так, що краще б не допомагало.' },
+  { ep: 114, season: 6, title: 'Сонячне затемнення', desc: 'Оверко віщує кінець світу, а Панас «ловить тінь» для експерименту.' },
+  { ep: 115, season: 6, title: 'Ветеринар приїхав', desc: 'Диспансеризація худоби; кози тікають, кури «не співпрацюють».' },
+  { ep: 116, season: 6, title: 'Хрестини', desc: 'Кумівські перемовини; Павло й Мотря тягнуть кожен у свій бік традиції.' },
+  { ep: 117, season: 6, title: 'Зустріч випускників', desc: 'Ностальгія; Григорій згадує бурхливу молодість, село сміється.' },
+  { ep: 118, season: 6, title: 'Книга рекордів Балабонів', desc: 'Село встановлює «рекорди»: найдовший рушник, найбільший вареник.' },
+  { ep: 119, season: 6, title: 'Сільське таксі', desc: '«Балабон-таксі» Панаса проти дільничного Миколи й здорового глузду.' },
+  { ep: 120, season: 6, title: 'Купала', desc: 'Вінки, «цвіт папороті» й тепла містика літньої ночі.' },
+]
 
 const MOODS = [
   { label: 'Весела',       tags: 'happy folk acoustic' },
@@ -79,6 +129,40 @@ export default function StoriesAdminPage() {
   const [summary,      setSummary]      = useState('')
   const [text,         setText]         = useState('')
   const [styleContext, setStyleContext] = useState('')
+
+  // ── Черга нових серій 81–120 + перевірка дублів ────────────────────────────
+  const [takenSlugs,  setTakenSlugs]  = useState<Set<string>>(new Set())
+  const [takenTitles, setTakenTitles] = useState<Set<string>>(new Set())
+  const [queueOpen,   setQueueOpen]   = useState(false)
+
+  useEffect(() => {
+    fetch('/api/admin/series')
+      .then(r => r.json())
+      .then((d: { series?: Array<{ slug?: string; title?: string }> }) => {
+        const s = new Set<string>(); const t = new Set<string>()
+        for (const row of d.series ?? []) {
+          if (row.slug)  s.add(row.slug.toLowerCase())
+          if (row.title) t.add(row.title.trim().toLowerCase())
+        }
+        setTakenSlugs(s); setTakenTitles(t)
+      })
+      .catch(() => {})
+  }, [])
+
+  const slugFor = (p: PlannedEp) => `s${p.season}e${String(p.ep).padStart(2, '0')}`
+  const isTaken = (p: PlannedEp) =>
+    takenSlugs.has(slugFor(p).toLowerCase()) || takenTitles.has(p.title.trim().toLowerCase())
+
+  const pickPlanned = (p: PlannedEp) => {
+    setTitle(p.title)
+    setSeason(String(p.season))
+    setEpisode(String(p.ep))
+    setSummary(p.desc)
+    setCharacter('Дід Панас')
+    setStyleContext(STYLE_CTX)
+    setQueueOpen(false)
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   // AI generation
   const [aiLoading, setAiLoading] = useState(false)
@@ -275,6 +359,66 @@ export default function StoriesAdminPage() {
       <audio ref={musicRef} onEnded={() => setIsAudioPlaying(false)} />
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
 
+        {/* ━━━ Черга нових серій 81–120 ━━━ */}
+        <div style={{ marginBottom: 20, background: NAVY, borderRadius: 16, border: '0.5px solid rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+          <button
+            onClick={() => setQueueOpen(o => !o)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              gap: 10, padding: '16px 18px', background: 'transparent', border: 'none', cursor: 'pointer',
+              color: '#f5f0e8', fontFamily: FONT,
+            }}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ width: 28, height: 28, borderRadius: 8, background: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>📋</span>
+              <span style={{ fontSize: 15, fontWeight: 700 }}>Черга нових серій (81–120)</span>
+              <span style={{ fontSize: 12, color: '#8899bb' }}>
+                {PLANNED.filter(p => !isTaken(p)).length} вільних · {PLANNED.filter(p => isTaken(p)).length} вже створено
+              </span>
+            </span>
+            <span style={{ fontSize: 18, color: '#8899bb', transform: queueOpen ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }}>⌄</span>
+          </button>
+
+          {queueOpen && (
+            <div style={{ maxHeight: 360, overflow: 'auto', padding: '0 12px 12px' }}>
+              {PLANNED.map(p => {
+                const taken = isTaken(p)
+                return (
+                  <button
+                    key={p.ep}
+                    onClick={() => !taken && pickPlanned(p)}
+                    disabled={taken}
+                    title={taken ? 'Вже створено — щоб не дублювати' : 'Заповнити форму цією серією'}
+                    style={{
+                      width: '100%', textAlign: 'left', marginBottom: 6,
+                      display: 'flex', alignItems: 'flex-start', gap: 10,
+                      padding: '10px 12px', borderRadius: 10,
+                      background: taken ? 'rgba(255,255,255,0.03)' : 'rgba(240,165,0,0.07)',
+                      border: `1px solid ${taken ? 'rgba(255,255,255,0.06)' : 'rgba(240,165,0,0.25)'}`,
+                      cursor: taken ? 'not-allowed' : 'pointer', fontFamily: FONT,
+                      opacity: taken ? 0.55 : 1,
+                    }}
+                  >
+                    <span style={{ fontSize: 13, fontWeight: 800, color: taken ? '#667799' : GOLD, minWidth: 30 }}>{p.ep}</span>
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#f5f0e8' }}>{p.title}</span>
+                      <span style={{ display: 'block', fontSize: 11, color: '#8899bb', marginTop: 2, lineHeight: 1.5 }}>
+                        s{p.season}e{String(p.ep).padStart(2, '0')} · {p.desc.slice(0, 90)}{p.desc.length > 90 ? '…' : ''}
+                      </span>
+                    </span>
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, letterSpacing: 0.5, whiteSpace: 'nowrap',
+                      color: taken ? '#f87171' : '#9ae6b4', alignSelf: 'center',
+                    }}>
+                      {taken ? 'ВЖЕ Є' : 'ВІЛЬНО'}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
         {/* ━━━ SECTION 1 — Story Details ━━━ */}
         <SectionCard n={1} title="Деталі серії">
           <Field label="Назва серії">
@@ -348,6 +492,38 @@ export default function StoriesAdminPage() {
           <Field label="Текст серії" right={`${wordCount} слів · ${text.length} символів · ~${readMin} хв`}>
             <textarea style={{ ...inputBase, height: 300, resize: 'vertical', lineHeight: 1.75 }} placeholder="Вставте або введіть повний текст серії, або згенеруйте через Claude AI вище..." value={text} onChange={e => setText(e.target.value)} />
           </Field>
+
+          {text.trim() && (() => {
+            const m = analyzeEpisode(text)
+            const color = m.ok ? '#2d8f4e' : (m.lengthState === 'ok' || m.structureOk) ? '#d4a017' : '#d94545'
+            const chip = (label: string, good: boolean) => (
+              <span style={{
+                fontSize: 12, fontWeight: 700, fontFamily: FONT,
+                color: good ? '#9ae6b4' : '#fca5a5',
+                background: good ? 'rgba(45,143,78,0.14)' : 'rgba(217,69,69,0.14)',
+                border: `1px solid ${good ? 'rgba(45,143,78,0.4)' : 'rgba(217,69,69,0.4)'}`,
+                borderRadius: 999, padding: '3px 10px',
+              }}>{good ? '✓' : '✗'} {label}</span>
+            )
+            return (
+              <div style={{ margin: '12px 0 4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, fontFamily: FONT, color: '#fff', background: color, borderRadius: 999, padding: '4px 12px' }}>
+                    ≈ {m.minutes} хв звучання · {m.words} слів
+                  </span>
+                  {chip('9–10 хв', m.lengthState === 'ok')}
+                  {chip('гачок', m.hasHook)}
+                  {chip('висновок', m.hasConclusion)}
+                  {chip('приказка серії', m.hasProverb)}
+                </div>
+                {m.hints.length > 0 && (
+                  <ul style={{ margin: '8px 0 0', paddingLeft: 18, color: '#9fb0c8', fontSize: 12, fontFamily: FONT, lineHeight: 1.6 }}>
+                    {m.hints.map((h, i) => <li key={i}>{h}</li>)}
+                  </ul>
+                )}
+              </div>
+            )
+          })()}
 
           <GeminiAnalyzer
             title={title}

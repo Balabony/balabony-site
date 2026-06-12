@@ -8,6 +8,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { use } from 'react'
+import { analyzeEpisode } from '@/lib/episode-metrics'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
 const GOLD      = '#f0a500'
@@ -94,6 +95,12 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
   const [coverUrl,     setCoverUrl]     = useState('')
   const [coverPosition, setCoverPosition] = useState('center')
 
+  // ── Редакторські AI-інструменти (грамотність / олюднення / аналіз) ──────────
+  const [aiBusy,   setAiBusy]   = useState<'idle' | 'correct' | 'humanize' | 'check'>('idle')
+  const [aiMsg,    setAiMsg]    = useState('')
+  const [prevText, setPrevText] = useState<string | null>(null)
+  const [report,   setReport]   = useState('')
+
   const [uploadingCover, setUploadingCover] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -149,6 +156,68 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
   }, [])
 
   // ── Збереження ────────────────────────────────────────────────────
+  // Грамотність / Олюднення — підставляє новий текст, зберігаючи попередній для відкату
+  const applyEdit = useCallback(async (mode: 'correct' | 'humanize') => {
+    if (!text.trim()) { setAiMsg('Текст порожній'); return }
+    setAiBusy(mode); setAiMsg(''); setReport('')
+    try {
+      const res = await fetch(`/api/admin/stories1/${mode}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, genre }),
+      })
+      const data = await res.json() as {
+        corrected_text?: string; humanized_text?: string; changes?: unknown[]; error?: string
+      }
+      if (!res.ok || data.error) { setAiMsg(data.error ?? 'Помилка'); return }
+      const next = mode === 'correct' ? data.corrected_text : data.humanized_text
+      if (next) {
+        setPrevText(text)
+        setText(next)
+        const n = Array.isArray(data.changes) ? data.changes.length : 0
+        setAiMsg(mode === 'correct'
+          ? `Грамотність: внесено правок — ${n}. Перевір і збережи.`
+          : 'Олюднено. Перевір текст і збережи зміни.')
+      } else {
+        setAiMsg('AI не повернув тексту')
+      }
+    } catch {
+      setAiMsg("Помилка з'єднання")
+    } finally {
+      setAiBusy('idle')
+    }
+  }, [text, genre])
+
+  // Аналіз — редакторський звіт, не змінює текст
+  const runCheck = useCallback(async () => {
+    if (!text.trim()) { setAiMsg('Текст порожній'); return }
+    setAiBusy('check'); setAiMsg(''); setReport('')
+    try {
+      const res = await fetch('/api/admin/stories1/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          authorName: author || 'Назар Колодій',
+          title:      title  || 'Без назви',
+          genre:      genre  || 'Оповідання',
+          text,
+        }),
+      })
+      const data = await res.json() as { report?: unknown; error?: string }
+      if (!res.ok || data.error) { setAiMsg(data.error ?? 'Помилка аналізу'); return }
+      setReport(JSON.stringify(data.report ?? {}, null, 2))
+      setAiMsg('Аналіз готовий — див. звіт нижче.')
+    } catch {
+      setAiMsg("Помилка з'єднання")
+    } finally {
+      setAiBusy('idle')
+    }
+  }, [text, author, title, genre])
+
+  const revertText = useCallback(() => {
+    if (prevText !== null) { setText(prevText); setPrevText(null); setAiMsg('Повернуто попередній текст.') }
+  }, [prevText])
+
   const handleSave = useCallback(async () => {
     setPhase('saving')
     setError('')
@@ -348,6 +417,128 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
               style={{ ...inputBase, resize: 'vertical', minHeight: 280, fontFamily: 'Georgia, serif', lineHeight: 1.6 }}
             />
           </Field>
+
+          {(() => {
+            const m = analyzeEpisode(text)
+            const color = m.ok ? '#2d8f4e' : (m.lengthState === 'ok' || m.structureOk) ? '#d4a017' : '#d94545'
+            const chip = (label: string, good: boolean) => (
+              <span style={{
+                fontSize: 12, fontWeight: 700, fontFamily: FONT,
+                color: good ? '#9ae6b4' : '#fca5a5',
+                background: good ? 'rgba(45,143,78,0.14)' : 'rgba(217,69,69,0.14)',
+                border: `1px solid ${good ? 'rgba(45,143,78,0.4)' : 'rgba(217,69,69,0.4)'}`,
+                borderRadius: 999, padding: '3px 10px',
+              }}>{good ? '✓' : '✗'} {label}</span>
+            )
+            return (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{
+                    fontSize: 13, fontWeight: 800, fontFamily: FONT, color: '#fff',
+                    background: color, borderRadius: 999, padding: '4px 12px',
+                  }}>
+                    ≈ {m.minutes} хв · {m.words} слів
+                  </span>
+                  {chip('9–10 хв', m.lengthState === 'ok')}
+                  {chip('гачок', m.hasHook)}
+                  {chip('висновок', m.hasConclusion)}
+                  {chip('приказка серії', m.hasProverb)}
+                </div>
+                {m.hints.length > 0 && (
+                  <ul style={{ margin: '8px 0 0', paddingLeft: 18, color: '#cbd5e1', fontSize: 12, fontFamily: FONT, lineHeight: 1.6 }}>
+                    {m.hints.map((h, i) => <li key={i}>{h}</li>)}
+                  </ul>
+                )}
+              </div>
+            )
+          })()}
+        </SectionCard>
+
+        {/* SECTION: Редакторські інструменти */}
+        <SectionCard title="Редакторські інструменти">
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
+            <button
+              onClick={() => applyEdit('correct')}
+              disabled={aiBusy !== 'idle'}
+              style={{
+                background: 'rgba(240,165,0,0.12)', color: GOLD,
+                border: '1px solid rgba(240,165,0,0.35)', borderRadius: 10,
+                padding: '10px 16px', fontSize: 13, fontWeight: 700,
+                cursor: aiBusy === 'idle' ? 'pointer' : 'wait', fontFamily: FONT,
+                opacity: aiBusy !== 'idle' && aiBusy !== 'correct' ? 0.5 : 1,
+              }}
+            >
+              {aiBusy === 'correct' ? 'Перевіряю…' : 'Перевірити грамотність'}
+            </button>
+
+            <button
+              onClick={() => applyEdit('humanize')}
+              disabled={aiBusy !== 'idle'}
+              style={{
+                background: 'rgba(255,255,255,0.06)', color: '#f5f0e8',
+                border: '1px solid rgba(255,255,255,0.15)', borderRadius: 10,
+                padding: '10px 16px', fontSize: 13, fontWeight: 700,
+                cursor: aiBusy === 'idle' ? 'pointer' : 'wait', fontFamily: FONT,
+                opacity: aiBusy !== 'idle' && aiBusy !== 'humanize' ? 0.5 : 1,
+              }}
+            >
+              {aiBusy === 'humanize' ? 'Олюднюю…' : 'Олюднити'}
+            </button>
+
+            <button
+              onClick={runCheck}
+              disabled={aiBusy !== 'idle'}
+              style={{
+                background: 'rgba(255,255,255,0.06)', color: '#f5f0e8',
+                border: '1px solid rgba(255,255,255,0.15)', borderRadius: 10,
+                padding: '10px 16px', fontSize: 13, fontWeight: 700,
+                cursor: aiBusy === 'idle' ? 'pointer' : 'wait', fontFamily: FONT,
+                opacity: aiBusy !== 'idle' && aiBusy !== 'check' ? 0.5 : 1,
+              }}
+            >
+              {aiBusy === 'check' ? 'Аналізую…' : 'Аналіз'}
+            </button>
+
+            {prevText !== null && (
+              <button
+                onClick={revertText}
+                disabled={aiBusy !== 'idle'}
+                style={{
+                  background: 'transparent', color: '#8899bb',
+                  border: '1px solid rgba(255,255,255,0.15)', borderRadius: 10,
+                  padding: '10px 16px', fontSize: 13, fontWeight: 600,
+                  cursor: 'pointer', fontFamily: FONT, marginLeft: 'auto',
+                }}
+              >
+                ↩ Повернути попередній
+              </button>
+            )}
+          </div>
+
+          {aiMsg && (
+            <div style={{
+              fontSize: 13, color: '#cbd5e1', fontFamily: FONT,
+              padding: '10px 14px', background: 'rgba(255,255,255,0.04)',
+              borderRadius: 10, marginBottom: report ? 12 : 0,
+            }}>
+              {aiMsg}
+            </div>
+          )}
+
+          {report && (
+            <pre style={{
+              fontSize: 12, color: '#cbd5e1', fontFamily: 'monospace',
+              background: 'rgba(0,0,0,0.25)', borderRadius: 10, padding: 14,
+              maxHeight: 320, overflow: 'auto', whiteSpace: 'pre-wrap', margin: 0,
+            }}>
+              {report}
+            </pre>
+          )}
+
+          <div style={{ fontSize: 11, color: '#667799', fontFamily: FONT, marginTop: 10, lineHeight: 1.5 }}>
+            «Грамотність» і «Олюднити» змінюють текст у редакторі — перевір і натисни «Зберегти зміни».
+            Кнопка «Повернути попередній» відкочує останню AI-правку. «Аналіз» лише показує звіт і тексту не чіпає.
+          </div>
         </SectionCard>
 
         {/* Actions */}
