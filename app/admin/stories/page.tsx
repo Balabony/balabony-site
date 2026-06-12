@@ -288,7 +288,13 @@ export default function StoriesAdminPage() {
         setText(acc)
       }
       acc += decoder.decode()
-      setText(acc.trim())
+      // Прибрати сценічні ремарки в дужках — диктор їх не читає
+      const cleaned = acc
+        .replace(/[ \t]*\([^)]*\)/g, '')
+        .replace(/[ \t]{2,}/g, ' ')
+        .replace(/ +\n/g, '\n')
+        .trim()
+      setText(cleaned)
     } catch {
       setAiError("Помилка з'єднання з API")
     } finally {
