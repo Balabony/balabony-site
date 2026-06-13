@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { title, season, episode, description, hasAudio, analyzeReport, isPremium, coverUrl } = await req.json()
+    const { title, season, episode, description, hasAudio, analyzeReport, isPremium, coverUrl, text } = await req.json()
 
     if (!title || !season || !episode) {
       return NextResponse.json({ error: 'title, season, episode required' }, { status: 400 })
@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
       slug:           id,
       status:         'published',
       title,
+      text:           text ?? null,
       description:    description ?? null,
       episode_number: parseInt(String(episode), 10),
       season_number:  parseInt(String(season), 10),

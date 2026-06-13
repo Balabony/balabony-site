@@ -383,7 +383,7 @@ export default function StoriesAdminPage() {
       const res = await fetch('/api/admin/series', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ title, season, episode, description: summary, hasAudio, analyzeReport: analysisData, isPremium, coverUrl: imgSrc.startsWith('http') ? imgSrc : (urlDraft || '') }),
+        body:    JSON.stringify({ title, season, episode, text, description: summary, hasAudio, analyzeReport: analysisData, isPremium, coverUrl: imgSrc.startsWith('http') ? imgSrc : (urlDraft || '') }),
       })
       const data = await res.json() as { message?: string; error?: string }
       if (!res.ok) { setPublishMsg(data.error ?? 'Помилка'); setPublishState('error'); return }
