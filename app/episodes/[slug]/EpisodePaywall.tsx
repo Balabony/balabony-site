@@ -12,6 +12,7 @@ interface Props {
   fontFamily:     string
   seasonNumber:   number
   episodeNumber:  number
+  bypass?:        boolean
 }
 
 // Обчислює глобальний номер серії (1..80) з сезону та номера серії в сезоні.
@@ -59,7 +60,7 @@ function getTeaserHtml(html: string): string {
   return styles + teaserScenes.join('')
 }
 
-export default function EpisodePaywall({ html, fontFamily, seasonNumber, episodeNumber }: Props) {
+export default function EpisodePaywall({ html, fontFamily, seasonNumber, episodeNumber, bypass = false }: Props) {
   const [mounted, setMounted] = useState(false)
   const [freeEpisode, setFreeEpisode] = useState<number | null>(null)
 
@@ -84,6 +85,11 @@ export default function EpisodePaywall({ html, fontFamily, seasonNumber, episode
 
   const scrollToPricing = () => {
     window.location.href = '/#pricing'
+  }
+
+  // Адмін (залогінений власник) читає все без paywall.
+  if (bypass) {
+    return <EpisodeBody html={html} fontFamily={fontFamily} />
   }
 
   // До монтування — показуємо повну версію (SSR-friendly, без миготіння для безкоштовної)

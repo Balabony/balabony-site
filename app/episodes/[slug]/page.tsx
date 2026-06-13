@@ -1,4 +1,5 @@
 ﻿import { notFound } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
 import EpisodePaywall from './EpisodePaywall'
@@ -88,6 +89,10 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
   const episode = await getEpisode(slug)
   if (!episode) notFound()
 
+  // Залогінений власник (адмін) читає всі серії без paywall
+  const cookieStore = await cookies()
+  const isAdmin = cookieStore.get('admin_session')?.value === process.env.ADMIN_PASSWORD
+
   const nextEp = await getNextEpisode(episode.season_number, episode.episode_number)
 
   const v    = episode.published_version ?? 'original'
@@ -138,7 +143,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
 
         <div style={{ height: 1, background: 'linear-gradient(to right, transparent, rgba(239,159,39,0.4), transparent)', marginBottom: 36 }} />
 
-        <EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={episode.episode_number} />
+        <EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={episode.episode_number} bypass={isAdmin} />
 
         <div style={{ marginTop: 40 }}>
           <ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} />
