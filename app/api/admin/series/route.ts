@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { revalidatePath } from 'next/cache'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 export async function GET() {
@@ -75,6 +76,12 @@ export async function POST(req: NextRequest) {
         })
         .catch(() => {})
     }
+
+    // Серія опублікована — оновлюємо кеш каталогу й головної одразу,
+    // щоб нова серія зʼявилась без чекання ревалідації / редеплою.
+    revalidatePath('/')
+    revalidatePath('/episodes')
+    revalidatePath(`/episodes/${id}`)
 
     return NextResponse.json({
       id,

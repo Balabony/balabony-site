@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+
+// Каталог змінюється при публікації нових серій — не тримаємо вічний статичний кеш.
+export const revalidate = 60
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import AudioPlayer from '../components/AudioPlayer'
