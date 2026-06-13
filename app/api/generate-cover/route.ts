@@ -248,8 +248,11 @@ export async function POST(req: NextRequest) {
       poseFile = fb.poseFile
       usedPose = poseFile.replace(/\.jpg$/, '')
       scene = fb.scene
-      keyObject = fb.keyObject
-      objectOwner = fb.objectOwner as 'self' | 'other' | null
+      // Випадкові обʼєкти прибрано — Haiku інколи давав недоречний реквізит
+      // (свічка серед поля вдень). Предмет лишається лише якщо явно заданий
+      // у cover_plan для серії.
+      keyObject = null
+      objectOwner = null
       locationPrompt = ''
       seasonPrompt = ''
       timePrompt = GOLDEN_HOUR_LIGHTING
