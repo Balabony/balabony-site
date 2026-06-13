@@ -86,6 +86,10 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
   const [phase,   setPhase]   = useState<'loading' | 'editing' | 'saving' | 'error'>('loading')
   const [error,   setError]   = useState('')
   const [success, setSuccess] = useState('')
+  const [expandLoading, setExpandLoading] = useState(false)
+  const [expandError,   setExpandError]   = useState('')
+  const [titleSuggestLoading, setTitleSuggestLoading] = useState(false)
+  const [titleSuggestions,    setTitleSuggestions]    = useState<string[]>([])
 
   const [item,         setItem]         = useState<ContentItem | null>(null)
   const [title,        setTitle]        = useState('')
@@ -227,6 +231,61 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
     )
   }
 
+  // Дотягнути закоротку серію до 1350–1500 слів (той самий маршрут, що у формі)
+  const expandAI = async () => {
+    if (!text.trim()) return
+    setExpandLoading(true); setExpandError('')
+    try {
+      const res = await fetch('/api/admin/expand', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      if (!res.ok || !res.body) {
+        const msg = await res.text().catch(() => '')
+        setExpandError(msg || 'Помилка розширення')
+        return
+      }
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let acc = ''
+      for (;;) {
+        const { done, value } = await reader.read()
+        if (done) break
+        acc += decoder.decode(value, { stream: true })
+        setText(acc)
+      }
+      acc += decoder.decode()
+      const cleaned = acc
+        .replace(/[ \t]*\([^)]*\)/g, '')
+        .replace(/[ \t]{2,}/g, ' ')
+        .replace(/ +\n/g, '\n')
+        .trim()
+      setText(cleaned)
+    } catch {
+      setExpandError("Помилка з'єднання з API")
+    } finally {
+      setExpandLoading(false)
+    }
+  }
+
+  // Запропонувати назви серії на базі тексту
+  const suggestTitles = async () => {
+    if (!text.trim()) return
+    setTitleSuggestLoading(true); setTitleSuggestions([])
+    try {
+      const res = await fetch('/api/admin/suggest-title', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      const data = await res.json() as { titles?: string[]; error?: string }
+      if (data.titles?.length) setTitleSuggestions(data.titles)
+    } catch { /* тихо */ } finally {
+      setTitleSuggestLoading(false)
+    }
+  }
+
   // ── Main render ───────────────────────────────────────────────────
   return (
     <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT, padding: '24px 16px 80px' }}>
@@ -315,6 +374,38 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
         <SectionCard title="Інформація">
           <Field label="Назва">
             <input type="text" value={title} onChange={e => setTitle(e.target.value)} style={inputBase} />
+            <div style={{ marginTop: 8 }}>
+              <button
+                type="button"
+                onClick={suggestTitles}
+                disabled={titleSuggestLoading || !text.trim()}
+                style={{
+                  fontSize: 12, fontWeight: 700, fontFamily: FONT,
+                  color: GOLD, background: 'transparent',
+                  border: `1px solid ${GOLD}`, borderRadius: 8, padding: '6px 12px',
+                  cursor: titleSuggestLoading || !text.trim() ? 'default' : 'pointer',
+                  opacity: !text.trim() ? 0.5 : 1,
+                }}>
+                {titleSuggestLoading ? 'Думаю над назвами…' : '✨ Запропонувати назви (AI)'}
+              </button>
+              {titleSuggestions.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                  {titleSuggestions.map((t, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setTitle(t)}
+                      style={{
+                        fontSize: 12, fontFamily: FONT, color: '#f5f0e8',
+                        background: 'rgba(240,165,0,0.10)', border: '1px solid rgba(240,165,0,0.30)',
+                        borderRadius: 999, padding: '5px 12px', cursor: 'pointer',
+                      }}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </Field>
 
           <Field label="Автор">
@@ -385,6 +476,25 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                   <ul style={{ margin: '8px 0 0', paddingLeft: 18, color: '#cbd5e1', fontSize: 12, fontFamily: FONT, lineHeight: 1.6 }}>
                     {m.hints.map((h, i) => <li key={i}>{h}</li>)}
                   </ul>
+                )}
+                {m.lengthState === 'short' && (
+                  <div style={{ marginTop: 10 }}>
+                    <button
+                      type="button"
+                      onClick={expandAI}
+                      disabled={expandLoading}
+                      style={{
+                        fontSize: 13, fontWeight: 800, fontFamily: FONT,
+                        color: '#1a1205', background: expandLoading ? '#caa24a' : GOLD,
+                        border: 'none', borderRadius: 10, padding: '9px 16px',
+                        cursor: expandLoading ? 'default' : 'pointer',
+                      }}>
+                      {expandLoading ? 'Дотягую обсяг…' : '↑ Дотягнути обсяг (додати діалоги)'}
+                    </button>
+                    {expandError && (
+                      <div style={{ fontSize: 12, color: '#f87171', marginTop: 8, fontFamily: FONT }}>{expandError}</div>
+                    )}
+                  </div>
                 )}
               </div>
             )
