@@ -69,6 +69,10 @@ const TIME_OF_DAY_PROMPTS: Record<string, string> = {
   'golden-hour': 'warm golden hour lighting, soft directional sunlight from low angle, deep amber tones, long soft shadows, cinematic',
   'morning':     'soft morning light, dewy grass, low mist, fresh cool tones, just-risen sun',
   'night':       'night scene, dark blue tones, single warm light source (oil lamp, candle, moon), high contrast shadows',
+  'midday':      'bright midday sun, clear sky, crisp defined shadows, vivid natural colours',
+  'overcast':    'soft overcast daylight, diffused even light, muted gentle tones, no harsh shadows',
+  'blue-hour':   'blue hour twilight, cool dusk tones, deep blue sky, warm window glow in the distance',
+  'lamplight':   'warm interior lamplight, cosy amber glow, soft pools of light, intimate evening mood',
 }
 
 // Fallback константа якщо timeOfDay='golden-hour' (старий код)
@@ -77,7 +81,28 @@ const GOLDEN_HOUR_LIGHTING = TIME_OF_DAY_PROMPTS['golden-hour']
 // =============================================================================
 // КАДРУВАННЯ — посилено щоб Панас не виглядав гномом
 // =============================================================================
-const FRAMING_PROMPT = 'medium shot, waist-up framing, the subject occupies 60-70% of frame height, head and shoulders clearly visible, natural human proportions, realistic body scale'
+// Варіанти кадрування — щоб обкладинки не були всі однаково поясними.
+// У кожному збережено акцент на правильних пропорціях (анти-«гном»).
+const FRAMING_VARIANTS = [
+  'medium shot, waist-up framing, subject occupies 60-70% of frame height, head and shoulders clearly visible, natural human proportions, realistic body scale',
+  'close-up portrait, head and chest only, expressive face, shallow depth of field, natural human proportions',
+  'three-quarter shot, knees-up framing, subject occupies 65-75% of frame height, natural human proportions, realistic body scale',
+  'wider environmental shot, full figure within the scene, balanced composition, correct realistic human proportions, no distortion, no tiny figure',
+]
+
+// Ракурс камери — «обертання в сторони», множить різноманітність кожної пози.
+const ANGLE_VARIANTS = [
+  'facing the camera, frontal view',
+  'three-quarter view, body turned slightly to one side',
+  'profile view from the side, looking sideways',
+  'turned away, looking back over the shoulder toward the camera',
+  'slight low camera angle, dignified grounded perspective',
+]
+
+// Детермінований вибір за seed (різні salt → незалежні осі різноманітності)
+function pickBySeed<T>(arr: T[], seed: number, salt: number): T {
+  return arr[Math.floor(seed / salt) % arr.length]
+}
 
 // =============================================================================
 // NEGATIVE PROMPT — посилено проти артефактів Flux
@@ -237,13 +262,22 @@ export async function POST(req: NextRequest) {
       objectPrefix = `${keyObject} clearly visible in his hands or directly beside him, `
     }
 
-    // Збираємо промпт: scene → location → season → time → framing
+    // Різноманітність обкладинок: ракурс + кадр завжди варіюємо за seed;
+    // освітлення варіюємо, лише якщо план не задав власне (інакше поважаємо план).
+    const lightingFinal = (timePrompt && timePrompt !== GOLDEN_HOUR_LIGHTING)
+      ? timePrompt
+      : pickBySeed(Object.values(TIME_OF_DAY_PROMPTS), seed, 7)
+    const framingFinal = pickBySeed(FRAMING_VARIANTS, seed, 13)
+    const angleFinal   = pickBySeed(ANGLE_VARIANTS, seed, 29)
+
+    // Збираємо промпт: scene → location → season → light → framing → angle
     const promptParts = [
       objectPrefix + scene,
       locationPrompt,
       seasonPrompt,
-      timePrompt,
-      FRAMING_PROMPT,
+      lightingFinal,
+      framingFinal,
+      angleFinal,
     ].filter(Boolean).join(', ')
     const prompt = `${promptParts}, seed_${seed}`
 
