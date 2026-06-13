@@ -47,6 +47,7 @@ export default function SeriesListPage() {
   const [editingId,    setEditingId]    = useState<string | null>(null)
   const [editTitle,    setEditTitle]    = useState('')
   const [savingId,     setSavingId]     = useState<string | null>(null)
+  const [covGenSlug,   setCovGenSlug]   = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/admin/series')
@@ -77,6 +78,25 @@ export default function SeriesListPage() {
       }
     } catch { /* тихо */ } finally {
       setSavingId(null)
+    }
+  }
+
+  const regenCover = async (slug: string, title: string) => {
+    if (covGenSlug) return
+    setCovGenSlug(slug)
+    try {
+      const res = await fetch('/api/generate-cover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seriesId: slug, title, description: '' }),
+      })
+      const data = await res.json() as { url?: string; error?: string }
+      if (res.ok && data.url) {
+        const fresh = `${data.url}${data.url.includes('?') ? '&' : '?'}t=${Date.now()}`
+        setSeries(prev => prev.map(s => s.slug === slug ? { ...s, cover_url: fresh } : s))
+      }
+    } catch { /* тихо */ } finally {
+      setCovGenSlug(null)
     }
   }
 
@@ -240,6 +260,22 @@ export default function SeriesListPage() {
               }}>
                 {rating ?? '—'}
               </div>
+
+              {/* Regenerate cover */}
+              <button
+                type="button"
+                onClick={() => regenCover(s.slug, s.title)}
+                disabled={covGenSlug === s.slug}
+                title="Перегенерувати обкладинку (~60–90 с)"
+                style={{
+                  flexShrink: 0, padding: '8px 12px', borderRadius: 8,
+                  background: 'rgba(255,255,255,0.05)', color: covGenSlug === s.slug ? '#caa24a' : '#B5D4F4',
+                  border: '1px solid rgba(255,255,255,0.12)', fontFamily: FONT,
+                  fontSize: 12, fontWeight: 700, cursor: covGenSlug === s.slug ? 'default' : 'pointer', whiteSpace: 'nowrap',
+                }}
+              >
+                {covGenSlug === s.slug ? '⏳ Малюю…' : '🔄 Обкладинка'}
+              </button>
 
               {/* Edit link */}
               <a
