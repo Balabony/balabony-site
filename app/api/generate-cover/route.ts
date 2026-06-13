@@ -81,22 +81,29 @@ const GOLDEN_HOUR_LIGHTING = TIME_OF_DAY_PROMPTS['golden-hour']
 // =============================================================================
 // КАДРУВАННЯ — посилено щоб Панас не виглядав гномом
 // =============================================================================
+// Світлі освітлення для ВИПАДКОВОГО вибору — обличчя завжди добре видно.
+// Темні (night, lamplight, blue-hour) лишаються лише якщо їх явно задав план серії.
+const SAFE_LIGHTING = [
+  TIME_OF_DAY_PROMPTS['golden-hour'],
+  TIME_OF_DAY_PROMPTS['morning'],
+  TIME_OF_DAY_PROMPTS['midday'],
+  TIME_OF_DAY_PROMPTS['overcast'],
+]
+
 // Варіанти кадрування — щоб обкладинки не були всі однаково поясними.
 // У кожному збережено акцент на правильних пропорціях (анти-«гном»).
 const FRAMING_VARIANTS = [
-  'medium shot, waist-up framing, subject occupies 60-70% of frame height, head and shoulders clearly visible, natural human proportions, realistic body scale',
-  'close-up portrait, head and chest only, expressive face, shallow depth of field, natural human proportions',
-  'three-quarter shot, knees-up framing, subject occupies 65-75% of frame height, natural human proportions, realistic body scale',
-  'wider environmental shot, full figure within the scene, balanced composition, correct realistic human proportions, no distortion, no tiny figure',
+  'medium shot, waist-up framing, subject occupies 60-70% of frame height, head and shoulders clearly visible, face well lit, natural human proportions, realistic body scale',
+  'close-up portrait, head and chest only, expressive well-lit face, shallow depth of field, natural human proportions',
+  'three-quarter shot, knees-up framing, subject occupies 65-75% of frame height, face clearly visible, natural human proportions, realistic body scale',
 ]
 
-// Ракурс камери — «обертання в сторони», множить різноманітність кожної пози.
+// Ракурс камери — легке «обертання», але обличчя завжди видно (без чистого профілю).
 const ANGLE_VARIANTS = [
-  'facing the camera, frontal view',
-  'three-quarter view, body turned slightly to one side',
-  'profile view from the side, looking sideways',
-  'turned away, looking back over the shoulder toward the camera',
-  'slight low camera angle, dignified grounded perspective',
+  'facing the camera, frontal view, face clearly visible',
+  'three-quarter view, body turned slightly to one side, face still toward camera',
+  'turned slightly away, looking back over the shoulder toward the camera, face visible',
+  'slight low camera angle, dignified grounded perspective, face clearly lit',
 ]
 
 // Детермінований вибір за seed (різні salt → незалежні осі різноманітності)
@@ -266,7 +273,7 @@ export async function POST(req: NextRequest) {
     // освітлення варіюємо, лише якщо план не задав власне (інакше поважаємо план).
     const lightingFinal = (timePrompt && timePrompt !== GOLDEN_HOUR_LIGHTING)
       ? timePrompt
-      : pickBySeed(Object.values(TIME_OF_DAY_PROMPTS), seed, 7)
+      : pickBySeed(SAFE_LIGHTING, seed, 7)
     const framingFinal = pickBySeed(FRAMING_VARIANTS, seed, 13)
     const angleFinal   = pickBySeed(ANGLE_VARIANTS, seed, 29)
 
