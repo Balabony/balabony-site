@@ -477,17 +477,19 @@ export default function StoriesAdminPage() {
                 return (
                   <button
                     key={p.ep}
-                    onClick={() => !taken && pickPlanned(p)}
-                    disabled={taken}
-                    title={taken ? 'Вже створено — щоб не дублювати' : 'Заповнити форму цією серією'}
+                    onClick={() => {
+                      if (taken && !confirm(`Серія s${p.season}e${String(p.ep).padStart(2, '0')} «${p.title}» вже існує.\n\nПерезаписати її новим текстом і обкладинкою?`)) return
+                      pickPlanned(p)
+                    }}
+                    title={taken ? 'Вже створено — натисніть, щоб перезаписати' : 'Заповнити форму цією серією'}
                     style={{
                       width: '100%', textAlign: 'left', marginBottom: 6,
                       display: 'flex', alignItems: 'flex-start', gap: 10,
                       padding: '10px 12px', borderRadius: 10,
                       background: taken ? 'rgba(255,255,255,0.03)' : 'rgba(240,165,0,0.07)',
                       border: `1px solid ${taken ? 'rgba(255,255,255,0.06)' : 'rgba(240,165,0,0.25)'}`,
-                      cursor: taken ? 'not-allowed' : 'pointer', fontFamily: FONT,
-                      opacity: taken ? 0.55 : 1,
+                      cursor: 'pointer', fontFamily: FONT,
+                      opacity: taken ? 0.7 : 1,
                     }}
                   >
                     <span style={{ fontSize: 13, fontWeight: 800, color: taken ? '#667799' : GOLD, minWidth: 30 }}>{p.ep}</span>
