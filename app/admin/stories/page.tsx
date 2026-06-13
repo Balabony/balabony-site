@@ -167,6 +167,8 @@ export default function StoriesAdminPage() {
 
   // AI generation
   const [aiLoading, setAiLoading] = useState(false)
+  const [titleSuggestLoading, setTitleSuggestLoading] = useState(false)
+  const [titleSuggestions,    setTitleSuggestions]    = useState<string[]>([])
   const [aiError,   setAiError]   = useState('')
   const [expandLoading, setExpandLoading] = useState(false)
   const [expandError,   setExpandError]   = useState('')
@@ -268,6 +270,22 @@ export default function StoriesAdminPage() {
   }
 
   // ── AI generation ────────────────────────────────────────────────────────
+
+  const suggestTitles = async () => {
+    if (!text.trim()) { setTitleSuggestions([]); return }
+    setTitleSuggestLoading(true); setTitleSuggestions([])
+    try {
+      const res = await fetch('/api/admin/suggest-title', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      const data = await res.json() as { titles?: string[]; error?: string }
+      if (data.titles?.length) setTitleSuggestions(data.titles)
+    } catch { /* тихо */ } finally {
+      setTitleSuggestLoading(false)
+    }
+  }
 
   const generateAI = async () => {
     setAiLoading(true); setAiError(''); setText('')
@@ -516,6 +534,32 @@ export default function StoriesAdminPage() {
         <SectionCard n={1} title="Деталі серії">
           <Field label="Назва серії">
             <input style={inputBase} value={title} onChange={e => setTitle(e.target.value)} placeholder="Наприклад: Балабон і Темний ліс" />
+            <div style={{ marginTop: 8 }}>
+              <button
+                type="button"
+                onClick={suggestTitles}
+                disabled={titleSuggestLoading || !text.trim()}
+                title={!text.trim() ? 'Спершу згенеруйте або вставте текст серії' : ''}
+                style={{
+                  fontSize: 12, fontWeight: 700, fontFamily: FONT,
+                  color: GOLD, background: 'transparent',
+                  border: `1px solid ${GOLD}`, borderRadius: 8, padding: '6px 12px',
+                  cursor: titleSuggestLoading || !text.trim() ? 'default' : 'pointer',
+                  opacity: !text.trim() ? 0.5 : 1,
+                }}>
+                {titleSuggestLoading ? 'Думаю над назвами…' : '✨ Запропонувати назви (AI)'}
+              </button>
+              {titleSuggestions.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                  {titleSuggestions.map((t, i) => (
+                    <button key={i} type="button" onClick={() => setTitle(t)}
+                      style={{ fontSize: 12, fontFamily: FONT, color: '#f5f0e8', background: 'rgba(240,165,0,0.10)', border: '1px solid rgba(240,165,0,0.30)', borderRadius: 999, padding: '5px 12px', cursor: 'pointer' }}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </Field>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
             <Field label="Сезон" right="необов'язково">

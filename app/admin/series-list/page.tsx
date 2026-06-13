@@ -44,6 +44,9 @@ export default function SeriesListPage() {
   const [filterSeason, setFilterSeason] = useState('all')
   const [filterTag,    setFilterTag]    = useState('all')
   const [sortMode,     setSortMode]     = useState<SortMode>('newest')
+  const [editingId,    setEditingId]    = useState<string | null>(null)
+  const [editTitle,    setEditTitle]    = useState('')
+  const [savingId,     setSavingId]     = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/admin/series')
@@ -55,6 +58,27 @@ export default function SeriesListPage() {
       .catch(() => setError("Помилка з'єднання"))
       .finally(() => setLoading(false))
   }, [])
+
+  const startEdit = (id: string, current: string) => { setEditingId(id); setEditTitle(current) }
+  const cancelEdit = () => { setEditingId(null); setEditTitle('') }
+  const saveTitle = async (id: string) => {
+    const t = editTitle.trim()
+    if (!t) return
+    setSavingId(id)
+    try {
+      const res = await fetch(`/api/admin/content/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: t }),
+      })
+      if (res.ok) {
+        setSeries(prev => prev.map(s => s.id === id ? { ...s, title: t } : s))
+        setEditingId(null); setEditTitle('')
+      }
+    } catch { /* тихо */ } finally {
+      setSavingId(null)
+    }
+  }
 
   const allSeasons = [...new Set(series.map(s => s.season_number))].sort((a, b) => a - b)
   const allTags    = [...new Set(series.flatMap(s => s.analyze_report?.tags ?? []))].sort()
@@ -159,11 +183,33 @@ export default function SeriesListPage() {
               {/* Main area */}
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {/* Row 1: episode label + title */}
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: GOLD, fontFamily: FONT, flexShrink: 0 }}>{ep}</span>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: '#f5f0e8', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</span>
-                  {s.is_premium && (
-                    <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: GOLD, background: `${GOLD}1a`, border: `1px solid ${GOLD}55`, borderRadius: 12, padding: '2px 8px', fontFamily: FONT, letterSpacing: 0.3, whiteSpace: 'nowrap' }}>🔒 Тільки річні</span>
+                  {editingId === s.id ? (
+                    <>
+                      <input
+                        autoFocus
+                        value={editTitle}
+                        onChange={e => setEditTitle(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') saveTitle(s.id); if (e.key === 'Escape') cancelEdit() }}
+                        style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 600, color: '#f5f0e8', fontFamily: FONT, background: 'rgba(0,0,0,0.3)', border: `1px solid ${GOLD}`, borderRadius: 6, padding: '4px 8px', outline: 'none' }}
+                      />
+                      <button type="button" onClick={() => saveTitle(s.id)} disabled={savingId === s.id}
+                        style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: '#1a1205', background: GOLD, border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: FONT }}>
+                        {savingId === s.id ? '…' : 'Зберегти'}
+                      </button>
+                      <button type="button" onClick={cancelEdit}
+                        style={{ flexShrink: 0, fontSize: 14, color: '#8899bb', background: 'transparent', border: 'none', cursor: 'pointer' }}>✕</button>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: '#f5f0e8', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</span>
+                      <button type="button" onClick={() => startEdit(s.id, s.title)} title="Редагувати назву"
+                        style={{ flexShrink: 0, fontSize: 13, color: '#8899bb', background: 'transparent', border: 'none', cursor: 'pointer', padding: 2 }}>✎</button>
+                      {s.is_premium && (
+                        <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: GOLD, background: `${GOLD}1a`, border: `1px solid ${GOLD}55`, borderRadius: 12, padding: '2px 8px', fontFamily: FONT, letterSpacing: 0.3, whiteSpace: 'nowrap' }}>🔒 Тільки річні</span>
+                      )}
+                    </>
                   )}
                 </div>
                 {/* Row 2: tags */}
