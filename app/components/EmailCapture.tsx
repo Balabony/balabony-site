@@ -7,6 +7,36 @@ const NAVY = '#14253B'
 const CREAM = '#FFF8EE'
 const FONT = "'Montserrat', Arial, sans-serif"
 
+// Фірмовий соняшник Балабонів — двошарові золоті пелюстки + кремові насінини
+function Sunflower() {
+  const petals = Array.from({ length: 12 }, (_, i) => i * 30)
+  const seeds = [
+    [32, 32], [28, 30], [36, 30], [30, 35], [34, 35],
+    [32, 27], [27, 33], [37, 33], [32, 37],
+  ]
+  return (
+    <svg width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Соняшник Балабонів">
+      {/* зовнішні світлі пелюстки */}
+      {petals.map(a => (
+        <ellipse key={`o${a}`} cx="32" cy="12.5" rx="4.6" ry="10.5" fill="#FAC775"
+          transform={`rotate(${a} 32 32)`} />
+      ))}
+      {/* внутрішні насичені пелюстки для глибини */}
+      {petals.map(a => (
+        <ellipse key={`i${a}`} cx="32" cy="16.5" rx="3" ry="7.5" fill="#EF9F27"
+          transform={`rotate(${a + 15} 32 32)`} />
+      ))}
+      {/* серцевина */}
+      <circle cx="32" cy="32" r="11.5" fill="#7A4E0A" />
+      <circle cx="32" cy="32" r="11.5" fill="none" stroke="#B5710C" strokeWidth="1.5" />
+      {/* насінини */}
+      {seeds.map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r="1.4" fill="#FFF8EE" opacity="0.85" />
+      ))}
+    </svg>
+  )
+}
+
 export default function EmailCapture() {
   const [email,   setEmail]   = useState('')
   const [consent, setConsent] = useState(true)
@@ -49,13 +79,16 @@ export default function EmailCapture() {
         border: `1px solid ${GOLD}33`, borderRadius: 20,
         padding: '36px 28px', textAlign: 'center', fontFamily: FONT,
       }}>
-        <div style={{ fontSize: 30, marginBottom: 8 }}>🌻</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+          <Sunflower />
+        </div>
         <h2 style={{ fontSize: 24, fontWeight: 800, color: CREAM, margin: '0 0 10px' }}>
-          Не пропустіть нову серію
+          Не проґавте нову серію
         </h2>
         <p style={{ fontSize: 15, color: '#B5D4F4', lineHeight: 1.6, margin: '0 0 22px' }}>
-          Залиште пошту — і першими отримуйте анонси нових історій та серій,
-          квести-загадки від Діда&nbsp;Панаса з балами за відповіді та новини про подарункові сертифікати.
+          Лишіть пошту — і ми гукнемо, щойно Дід&nbsp;Панас устругне щось новеньке.
+          А ще на вас чекають квести-загадки з балами за відповіді
+          та звістки про подарункові сертифікати. Жодного спаму — тільки найтепліше з&nbsp;Балабонів.
         </p>
 
         {status === 'ok' ? (
