@@ -23,6 +23,7 @@ import AboutBalabonySection from './components/AboutBalabonySection'
 import PwaSection from './components/PwaSection'
 import ChannelsSection from './components/ChannelsSection'
 import SurveyPreviewSection from './components/SurveyPreviewSection'
+import EmailCapture from './components/EmailCapture'
 
 const FALLBACK_SERIES: SeriesCard[] = []
 
@@ -101,6 +102,7 @@ export default function HomePage() {
       <div style={viewAllWrapperStyle}>
         <Link href="/series" style={viewAllLinkStyle}>Усі серії →</Link>
       </div>
+      <EmailCapture />
       {freshStories.length > 0 && (
         <>
           <FreshStoriesGrid stories={freshStories} />
