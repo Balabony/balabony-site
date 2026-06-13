@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     const { error: insertError } = await supabase.from('content').upsert({
       type:           'balabony',
       slug:           id,
-      status:         'draft',
+      status:         'published',
       title,
       description:    description ?? null,
       episode_number: parseInt(String(episode), 10),
