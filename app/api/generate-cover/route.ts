@@ -245,7 +245,9 @@ export async function POST(req: NextRequest) {
     } else {
       // ✗ Fallback на старий ad-hoc Haiku
       const fb = await analyzeSceneFallback(title, description || '')
-      poseFile = fb.poseFile
+      // Поза — ВИПАДКОВА з усіх 23, щоб обкладинки не застрягали на одній
+      // (Haiku-fallback раз за разом тягнув ту саму «показує пальцем»).
+      poseFile = POSE_FILES[Math.floor(Math.random() * POSE_FILES.length)] + '.jpg'
       usedPose = poseFile.replace(/\.jpg$/, '')
       scene = fb.scene
       // Випадкові обʼєкти прибрано — Haiku інколи давав недоречний реквізит
