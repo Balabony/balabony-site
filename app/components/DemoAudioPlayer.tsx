@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 
 /**
  * Фірмовий аудіоплеєр Balabony — чистий, крупний, доступний.
@@ -71,6 +71,28 @@ export default function DemoAudioPlayer({ src, badge, caption, title = 'Ауді
     }
   }, [toggle]);
 
+  // Локскрин / медіа-сесія: нова іконка Б + назва серії (з ?v= для обходу кешу).
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return;
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title,
+        artist: 'Balabony',
+        album: 'Аудіосерії Балабонів',
+        artwork: [
+          { src: '/icon-192.png?v=2', sizes: '192x192', type: 'image/png' },
+          { src: '/icon-512.png?v=2', sizes: '512x512', type: 'image/png' },
+        ],
+      });
+      navigator.mediaSession.setActionHandler('play', () => { void audioRef.current?.play(); });
+      navigator.mediaSession.setActionHandler('pause', () => { audioRef.current?.pause(); });
+      navigator.mediaSession.setActionHandler('seekbackward', () => skip(-15));
+      navigator.mediaSession.setActionHandler('seekforward', () => skip(15));
+    } catch {
+      // медіа-сесія недоступна — ігноруємо
+    }
+  }, [title, skip]);
+
   const pct = dur > 0 ? (cur / dur) * 100 : 0;
   const uid = 'baly-player';
 
@@ -80,7 +102,7 @@ export default function DemoAudioPlayer({ src, badge, caption, title = 'Ауді
   };
 
   return (
-    <div onKeyDown={onKey} style={{ padding: '26px 22px', border: '2px solid #EF9F27', borderRadius: 18, background: '#14253B', boxShadow: '0 8px 32px rgba(239,159,39,0.28)' }}>
+    <div onKeyDown={onKey} style={{ padding: '26px 22px', border: '1px solid rgba(239,159,39,0.35)', borderRadius: 18, background: '#14253B' }}>
       <style dangerouslySetInnerHTML={{ __html: `
         .${uid}-range{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:999px;outline:none;cursor:pointer;}
         .${uid}-range:focus-visible{box-shadow:0 0 0 3px rgba(250,199,117,0.5);}
