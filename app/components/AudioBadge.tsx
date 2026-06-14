@@ -1,14 +1,14 @@
 import React from 'react'
 
 // Фірмова піктограма + бейдж статусу аудіо.
-// Єдине джерело іконки навушників для всього сайту — щоб скрізь однаково.
+// Іконка «звукова хвиля у крузі» — єдине джерело для всього сайту.
 
 const GOLD = '#EF9F27'
 const GOLD_SOFT = '#FAC775'
 const MUTED = '#8AA0B8'
 const FONT = "'Montserrat', Arial, sans-serif"
 
-export function HeadphonesIcon({
+export function AudioWaveIcon({
   size = 14,
   color = GOLD,
 }: {
@@ -24,12 +24,14 @@ export function HeadphonesIcon({
       stroke={color}
       strokeWidth={2}
       strokeLinecap="round"
-      strokeLinejoin="round"
       aria-hidden="true"
       style={{ flexShrink: 0 }}
     >
-      <path d="M3 18v-6a9 9 0 0118 0v6" />
-      <path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z" />
+      <circle cx="12" cy="12" r="9.5" vectorEffect="non-scaling-stroke" />
+      <line x1="8" y1="14" x2="8" y2="10" vectorEffect="non-scaling-stroke" />
+      <line x1="10.7" y1="15" x2="10.7" y2="7" vectorEffect="non-scaling-stroke" />
+      <line x1="13.3" y1="14.5" x2="13.3" y2="8.5" vectorEffect="non-scaling-stroke" />
+      <line x1="16" y1="13.5" x2="16" y2="10.5" vectorEffect="non-scaling-stroke" />
     </svg>
   )
 }
@@ -42,8 +44,7 @@ export default function AudioBadge({
   hasAudio: boolean
   size?: number
 }) {
-  const textColor = hasAudio ? GOLD : MUTED
-  const iconColor = hasAudio ? GOLD : MUTED
+  const color = hasAudio ? GOLD : MUTED
   return (
     <span
       style={{
@@ -53,10 +54,10 @@ export default function AudioBadge({
         fontSize: size,
         fontWeight: 600,
         fontFamily: FONT,
-        color: textColor,
+        color,
       }}
     >
-      <HeadphonesIcon size={size + 3} color={iconColor} />
+      <AudioWaveIcon size={size + 4} color={color} />
       {hasAudio ? 'Аудіо доступно' : 'Аудіо готується'}
     </span>
   )

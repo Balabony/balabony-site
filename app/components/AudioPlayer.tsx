@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { trackStoryEvent } from '@/lib/analytics'
-import { HeadphonesIcon } from './AudioBadge'
+import { AudioWaveIcon } from './AudioBadge'
 
 // ============================================================
 // AudioPlayer — справжній плеєр, керований пропсами.
@@ -70,7 +70,7 @@ export default function AudioPlayer({ audioUrl, audioStatus, title }: AudioPlaye
           gap: 8, fontFamily: "'Montserrat', sans-serif", fontSize: 14, fontWeight: 600,
         }}
       >
-        <HeadphonesIcon size={18} color="#FAC775" />
+        <AudioWaveIcon size={18} color="#FAC775" />
         <span>Аудіоверсія у розробці</span>
       </div>
     )
