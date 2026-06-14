@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useTheme } from '../context/ThemeContext'
 import { trackStoryEvent } from '@/lib/analytics'
-import AudioBadge from './AudioBadge'
+import AudioBadge, { AudioWaveIcon, ReadIcon } from './AudioBadge'
 
 const GOLD = 'var(--accent-gold)'
 const CARD_BG = '#0f1e3a'
@@ -120,7 +120,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
 
                 {/* ── Expansion panel ── */}
                 <div style={{
-                  maxHeight: isOpen ? '260px' : '0',
+                  maxHeight: isOpen ? '700px' : '0',
                   overflow: 'hidden',
                   transition: 'max-height 0.3s ease',
                 }}>
@@ -157,7 +157,11 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                         textDecoration: 'none',
                       }}
                     >
-                      {s.hasAudio ? '🎧 Слухати' : '📖 Читати'}
+                      {s.hasAudio ? (
+                        <><AudioWaveIcon size={15} color="#081420" />Слухати</>
+                      ) : (
+                        <><ReadIcon size={15} color="#081420" />Читати</>
+                      )}
                     </a>
                   </div>
                 </div>

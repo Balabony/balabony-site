@@ -2,6 +2,7 @@
 
 import { useTheme } from '../context/ThemeContext'
 import ShareButtons from './ShareButtons'
+import { AudioWaveIcon, ReadIcon } from './AudioBadge'
 
 const GOLD = 'var(--accent-gold)'
 const FONT = "'Montserrat', Arial, sans-serif"
@@ -57,20 +58,20 @@ export default function LatestEpisodeHero({ episode }: { episode: Episode }) {
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 22 }}>
               <a href={episode.readUrl}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: GOLD, color: '#081420', padding: '13px 26px', borderRadius: 12, fontSize: 14, fontWeight: 700, fontFamily: FONT, textDecoration: 'none', boxShadow: '0 4px 18px rgba(239,159,39,0.38)' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#081420" strokeWidth="2" strokeLinecap="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+                <ReadIcon size={16} color="#081420" />
                 Читати
               </a>
 
               {episode.hasAudio ? (
                 <a href={episode.audioUrl}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'transparent', color: GOLD, padding: '13px 26px', borderRadius: 12, border: `2px solid ${GOLD}`, fontSize: 14, fontWeight: 700, fontFamily: FONT, textDecoration: 'none' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/></svg>
+                  <AudioWaveIcon size={16} color={GOLD} />
                   Слухати
                 </a>
               ) : (
                 <button disabled
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'transparent', color: isNight ? '#445566' : '#9BA8B5', padding: '13px 26px', borderRadius: 12, border: `2px solid ${isNight ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.12)'}`, fontSize: 14, fontWeight: 700, fontFamily: FONT, cursor: 'not-allowed' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+                  <AudioWaveIcon size={16} color="currentColor" />
                   Аудіо готується
                 </button>
               )}
