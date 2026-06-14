@@ -1,11 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import EpisodeBody from './EpisodeBody'
 
 const GOLD = '#ef9f27'
-const STORAGE_KEY_FREE = 'balabony-free-episode'
-const EPISODES_PER_SEASON = 20
+const FREE_PER_SEASON = 2
 
 interface Props {
   html:           string
@@ -13,11 +11,6 @@ interface Props {
   seasonNumber:   number
   episodeNumber:  number
   bypass?:        boolean
-}
-
-// Обчислює глобальний номер серії (1..80) з сезону та номера серії в сезоні.
-function getGlobalEp(season: number, episode: number): number {
-  return (season - 1) * EPISODES_PER_SEASON + episode
 }
 
 // Бере перші ~10% параграфів як безкоштовний тізер.
@@ -60,29 +53,7 @@ function getTeaserHtml(html: string): string {
   return styles + teaserScenes.join('')
 }
 
-export default function EpisodePaywall({ html, fontFamily, seasonNumber, episodeNumber, bypass = false }: Props) {
-  const [mounted, setMounted] = useState(false)
-  const [freeEpisode, setFreeEpisode] = useState<number | null>(null)
-
-  const globalEp = getGlobalEp(seasonNumber, episodeNumber)
-
-  useEffect(() => {
-    setMounted(true)
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_FREE)
-      if (saved) {
-        const num = parseInt(saved, 10)
-        if (!isNaN(num)) setFreeEpisode(num)
-      } else {
-        // Користувач відкрив серію без обраної безкоштовної — фіксуємо цю.
-        localStorage.setItem(STORAGE_KEY_FREE, String(globalEp))
-        setFreeEpisode(globalEp)
-      }
-    } catch {
-      // localStorage недоступний — показуємо як заблоковану (безпечніше)
-    }
-  }, [globalEp])
-
+export default function EpisodePaywall({ html, fontFamily, episodeNumber, bypass = false }: Props) {
   const scrollToPricing = () => {
     window.location.href = '/#pricing'
   }
@@ -92,12 +63,8 @@ export default function EpisodePaywall({ html, fontFamily, seasonNumber, episode
     return <EpisodeBody html={html} fontFamily={fontFamily} />
   }
 
-  // До монтування — показуємо повну версію (SSR-friendly, без миготіння для безкоштовної)
-  if (!mounted) {
-    return <EpisodeBody html={html} fontFamily={fontFamily} />
-  }
-
-  const isLocked = freeEpisode !== null && freeEpisode !== globalEp
+  // Безкоштовно — перші дві серії кожного сезону («по дві серії з кожного сезону»).
+  const isLocked = episodeNumber > FREE_PER_SEASON
 
   if (!isLocked) {
     return <EpisodeBody html={html} fontFamily={fontFamily} />

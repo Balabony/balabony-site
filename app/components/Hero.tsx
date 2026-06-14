@@ -108,7 +108,7 @@ export default function Hero() {
                 letterSpacing: 0.2,
               }}
             >
-              Читай безкоштовно
+              ТИЖДЕНЬ БЕЗКОШТОВНО
             </a>
 
             <div style={{ marginTop: 16 }}>
