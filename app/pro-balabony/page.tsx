@@ -58,7 +58,7 @@ export default function ProBalabonyPage() {
 
           <section style={sectionStyle}>
             <p style={pStyle}>
-              Ми створюємо Balabony — україномовну платформу історій і казок, які можна читати й слухати.
+              Ми створюємо Balabony — україномовну платформу історій і казок, які можна читати, а згодом — і слухати.
               Її особливість — голосовий доступ (Zero-UI): користуватися платформою можна переважно
               голосом, слухати й керувати нею, кажучи що робити, майже не торкаючись екрана.
             </p>
@@ -90,7 +90,7 @@ export default function ProBalabonyPage() {
             </p>
             <p style={{ margin: "0 0 8px" }}>Ми поєднуємо:</p>
             <ul style={ulStyle}>
-              <li style={liStyle}>оригінальні українські історії та казки (текст і професійне аудіо);</li>
+              <li style={liStyle}>оригінальні українські історії та казки (текст; аудіоозвучення — у розробці);</li>
               <li style={liStyle}>практичний довідник українського правопису — простими словами, з окремою дитячою версією (вже доступний на платформі);</li>
               <li style={liStyle}>когнітивні ігри — вправи на увагу, пам’ять, мову й логіку;</li>
               <li style={liStyle}>дизайн із пріоритетом доступності (WCAG 2.1 AA);</li>
@@ -186,8 +186,8 @@ export default function ProBalabonyPage() {
 
           <section style={sectionStyle}>
             <p style={pStyle}>
-              We are creating Balabony — a Ukrainian-language platform of stories and tales that can be read
-              and listened to. Its distinctive feature is voice-first access (Zero-UI): you can use the
+              We are creating Balabony — a Ukrainian-language platform of stories and tales that can be read,
+              with listening to follow. Its distinctive feature is voice-first access (Zero-UI): you can use the
               platform mostly by voice — listening and giving spoken commands, almost without touching the
               screen.
             </p>
@@ -219,7 +219,7 @@ export default function ProBalabonyPage() {
             </p>
             <p style={{ margin: "0 0 8px" }}>We bring together:</p>
             <ul style={ulStyle}>
-              <li style={liStyle}>original Ukrainian stories and tales (text and professional audio);</li>
+              <li style={liStyle}>original Ukrainian stories and tales (text; audio narration in development);</li>
               <li style={liStyle}>a practical Ukrainian spelling guide — in plain language, with a separate children’s version (already available on the platform);</li>
               <li style={liStyle}>cognitive games — exercises for attention, memory, language and logic;</li>
               <li style={liStyle}>accessibility-first design (WCAG 2.1 AA);</li>
