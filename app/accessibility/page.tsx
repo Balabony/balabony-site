@@ -793,7 +793,6 @@ export default function AccessibilityPage() {
 
         <footer className="a11y-footer" role="contentinfo">
           <p>© 2026 «Балабони» — текстові та аудіосерії про живу українську мову</p>
-          <p>ФОП Хомин Б.І. · м. Львів</p>
         </footer>
       </div>
     </>
