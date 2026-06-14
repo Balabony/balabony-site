@@ -9,6 +9,7 @@ import ShareButtons from '@/app/components/ShareButtons'
 import EpisodeCliffhanger from '@/app/components/EpisodeCliffhanger'
 import StreakTracker from '@/app/components/StreakTracker'
 import ReadTracker from '@/app/components/ReadTracker'
+import AudioPlayer from '@/app/components/AudioPlayer'
 
 const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
@@ -30,13 +31,15 @@ interface EpisodeRow {
   hook:              string | null
   next_teaser:       string | null
   next_release_date: string | null
+  audio_url:         string | null
+  audio_status:      string | null
 }
 
 async function getEpisode(slug: string): Promise<EpisodeRow | null> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('id, slug, title, description, season_number, episode_number, text, corrected_text, humanized_text, published_version, cover_url, approved_at, hook, next_teaser, next_release_date')
+    .select('id, slug, title, description, season_number, episode_number, text, corrected_text, humanized_text, published_version, cover_url, approved_at, hook, next_teaser, next_release_date, audio_url, audio_status')
     .eq('type', 'balabony')
     .eq('slug', slug)
     .eq('status', 'published')
@@ -176,6 +179,9 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
       </div>
 
       <ReportErrorWidget />
+
+      {/* Аудіоплеєр: показує плеєр, якщо audio_status='ready', інакше «у розробці» */}
+      <AudioPlayer audioUrl={episode.audio_url} audioStatus={episode.audio_status} title={episode.title} />
     </div>
   )
 }
