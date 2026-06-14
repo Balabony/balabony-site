@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useTheme } from '../context/ThemeContext'
 import { trackStoryEvent } from '@/lib/analytics'
+import AudioBadge from './AudioBadge'
 
 const GOLD = 'var(--accent-gold)'
 const CARD_BG = '#0f1e3a'
@@ -107,9 +108,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                       <ChevronIcon open={isOpen} />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 'auto' }}>
-                      <span style={{ fontSize: 11, color: 'var(--on-dark-muted)', fontFamily: FONT }}>
-                        {s.hasAudio ? '🎧 Аудіо доступно' : '⏳ Аудіо готується'}
-                      </span>
+                      <AudioBadge hasAudio={s.hasAudio} />
                       {s.durationMinutes ? (
                         <span style={{ fontSize: 10, fontWeight: 600, color: GOLD, fontFamily: FONT, border: `1px solid ${GOLD}`, padding: '2px 8px', borderRadius: 20 }}>
                           {s.durationMinutes} хв
