@@ -1,7 +1,7 @@
 import React from 'react'
 
 // Фірмова піктограма + бейдж статусу аудіо.
-// Іконка «звукова хвиля у крузі» — єдине джерело для всього сайту.
+// Іконка «звукова хвиля у крузі» — тонкі делікатні лінії; єдине джерело для всього сайту.
 
 const GOLD = '#EF9F27'
 const GOLD_SOFT = '#FAC775'
@@ -22,16 +22,17 @@ export function AudioWaveIcon({
       viewBox="0 0 24 24"
       fill="none"
       stroke={color}
-      strokeWidth={2}
+      strokeWidth={1.3}
       strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden="true"
       style={{ flexShrink: 0 }}
     >
-      <circle cx="12" cy="12" r="9.5" vectorEffect="non-scaling-stroke" />
-      <line x1="8" y1="14" x2="8" y2="10" vectorEffect="non-scaling-stroke" />
-      <line x1="10.7" y1="15" x2="10.7" y2="7" vectorEffect="non-scaling-stroke" />
-      <line x1="13.3" y1="14.5" x2="13.3" y2="8.5" vectorEffect="non-scaling-stroke" />
-      <line x1="16" y1="13.5" x2="16" y2="10.5" vectorEffect="non-scaling-stroke" />
+      <circle cx="12" cy="12" r="8.5" vectorEffect="non-scaling-stroke" />
+      <line x1="8.5" y1="13.5" x2="8.5" y2="10.5" vectorEffect="non-scaling-stroke" />
+      <line x1="10.8" y1="14.5" x2="10.8" y2="9.5" vectorEffect="non-scaling-stroke" />
+      <line x1="13.2" y1="15" x2="13.2" y2="9" vectorEffect="non-scaling-stroke" />
+      <line x1="15.5" y1="14" x2="15.5" y2="10" vectorEffect="non-scaling-stroke" />
     </svg>
   )
 }
@@ -50,14 +51,14 @@ export default function AudioBadge({
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 5,
+        gap: 6,
         fontSize: size,
         fontWeight: 600,
         fontFamily: FONT,
         color,
       }}
     >
-      <AudioWaveIcon size={size + 4} color={color} />
+      <AudioWaveIcon size={size + 5} color={color} />
       {hasAudio ? 'Аудіо доступно' : 'Аудіо готується'}
     </span>
   )
