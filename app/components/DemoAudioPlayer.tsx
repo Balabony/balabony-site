@@ -98,11 +98,11 @@ export default function DemoAudioPlayer({ src, badge, caption, title = 'Ауді
 
   const skipBtn: React.CSSProperties = {
     width: 50, height: 50, borderRadius: '50%',
-    background: 'rgba(255,255,255,0.06)', color: '#C9D6E5',
+    background: 'rgba(239,159,39,0.13)', color: '#FAC775',
   };
 
   return (
-    <div onKeyDown={onKey} style={{ padding: '26px 22px', border: '1px solid rgba(239,159,39,0.35)', borderRadius: 18, background: '#14253B' }}>
+    <div onKeyDown={onKey} style={{ padding: '26px 18px', border: '2px solid #EF9F27', borderRadius: 18, background: 'linear-gradient(155deg, #213A5C 0%, #14253B 70%)', boxShadow: '0 8px 32px rgba(239,159,39,0.30)' }}>
       <style dangerouslySetInnerHTML={{ __html: `
         .${uid}-range{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:999px;outline:none;cursor:pointer;}
         .${uid}-range:focus-visible{box-shadow:0 0 0 3px rgba(250,199,117,0.5);}
@@ -111,7 +111,7 @@ export default function DemoAudioPlayer({ src, badge, caption, title = 'Ауді
         .${uid}-btn{display:inline-flex;align-items:center;justify-content:center;border:none;cursor:pointer;transition:transform .15s ease,background .2s ease;}
         .${uid}-btn:hover{transform:translateY(-1px);}
         .${uid}-btn:focus-visible{outline:3px solid rgba(250,199,117,0.6);outline-offset:2px;}
-        .${uid}-chip{border:1px solid rgba(239,159,39,0.4);background:transparent;color:#E8EEF6;font-size:15px;font-weight:600;padding:7px 14px;border-radius:10px;cursor:pointer;font-family:inherit;transition:background .2s ease,color .2s ease;}
+        .${uid}-chip{border:1px solid rgba(239,159,39,0.4);background:transparent;color:#E8EEF6;font-size:14px;font-weight:600;padding:7px 10px;border-radius:10px;cursor:pointer;font-family:inherit;transition:background .2s ease,color .2s ease;}
         .${uid}-chip:hover{background:rgba(239,159,39,0.18);}
         .${uid}-chip:focus-visible{outline:3px solid rgba(250,199,117,0.6);outline-offset:2px;}
         .${uid}-chip[aria-pressed="true"]{background:${GOLD};color:#0E1A2B;border-color:${GOLD};}
@@ -166,7 +166,7 @@ export default function DemoAudioPlayer({ src, badge, caption, title = 'Ауді
       </div>
 
       {/* Швидкість */}
-      <div role="group" aria-label="Швидкість відтворення" style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 24 }}>
+      <div role="group" aria-label="Швидкість відтворення" style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 24 }}>
         {SPEEDS.map((s) => (
           <button key={s} type="button" className={`${uid}-chip`} aria-pressed={rate === s} onClick={() => changeRate(s)}>
             {s}×

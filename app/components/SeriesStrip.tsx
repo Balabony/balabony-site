@@ -102,7 +102,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                     </div>
                     <div
                       onClick={() => toggle(s.id)}
-                      style={{ fontSize: 15, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.3, wordBreak: 'normal', overflowWrap: 'break-word', cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 6 }}
+                      style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.3, wordBreak: 'normal', overflowWrap: 'break-word', hyphens: 'auto', WebkitHyphens: 'auto', cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 6 }}
                     >
                       <span style={{ flex: 1, minWidth: 0 }}>{s.title}</span>
                       <ChevronIcon open={isOpen} />
@@ -130,7 +130,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                     background: 'rgba(0,0,0,0.25)',
                   }}>
                     {/* Title */}
-                    <div style={{ fontSize: 18, fontWeight: 800, color: GOLD, fontFamily: FONT, lineHeight: 1.2, marginBottom: 6 }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: GOLD, fontFamily: FONT, lineHeight: 1.2, marginBottom: 6, overflowWrap: 'break-word', hyphens: 'auto', WebkitHyphens: 'auto' }}>
                       {s.title}
                     </div>
                     {/* Season/episode label */}
