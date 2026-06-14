@@ -101,7 +101,7 @@ export default function HomePage() {
         </div>
       <div id="series"><SeriesStrip series={seriesData} /></div>
 
-      <div style={{ maxWidth: 760, margin: '20px auto 24px', padding: '0 20px' }}>
+      <div style={{ maxWidth: 760, margin: '16px auto 6px', padding: '0 20px' }}>
         <DemoAudioPlayer
           src="/audio/balabony_seria1_demo.mp3"
           badge="Демо"
