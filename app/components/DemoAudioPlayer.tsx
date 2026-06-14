@@ -80,7 +80,7 @@ export default function DemoAudioPlayer({ src, badge, caption, title = 'Ауді
   };
 
   return (
-    <div onKeyDown={onKey} style={{ padding: '26px 22px', border: '1px solid rgba(239,159,39,0.35)', borderRadius: 18, background: '#14253B' }}>
+    <div onKeyDown={onKey} style={{ padding: '26px 22px', border: '2px solid #EF9F27', borderRadius: 18, background: '#14253B', boxShadow: '0 8px 32px rgba(239,159,39,0.28)' }}>
       <style dangerouslySetInnerHTML={{ __html: `
         .${uid}-range{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:999px;outline:none;cursor:pointer;}
         .${uid}-range:focus-visible{box-shadow:0 0 0 3px rgba(250,199,117,0.5);}

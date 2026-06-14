@@ -72,7 +72,7 @@ export default function EmailCapture() {
   }
 
   return (
-    <section style={{ padding: '48px 16px' }}>
+    <section style={{ padding: '28px 16px 48px' }}>
       <div style={{
         maxWidth: 720, margin: '0 auto',
         background: `linear-gradient(135deg, ${NAVY} 0%, #0E1A2B 100%)`,

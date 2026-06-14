@@ -101,17 +101,21 @@ export default function HomePage() {
         </div>
       <div id="series"><SeriesStrip series={seriesData} /></div>
 
-      <div style={{ maxWidth: 760, margin: '16px auto 6px', padding: '0 20px' }}>
-        <DemoAudioPlayer
-          src="/audio/balabony_seria1_demo.mp3"
-          badge="Демо"
-          caption="Озвучення серії"
-          title="«Панас і 5G на вишні»"
-        />
-      </div>
       <div style={viewAllWrapperStyle}>
         <Link href="/series" style={viewAllLinkStyle}>Усі серії →</Link>
       </div>
+
+      <div style={{ background: '#FFF8EE', padding: '20px 0' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto', padding: '0 20px' }}>
+          <DemoAudioPlayer
+            src="/audio/balabony_seria1_demo.mp3"
+            badge="Демо"
+            caption="Озвучення серії"
+            title="«Панас і 5G на вишні»"
+          />
+        </div>
+      </div>
+
       <EmailCapture />
       {freshStories.length > 0 && (
         <>
