@@ -62,14 +62,15 @@ export default function AudioPlayer({ audioUrl, audioStatus, title }: AudioPlaye
         role="status"
         style={{
           position: 'fixed', bottom: 'var(--bb-offset, 0px)', left: 0, width: '100%',
-          background: 'var(--dark, #0E1A2B)', color: '#B5D4F4',
+          background: '#14253B', color: '#FAC775',
+          borderTop: '1px solid rgba(239,159,39,0.4)',
           boxShadow: '0 -4px 24px rgba(0,0,0,0.3)', zIndex: 200,
           padding: '12px 4%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          gap: 8, fontFamily: "'Montserrat', sans-serif", fontSize: 14,
+          gap: 8, fontFamily: "'Montserrat', sans-serif", fontSize: 14, fontWeight: 600,
         }}
       >
         <span aria-hidden="true" style={{ fontSize: 18 }}>🎧</span>
-        <span>Аудіоверсія цієї історії — у розробці</span>
+        <span>Аудіоверсія у розробці</span>
       </div>
     )
   }
