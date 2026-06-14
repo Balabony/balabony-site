@@ -1,5 +1,6 @@
 'use client'
 
+import { AudioWaveIcon } from '@/app/components/AudioBadge'
 import { useState, useEffect } from 'react'
 import type { AnalysisResult } from '@/components/admin/GeminiAnalyzer'
 
@@ -245,7 +246,7 @@ export default function SeriesListPage() {
                 {/* Row 3: date + audio badge */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 11, color: '#445566', fontFamily: FONT }}>{date}</span>
-                  {s.audio_status === 'ready' && <span style={{ fontSize: 12 }}>🎧</span>}
+                  {s.audio_status === 'ready' && <AudioWaveIcon size={14} color="#EF9F27" />}
                 </div>
               </div>
 

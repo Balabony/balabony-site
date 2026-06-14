@@ -108,7 +108,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                       <ChevronIcon open={isOpen} />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 'auto' }}>
-                      <AudioBadge hasAudio={s.hasAudio} />
+                      <AudioBadge hasAudio={s.hasAudio} size={14} />
                       {s.durationMinutes ? (
                         <span style={{ fontSize: 10, fontWeight: 600, color: GOLD, fontFamily: FONT, border: `1px solid ${GOLD}`, padding: '2px 8px', borderRadius: 20 }}>
                           {s.durationMinutes} хв
@@ -150,17 +150,17 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                       href={`https://balabony.com${s.url}`}
                       onClick={() => trackStoryEvent(s.id, s.title, 'open')}
                       style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 7,
+                        display: 'inline-flex', alignItems: 'center', gap: 10,
                         background: GOLD, color: '#081420',
-                        padding: '9px 20px', borderRadius: 20,
-                        fontSize: 13, fontWeight: 700, fontFamily: FONT,
+                        padding: '13px 26px', borderRadius: 26,
+                        fontSize: 17, fontWeight: 700, fontFamily: FONT,
                         textDecoration: 'none',
                       }}
                     >
                       {s.hasAudio ? (
-                        <><AudioWaveIcon size={15} color="#081420" />Слухати</>
+                        <><AudioWaveIcon size={22} color="#081420" />Слухати</>
                       ) : (
-                        <><ReadIcon size={15} color="#081420" />Читати</>
+                        <><ReadIcon size={22} color="#081420" />Читати</>
                       )}
                     </a>
                   </div>

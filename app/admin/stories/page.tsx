@@ -1,5 +1,6 @@
 'use client'
 
+import { AudioWaveIcon } from '@/app/components/AudioBadge'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import GeminiAnalyzer from '@/components/admin/GeminiAnalyzer'
 import type { AnalysisResult } from '@/components/admin/GeminiAnalyzer'
@@ -420,7 +421,7 @@ export default function StoriesAdminPage() {
   const exportText = (): string => {
     const lines = [
       '══════════════════════════════',
-      `📖  ${title || '(без назви)'}`,
+      `${title || '(без назви)'}`,
     ]
     if (seasonEpLabel) lines.push(`📺  ${seasonEpLabel}`)
     lines.push(`👤  ${character || '—'} · ${genre}`)
@@ -948,7 +949,7 @@ export default function StoriesAdminPage() {
               >
                 <div style={{ position: 'absolute', top: 2, left: hasAudio ? 20 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
               </div>
-              <span style={{ fontSize: 13, color: hasAudio ? '#f5f0e8' : '#8899bb', fontFamily: FONT }}>🎧 Аудіо готове</span>
+              <span style={{ fontSize: 13, color: hasAudio ? '#f5f0e8' : '#8899bb', fontFamily: FONT }}><AudioWaveIcon size={14} color="currentColor" /> Аудіо готове</span>
             </label>
 
             {/* isPremium toggle — закрита серія (тільки річні) */}

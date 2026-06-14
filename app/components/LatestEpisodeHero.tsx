@@ -58,20 +58,20 @@ export default function LatestEpisodeHero({ episode }: { episode: Episode }) {
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 22 }}>
               <a href={episode.readUrl}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: GOLD, color: '#081420', padding: '13px 26px', borderRadius: 12, fontSize: 14, fontWeight: 700, fontFamily: FONT, textDecoration: 'none', boxShadow: '0 4px 18px rgba(239,159,39,0.38)' }}>
-                <ReadIcon size={16} color="#081420" />
+                <ReadIcon size={20} color="#081420" />
                 Читати
               </a>
 
               {episode.hasAudio ? (
                 <a href={episode.audioUrl}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'transparent', color: GOLD, padding: '13px 26px', borderRadius: 12, border: `2px solid ${GOLD}`, fontSize: 14, fontWeight: 700, fontFamily: FONT, textDecoration: 'none' }}>
-                  <AudioWaveIcon size={16} color={GOLD} />
+                  <AudioWaveIcon size={20} color={GOLD} />
                   Слухати
                 </a>
               ) : (
                 <button disabled
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'transparent', color: isNight ? '#445566' : '#9BA8B5', padding: '13px 26px', borderRadius: 12, border: `2px solid ${isNight ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.12)'}`, fontSize: 14, fontWeight: 700, fontFamily: FONT, cursor: 'not-allowed' }}>
-                  <AudioWaveIcon size={16} color="currentColor" />
+                  <AudioWaveIcon size={20} color="currentColor" />
                   Аудіо готується
                 </button>
               )}

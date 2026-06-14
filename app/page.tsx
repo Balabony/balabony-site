@@ -10,6 +10,7 @@ import ReaderSection from './components/ReaderSection'
 import PricingSection from './components/PricingSection'
 import FAQ from './components/FAQ'
 import AudioPlayer from './components/AudioPlayer'
+import DemoAudioPlayer from './components/DemoAudioPlayer'
 import Footer from './components/Footer'
 import FairytalesSection from './components/FairytalesSection'
 import ResumeBanner from './components/ResumeBanner'
@@ -99,6 +100,15 @@ export default function HomePage() {
           <HowItWorks />
         </div>
       <div id="series"><SeriesStrip series={seriesData} /></div>
+
+      <div style={{ maxWidth: 760, margin: '8px auto 0', padding: '0 20px' }}>
+        <DemoAudioPlayer
+          src="/audio/balabony_seria1_demo.mp3"
+          badge="Демо · на тестуванні"
+          caption="Послухайте, як звучатиме озвучення серій:"
+          title="Озвучення серії «Панас і 5G на вишні»"
+        />
+      </div>
       <div style={viewAllWrapperStyle}>
         <Link href="/series" style={viewAllLinkStyle}>Усі серії →</Link>
       </div>
