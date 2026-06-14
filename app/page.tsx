@@ -101,12 +101,12 @@ export default function HomePage() {
         </div>
       <div id="series"><SeriesStrip series={seriesData} /></div>
 
-      <div style={{ maxWidth: 760, margin: '8px auto 0', padding: '0 20px' }}>
+      <div style={{ maxWidth: 760, margin: '20px auto 24px', padding: '0 20px' }}>
         <DemoAudioPlayer
           src="/audio/balabony_seria1_demo.mp3"
-          badge="Демо · на тестуванні"
-          caption="Послухайте, як звучатиме озвучення серій:"
-          title="Озвучення серії «Панас і 5G на вишні»"
+          badge="Демо"
+          caption="Озвучення серії"
+          title="«Панас і 5G на вишні»"
         />
       </div>
       <div style={viewAllWrapperStyle}>
