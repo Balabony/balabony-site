@@ -90,13 +90,13 @@ const SAFE_LIGHTING = [
   TIME_OF_DAY_PROMPTS['overcast'],
 ]
 
-// Варіанти кадрування — щоб обкладинки не були всі однаково поясними.
-// Усі зрізи — у «чистих» точках (талія / груди / середина стегна), НІКОЛИ
-// не по колінах чи кісточках, інакше Flux лишає обрізані ноги/ступні.
+// Варіанти кадрування — усі зрізані ВИЩЕ кистей рук (по груди / голова-плечі),
+// щоб у кадр не потрапляли руки з пальцями (часте джерело артефактів Flux),
+// а обличчя завжди було видно.
 const FRAMING_VARIANTS = [
-  'medium shot, waist-up framing, clean crop at the waist, subject occupies 60-70% of frame height, head and shoulders clearly visible, face well lit, natural human proportions, realistic body scale',
-  'close-up portrait, head and chest only, expressive well-lit face, shallow depth of field, natural human proportions',
-  'cowboy shot, framed from mid-thigh upward, clean crop above the knees, never cropped at the knees or ankles, subject occupies 65-75% of frame height, face clearly visible, natural human proportions, realistic body scale',
+  'head and shoulders portrait, cropped at mid-chest above the hands, hands not visible, face well lit and clearly visible, natural human proportions',
+  'close-up portrait, head and upper chest only, hands out of frame, expressive well-lit face, shallow depth of field, natural human proportions',
+  'upper-body portrait from the chest up, cropped above the hands, hands not visible, face clearly visible and well lit, natural human proportions',
 ]
 
 // Ракурс камери — легке «обертання», але обличчя завжди видно (без чистого профілю).
