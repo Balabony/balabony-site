@@ -3,7 +3,7 @@
 import { useState, type ReactElement } from 'react'
 import { trackStoryEvent } from '@/lib/analytics'
 
-interface Props { url: string; title: string; storyId?: string }
+interface Props { url: string; title: string; storyId?: string; season?: number }
 
 function FBIcon()     { return <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073C24 5.446 18.627 0 12 0S0 5.446 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047v-2.66c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.932-1.956 1.889v2.261h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg> }
 function TGIcon()     { return <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0a12 12 0 00-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg> }
@@ -29,7 +29,7 @@ const BTNS: BtnDef[] = [
   { label: 'TikTok',    Icon: TikTokIcon, href: (u)    => `https://www.tiktok.com/share?url=${u}` },
 ]
 
-export default function ShareButtons({ url, title, storyId }: Props) {
+export default function ShareButtons({ url, title, storyId, season }: Props) {
   const [copied, setCopied] = useState(false)
   const [bonusMsg, setBonusMsg] = useState<string | null>(null)
   const eu = encodeURIComponent(url)
@@ -43,11 +43,13 @@ export default function ShareButtons({ url, title, storyId }: Props) {
       const r = await fetch('/api/referral/share', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ story_id: storyId, channel }),
+        body: JSON.stringify({ story_id: storyId, season: season ?? null, channel }),
       })
       const d = await r.json().catch(() => null)
       if (d?.granted) {
-        setBonusMsg('Дякуємо! Відкрито +1 безкоштовну історію')
+        setBonusMsg(season != null
+          ? 'Дякуємо! Відкрито +1 безкоштовну серію в цьому сезоні'
+          : 'Дякуємо! Відкрито +1 безкоштовну історію')
         setTimeout(() => setBonusMsg(null), 4500)
       }
     } catch { /* silent — sharing must never break */ }

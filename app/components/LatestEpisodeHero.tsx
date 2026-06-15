@@ -77,7 +77,7 @@ export default function LatestEpisodeHero({ episode }: { episode: Episode }) {
               )}
             </div>
 
-            <ShareButtons url={`https://balabony.com${episode.readUrl}`} title={episode.title} />
+            <ShareButtons url={`https://balabony.com${episode.readUrl}`} title={episode.title} storyId={episode.readUrl.replace(/^\/+/, '')} season={episode.season} />
           </div>
         </div>
       </div>

@@ -31,6 +31,7 @@ import { getOrCreateAnonUserId } from '@/lib/anon-user'
 const SERIES_PER_SEASON_LIMIT = 2
 const STORIES_TOTAL_LIMIT = 7
 const MAX_REFERRAL_BONUS = 5 // +1 free story per unique story shared, capped
+const MAX_REFERRAL_BONUS_SERIES = 3 // +1 free series per unique episode shared, per season
 const SEASONS_COUNT = 4
 const EPISODES_PER_SEASON = 20
 const TOTAL_EPISODES = SEASONS_COUNT * EPISODES_PER_SEASON // 80
@@ -312,7 +313,11 @@ export async function POST(req: NextRequest) {
     const counts = await getCounts(supabase, userId, contentType, season)
 
     if (contentType === 'series') {
-      if ((counts.picksInSeason ?? 0) >= SERIES_PER_SEASON_LIMIT) {
+      // Free series limit per season grows with earned referral bonuses
+      // (+1 per unique episode shared in this season, capped).
+      const seasonBonus = await getReferralBonus(supabase, userId, season)
+      const seasonLimit = SERIES_PER_SEASON_LIMIT + seasonBonus
+      if ((counts.picksInSeason ?? 0) >= seasonLimit) {
         // Користувач уперся в ліміт безкоштовних серій у сезоні —
         // найсильніший сигнал готовності платити. Фіксуємо подію.
         await recordPaywallHit(supabase, userId, 'series', season, contentId, 'season_limit_reached')
@@ -320,7 +325,7 @@ export async function POST(req: NextRequest) {
           {
             ok: false,
             reason: 'season_limit_reached',
-            message: `Вже обрано ${SERIES_PER_SEASON_LIMIT} серії в цьому сезоні`,
+            message: `Вже обрано ${seasonLimit} серії в цьому сезоні`,
             ...counts,
           },
           { status: 200 } // not an error — expected business case
@@ -329,7 +334,7 @@ export async function POST(req: NextRequest) {
     } else {
       // Free story limit grows with earned referral bonuses (+1 per unique
       // story shared, capped at MAX_REFERRAL_BONUS).
-      const bonus = await getReferralBonus(supabase, userId)
+      const bonus = await getReferralBonus(supabase, userId, null)
       const storyLimit = STORIES_TOTAL_LIMIT + bonus
       if (counts.picksTotal >= storyLimit) {
         // Користувач уперся в ліміт безкоштовних історій — фіксуємо пейвол.
@@ -427,19 +432,25 @@ async function recordPaywallHit(
 }
 
 /**
- * Number of earned referral bonuses for this user (each = +1 free story),
- * capped at MAX_REFERRAL_BONUS. Never throws — on error returns 0.
+ * Earned referral bonuses for this user, in the relevant bucket:
+ *   season === null  → free-story bonuses (cap MAX_REFERRAL_BONUS, total)
+ *   season === N     → free-series bonuses for that season (cap per season)
+ * Never throws — on error returns 0.
  */
 async function getReferralBonus(
   supabase: ReturnType<typeof getSupabaseAdmin>,
-  userId: string
+  userId: string,
+  season: number | null
 ): Promise<number> {
   try {
-    const { count } = await supabase
+    let q = supabase
       .from('referral_bonuses')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
-    return Math.min(count ?? 0, MAX_REFERRAL_BONUS)
+    q = season === null ? q.is('season', null) : q.eq('season', season)
+    const { count } = await q
+    const cap = season === null ? MAX_REFERRAL_BONUS : MAX_REFERRAL_BONUS_SERIES
+    return Math.min(count ?? 0, cap)
   } catch {
     return 0
   }

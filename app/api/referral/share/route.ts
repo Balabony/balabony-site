@@ -18,13 +18,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { getOrCreateAnonUserId } from '@/lib/anon-user'
 
-const MAX_BONUSES = 5
+const MAX_STORY_BONUSES = 5            // free-story bonuses, total
+const MAX_SERIES_BONUSES_PER_SEASON = 3 // free-series bonuses, per season
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}))
     const storyId = typeof body.story_id === 'string' ? body.story_id.trim() : ''
     const channel = typeof body.channel === 'string' ? body.channel.slice(0, 40) : null
+    const season = typeof body.season === 'number' && Number.isInteger(body.season)
+      ? body.season
+      : null
 
     if (!storyId) {
       return NextResponse.json({ ok: false, error: 'missing story_id' }, { status: 400 })
@@ -33,22 +37,27 @@ export async function POST(req: NextRequest) {
     const userId = await getOrCreateAnonUserId()
     const db = getSupabaseAdmin()
 
-    // How many bonuses does this user already have?
-    const { count: existing } = await db
+    // Count existing bonuses in the relevant bucket:
+    //   story  → season IS NULL, cap = MAX_STORY_BONUSES (total)
+    //   series → season = N,     cap = MAX_SERIES_BONUSES_PER_SEASON (this season)
+    let countQuery = db
       .from('referral_bonuses')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
+    countQuery = season === null ? countQuery.is('season', null) : countQuery.eq('season', season)
+    const { count: existing } = await countQuery
 
+    const cap = season === null ? MAX_STORY_BONUSES : MAX_SERIES_BONUSES_PER_SEASON
     const current = existing ?? 0
-    if (current >= MAX_BONUSES) {
+    if (current >= cap) {
       return NextResponse.json({ ok: true, granted: false, total: current, capped: true })
     }
 
     // Try to record this share. UNIQUE(user_id, story_id) makes it idempotent:
-    // a repeat share of the same story is ignored (granted stays false).
+    // a repeat share of the same item is ignored (granted stays false).
     const { error } = await db
       .from('referral_bonuses')
-      .insert({ user_id: userId, story_id: storyId, channel })
+      .insert({ user_id: userId, story_id: storyId, season, channel })
 
     // 23505 = duplicate (already rewarded for this story) → not an error for us.
     const granted = !error

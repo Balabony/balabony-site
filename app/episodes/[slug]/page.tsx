@@ -76,14 +76,31 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const episode = await getEpisode(slug)
   if (!episode) return { title: 'Епізод не знайдено' }
+
+  const desc = (episode.description ?? episode.text.replace(/\s+/g, ' ')).trim().slice(0, 160)
+  const url = `/episodes/${slug}`
+  const ogImage = episode.cover_url ?? '/og-image.jpg'
+  const ogTitle = `${episode.title} · Сезон ${episode.season_number}, Серія ${episode.episode_number}`
+
   return {
     title:       `${episode.title} · Балабони`,
-    description: episode.description ?? episode.text.replace(/\s+/g, ' ').slice(0, 160),
+    description: desc,
+    alternates:  { canonical: url },
     openGraph: {
-      title:  episode.title,
-      images: episode.cover_url ? [episode.cover_url] : [],
+      type:        'article',
+      url,
+      siteName:    'Balabony™',
+      locale:      'uk_UA',
+      title:       ogTitle,
+      description: desc,
+      images:      [{ url: ogImage, width: 1200, height: 630, alt: episode.title }],
     },
-    alternates: { canonical: `/episodes/${slug}` },
+    twitter: {
+      card:        'summary_large_image',
+      title:       ogTitle,
+      description: desc,
+      images:      [ogImage],
+    },
   }
 }
 
@@ -149,7 +166,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         <EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={episode.episode_number} bypass={isAdmin} />
 
         <div style={{ marginTop: 40 }}>
-          <ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} />
+          <ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} storyId={`episodes/${slug}`} season={episode.season_number} />
         </div>
 
         {(episode.hook || episode.next_teaser || nextEp) && (
