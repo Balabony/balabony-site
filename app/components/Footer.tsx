@@ -64,10 +64,10 @@ const PARTNERS = [
   {
     name: 'ElevenLabs Impact Program',
     href: 'https://elevenlabs.io/impact-program',
-    logo: 'https://eleven-public-cdn.elevenlabs.io/payloadcms/csnjio02mx4-elevenlabs-logo-white.svg',
-    height: 22,
+    logo: '/partners/elevenlabs-white.svg?v=3',
+    height: 13,
   },
-  // { name: 'Назва грантодавця', href: 'https://...', logo: '/partners/xxx-white.svg', height: 22 },
+  // { name: 'Назва грантодавця', href: 'https://...', logo: '/partners/xxx-white.svg', height: 26 },
 ]
 
 export default function Footer() {
@@ -424,7 +424,7 @@ export default function Footer() {
                   src={p.logo}
                   alt={p.name}
                   height={p.height}
-                  style={{ height: p.height, width: 'auto', display: 'block' }}
+                  style={{ height: p.height, width: 'auto', maxWidth: 180, display: 'block' }}
                 />
               </a>
             </Fragment>
