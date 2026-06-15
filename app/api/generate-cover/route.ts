@@ -200,11 +200,82 @@ async function analyzeSceneFallback(title: string, description: string) {
 }
 
 // =============================================================================
+// ГЕРОЄ-ЗАЛЕЖНА ЛОГІКА (Панас / Ганя)
+// =============================================================================
+const GANYA_POSE_FILES = [
+  'ganya-standing', 'ganya-cooking', 'ganya-notebook', 'ganya-reading',
+  'ganya-talking', 'ganya-sitting', 'ganya-surprised', 'ganya-laughing',
+  'ganya-scolding', 'ganya-holding', 'ganya-baking', 'ganya-praying',
+]
+
+// Хто головний у кадрі серії — дід Панас чи баба Ганя.
+// За замовчуванням (непевність) — panas, щоб не ламати наявне.
+async function detectProtagonist(title: string, text: string): Promise<'panas' | 'ganya'> {
+  const key = process.env.ANTHROPIC_API_KEY
+  if (!key || !text) return 'panas'
+  try {
+    const client = new Anthropic({ apiKey: key })
+    const msg = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 10,
+      messages: [{
+        role: 'user',
+        content: `Серіал «Балабони». Хто ГОЛОВНИЙ герой у кадрі цієї серії — дід Панас чи баба Ганя? Якщо це насамперед історія Гані (вона рушій сюжету в кадрі) — відповідай ganya. Якщо Панас, обоє нарівні або непевно — panas. Відповідай ОДНИМ словом: panas або ganya.\n\nНазва: ${title}\nТекст:\n${text.slice(0, 2500)}`,
+      }],
+    })
+    const out = msg.content[0]?.type === 'text' ? msg.content[0].text.toLowerCase() : ''
+    return (out.includes('ganya') || out.includes('ганя')) ? 'ganya' : 'panas'
+  } catch {
+    return 'panas'
+  }
+}
+
+// Підбір пози Гані з її каталогу за текстом серії.
+async function analyzeGanya(title: string, text: string): Promise<{ pose: string; scene: string; keyObject: string | null }> {
+  const fallback = { pose: 'ganya-standing', scene: title, keyObject: null as string | null }
+  const key = process.env.ANTHROPIC_API_KEY
+  if (!key) return fallback
+  const semantics = `
+- ganya-standing: нейтрально стоїть
+- ganya-cooking: готує, біля каструлі/печі
+- ganya-notebook: пише в записник (рецепти, нотатки)
+- ganya-reading: читає книгу або рецепт
+- ganya-talking: розмовляє, жестикулює
+- ganya-sitting: сидить спокійно
+- ganya-surprised: здивована, шок
+- ganya-laughing: сміється, радість
+- ganya-scolding: свариться, мружить око, помахує ополоником
+- ganya-holding: тримає або розглядає предмет
+- ganya-baking: місить тісто, пече
+- ganya-praying: молиться, духовний момент`
+  try {
+    const client = new Anthropic({ apiKey: key })
+    const msg = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 200,
+      messages: [{
+        role: 'user',
+        content: `Обкладинка серії «Балабони» про бабу Ганю. Обери позу з каталогу та опиши сцену.\nПОЗИ:${semantics}\nПоверни ТІЛЬКИ JSON без пояснень:\n{"pose":"<ganya-...>","scene":"<одне речення до 15 слів: що Ганя робить у кадрі, без імен інших персонажів>","keyObject":"<предмет-символ серії 1-4 слова, або null>"}\nНазва: ${title}\nТекст:\n${text.slice(0, 3000)}`,
+      }],
+    })
+    const raw = msg.content[0]?.type === 'text' ? msg.content[0].text.trim() : ''
+    const parsed = JSON.parse(raw.replace(/^```json\s*|\s*```$/g, ''))
+    const pose = GANYA_POSE_FILES.includes(parsed.pose) ? parsed.pose : 'ganya-standing'
+    const scene = String(parsed.scene || '').trim() || title
+    const keyObject = parsed.keyObject && parsed.keyObject !== 'null' ? String(parsed.keyObject).trim() : null
+    return { pose, scene, keyObject }
+  } catch {
+    return fallback
+  }
+}
+
+// =============================================================================
 // ENDPOINT
 // =============================================================================
 export async function POST(req: NextRequest) {
   try {
-    const { seriesId, title, description } = await req.json()
+    const body = await req.json()
+    const { seriesId, title, description } = body
 
     if (!seriesId || !title) {
       return NextResponse.json({ error: 'seriesId and title are required' }, { status: 400 })
@@ -217,58 +288,71 @@ export async function POST(req: NextRequest) {
 
     const supabase = getSupabaseAdmin()
 
-    // 1. Спочатку перевіряємо чи є запис у cover_plan
+    // 1. План обкладинки (поза/локація/сезон). Локація/сезон/час — не залежать від героя.
     const { data: planRow } = await supabase
       .from('cover_plan')
       .select('*')
       .eq('slug', seriesId)
       .single()
 
+    // 1b. Текст серії — потрібен для авто-детекту героя та підбору пози Гані.
+    let episodeText = (description || '').trim()
+    if (!episodeText) {
+      const { data: c } = await supabase
+        .from('content').select('corrected_text').eq('slug', seriesId).single()
+      episodeText = (c?.corrected_text || '').trim()
+    }
+
+    // 1c. Який герой на обкладинці:
+    //   - 'panas'|'ganya' із запиту — пріоритет (ручне перевизначення);
+    //   - 'auto' — Haiku визначає за текстом;
+    //   - нічого — за замовчуванням panas (стара поведінка, без сюрпризів).
+    const requested = String(body.character || '').toLowerCase()
+    let character: 'panas' | 'ganya' = 'panas'
+    if (requested === 'panas' || requested === 'ganya') character = requested
+    else if (requested === 'auto') character = await detectProtagonist(title, episodeText)
+
     let scene: string
     let poseFile: string
     let keyObject: string | null
     let objectOwner: 'self' | 'other' | null
-    let locationPrompt: string
-    let seasonPrompt: string
-    let timePrompt: string
+    const usedLocation: string | null = planRow?.location ?? null
+    const usedSeason: string | null = planRow?.season ?? null
+    const usedTimeOfDay: string | null = planRow?.time_of_day ?? null
     let usedPose: string
-    let usedLocation: string | null = null
-    let usedSeason: string | null = null
-    let usedTimeOfDay: string | null = null
 
-    if (planRow) {
-      // ✓ Беремо з плану
+    const locationPrompt = planRow ? (LOCATION_PROMPTS[planRow.location] || '') : ''
+    const seasonPrompt   = planRow ? (SEASON_PROMPTS[planRow.season] || '') : ''
+    const timePrompt     = planRow ? (TIME_OF_DAY_PROMPTS[planRow.time_of_day] || GOLDEN_HOUR_LIGHTING) : GOLDEN_HOUR_LIGHTING
+
+    if (character === 'ganya') {
+      // Ганя: поза з її каталогу за текстом серії (план Панаса не використовуємо для пози)
+      const g = await analyzeGanya(title, episodeText)
+      poseFile = `${g.pose}.jpg`
+      usedPose = g.pose
+      scene = g.scene || title
+      keyObject = g.keyObject
+      objectOwner = keyObject ? 'self' : null
+    } else if (planRow) {
+      // Панас із плану
       poseFile = `${planRow.pose}.jpg`
       usedPose = planRow.pose
       scene = planRow.scene_detail || title
       keyObject = planRow.key_object
       objectOwner = planRow.object_owner as 'self' | 'other' | null
-      locationPrompt = LOCATION_PROMPTS[planRow.location] || ''
-      seasonPrompt = SEASON_PROMPTS[planRow.season] || ''
-      timePrompt = TIME_OF_DAY_PROMPTS[planRow.time_of_day] || GOLDEN_HOUR_LIGHTING
-      usedLocation = planRow.location
-      usedSeason = planRow.season
-      usedTimeOfDay = planRow.time_of_day
     } else {
-      // ✗ Fallback на старий ad-hoc Haiku
+      // Панас fallback
       const fb = await analyzeSceneFallback(title, description || '')
-      // Поза — ВИПАДКОВА з усіх 23, щоб обкладинки не застрягали на одній
-      // (Haiku-fallback раз за разом тягнув ту саму «показує пальцем»).
       poseFile = POSE_FILES[Math.floor(Math.random() * POSE_FILES.length)] + '.jpg'
       usedPose = poseFile.replace(/\.jpg$/, '')
       scene = fb.scene
-      // Випадкові обʼєкти прибрано — Haiku інколи давав недоречний реквізит
-      // (свічка серед поля вдень). Предмет лишається лише якщо явно заданий
-      // у cover_plan для серії.
       keyObject = null
       objectOwner = null
-      locationPrompt = ''
-      seasonPrompt = ''
-      timePrompt = GOLDEN_HOUR_LIGHTING
     }
 
-    // 2. Завантажити базову позу
-    const imagePath = join(process.cwd(), 'public', 'panas-poses', poseFile)
+    // 2. Завантажити базову позу з папки відповідного героя
+    const poseFolder = character === 'ganya' ? 'ganya-poses' : 'panas-poses'
+    const imagePath = join(process.cwd(), 'public', poseFolder, poseFile)
     const imageBuffer = readFileSync(imagePath)
     const base64Image = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
 
@@ -278,7 +362,8 @@ export async function POST(req: NextRequest) {
     if (keyObject && objectOwner === 'other') {
       objectPrefix = `${keyObject} as a small detail at edge of frame, partially visible, hinting at another presence, `
     } else if (keyObject) {
-      objectPrefix = `${keyObject} clearly visible in his hands or directly beside him, `
+      const poss = character === 'ganya' ? 'her' : 'his'
+      objectPrefix = `${keyObject} clearly visible in ${poss} hands or directly beside ${character === 'ganya' ? 'her' : 'him'}, `
     }
 
     // Різноманітність обкладинок: ракурс + кадр завжди варіюємо за seed;
@@ -361,6 +446,7 @@ export async function POST(req: NextRequest) {
 
     // 6. Записати cover_url + cover_meta в content
     const coverMeta = {
+      character,
       pose: usedPose,
       location: usedLocation,
       season: usedSeason,
@@ -381,6 +467,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       url: publicUrl,
+      character,
       fileName,
       scene,
       poseFile,

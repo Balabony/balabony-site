@@ -49,6 +49,7 @@ export default function SeriesListPage() {
   const [editTitle,    setEditTitle]    = useState('')
   const [savingId,     setSavingId]     = useState<string | null>(null)
   const [covGenSlug,   setCovGenSlug]   = useState<string | null>(null)
+  const [coverChar,    setCoverChar]    = useState<'auto' | 'panas' | 'ganya'>('auto')
 
   useEffect(() => {
     fetch('/api/admin/series')
@@ -89,7 +90,7 @@ export default function SeriesListPage() {
       const res = await fetch('/api/generate-cover', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seriesId: slug, title, description: '' }),
+        body: JSON.stringify({ seriesId: slug, title, description: '', character: coverChar }),
       })
       const data = await res.json() as { url?: string; error?: string }
       if (res.ok && data.url) {
@@ -153,6 +154,16 @@ export default function SeriesListPage() {
             <option value="oldest">Старіші зверху</option>
             <option value="rating-desc">Рейтинг ↓</option>
             <option value="rating-asc">Рейтинг ↑</option>
+          </select>
+          <select
+            style={{ ...controlStyle, flex: '1 1 160px', cursor: 'pointer' }}
+            value={coverChar}
+            onChange={e => setCoverChar(e.target.value as 'auto' | 'panas' | 'ganya')}
+            title="Хто на обкладинці при перегенерації"
+          >
+            <option value="auto">Герой: авто</option>
+            <option value="panas">Герой: Панас</option>
+            <option value="ganya">Герой: Ганя</option>
           </select>
         </div>
 
