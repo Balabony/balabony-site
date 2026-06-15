@@ -91,11 +91,12 @@ const SAFE_LIGHTING = [
 ]
 
 // Варіанти кадрування — щоб обкладинки не були всі однаково поясними.
-// У кожному збережено акцент на правильних пропорціях (анти-«гном»).
+// Усі зрізи — у «чистих» точках (талія / груди / середина стегна), НІКОЛИ
+// не по колінах чи кісточках, інакше Flux лишає обрізані ноги/ступні.
 const FRAMING_VARIANTS = [
-  'medium shot, waist-up framing, subject occupies 60-70% of frame height, head and shoulders clearly visible, face well lit, natural human proportions, realistic body scale',
+  'medium shot, waist-up framing, clean crop at the waist, subject occupies 60-70% of frame height, head and shoulders clearly visible, face well lit, natural human proportions, realistic body scale',
   'close-up portrait, head and chest only, expressive well-lit face, shallow depth of field, natural human proportions',
-  'three-quarter shot, knees-up framing, subject occupies 65-75% of frame height, face clearly visible, natural human proportions, realistic body scale',
+  'cowboy shot, framed from mid-thigh upward, clean crop above the knees, never cropped at the knees or ankles, subject occupies 65-75% of frame height, face clearly visible, natural human proportions, realistic body scale',
 ]
 
 // Ракурс камери — легке «обертання», але обличчя завжди видно (без чистого профілю).
@@ -144,6 +145,12 @@ const NEGATIVE_PROMPT = [
   'picture-in-picture', 'frame within frame', 'photo inside photo',
   'image within image', 'mise en abyme',
   'pure back view on dark background', 'lonely silhouette no context',
+
+  // Обрізання кінцівок (проблема «обрізані ноги»)
+  'cropped legs', 'legs cut off', 'feet cut off', 'cut-off feet',
+  'amputated legs', 'amputated feet', 'figure cropped at the knees',
+  'cropped at the ankles', 'cropped at the shins', 'limbs cut by frame edge',
+  'feet outside the frame', 'awkward body crop',
 
   // Якість
   'blurry face', 'plastic skin', 'doll face', 'wax figure', 'mannequin',
