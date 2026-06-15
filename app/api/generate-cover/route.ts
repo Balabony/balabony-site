@@ -326,13 +326,15 @@ export async function POST(req: NextRequest) {
     const timePrompt     = planRow ? (TIME_OF_DAY_PROMPTS[planRow.time_of_day] || GOLDEN_HOUR_LIGHTING) : GOLDEN_HOUR_LIGHTING
 
     if (character === 'ganya') {
-      // Ганя: поза з її каталогу за текстом серії (план Панаса не використовуємо для пози)
+      // Ганя: поза з її каталогу за текстом серії (план Панаса не використовуємо для пози).
+      // Предмет (keyObject) НЕ додаємо: руки ми й так зрізаємо, а реквізит у них
+      // виходить мутним — обкладинка лишається чистим портретом.
       const g = await analyzeGanya(title, episodeText)
       poseFile = `${g.pose}.jpg`
       usedPose = g.pose
       scene = g.scene || title
-      keyObject = g.keyObject
-      objectOwner = keyObject ? 'self' : null
+      keyObject = null
+      objectOwner = null
     } else if (planRow) {
       // Панас із плану
       poseFile = `${planRow.pose}.jpg`
