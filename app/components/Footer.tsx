@@ -121,7 +121,7 @@ export default function Footer() {
           </div>
 
           <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-            Підтримати
+            Підтримати проєкт
           </h4>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             <a
