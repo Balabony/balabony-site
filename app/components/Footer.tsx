@@ -1,5 +1,6 @@
 'use client'
 
+import { Fragment } from 'react'
 import { FooterLegalSection } from './FooterLegalSection'
 
 const E_USER = 'nazar'
@@ -53,6 +54,20 @@ const PLATFORMS = [
   { label: 'Android (Chrome PWA)', href: null, soon: true  },
   { label: 'Telegram-бот',         href: null, soon: true  },
   { label: 'Smart TV / Tablets',   href: null, soon: true  },
+]
+
+// ── ПАРТНЕРИ ─────────────────────────────────────────────
+// Щоб додати грантодавця — додай об'єкт у масив.
+// ВАЖЛИВО: фон футера темний, тож логотип має бути СВІТЛИМ (білим).
+// Зовнішнє лого — повний URL; локальне — клади у /public/partners/ і вказуй '/partners/файл.svg'.
+const PARTNERS = [
+  {
+    name: 'ElevenLabs Impact Program',
+    href: 'https://elevenlabs.io/impact-program',
+    logo: 'https://eleven-public-cdn.elevenlabs.io/payloadcms/csnjio02mx4-elevenlabs-logo-white.svg',
+    height: 22,
+  },
+  // { name: 'Назва грантодавця', href: 'https://...', logo: '/partners/xxx-white.svg', height: 22 },
 ]
 
 export default function Footer() {
@@ -371,6 +386,52 @@ export default function Footer() {
         </p>
       </div>
 
+      {/* ════════ ПАРТНЕРИ ════════ */}
+      {/* Щоб додати партнера — додай об'єкт у масив нижче.
+          Для темного фону футера логотип має бути світлим (білим). */}
+      <div style={{
+        maxWidth: 1200, margin: '0 auto 24px', paddingTop: 4,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+      }}>
+        <h4 style={{
+          color: 'var(--accent-gold)', fontSize: 11, fontWeight: 700,
+          textTransform: 'uppercase', letterSpacing: '0.8px', margin: 0,
+          fontFamily: "'Montserrat', sans-serif",
+        }}>
+          Партнери
+        </h4>
+        <div style={{
+          display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center',
+          gap: '12px 22px', maxWidth: 760,
+        }}>
+          {PARTNERS.map((p, i) => (
+            <Fragment key={p.name}>
+              {i > 0 && (
+                <span aria-hidden="true" style={{
+                  width: 1, height: 16, background: 'rgba(255,255,255,0.18)',
+                }} />
+              )}
+              <a
+                href={p.href}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={p.name}
+                className="footer-partner-logo"
+                style={{ display: 'inline-flex', opacity: 0.7, transition: 'opacity 0.2s ease' }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={p.logo}
+                  alt={p.name}
+                  height={p.height}
+                  style={{ height: p.height, width: 'auto', display: 'block' }}
+                />
+              </a>
+            </Fragment>
+          ))}
+        </div>
+      </div>
+
       {/* ════════ КОПІРАЙТИ ════════ */}
       <div style={{
         borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: 22, textAlign: 'center',
@@ -455,6 +516,11 @@ export default function Footer() {
         }
         .footer-root :global(.footer-social:hover::after) {
           width: 100%;
+        }
+
+        /* ── Partner logo (ElevenLabs) ── */
+        .footer-root :global(.footer-partner-logo:hover) {
+          opacity: 1 !important;
         }
 
         /* ── Email button ── */
