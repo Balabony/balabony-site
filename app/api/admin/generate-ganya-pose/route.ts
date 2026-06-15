@@ -34,9 +34,9 @@ const POSE_TECH =
 
 // Каталог стартових поз Гані (дзеркалить корисні пози Панаса).
 // suffix після `ganya-` = імʼя файлу: public/ganya-poses/ganya-<key>.jpg
-// Фірмовий предмет Гані — великий деревʼяний ополоник із довгим держаком
-// (у каноні це її «зброя»/жезл влади, не дрібна ложка).
-const LADLE = 'a large hand-carved wooden ladle (ополоник) with a long handle and a deep bowl'
+// Фірмовий предмет Гані — деревʼяний ополоник із довгим держаком, тримає за держак.
+// Масштаб привʼязаний до передпліччя — щоб не виходив ні гігант, ні дрібна ложка.
+const LADLE = 'a wooden ladle (ополоник) with a long handle, about the length of her forearm, held firmly by the handle'
 
 const GANYA_POSES: Record<string, { label: string; phrase: string }> = {
   'standing':   { label: 'Стоїть (нейтральна)',     phrase: `standing calmly, facing the camera, holding ${LADLE} in one hand` },
