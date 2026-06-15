@@ -34,9 +34,17 @@ const POSE_TECH =
 
 // Каталог стартових поз Гані (дзеркалить корисні пози Панаса).
 // suffix після `ganya-` = імʼя файлу: public/ganya-poses/ganya-<key>.jpg
-// Фірмовий предмет Гані — деревʼяний ополоник із довгим держаком, тримає за держак.
-// Масштаб привʼязаний до передпліччя — щоб не виходив ні гігант, ні дрібна ложка.
-const LADLE = 'a wooden ladle (ополоник) with a long handle, about the length of her forearm, held firmly by the handle'
+// Фірмовий предмет Гані — деревʼяний ополоник (суповий черпак).
+// Опис навмисно детальний: рівний держак + ГЛИБОКА КРУГЛА чаша-півсфера на кінці,
+// тримає за держак на рівні пояса, чаша вгору, НЕ впирається в підлогу (щоб Flux
+// не робив із нього ціпок/палицю чи пласку ложку).
+const LADLE =
+  'a traditional Ukrainian wooden soup ladle (ополоник): a straight wooden handle ' +
+  'about the length of her forearm, ending in a deep round cup-shaped bowl ' +
+  '(a small hemisphere for scooping soup), hand-carved warm-brown wood, the deep ' +
+  'rounded bowl clearly visible; she holds it firmly by the handle at waist height, ' +
+  'the bowl pointing upward, lifted in her hand and not resting on the floor, ' +
+  'clearly a kitchen ladle — not a walking stick, not a staff, not a flat spoon'
 
 const GANYA_POSES: Record<string, { label: string; phrase: string }> = {
   'standing':   { label: 'Стоїть (нейтральна)',     phrase: `standing calmly, facing the camera, holding ${LADLE} in one hand` },
