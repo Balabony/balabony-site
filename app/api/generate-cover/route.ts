@@ -1,9 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readFileSync } from 'fs'
 import { join } from 'path'
+import sharp from 'sharp'
 import Anthropic from '@anthropic-ai/sdk'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { applyGoldenFrame } from '@/lib/golden-frame'
+
+// Жорсткий пост-кроп: лишає верхні ~68% кадру (голова+плечі+груди), відрізає
+// низ із кистями рук. Гарантовано прибирає руки/пальці з Ганіних обкладинок.
+async function cropAboveHands(buf: Buffer): Promise<Buffer> {
+  try {
+    const meta = await sharp(buf).metadata()
+    const w = meta.width || 0
+    const h = meta.height || 0
+    if (!w || !h) return buf
+    const newH = Math.max(1, Math.round(h * 0.68))
+    return await sharp(buf).extract({ left: 0, top: 0, width: w, height: newH }).toBuffer()
+  } catch {
+    return buf
+  }
+}
 
 // =============================================================================
 // СТАРИЙ FALLBACK (на випадок коли в cover_plan немає запису для slug)
@@ -312,29 +328,43 @@ export async function POST(req: NextRequest) {
     if (requested === 'panas' || requested === 'ganya') character = requested
     else if (requested === 'auto') character = await detectProtagonist(title, episodeText)
 
+    // Seed — один на всю генерацію (кадр, ракурс, світло, фон, Replicate).
+    const seed = Math.floor(Math.random() * 2_000_000)
+
     let scene: string
     let poseFile: string
     let keyObject: string | null
     let objectOwner: 'self' | 'other' | null
-    const usedLocation: string | null = planRow?.location ?? null
-    const usedSeason: string | null = planRow?.season ?? null
-    const usedTimeOfDay: string | null = planRow?.time_of_day ?? null
     let usedPose: string
+    let usedLocation: string | null = planRow?.location ?? null
+    let usedSeason: string | null = planRow?.season ?? null
+    let usedTimeOfDay: string | null = planRow?.time_of_day ?? null
 
-    const locationPrompt = planRow ? (LOCATION_PROMPTS[planRow.location] || '') : ''
-    const seasonPrompt   = planRow ? (SEASON_PROMPTS[planRow.season] || '') : ''
-    const timePrompt     = planRow ? (TIME_OF_DAY_PROMPTS[planRow.time_of_day] || GOLDEN_HOUR_LIGHTING) : GOLDEN_HOUR_LIGHTING
+    let locationPrompt = planRow ? (LOCATION_PROMPTS[planRow.location] || '') : ''
+    let seasonPrompt   = planRow ? (SEASON_PROMPTS[planRow.season] || '') : ''
+    let timePrompt     = planRow ? (TIME_OF_DAY_PROMPTS[planRow.time_of_day] || GOLDEN_HOUR_LIGHTING) : GOLDEN_HOUR_LIGHTING
 
     if (character === 'ganya') {
       // Ганя: поза з її каталогу за текстом серії (план Панаса не використовуємо для пози).
-      // Предмет (keyObject) НЕ додаємо: руки ми й так зрізаємо, а реквізит у них
-      // виходить мутним — обкладинка лишається чистим портретом.
+      // Предмет (keyObject) НЕ додаємо: руки ми й так зрізаємо.
       const g = await analyzeGanya(title, episodeText)
       poseFile = `${g.pose}.jpg`
       usedPose = g.pose
       scene = g.scene || title
       keyObject = null
       objectOwner = null
+      // Різноманіття: фон/сезон/світло обираємо за seed (у Гані немає власного плану),
+      // щоб портрети не повторювались — інший образ, ракурс, фон щоразу.
+      const locKeys = Object.keys(LOCATION_PROMPTS)
+      const seasonKeys = Object.keys(SEASON_PROMPTS)
+      const gLoc = pickBySeed(locKeys, seed, 3)
+      const gSeason = pickBySeed(seasonKeys, seed, 5)
+      locationPrompt = LOCATION_PROMPTS[gLoc] || ''
+      seasonPrompt = SEASON_PROMPTS[gSeason] || ''
+      timePrompt = pickBySeed(SAFE_LIGHTING, seed, 7)
+      usedLocation = gLoc
+      usedSeason = gSeason
+      usedTimeOfDay = 'seed'
     } else if (planRow) {
       // Панас із плану
       poseFile = `${planRow.pose}.jpg`
@@ -359,7 +389,6 @@ export async function POST(req: NextRequest) {
     const base64Image = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
 
     // 3. Скласти промпт
-    const seed = Math.floor(Math.random() * 2_000_000)
     let objectPrefix = ''
     if (keyObject && objectOwner === 'other') {
       objectPrefix = `${keyObject} as a small detail at edge of frame, partially visible, hinting at another presence, `
@@ -432,7 +461,8 @@ export async function POST(req: NextRequest) {
     if (!imgRes.ok) {
       return NextResponse.json({ error: 'Failed to download generated image' }, { status: 502 })
     }
-    const rawBuffer = Buffer.from(await imgRes.arrayBuffer())
+    const downloaded = Buffer.from(await imgRes.arrayBuffer())
+    const rawBuffer = character === 'ganya' ? await cropAboveHands(downloaded) : downloaded
     const finalBuffer = await applyGoldenFrame(rawBuffer)
 
     const fileName = `${seriesId}-${Date.now()}.jpg`
