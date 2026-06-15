@@ -8,7 +8,7 @@ export async function GET() {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('slug, title, corrected_text, season_number, episode_number')
+    .select('slug, title, text, corrected_text, humanized_text, published_version, season_number, episode_number')
     .eq('type', 'balabony')
     .order('season_number')
     .order('episode_number')
@@ -19,18 +19,30 @@ export async function GET() {
 
   const episodes = (data || []).filter(s => /^s\d+e\d+$/.test(s.slug || ''))
 
+  // Той самий вибір тексту, що й на сторінці серії: за published_version,
+  // далі резервний ланцюжок, щоб не лишити серію порожньою.
+  function pickBody(ep: Record<string, unknown>): string {
+    const v = (ep.published_version as string) || ''
+    const humanized = (ep.humanized_text as string) || ''
+    const corrected = (ep.corrected_text as string) || ''
+    const text = (ep.text as string) || ''
+    if ((v === 'humanized' || v === 'corrected_humanized') && humanized) return humanized
+    if (v === 'corrected' && corrected) return corrected
+    return text || corrected || humanized || '(текст порожній)'
+  }
+
   const parts: string[] = []
   parts.push(`БАЛАБОНИ — повні тексти серій (експорт)\nВсього: ${episodes.length}\n`)
   for (const ep of episodes) {
     const slug = (ep.slug as string) || ''
     const title = (ep.title as string) || ''
-    const text = (ep.corrected_text as string) || '(текст порожній)'
+    const body = pickBody(ep)
     parts.push(
       '\n' +
       '================================================================\n' +
       `### ${slug.toUpperCase()} — ${title}\n` +
       '================================================================\n\n' +
-      text.trim() + '\n'
+      body.trim() + '\n'
     )
   }
 
