@@ -79,6 +79,23 @@ export default function GanyaPosesPage() {
     }
   }
 
+  // Завантажує зображення з правильним імʼям файлу (ganya-<key>.jpg) — без ручного перейменування.
+  async function downloadPose(url: string, fileName: string) {
+    try {
+      const res = await fetch(url)
+      const blob = await res.blob()
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = fileName
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(a.href)
+    } catch {
+      setErr('Не вдалося завантажити файл — спробуй ще раз')
+    }
+  }
+
   const btn = (active = true): React.CSSProperties => ({
     background: active ? GOLD : '#5b6b80',
     color: NAVY,
@@ -168,6 +185,14 @@ export default function GanyaPosesPage() {
                 <button style={{ ...btn(!isBusy && !!chosenRef), width: '100%' }} disabled={isBusy || !chosenRef} onClick={() => genPose(p.key)}>
                   {isBusy ? 'Генерую…' : img ? 'Перегенерувати' : 'Згенерувати'}
                 </button>
+                {img && (
+                  <button
+                    style={{ background: 'transparent', color: GOLD2, border: `1px solid ${GOLD}`, borderRadius: 8, padding: '8px 12px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', width: '100%', marginTop: 8 }}
+                    onClick={() => downloadPose(img, p.fileName)}
+                  >
+                    ⬇ Завантажити {p.fileName}
+                  </button>
+                )}
               </div>
             )
           })}
