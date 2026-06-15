@@ -34,17 +34,20 @@ const POSE_TECH =
 
 // Каталог стартових поз Гані (дзеркалить корисні пози Панаса).
 // suffix після `ganya-` = імʼя файлу: public/ganya-poses/ganya-<key>.jpg
+// Фірмовий предмет Гані — гарний різьблений ополоник.
+const LADLE = 'a beautiful hand-carved wooden ladle (ополоник)'
+
 const GANYA_POSES: Record<string, { label: string; phrase: string }> = {
-  'standing':   { label: 'Стоїть (нейтральна)',     phrase: 'standing calmly, facing the camera, holding an embroidered towel (rushnyk) in her hands' },
-  'cooking':    { label: 'Готує (ополоник)',         phrase: 'stirring a pot with a wooden ladle, mid-action, lively' },
+  'standing':   { label: 'Стоїть (нейтральна)',     phrase: `standing calmly, facing the camera, holding ${LADLE} in one hand` },
+  'cooking':    { label: 'Готує (ополоник)',         phrase: `stirring a pot with ${LADLE}, mid-action, lively` },
   'notebook':   { label: 'Пише (записник)',          phrase: 'sitting at a wooden table, writing in a notebook with a pen, focused and content' },
   'reading':    { label: 'Читає',                    phrase: 'reading an open book, reading glasses low on her nose' },
-  'talking':    { label: 'Розмовляє (жестикулює)',   phrase: 'talking and gesturing warmly with a wooden ladle in one hand' },
+  'talking':    { label: 'Розмовляє (жестикулює)',   phrase: `talking and gesturing warmly with ${LADLE} in one hand` },
   'sitting':    { label: 'Сидить',                   phrase: 'sitting on a wooden bench, hands folded in her lap, calm' },
   'surprised':  { label: 'Здивована',                phrase: 'eyes wide with surprise, one hand raised to her cheek' },
   'laughing':   { label: 'Сміється',                 phrase: 'laughing warmly, head tilted slightly back, joyful' },
-  'scolding':   { label: 'Свариться (мружить око)',  phrase: 'narrowing her eyes with a knowing skeptical look, one eyebrow slightly raised, both eyes open, playfully wagging a wooden ladle, mock-scolding' },
-  'holding':    { label: 'Тримає предмет',           phrase: 'holding an object in both hands, examining it with curiosity' },
+  'scolding':   { label: 'Свариться (мружить око)',  phrase: `narrowing her eyes with a knowing skeptical look, one eyebrow slightly raised, both eyes open, playfully wagging ${LADLE}, mock-scolding` },
+  'holding':    { label: 'Тримає предмет',           phrase: `holding ${LADLE} in both hands, examining it with curiosity` },
   'baking':     { label: 'Місить тісто',             phrase: 'kneading dough on a floured wooden table, sleeves rolled up' },
   'praying':    { label: 'Молиться',                 phrase: 'hands gently together, calm reverent expression, eyes lowered' },
 }
@@ -91,9 +94,9 @@ export async function POST(req: NextRequest) {
       // Еталонний портрет з нуля — flux-1.1-pro (text-to-image).
       // Поясний/майже на повний зріст портрет, щоб обличчя було чітке.
       const prompt =
-        `${look}, three-quarter length portrait from head to hips, facing the camera, ` +
-        `realistic adult human proportions, slender build, well-formed hands with five ` +
-        `fingers, plain neutral studio background, soft even lighting, photorealistic, ` +
+        `${look}, head and shoulders portrait cropped at the chest, above the hands, ` +
+        `hands not visible, facing the camera, realistic adult human proportions, ` +
+        `plain neutral studio background, soft even lighting, photorealistic, ` +
         `sharp focus, no text, no watermark, seed_${seed}`
       endpoint = 'https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro/predictions'
       input = { prompt, aspect_ratio: '3:4', output_format: 'jpg', safety_tolerance: 2, seed }
