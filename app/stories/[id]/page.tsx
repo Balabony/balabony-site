@@ -47,14 +47,31 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params
   const story = await getStory(id)
   if (!story) return { title: 'Історія не знайдена' }
+
+  const desc    = story.text.replace(/\s+/g, ' ').trim().slice(0, 160)
+  const url      = `/stories/${id}`
+  // Fall back to the site OG image so shared links always show a preview card.
+  const ogImage = story.cover_url ?? '/og-image.jpg'
+
   return {
     title:       `${story.title} — ${story.author_name} | Balabony`,
-    description: story.text.replace(/\s+/g, ' ').slice(0, 160),
+    description: desc,
+    alternates:  { canonical: url },
     openGraph: {
-      title:  story.title,
-      images: story.cover_url ? [story.cover_url] : [],
+      type:        'article',
+      url,
+      siteName:    'Balabony™',
+      locale:      'uk_UA',
+      title:       `${story.title} — ${story.author_name}`,
+      description: desc,
+      images:      [{ url: ogImage, width: 1200, height: 630, alt: story.title }],
     },
-    alternates: { canonical: `/stories/${id}` },
+    twitter: {
+      card:        'summary_large_image',
+      title:       `${story.title} — ${story.author_name}`,
+      description: desc,
+      images:      [ogImage],
+    },
   }
 }
 
@@ -133,7 +150,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
         {/* Поширення */}
         <div style={{ marginTop: 40 }}>
-          <ShareButtons url={`https://balabony.com/stories/${id}`} title={story.title} />
+          <ShareButtons url={`https://balabony.com/stories/${id}`} title={story.title} storyId={id} />
         </div>
 
         {/* Footer */}
