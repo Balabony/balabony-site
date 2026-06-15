@@ -38,6 +38,7 @@ const GROUPS: SitemapGroup[] = [
   {
     title: 'Доступ і подарунки',
     links: [
+      { href: '/#pricing', label: 'Передплата',  note: 'Тарифи й доступ до всіх історій' },
       { href: '/free', label: 'Безкоштовно',  note: 'Безкоштовний доступ' },
       { href: '/gift', label: 'Подарунок',    note: 'Подарункова підписка' },
     ],
