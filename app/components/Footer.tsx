@@ -65,7 +65,7 @@ const PARTNERS = [
     name: 'ElevenLabs Impact Program',
     href: 'https://elevenlabs.io/impact-program',
     logo: '/partners/elevenlabs-white.svg?v=3',
-    height: 13,
+    height: 26,
   },
   // { name: 'Назва грантодавця', href: 'https://...', logo: '/partners/xxx-white.svg', height: 26 },
 ]
