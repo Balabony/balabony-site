@@ -311,9 +311,7 @@ export default function StoriesAdminPage() {
         setText(acc)
       }
       acc += decoder.decode()
-      // Прибрати сценічні ремарки в дужках — диктор їх не читає
       const cleaned = acc
-        .replace(/[ \t]*\([^)]*\)/g, '')
         .replace(/[ \t]{2,}/g, ' ')
         .replace(/ +\n/g, '\n')
         .trim()
@@ -340,6 +338,7 @@ export default function StoriesAdminPage() {
         setExpandError(msg || 'Помилка розширення')
         return
       }
+      const before = text
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
       let acc = ''
@@ -351,11 +350,16 @@ export default function StoriesAdminPage() {
       }
       acc += decoder.decode()
       const cleaned = acc
-        .replace(/[ \t]*\([^)]*\)/g, '')
         .replace(/[ \t]{2,}/g, ' ')
         .replace(/ +\n/g, '\n')
         .trim()
-      setText(cleaned)
+      // Захист: не замінюємо наявний текст на коротший/порожній результат
+      if (cleaned.length < before.trim().length) {
+        setText(before)
+        setExpandError('Розширення повернуло коротший текст — залишено попередній варіант. Спробуйте ще раз.')
+      } else {
+        setText(cleaned)
+      }
     } catch {
       setExpandError("Помилка з'єднання з API")
     } finally {
