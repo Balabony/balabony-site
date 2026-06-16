@@ -1,10 +1,10 @@
 'use client'
 // components/admin/EditorialTools.tsx
-// Спільний редакторський конвеєр для тексту серії:
-//   Аналіз (звіт) → Олюднити ×2 (проти штампів) / Грамотність → ПІДСВІЧЕНА різниця → Застосувати/Відхилити
-// Підсвітка: видалене — червоним закресленим, додане/виправлене — зеленим.
-// Для «Грамотності» додатково показуються причини правок (reason).
-// Інтерфейс Props незмінний — використовується і у формі створення, і в редакторі серії.
+// Редакторський конвеєр для тексту серії:
+//   Аналіз → Олюднити ×2 (проти штампів) / Грамотність → ПІДСВІЧЕНА різниця → Застосувати/Відхилити
+// «Грамотність»: кожну правку можна прийняти/відхилити ОКРЕМО (чекбокс). Застосовуються лише позначені.
+// «Олюднення»: цілісно переписаний текст — лише все/нічого (правки не атомарні).
+// Підсвітка: видалене — червоним закресленим, додане/виправлене — зеленим/золотим.
 
 import { useState, useCallback, useMemo } from 'react'
 
@@ -28,32 +28,24 @@ interface CorrectResp  { corrected_text?: string;  changes?: unknown[];        e
 
 type Pending =
   | { mode: 'humanize'; text: string; before: string; changes: string[] }
-  | { mode: 'correct';  text: string; before: string; corrections: Change[] }
+  | { mode: 'correct';  before: string; corrections: Change[] }
 
-// ── DIFF: токенізація на слова+пробіли+пунктуацію ───────────────────────────────
+// ── DIFF: токенізація на слова+пробіли ─────────────────────────────────────────
 function tokenize(s: string): string[] {
-  // зберігаємо роздільники, щоб склеювання давало точний оригінал
   return s.match(/\s+|[^\s]+/g) ?? []
 }
 
 type DiffPart = { type: 'equal' | 'del' | 'ins'; text: string }
 
-// LCS-діф по токенах (для абзацу). Обмежуємо розмір — інакше fallback.
 function diffTokens(aStr: string, bStr: string): DiffPart[] {
   const a = tokenize(aStr)
   const b = tokenize(bStr)
   const n = a.length, m = b.length
-  // захист від надто великих абзаців
-  if (n * m > 600000) {
-    return [{ type: 'del', text: aStr }, { type: 'ins', text: bStr }]
-  }
-  // DP таблиця довжин LCS
+  if (n * m > 600000) return [{ type: 'del', text: aStr }, { type: 'ins', text: bStr }]
   const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0))
-  for (let i = n - 1; i >= 0; i--) {
-    for (let j = m - 1; j >= 0; j--) {
+  for (let i = n - 1; i >= 0; i--)
+    for (let j = m - 1; j >= 0; j--)
       dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1])
-    }
-  }
   const parts: DiffPart[] = []
   let i = 0, j = 0
   const push = (type: DiffPart['type'], text: string) => {
@@ -71,7 +63,6 @@ function diffTokens(aStr: string, bStr: string): DiffPart[] {
   return parts
 }
 
-// Абзацний diff + word-diff усередині змінених абзаців.
 type Block =
   | { kind: 'equal'; text: string }
   | { kind: 'changed'; parts: DiffPart[] }
@@ -86,10 +77,8 @@ function diffParagraphs(beforeStr: string, afterStr: string): Block[] {
   for (let i = n - 1; i >= 0; i--)
     for (let j = m - 1; j >= 0; j--)
       dp[i][j] = A[i].trim() === B[j].trim() ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1])
-
   const blocks: Block[] = []
   let i = 0, j = 0
-  // буфери для парування видалених+доданих абзаців у «змінені»
   let pendDel: string[] = [], pendIns: string[] = []
   const flush = () => {
     const k = Math.min(pendDel.length, pendIns.length)
@@ -113,18 +102,31 @@ function diffParagraphs(beforeStr: string, afterStr: string): Block[] {
   return blocks
 }
 
-// підсвітка corrected-фраз у тексті (для «Грамотності»)
+// застосувати лише ПРИЙНЯТІ правки до оригіналу (original → corrected, перше входження)
+function applyAccepted(before: string, corrections: Change[], accepted: Set<number>): string {
+  let result = before
+  corrections.forEach((c, i) => {
+    if (!accepted.has(i)) return
+    if (!c.original || !c.corrected) return
+    const pos = result.indexOf(c.original)
+    if (pos === -1) return
+    result = result.slice(0, pos) + c.corrected + result.slice(pos + c.original.length)
+  })
+  return result
+}
+
+// підсвітка corrected-фраз у тексті (лише для переданих змін)
 type Seg = { type: 'text'; content: string } | { type: 'change'; content: string; change: Change }
-function buildCorrectSegments(correctedText: string, changes: Change[]): Seg[] {
+function buildCorrectSegments(builtText: string, changes: Change[]): Seg[] {
   const valid = changes.filter(c => c.corrected && c.corrected.trim())
-  if (!valid.length) return [{ type: 'text', content: correctedText }]
+  if (!valid.length) return [{ type: 'text', content: builtText }]
   const used: Array<[number, number]> = []
   const placed: Array<{ change: Change; start: number; end: number }> = []
   for (const change of valid) {
     const needle = change.corrected as string
     let from = 0
-    while (from < correctedText.length) {
-      const pos = correctedText.indexOf(needle, from)
+    while (from < builtText.length) {
+      const pos = builtText.indexOf(needle, from)
       if (pos === -1) break
       const end = pos + needle.length
       if (!used.some(([s, e]) => pos < e && end > s)) { used.push([pos, end]); placed.push({ change, start: pos, end }); break }
@@ -136,11 +138,11 @@ function buildCorrectSegments(correctedText: string, changes: Change[]): Seg[] {
   let cur = 0
   for (const { change, start, end } of placed) {
     if (start < cur) continue
-    if (start > cur) segs.push({ type: 'text', content: correctedText.slice(cur, start) })
-    segs.push({ type: 'change', content: correctedText.slice(start, end), change })
+    if (start > cur) segs.push({ type: 'text', content: builtText.slice(cur, start) })
+    segs.push({ type: 'change', content: builtText.slice(start, end), change })
     cur = end
   }
-  if (cur < correctedText.length) segs.push({ type: 'text', content: correctedText.slice(cur) })
+  if (cur < builtText.length) segs.push({ type: 'text', content: builtText.slice(cur) })
   return segs
 }
 
@@ -151,6 +153,7 @@ export default function EditorialTools({
   const [msg,     setMsg]     = useState('')
   const [report,  setReport]  = useState('')
   const [pending, setPending] = useState<Pending | null>(null)
+  const [accepted, setAccepted] = useState<Set<number>>(new Set()) // індекси прийнятих правок (correct)
 
   const humanizeOnce = useCallback(async (input: string): Promise<{ text: string; changes: string[] }> => {
     const res = await fetch('/api/admin/stories1/humanize', {
@@ -173,7 +176,7 @@ export default function EditorialTools({
       setMsg('Олюднення, прохід 2 із 2…')
       const p2 = await humanizeOnce(p1.text)
       setPending({ mode: 'humanize', text: p2.text, before: text, changes: [...p1.changes, ...p2.changes] })
-      setMsg('Готово. Підсвічене червоним — прибрано, зеленим — додано. Виріши: застосувати чи ні.')
+      setMsg('Готово. Підсвічене червоним — прибрано, зеленим — додано. Це цілісне переписування: застосувати чи ні.')
     } catch (e) {
       setMsg(e instanceof Error ? e.message : "Помилка з'єднання")
     } finally { setBusy('idle') }
@@ -189,15 +192,23 @@ export default function EditorialTools({
       })
       const data = await res.json() as CorrectResp
       if (!res.ok || data.error) { setMsg(data.error ?? 'Помилка'); return }
-      const next = (data.corrected_text && data.corrected_text.trim()) ? data.corrected_text : ''
-      if (!next) { setMsg('AI не повернув тексту'); return }
       const corrections: Change[] = Array.isArray(data.changes)
-        ? (data.changes as Change[]).filter(c => c && typeof c === 'object')
+        ? (data.changes as Change[]).filter(c => c && typeof c === 'object' && c.corrected && c.original)
         : []
-      setPending({ mode: 'correct', text: next, before: text, corrections })
-      setMsg(corrections.length
-        ? 'Готово. Підсвічені місця — пропоновані виправлення (наведи, щоб побачити «було» й причину).'
-        : 'AI не виділив окремих правок — порівняй тексти нижче.')
+      if (!corrections.length) {
+        // fallback: AI не дав структури — пропонуємо цілісний corrected_text як humanize-подібне
+        const next = (data.corrected_text && data.corrected_text.trim()) ? data.corrected_text : ''
+        if (next && next !== text) {
+          setPending({ mode: 'humanize', text: next, before: text, changes: [] })
+          setMsg('AI не виділив окремих правок — показую різницю цілком. Застосувати чи ні.')
+        } else {
+          setMsg('AI не запропонував змін.')
+        }
+        return
+      }
+      setPending({ mode: 'correct', before: text, corrections })
+      setAccepted(new Set(corrections.map((_, i) => i))) // за замовчуванням усі позначені
+      setMsg('Готово. Познач галочками потрібні правки — застосуються лише вони.')
     } catch {
       setMsg("Помилка з'єднання")
     } finally { setBusy('idle') }
@@ -223,12 +234,30 @@ export default function EditorialTools({
     } finally { setBusy('idle') }
   }, [text, authorName, title, genre])
 
+  // toggle окремої правки
+  const toggleChange = useCallback((i: number) => {
+    setAccepted(prev => {
+      const next = new Set(prev)
+      if (next.has(i)) next.delete(i); else next.add(i)
+      return next
+    })
+  }, [])
+
+  // побудований текст із прийнятих правок (для correct)
+  const builtCorrect = useMemo(
+    () => (pending && pending.mode === 'correct') ? applyAccepted(pending.before, pending.corrections, accepted) : '',
+    [pending, accepted],
+  )
+
   const applyPending = useCallback(() => {
     if (!pending) return
-    onApply(pending.text)
+    const finalText = pending.mode === 'correct'
+      ? applyAccepted(pending.before, pending.corrections, accepted)
+      : pending.text
+    onApply(finalText)
     setMsg('Застосовано. Не забудь зберегти.')
     setPending(null)
-  }, [pending, onApply])
+  }, [pending, accepted, onApply])
 
   const rejectPending = useCallback(() => {
     setPending(null)
@@ -244,22 +273,23 @@ export default function EditorialTools({
     opacity: busy !== 'idle' && !active ? 0.5 : 1,
   })
 
-  // стилі підсвітки
   const delStyle: React.CSSProperties = { background: 'rgba(248,113,113,0.18)', color: '#fca5a5', textDecoration: 'line-through', borderRadius: 3, padding: '0 2px' }
   const insStyle: React.CSSProperties = { background: 'rgba(74,222,128,0.20)', color: '#bbf7d0', borderRadius: 3, padding: '0 2px' }
   const chgStyle: React.CSSProperties = { background: 'rgba(240,165,0,0.22)', color: '#ffe9b8', borderRadius: 3, padding: '0 2px', borderBottom: `2px solid ${GOLD}` }
 
-  // блоки для humanize-diff
   const paraBlocks = useMemo(
     () => (pending && pending.mode === 'humanize') ? diffParagraphs(pending.before, pending.text) : null,
     [pending],
   )
-  // сегменти для correct
-  const correctSegs = useMemo(
-    () => (pending && pending.mode === 'correct') ? buildCorrectSegments(pending.text, pending.corrections) : null,
-    [pending],
-  )
-  const correctCount = pending && pending.mode === 'correct' ? pending.corrections.filter(c => c.corrected).length : 0
+  // підсвічуємо лише прийняті правки
+  const correctSegs = useMemo(() => {
+    if (!pending || pending.mode !== 'correct') return null
+    const acceptedChanges = pending.corrections.filter((_, i) => accepted.has(i))
+    return buildCorrectSegments(builtCorrect, acceptedChanges)
+  }, [pending, accepted, builtCorrect])
+
+  const acceptedCount = pending && pending.mode === 'correct' ? accepted.size : 0
+  const totalCount    = pending && pending.mode === 'correct' ? pending.corrections.length : 0
 
   return (
     <div>
@@ -289,7 +319,6 @@ export default function EditorialTools({
             {pending.mode === 'humanize' ? 'Пропозиція олюднення (×2)' : 'Пропозиція щодо грамотності'} — рішення за тобою
           </div>
 
-          {/* легенда */}
           <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 11, fontFamily: FONT, color: '#9fb0c8', marginBottom: 10 }}>
             {pending.mode === 'humanize' ? (
               <>
@@ -299,7 +328,7 @@ export default function EditorialTools({
             ) : (
               <span>
                 <span style={{ ...chgStyle, padding: '1px 6px' }}>виправлено</span>
-                {correctCount > 0 ? ` — ${correctCount} прав.` : ''} (наведи курсор, щоб побачити «було» й причину)
+                {` — обрано ${acceptedCount} з ${totalCount}`} (познач галочки нижче)
               </span>
             )}
           </div>
@@ -321,35 +350,65 @@ export default function EditorialTools({
               )
             })}
 
-            {pending.mode === 'correct' && correctSegs && (
-              correctCount > 0
-                ? correctSegs.map((seg, si) =>
-                    seg.type === 'text'
-                      ? <span key={si}>{seg.content}</span>
-                      : <span key={si} style={chgStyle} title={`було: «${seg.change.original ?? ''}»${seg.change.reason ? `\n${seg.change.reason}` : ''}`}>{seg.content}</span>
-                  )
-                : <span>{pending.text}</span>
+            {pending.mode === 'correct' && correctSegs && correctSegs.map((seg, si) =>
+              seg.type === 'text'
+                ? <span key={si}>{seg.content}</span>
+                : <span key={si} style={chgStyle} title={`було: «${seg.change.original ?? ''}»${seg.change.reason ? `\n${seg.change.reason}` : ''}`}>{seg.content}</span>
             )}
           </div>
 
-          {/* перелік правок для «Грамотності» */}
-          {pending.mode === 'correct' && correctCount > 0 && (
+          {/* ПЕРЕЛІК ПРАВОК з чекбоксами (correct) */}
+          {pending.mode === 'correct' && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#cbd5e1', fontFamily: FONT, marginBottom: 6 }}>Перелік правок:</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6, flexWrap: 'wrap', gap: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#cbd5e1', fontFamily: FONT }}>Правки (познач потрібні):</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => setAccepted(new Set(pending.corrections.map((_, i) => i)))}
+                    style={{ fontSize: 11, fontWeight: 700, color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 7, padding: '4px 10px', cursor: 'pointer', fontFamily: FONT }}>
+                    Усі
+                  </button>
+                  <button onClick={() => setAccepted(new Set())}
+                    style={{ fontSize: 11, fontWeight: 700, color: '#8899bb', background: 'rgba(136,153,187,0.1)', border: '1px solid rgba(136,153,187,0.3)', borderRadius: 7, padding: '4px 10px', cursor: 'pointer', fontFamily: FONT }}>
+                    Жодної
+                  </button>
+                </div>
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {pending.corrections.filter(c => c.corrected).map((c, i) => (
-                  <div key={i} style={{ fontSize: 12, fontFamily: FONT, color: '#cbd5e1', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 8, padding: '8px 10px', lineHeight: 1.5 }}>
-                    <span style={{ color: '#fca5a5', textDecoration: 'line-through' }}>{c.original}</span>
-                    {' → '}
-                    <span style={{ color: '#bbf7d0' }}>{c.corrected}</span>
-                    {c.reason ? <div style={{ color: '#8899bb', marginTop: 2 }}>{c.reason}</div> : null}
-                  </div>
-                ))}
+                {pending.corrections.map((c, i) => {
+                  const on = accepted.has(i)
+                  return (
+                    <div key={i} onClick={() => toggleChange(i)}
+                      style={{
+                        fontSize: 12, fontFamily: FONT, color: '#cbd5e1', cursor: 'pointer',
+                        background: on ? 'rgba(74,222,128,0.06)' : 'rgba(255,255,255,0.02)',
+                        border: `1px solid ${on ? 'rgba(74,222,128,0.3)' : 'rgba(255,255,255,0.07)'}`,
+                        borderRadius: 8, padding: '8px 10px', lineHeight: 1.5,
+                        display: 'flex', gap: 10, alignItems: 'flex-start',
+                        opacity: on ? 1 : 0.6, transition: 'all 0.15s',
+                      }}>
+                      <div style={{
+                        width: 18, height: 18, borderRadius: 5, flexShrink: 0, marginTop: 1,
+                        background: on ? '#4ade80' : 'transparent',
+                        border: `1.5px solid ${on ? '#4ade80' : 'rgba(255,255,255,0.3)'}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: NAVY_DEEP, fontSize: 12, fontWeight: 900,
+                      }}>{on ? '✓' : ''}</div>
+                      <div style={{ flex: 1 }}>
+                        <div>
+                          <span style={{ color: '#fca5a5', textDecoration: 'line-through' }}>{c.original}</span>
+                          {' → '}
+                          <span style={{ color: '#bbf7d0' }}>{c.corrected}</span>
+                        </div>
+                        {c.reason ? <div style={{ color: '#8899bb', marginTop: 2 }}>{c.reason}</div> : null}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}
 
-          {/* підсумок змін для олюднення (якщо API дав) */}
+          {/* підсумок для олюднення */}
           {pending.mode === 'humanize' && pending.changes.length > 0 && (
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#cbd5e1', fontFamily: FONT, marginBottom: 6 }}>Що змінено (підсумок AI):</div>
@@ -360,11 +419,19 @@ export default function EditorialTools({
           )}
 
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button onClick={applyPending} style={{ background: GOLD, color: NAVY_DEEP, border: 'none', borderRadius: 10, padding: '10px 20px', fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: FONT }}>
-              ✓ Застосувати
+            <button onClick={applyPending}
+              disabled={pending.mode === 'correct' && acceptedCount === 0}
+              style={{
+                background: (pending.mode === 'correct' && acceptedCount === 0) ? 'rgba(240,165,0,0.4)' : GOLD,
+                color: NAVY_DEEP, border: 'none', borderRadius: 10, padding: '10px 20px',
+                fontSize: 14, fontWeight: 800,
+                cursor: (pending.mode === 'correct' && acceptedCount === 0) ? 'not-allowed' : 'pointer',
+                fontFamily: FONT,
+              }}>
+              {pending.mode === 'correct' ? `✓ Застосувати обрані (${acceptedCount})` : '✓ Застосувати'}
             </button>
             <button onClick={rejectPending} style={{ background: 'transparent', color: '#f87171', border: '1px solid rgba(248,113,113,0.4)', borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FONT }}>
-              ✗ Відхилити
+              ✗ Відхилити все
             </button>
           </div>
         </div>
@@ -377,7 +444,7 @@ export default function EditorialTools({
       )}
 
       <div style={{ fontSize: 11, color: '#667799', fontFamily: FONT, marginTop: 10, lineHeight: 1.5 }}>
-        Порядок: {showAnalysis ? <><b>Аналіз</b> → </> : null}<b>Олюднити ×2</b> або <b>Грамотність</b> → переглянь <b>підсвічену</b> різницю → <b>Застосувати</b> або <b>Відхилити</b>. Після «Застосувати» не забудь зберегти.
+        Порядок: {showAnalysis ? <><b>Аналіз</b> → </> : null}<b>Олюднити ×2</b> або <b>Грамотність</b> → переглянь <b>підсвічену</b> різницю → для грамотності познач потрібні правки → <b>Застосувати</b>. Після «Застосувати» не забудь зберегти.
       </div>
     </div>
   )
