@@ -6,8 +6,6 @@ import Anthropic from '@anthropic-ai/sdk'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { applyGoldenFrame } from '@/lib/golden-frame'
 
-// Жорсткий пост-кроп: лишає верхні ~68% кадру (голова+плечі+груди), відрізає
-// низ із кистями рук. Гарантовано прибирає руки/пальці з Ганіних обкладинок.
 async function cropAboveHands(buf: Buffer): Promise<Buffer> {
   try {
     const meta = await sharp(buf).metadata()
@@ -21,9 +19,6 @@ async function cropAboveHands(buf: Buffer): Promise<Buffer> {
   }
 }
 
-// =============================================================================
-// СТАРИЙ FALLBACK (на випадок коли в cover_plan немає запису для slug)
-// =============================================================================
 const POSE_FILES = [
   'panas-walking', 'panas-sitting', 'panas-thinking', 'panas-back',
   'panas-crouching', 'panas-reaching', 'panas-lying', 'panas-running',
@@ -33,9 +28,6 @@ const POSE_FILES = [
   'panas-neighbor', 'panas-holding', 'panas-packages',
 ]
 
-// =============================================================================
-// КАТАЛОГ ЛОКАЦІЙ (35) — фрази для промпту Flux
-// =============================================================================
 const LOCATION_PROMPTS: Record<string, string> = {
   'old-house-interior': 'interior of an old Ukrainian village house, whitewashed clay stove (pich), wooden ceiling beams, embroidered icons on the wall',
   'old-house-exterior': 'exterior of a white-painted clay village house, thatched roof, wooden window shutters',
@@ -91,14 +83,8 @@ const TIME_OF_DAY_PROMPTS: Record<string, string> = {
   'lamplight':   'warm interior lamplight, cosy amber glow, soft pools of light, intimate evening mood',
 }
 
-// Fallback константа якщо timeOfDay='golden-hour' (старий код)
 const GOLDEN_HOUR_LIGHTING = TIME_OF_DAY_PROMPTS['golden-hour']
 
-// =============================================================================
-// КАДРУВАННЯ — посилено щоб Панас не виглядав гномом
-// =============================================================================
-// Світлі освітлення для ВИПАДКОВОГО вибору — обличчя завжди добре видно.
-// Темні (night, lamplight, blue-hour) лишаються лише якщо їх явно задав план серії.
 const SAFE_LIGHTING = [
   TIME_OF_DAY_PROMPTS['golden-hour'],
   TIME_OF_DAY_PROMPTS['morning'],
@@ -106,16 +92,12 @@ const SAFE_LIGHTING = [
   TIME_OF_DAY_PROMPTS['overcast'],
 ]
 
-// Варіанти кадрування — усі зрізані ВИЩЕ кистей рук (по груди / голова-плечі),
-// щоб у кадр не потрапляли руки з пальцями (часте джерело артефактів Flux),
-// а обличчя завжди було видно.
 const FRAMING_VARIANTS = [
   'head and shoulders portrait, cropped at mid-chest above the hands, hands not visible, face well lit and clearly visible, natural human proportions',
   'close-up portrait, head and upper chest only, hands out of frame, expressive well-lit face, shallow depth of field, natural human proportions',
   'upper-body portrait from the chest up, cropped above the hands, hands not visible, face clearly visible and well lit, natural human proportions',
 ]
 
-// Ракурс камери — легке «обертання», але обличчя завжди видно (без чистого профілю).
 const ANGLE_VARIANTS = [
   'facing the camera, frontal view, face clearly visible',
   'three-quarter view, body turned slightly to one side, face still toward camera',
@@ -123,16 +105,11 @@ const ANGLE_VARIANTS = [
   'slight low camera angle, dignified grounded perspective, face clearly lit',
 ]
 
-// Детермінований вибір за seed (різні salt → незалежні осі різноманітності)
 function pickBySeed<T>(arr: T[], seed: number, salt: number): T {
   return arr[Math.floor(seed / salt) % arr.length]
 }
 
-// =============================================================================
-// NEGATIVE PROMPT — посилено проти артефактів Flux
-// =============================================================================
 const NEGATIVE_PROMPT = [
-  // Текст / надписи
   'text', 'letters', 'words', 'captions', 'logos', 'watermarks', 'signatures',
   'typography', 'written words', 'BALABONI', 'БАЛАБОНИ', 'titles', 'subtitles',
   'label', 'labels', 'writing', 'font', 'alphabet', 'numbers', 'digits',
@@ -141,41 +118,26 @@ const NEGATIVE_PROMPT = [
   'graffiti', 'newspaper text', 'poster text', 'overlaid text', 'burned-in text',
   'banner', 'headline', 'book title', 'book cover text', 'sign with text',
   'propaganda poster', 'political poster', 'soviet poster', 'wall poster',
-
-  // Гібридні / спотворені об'єкти
   'hybrid tools', 'fused tools', 'merged tools', 'two tools combined into one',
   'shovel-hoe hybrid', 'malformed tool', 'impossible tool',
   'floating objects', 'levitating objects', 'objects in mid-air',
-
-  // Спотворена анатомія
   'distorted hands', 'malformed hands', 'extra fingers', 'missing fingers',
   'fused fingers', 'extra limbs', 'extra arms', 'deformed anatomy',
   'hand merging with face', 'hand inside head', 'hand merged with object',
-
-  // Пропорції / масштаб (гном-проблема)
   'small figure', 'tiny person', 'dwarf proportions', 'doll-like proportions',
   'shrunken body', 'oversized head', 'tiny torso', 'miniature person',
   'distant figure', 'subject too small', 'figure lost in scene',
-
-  // Композиція
   'picture-in-picture', 'frame within frame', 'photo inside photo',
   'image within image', 'mise en abyme',
   'pure back view on dark background', 'lonely silhouette no context',
-
-  // Обрізання кінцівок (проблема «обрізані ноги»)
   'cropped legs', 'legs cut off', 'feet cut off', 'cut-off feet',
   'amputated legs', 'amputated feet', 'figure cropped at the knees',
   'cropped at the ankles', 'cropped at the shins', 'limbs cut by frame edge',
   'feet outside the frame', 'awkward body crop',
-
-  // Якість
   'blurry face', 'plastic skin', 'doll face', 'wax figure', 'mannequin',
   'low quality', 'jpeg artifacts', 'oversaturated',
 ].join(', ')
 
-// =============================================================================
-// FALLBACK analyzeScene (старий код для серій яких немає в cover_plan)
-// =============================================================================
 async function analyzeSceneFallback(title: string, description: string) {
   const fallbackPose = POSE_FILES[Math.floor(Math.random() * POSE_FILES.length)] + '.jpg'
   const fallbackScene = description?.trim() || title
@@ -215,17 +177,12 @@ async function analyzeSceneFallback(title: string, description: string) {
   }
 }
 
-// =============================================================================
-// ГЕРОЄ-ЗАЛЕЖНА ЛОГІКА (Панас / Ганя)
-// =============================================================================
 const GANYA_POSE_FILES = [
   'ganya-standing', 'ganya-cooking', 'ganya-notebook', 'ganya-reading',
   'ganya-talking', 'ganya-sitting', 'ganya-surprised', 'ganya-laughing',
   'ganya-scolding', 'ganya-holding', 'ganya-baking', 'ganya-praying',
 ]
 
-// Хто головний у кадрі серії — дід Панас чи баба Ганя.
-// За замовчуванням (непевність) — panas, щоб не ламати наявне.
 async function detectProtagonist(title: string, text: string): Promise<'panas' | 'ganya'> {
   const key = process.env.ANTHROPIC_API_KEY
   if (!key || !text) return 'panas'
@@ -258,7 +215,6 @@ ${text.slice(0, 2500)}`,
   }
 }
 
-// Підбір пози Гані з її каталогу за текстом серії.
 async function analyzeGanya(title: string, text: string): Promise<{ pose: string; scene: string; keyObject: string | null }> {
   const fallback = { pose: 'ganya-standing', scene: title, keyObject: null as string | null }
   const key = process.env.ANTHROPIC_API_KEY
@@ -297,9 +253,6 @@ async function analyzeGanya(title: string, text: string): Promise<{ pose: string
   }
 }
 
-// =============================================================================
-// ENDPOINT
-// =============================================================================
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -316,14 +269,12 @@ export async function POST(req: NextRequest) {
 
     const supabase = getSupabaseAdmin()
 
-    // 1. План обкладинки (поза/локація/сезон). Локація/сезон/час — не залежать від героя.
     const { data: planRow } = await supabase
       .from('cover_plan')
       .select('*')
       .eq('slug', seriesId)
       .single()
 
-    // 1b. Текст серії — потрібен для авто-детекту героя та підбору пози Гані.
     let episodeText = (description || '').trim()
     if (!episodeText) {
       const { data: c } = await supabase
@@ -331,16 +282,11 @@ export async function POST(req: NextRequest) {
       episodeText = (c?.corrected_text || '').trim()
     }
 
-    // 1c. Який герой на обкладинці:
-    //   - 'panas'|'ganya' із запиту — пріоритет (ручне перевизначення);
-    //   - 'auto' — Haiku визначає за текстом;
-    //   - нічого — за замовчуванням panas (стара поведінка, без сюрпризів).
     const requested = String(body.character || '').toLowerCase()
     let character: 'panas' | 'ganya' = 'panas'
     if (requested === 'panas' || requested === 'ganya') character = requested
     else if (requested === 'auto') character = await detectProtagonist(title, episodeText)
 
-    // Seed — один на всю генерацію (кадр, ракурс, світло, фон, Replicate).
     const seed = Math.floor(Math.random() * 2_000_000)
 
     let scene: string
@@ -357,16 +303,12 @@ export async function POST(req: NextRequest) {
     let timePrompt     = planRow ? (TIME_OF_DAY_PROMPTS[planRow.time_of_day] || GOLDEN_HOUR_LIGHTING) : GOLDEN_HOUR_LIGHTING
 
     if (character === 'ganya') {
-      // Ганя: поза з її каталогу за текстом серії (план Панаса не використовуємо для пози).
-      // Предмет (keyObject) НЕ додаємо: руки ми й так зрізаємо.
       const g = await analyzeGanya(title, episodeText)
       poseFile = `${g.pose}.jpg`
       usedPose = g.pose
       scene = g.scene || title
       keyObject = null
       objectOwner = null
-      // Різноманіття: фон/сезон/світло обираємо за seed (у Гані немає власного плану),
-      // щоб портрети не повторювались — інший образ, ракурс, фон щоразу.
       const locKeys = Object.keys(LOCATION_PROMPTS)
       const seasonKeys = Object.keys(SEASON_PROMPTS)
       const gLoc = pickBySeed(locKeys, seed, 3)
@@ -378,14 +320,12 @@ export async function POST(req: NextRequest) {
       usedSeason = gSeason
       usedTimeOfDay = 'seed'
     } else if (planRow) {
-      // Панас із плану
       poseFile = `${planRow.pose}.jpg`
       usedPose = planRow.pose
       scene = planRow.scene_detail || title
       keyObject = planRow.key_object
       objectOwner = planRow.object_owner as 'self' | 'other' | null
     } else {
-      // Панас fallback
       const fb = await analyzeSceneFallback(title, description || '')
       poseFile = POSE_FILES[Math.floor(Math.random() * POSE_FILES.length)] + '.jpg'
       usedPose = poseFile.replace(/\.jpg$/, '')
@@ -394,13 +334,28 @@ export async function POST(req: NextRequest) {
       objectOwner = null
     }
 
-    // 2. Завантажити базову позу з папки відповідного героя
+    // ── SEED-FALLBACK ЛОКАЦІЇ/СЕЗОНУ (для Панаса, як уже зроблено для Гані) ──
+    // Базові пози тепер на ЧИСТОМУ студійному фоні. Якщо план не задав локацію/
+    // сезон (поле порожнє у cover_plan або серії немає в плані) — обираємо їх за
+    // seed, щоб kontext наклав РІЗНИЙ фон, а не лишав сіру студію.
+    if (!locationPrompt) {
+      const locKeys = Object.keys(LOCATION_PROMPTS)
+      const k = pickBySeed(locKeys, seed, 3)
+      locationPrompt = LOCATION_PROMPTS[k] || ''
+      usedLocation = k
+    }
+    if (!seasonPrompt) {
+      const seasonKeys = Object.keys(SEASON_PROMPTS)
+      const k = pickBySeed(seasonKeys, seed, 5)
+      seasonPrompt = SEASON_PROMPTS[k] || ''
+      usedSeason = k
+    }
+
     const poseFolder = character === 'ganya' ? 'ganya-poses' : 'panas-poses'
     const imagePath = join(process.cwd(), 'public', poseFolder, poseFile)
     const imageBuffer = readFileSync(imagePath)
     const base64Image = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
 
-    // 3. Скласти промпт
     let objectPrefix = ''
     if (keyObject && objectOwner === 'other') {
       objectPrefix = `${keyObject} as a small detail at edge of frame, partially visible, hinting at another presence, `
@@ -409,15 +364,12 @@ export async function POST(req: NextRequest) {
       objectPrefix = `${keyObject} clearly visible in ${poss} hands or directly beside ${character === 'ganya' ? 'her' : 'him'}, `
     }
 
-    // Різноманітність обкладинок: ракурс + кадр завжди варіюємо за seed;
-    // освітлення варіюємо, лише якщо план не задав власне (інакше поважаємо план).
     const lightingFinal = (timePrompt && timePrompt !== GOLDEN_HOUR_LIGHTING)
       ? timePrompt
       : pickBySeed(SAFE_LIGHTING, seed, 7)
     const framingFinal = pickBySeed(FRAMING_VARIANTS, seed, 13)
     const angleFinal   = pickBySeed(ANGLE_VARIANTS, seed, 29)
 
-    // Збираємо промпт: scene → location → season → light → framing → angle
     const promptParts = [
       objectPrefix + scene,
       locationPrompt,
@@ -428,7 +380,6 @@ export async function POST(req: NextRequest) {
     ].filter(Boolean).join(', ')
     const prompt = `${promptParts}, seed_${seed}`
 
-    // 4. Викликати Replicate (Flux Kontext Pro)
     const replicateRes = await fetch(
       'https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions',
       {
@@ -468,7 +419,6 @@ export async function POST(req: NextRequest) {
       ? prediction.output[0]
       : prediction.output
 
-    // 5. Завантажити, обробити golden frame, залити в Storage
     const imgRes = await fetch(generatedUrl)
     if (!imgRes.ok) {
       return NextResponse.json({ error: 'Failed to download generated image' }, { status: 502 })
@@ -488,7 +438,6 @@ export async function POST(req: NextRequest) {
 
     const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(fileName)
 
-    // 6. Записати cover_url + cover_meta в content
     const coverMeta = {
       character,
       pose: usedPose,
