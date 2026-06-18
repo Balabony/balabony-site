@@ -17,13 +17,19 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 // =============================================================================
 
 // Базовий «замок» вигляду — щоб обличчя/одяг були однакові на всіх позах.
-// Канон Панаса: дід ~70, біла борода, вишиванка + темна жилетка, хрестик.
+// КАНОН Панаса (звірено з наявними позами): міцний сільський дід приблизно
+// 63-65 років, НЕ старезний; обличчя засмагле, бадьора весела усмішка;
+// борода СЕРЕДНЬОЇ довжини, акуратна, СИВА З ТЕМНИМИ ПАСМАМИ (не суцільно біла,
+// не довга патріаршна); коротке сиве волосся; вишиванка під темною жилеткою;
+// маленький ДЕРЕВ'ЯНИЙ хрестик на шнурку (не золотий); плетений пояс.
 const DEFAULT_LOOK =
-  'a warm elderly Ukrainian village grandfather, around 70 years old, of average ' +
-  'height and lean build, kind weathered face with soft wrinkles, full neatly-kept ' +
-  'grey-white beard, short grey hair, lively intelligent eyes, wearing a white ' +
-  'embroidered Ukrainian shirt (vyshyvanka) under a dark sleeveless waistcoat ' +
-  '(zhyletka), a small wooden cross on a cord, a woven belt at the waist, ' +
+  'a robust cheerful Ukrainian village grandfather, around 63 years old, NOT very old, ' +
+  'sturdy and energetic, tanned weathered face with laugh lines and a lively warm smile, ' +
+  'a medium-length neatly-trimmed beard that is grey mixed with darker strands ' +
+  '(NOT a long fully-white patriarch beard), short greying hair, bright lively eyes, ' +
+  'wearing a white embroidered Ukrainian shirt (vyshyvanka) with red-and-black ' +
+  'embroidery at the collar, under a dark sleeveless waistcoat (zhyletka), ' +
+  'a small plain WOODEN cross on a cord (not gold), a woven belt at the waist, ' +
   'photorealistic, cinematic warm soft lighting'
 
 // Спільні «технічні» вимоги до базової пози — повна фігура, ЧИСТИЙ фон,
