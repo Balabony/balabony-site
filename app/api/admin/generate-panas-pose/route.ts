@@ -137,8 +137,10 @@ export async function POST(req: NextRequest) {
       if (!referenceImageUrl) return NextResponse.json({ error: 'Спочатку обери еталон' }, { status: 400 })
 
       const prompt =
-        `the same elderly Ukrainian grandfather, keep his face and clothes identical, ` +
-        `now ${pose.phrase}, ${POSE_TECH}, seed_${seed}`
+        `the same elderly Ukrainian grandfather, keep his face, beard and clothes identical, ` +
+        `REMOVE the original background completely and replace it with a plain neutral seamless ` +
+        `light-grey studio backdrop, no house, no village, no garden, no flowers, no fence, ` +
+        `no outdoor scenery at all, now ${pose.phrase}, ${POSE_TECH}, seed_${seed}`
       endpoint = 'https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions'
       input = { prompt, input_image: referenceImageUrl, aspect_ratio: '2:3', output_format: 'jpg', safety_tolerance: 2, seed }
       tag = poseKey
