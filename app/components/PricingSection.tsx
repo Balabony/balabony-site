@@ -709,7 +709,7 @@ export default function PricingSection() {
           <div className="bb-pricing-util-info">
             <div className="bb-pricing-util-name">Пільговий доступ</div>
             <div className="bb-pricing-util-sub">
-              <span>УБД або інвалідність</span>
+              <span>УБД, ВПО або інвалідність</span>
               <span className="bb-pricing-diya-tag">Валідація через ДІЯ</span>
             </div>
           </div>
