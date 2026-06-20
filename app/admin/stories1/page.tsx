@@ -272,19 +272,19 @@ export default function Stories1Page() {
     } catch { setHumanizeError("Помилка з'єднання"); setHumanizePhase('error') }
   }
 
-  // ── Згенерувати обкладинку казки (text-to-image, без фото) ─────────────────
+  // ── Згенерувати ілюстрації казки (4 шт., text-to-image, без фото) ──────────
   const handleGenerateCover = async () => {
     if (!editId) { setCovError('Спершу збережіть історію (генерація працює в режимі редагування)'); setCovPhase('error'); return }
     if (!text.trim()) { setCovError('Немає тексту казки'); setCovPhase('error'); return }
     setCovPhase('loading'); setCovError('')
     try {
-      const res  = await fetch('/api/admin/stories1/generate-fairytale-cover', {
+      const res  = await fetch('/api/admin/stories1/generate-fairytale-images', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ storyId: editId, title, text }),
       })
-      const data = await res.json() as { url?: string; error?: string }
-      if (!res.ok || data.error || !data.url) { setCovError(data.error ?? 'Не вдалося згенерувати'); setCovPhase('error'); return }
-      setImgSrc(data.url); setPhotoB64('')
+      const data = await res.json() as { images?: string[]; error?: string }
+      if (!res.ok || data.error || !data.images || data.images.length === 0) { setCovError(data.error ?? 'Не вдалося згенерувати'); setCovPhase('error'); return }
+      setImgSrc(data.images[0]); setPhotoB64('')
       setCovPhase('done')
     } catch { setCovError("Помилка з'єднання"); setCovPhase('error') }
   }
@@ -521,10 +521,10 @@ export default function Stories1Page() {
                   disabled={covPhase === 'loading'}
                   style={triggerBtn(VIOLET, covPhase === 'loading')}
                 >
-                  {covPhase === 'loading' ? <><Spinner color={VIOLET} /> Малюю обкладинку…</> : <>🎨 Згенерувати обкладинку (казка)</>}
+                  {covPhase === 'loading' ? <><Spinner color={VIOLET} /> Малюю 4 ілюстрації…</> : <>🎨 Згенерувати ілюстрації казки (4 шт.)</>}
                 </button>
                 <div style={{ fontSize: 11, color: '#6b7d92', fontFamily: FONT, marginTop: 6 }}>
-                  Акварельна ілюстрація з тексту казки (~30 с). Працює в режимі редагування — обкладинка зберігається одразу.
+                  4 акварельні ілюстрації з тексту казки (~1 хв). Перша стає обкладинкою, решта — між абзацами. Працює в режимі редагування — зберігається одразу.
                 </div>
                 {covPhase === 'error' && <ErrorBox>{covError}</ErrorBox>}
               </>

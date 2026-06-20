@@ -109,6 +109,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'All generations failed' }, { status: 502 })
     }
 
+    // Зберігаємо одразу: перша ілюстрація = обкладинка, усі — у масив images.
+    const supabase = getSupabaseAdmin()
+    await supabase.from('content')
+      .update({ cover_url: images[0], images })
+      .eq('id', storyId)
+
     return NextResponse.json({ images })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
