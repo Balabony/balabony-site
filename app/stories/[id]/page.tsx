@@ -185,6 +185,25 @@ function escapeChars(str: string): string {
     .replace(/"/g, '&quot;')
 }
 
+// Розпізнає репліку формату «Імʼя: текст» на початку абзацу і фарбує імʼя золотим
+// (як у серіалах). У казках персонажі довільні, тому імʼя визначаємо ЗАГАЛЬНИМ
+// правилом, а не списком: з великої літери, ≤3 слова, ≤20 символів, без розділових
+// знаків і дужок усередині — щоб не зачепити звичайну нарацію з двокрапкою.
+const SPEAKER_RE = /^([А-ЯІЇЄҐ][^:\n.!?,;–—()]{0,19}):\s/
+
+function renderParaInner(p: string): string {
+  const m = p.match(SPEAKER_RE)
+  if (m) {
+    const name = m[1]
+    const words = name.trim().split(/\s+/)
+    if (words.length <= 3) {
+      const rest = p.slice(m[0].length)
+      return `<strong style="color:${GOLD};font-weight:700">${escapeChars(name)}:</strong> ${escapeChars(rest)}`
+    }
+  }
+  return escapeChars(p)
+}
+
 // Розбиває текст на абзаци й обгортає кожен у <p> з відступом 14px.
 // Якщо є ілюстрації (казки) — рівномірно розставляє їх між абзацами,
 // за хронологією: малюнок 1 ближче до початку, останній — ближче до кінця.
@@ -215,7 +234,7 @@ function toStoryHtml(raw: string, images: string[] = []): string {
 
   let html = ''
   paras.forEach((p, i) => {
-    html += `<p style="margin:0 0 14px 0">${escapeChars(p)}</p>`
+    html += `<p style="margin:0 0 14px 0">${renderParaInner(p)}</p>`
     const here = insertAfter.get(i)
     if (here) here.forEach(u => { html += imgTag(u) })
   })

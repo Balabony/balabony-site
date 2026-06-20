@@ -161,6 +161,8 @@ export default function Stories1Page() {
   const [imgSrc,   setImgSrc]   = useState('')
   const [photoB64, setPhotoB64] = useState('')
   const [dragOver, setDragOver] = useState(false)
+  const [covPhase, setCovPhase] = useState<Phase>('idle')
+  const [covError, setCovError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
   // AI check
@@ -268,6 +270,23 @@ export default function Stories1Page() {
       setHumanizedText(ht); setClaudeHumanizedText(ht); setHumanizeSummary(data.changes_summary ?? [])
       setHumanizePhase('done'); setHumanizeManuallyEdited(false)
     } catch { setHumanizeError("Помилка з'єднання"); setHumanizePhase('error') }
+  }
+
+  // ── Згенерувати обкладинку казки (text-to-image, без фото) ─────────────────
+  const handleGenerateCover = async () => {
+    if (!editId) { setCovError('Спершу збережіть історію (генерація працює в режимі редагування)'); setCovPhase('error'); return }
+    if (!text.trim()) { setCovError('Немає тексту казки'); setCovPhase('error'); return }
+    setCovPhase('loading'); setCovError('')
+    try {
+      const res  = await fetch('/api/admin/stories1/generate-fairytale-cover', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storyId: editId, title, text }),
+      })
+      const data = await res.json() as { url?: string; error?: string }
+      if (!res.ok || data.error || !data.url) { setCovError(data.error ?? 'Не вдалося згенерувати'); setCovPhase('error'); return }
+      setImgSrc(data.url); setPhotoB64('')
+      setCovPhase('done')
+    } catch { setCovError("Помилка з'єднання"); setCovPhase('error') }
   }
 
   // ── Publish ───────────────────────────────────────────────────────────────
@@ -494,6 +513,21 @@ export default function Stories1Page() {
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,22,40,0.5) 0%, transparent 50%)' }} />
                 <button onClick={() => { setImgSrc(''); setPhotoB64('') }} style={{ position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,0,0,0.7)', border: 'none', color: '#fff', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
               </div>
+            )}
+            {genre === 'Казка' && (
+              <>
+                <button
+                  onClick={handleGenerateCover}
+                  disabled={covPhase === 'loading'}
+                  style={triggerBtn(VIOLET, covPhase === 'loading')}
+                >
+                  {covPhase === 'loading' ? <><Spinner color={VIOLET} /> Малюю обкладинку…</> : <>🎨 Згенерувати обкладинку (казка)</>}
+                </button>
+                <div style={{ fontSize: 11, color: '#6b7d92', fontFamily: FONT, marginTop: 6 }}>
+                  Акварельна ілюстрація з тексту казки (~30 с). Працює в режимі редагування — обкладинка зберігається одразу.
+                </div>
+                {covPhase === 'error' && <ErrorBox>{covError}</ErrorBox>}
+              </>
             )}
           </Field>
           <button onClick={handleCheck} disabled={checkPhase === 'loading'} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, background: checkPhase === 'loading' ? 'rgba(240,165,0,0.45)' : 'linear-gradient(135deg,#f0a500,#e8920a)', color: NAVY_DEEP, border: 'none', borderRadius: 12, padding: '15px 18px', fontSize: 15, fontWeight: 800, cursor: checkPhase === 'loading' ? 'wait' : 'pointer', fontFamily: FONT, boxShadow: checkPhase === 'loading' ? 'none' : '0 2px 14px rgba(240,165,0,0.3)', transition: 'all 0.2s' }}>

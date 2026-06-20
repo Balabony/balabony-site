@@ -98,6 +98,10 @@ export async function POST(req: NextRequest) {
     }
 
     const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(fileName)
+
+    // Одразу прописуємо обкладинку в історію — щоб не треба було повторно «Схвалити».
+    await supabase.from('content').update({ cover_url: publicUrl }).eq('id', storyId)
+
     return NextResponse.json({ url: publicUrl, fileName })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
