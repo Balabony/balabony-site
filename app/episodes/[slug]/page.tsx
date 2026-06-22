@@ -33,13 +33,14 @@ interface EpisodeRow {
   next_release_date: string | null
   audio_url:         string | null
   audio_status:      string | null
+  recap:             string | null
 }
 
 async function getEpisode(slug: string): Promise<EpisodeRow | null> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('id, slug, title, description, season_number, episode_number, text, corrected_text, humanized_text, published_version, cover_url, approved_at, hook, next_teaser, next_release_date, audio_url, audio_status')
+    .select('id, slug, title, description, season_number, episode_number, text, corrected_text, humanized_text, published_version, cover_url, approved_at, hook, next_teaser, next_release_date, audio_url, audio_status, recap')
     .eq('type', 'balabony')
     .eq('slug', slug)
     .eq('status', 'published')
@@ -70,6 +71,31 @@ async function getNextEpisode(season: number, episode: number): Promise<NextRow 
 
   if (error || !data || data.length === 0) return null
   return data[0] as NextRow
+}
+
+interface PrevRecapRow {
+  title:          string
+  season_number:  number
+  episode_number: number
+  recap:          string | null
+}
+
+// Попередній епізод за наскрізною нумерацією (дзеркало getNextEpisode).
+// Через межу сезону теж працює: останній епізод минулого сезону.
+async function getPrevEpisode(season: number, episode: number): Promise<PrevRecapRow | null> {
+  const supabase = getSupabaseAdmin()
+  const { data, error } = await supabase
+    .from('content')
+    .select('title, season_number, episode_number, recap')
+    .eq('type', 'balabony')
+    .eq('status', 'published')
+    .or(`season_number.lt.${season},and(season_number.eq.${season},episode_number.lt.${episode})`)
+    .order('season_number', { ascending: false })
+    .order('episode_number', { ascending: false })
+    .limit(1)
+
+  if (error || !data || data.length === 0) return null
+  return data[0] as PrevRecapRow
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -114,6 +140,8 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
   const isAdmin = cookieStore.get('admin_session')?.value === process.env.ADMIN_PASSWORD
 
   const nextEp = await getNextEpisode(episode.season_number, episode.episode_number)
+  const prevEp = await getPrevEpisode(episode.season_number, episode.episode_number)
+  const prevRecap = prevEp?.recap?.trim() ? prevEp : null
 
   const v    = episode.published_version ?? 'original'
   const body = (v === 'humanized' || v === 'corrected_humanized') && episode.humanized_text
@@ -162,6 +190,30 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         </div>
 
         <div style={{ height: 1, background: 'linear-gradient(to right, transparent, rgba(239,159,39,0.4), transparent)', marginBottom: 36 }} />
+
+        {prevRecap && (
+          <div style={{
+            marginBottom: 32,
+            padding: '18px 20px',
+            background: `${GOLD}0f`,
+            border: `1px solid ${GOLD}33`,
+            borderRadius: 12,
+            borderLeft: `3px solid ${GOLD}`,
+          }}>
+            <div style={{
+              fontSize: 11, fontWeight: 700, color: GOLD, textTransform: 'uppercase',
+              letterSpacing: 0.6, marginBottom: 8, fontFamily: FONT,
+            }}>
+              Що було раніше
+            </div>
+            <p style={{
+              margin: 0, fontSize: 15, lineHeight: 1.6, color: '#d8d2c6',
+              fontFamily: FONT, fontStyle: 'italic',
+            }}>
+              {prevRecap.recap}
+            </p>
+          </div>
+        )}
 
         <EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={episode.episode_number} bypass={isAdmin} />
 

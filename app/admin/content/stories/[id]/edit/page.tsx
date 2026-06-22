@@ -64,6 +64,7 @@ interface ContentItem {
   type: string | null
   description: string | null
   is_premium: boolean | null
+  recap: string | null
 }
 
 interface GetResponse {
@@ -90,6 +91,9 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
   const [expandError,   setExpandError]   = useState('')
   const [titleSuggestLoading, setTitleSuggestLoading] = useState(false)
   const [titleSuggestions,    setTitleSuggestions]    = useState<string[]>([])
+  const [recap,        setRecap]        = useState('')
+  const [recapLoading, setRecapLoading] = useState(false)
+  const [recapError,   setRecapError]   = useState('')
 
   const [item,         setItem]         = useState<ContentItem | null>(null)
   const [title,        setTitle]        = useState('')
@@ -127,6 +131,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
         setCoverUrl(it.cover_url ?? '')
         setCoverPosition(it.cover_position ?? 'center')
         setIsPremium(it.is_premium === true)
+        setRecap(it.recap ?? '')
         setPhase('editing')
       })
       .catch(() => { setError("Помилка з'єднання"); setPhase('error') })
@@ -176,6 +181,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
           cover_url:      coverUrl || null,
           cover_position: coverPosition,
           is_premium:     isPremium,
+          recap:          recap.trim() || null,
         }),
       })
       const data = await res.json() as MutationResponse
@@ -190,7 +196,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
       setError("Помилка з'єднання")
       setPhase('editing')
     }
-  }, [id, title, author, genre, category, description, text, coverUrl, coverPosition])
+  }, [id, title, author, genre, category, description, text, coverUrl, coverPosition, isPremium, recap, router])
 
   // ── Видалення ─────────────────────────────────────────────────────
   const handleDelete = useCallback(async () => {
@@ -290,6 +296,30 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
       if (data.titles?.length) setTitleSuggestions(data.titles)
     } catch { /* тихо */ } finally {
       setTitleSuggestLoading(false)
+    }
+  }
+
+  // Згенерувати recap (2-3 речення «що було раніше») на базі тексту епізоду.
+  // Результат лягає в поле recap для людської вичитки; зберігається разом з епізодом.
+  const generateRecap = async () => {
+    if (!text.trim()) return
+    setRecapLoading(true); setRecapError('')
+    try {
+      const res = await fetch('/api/admin/recap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, title }),
+      })
+      const data = await res.json() as { recap?: string; error?: string }
+      if (!res.ok || data.error) {
+        setRecapError(data.error ?? 'Помилка генерації')
+        return
+      }
+      if (data.recap) setRecap(data.recap)
+    } catch {
+      setRecapError("Помилка з'єднання")
+    } finally {
+      setRecapLoading(false)
     }
   }
 
@@ -506,6 +536,46 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
               </div>
             )
           })()}
+        </SectionCard>
+
+        {/* SECTION: Recap «Що було раніше» */}
+        <SectionCard title="Recap «Що було раніше»">
+          <Field label="Резюме цього епізоду (2-3 речення)">
+            <textarea
+              value={recap}
+              onChange={e => setRecap(e.target.value)}
+              rows={3}
+              placeholder="Згенеруйте через AI або впишіть вручну. Показується на наступному епізоді як «Що було раніше»."
+              style={{ ...inputBase, resize: 'vertical', minHeight: 80 }}
+            />
+          </Field>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginTop: 8 }}>
+            <button
+              type="button"
+              onClick={generateRecap}
+              disabled={recapLoading || !text.trim()}
+              style={{
+                fontSize: 13, fontWeight: 700, fontFamily: FONT,
+                color: '#1a1205', background: GOLD, border: 'none',
+                borderRadius: 8, padding: '8px 16px',
+                cursor: recapLoading || !text.trim() ? 'default' : 'pointer',
+                opacity: !text.trim() ? 0.5 : 1,
+              }}
+            >
+              {recapLoading ? '⏳ Генерую…' : '✨ Згенерувати recap'}
+            </button>
+            {recap.trim() && (
+              <span style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>
+                {recap.trim().length} символів — перевірте перед збереженням
+              </span>
+            )}
+            {recapError && (
+              <span style={{ fontSize: 12, color: '#f87171', fontFamily: FONT }}>{recapError}</span>
+            )}
+          </div>
+          <p style={{ margin: '10px 0 0', fontSize: 12, color: '#667799', fontFamily: FONT, lineHeight: 1.5 }}>
+            Не генеруйте для першого епізоду взагалі. Recap зберігається кнопкою «Зберегти» внизу разом з рештою полів.
+          </p>
         </SectionCard>
 
         {/* SECTION: Доступ */}
