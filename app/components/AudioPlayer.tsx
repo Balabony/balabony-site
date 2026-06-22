@@ -21,7 +21,21 @@ interface AudioPlayerProps {
   title?: string
 }
 
-const SPEEDS = [1.0, 1.25, 1.5, 2.0]
+const SPEEDS = [0.75, 1.0, 1.25, 1.5, 2.0]
+
+// Sleep timer — опції у хвилинах; 'end' = до кінця епізоду; null = вимкнено.
+type SleepOption = 15 | 30 | 45 | 'end' | null
+const SLEEP_OPTIONS: SleepOption[] = [15, 30, 45, 'end', null]
+function sleepLabel(o: SleepOption): string {
+  if (o === null) return 'Таймер сну: вимк.'
+  if (o === 'end') return 'Таймер сну: до кінця епізоду'
+  return `Таймер сну: ${o} хв`
+}
+function sleepShort(o: SleepOption): string {
+  if (o === null) return '⏾'
+  if (o === 'end') return '⏾ кін.'
+  return `⏾ ${o}`
+}
 
 function fmt(s: number): string {
   if (!isFinite(s) || s < 0) s = 0
@@ -36,8 +50,12 @@ export default function AudioPlayer({ audioUrl, audioStatus, title }: AudioPlaye
   const [current, setCurrent] = useState(0)
   const [duration, setDuration] = useState(0)
   const [speedIdx, setSpeedIdx] = useState(0)
+  const [sleepIdx, setSleepIdx] = useState(SLEEP_OPTIONS.length - 1) // старт = null (вимк.)
+  const sleepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const openTracked = useRef(false)
   const readTracked = useRef(false)
+
+  const sleepOption = SLEEP_OPTIONS[sleepIdx]
 
   const ready = audioStatus === 'ready' && !!audioUrl
 
@@ -54,6 +72,36 @@ export default function AudioPlayer({ audioUrl, audioStatus, title }: AudioPlaye
   useEffect(() => {
     if (audioRef.current) audioRef.current.playbackRate = SPEEDS[speedIdx]
   }, [speedIdx, ready])
+
+  // Sleep timer: для хвилинних опцій ставимо таймаут на паузу.
+  // Опція 'end' обробляється через onEnded аудіо, тут таймаут не потрібен.
+  // Таймер відлічується лише поки реально грає; на паузі — зупиняється.
+  useEffect(() => {
+    if (sleepTimerRef.current) {
+      clearTimeout(sleepTimerRef.current)
+      sleepTimerRef.current = null
+    }
+    if (!playing) return
+    if (typeof sleepOption !== 'number') return // null або 'end' — без таймауту
+
+    sleepTimerRef.current = setTimeout(() => {
+      const a = audioRef.current
+      if (a) a.pause()
+      setSleepIdx(SLEEP_OPTIONS.length - 1) // скинути на «вимк.» після спрацювання
+    }, sleepOption * 60 * 1000)
+
+    return () => {
+      if (sleepTimerRef.current) {
+        clearTimeout(sleepTimerRef.current)
+        sleepTimerRef.current = null
+      }
+    }
+  }, [sleepOption, playing])
+
+  // Скидаємо таймер сну при зміні епізоду.
+  useEffect(() => {
+    setSleepIdx(SLEEP_OPTIONS.length - 1)
+  }, [audioUrl])
 
   // --- Стан «аудіо у розробці» (чесно, без плеєра) ---
   if (!ready) {
@@ -91,6 +139,7 @@ export default function AudioPlayer({ audioUrl, audioStatus, title }: AudioPlaye
   }
 
   const cycleSpeed = () => setSpeedIdx((i) => (i + 1) % SPEEDS.length)
+  const cycleSleep = () => setSleepIdx((i) => (i + 1) % SLEEP_OPTIONS.length)
 
   const onSeek = (e: React.MouseEvent<HTMLDivElement>) => {
     const a = audioRef.current
@@ -136,6 +185,7 @@ export default function AudioPlayer({ audioUrl, audioStatus, title }: AudioPlaye
         onPause={() => setPlaying(false)}
         onEnded={() => {
           setPlaying(false)
+          setSleepIdx(SLEEP_OPTIONS.length - 1) // епізод завершився — таймер сну скинути
           if (!readTracked.current && title) {
             readTracked.current = true
             trackStoryEvent(title, title, 'read', Math.round(duration))
@@ -200,6 +250,22 @@ export default function AudioPlayer({ audioUrl, audioStatus, title }: AudioPlaye
           }}
         >
           {SPEEDS[speedIdx].toFixed(1)}×
+        </button>
+
+        {/* Таймер сну */}
+        <button
+          onClick={cycleSleep}
+          aria-label={sleepLabel(sleepOption)}
+          title={sleepLabel(sleepOption)}
+          style={{
+            fontSize: 11, fontWeight: 700,
+            border: sleepOption !== null ? '1px solid var(--accent-gold, #EF9F27)' : '1px solid #475569',
+            color: sleepOption !== null ? 'var(--accent-gold, #EF9F27)' : '#94a3b8',
+            padding: '6px 8px', borderRadius: 8, cursor: 'pointer', background: 'transparent',
+            fontFamily: "'Montserrat', sans-serif", flexShrink: 0, whiteSpace: 'nowrap',
+          }}
+        >
+          {sleepShort(sleepOption)}
         </button>
       </div>
     </div>
