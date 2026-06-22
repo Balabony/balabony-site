@@ -11,6 +11,15 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 const GOLD = '#FAC775';
 const SPEEDS = [0.75, 1, 1.25, 1.5];
 
+// Таймер сну: хвилини, 'end' = до кінця епізоду, null = вимкнено.
+type SleepOption = 15 | 30 | 45 | 'end' | null;
+const SLEEP_OPTIONS: SleepOption[] = [15, 30, 45, 'end', null];
+function sleepLabel(o: SleepOption): string {
+  if (o === null) return 'вимк.';
+  if (o === 'end') return 'до кінця';
+  return `${o} хв`;
+}
+
 function fmt(t: number): string {
   if (!isFinite(t) || t < 0) t = 0;
   const m = Math.floor(t / 60);
@@ -31,6 +40,8 @@ export default function DemoAudioPlayer({ src, badge, caption, title = 'Ауді
   const [cur, setCur] = useState(0);
   const [dur, setDur] = useState(0);
   const [rate, setRate] = useState(1);
+  const [sleep, setSleep] = useState<SleepOption>(null);
+  const sleepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const syncDur = useCallback((a: HTMLAudioElement | null) => {
     if (a && isFinite(a.duration) && a.duration > 0) setDur(a.duration);
@@ -62,6 +73,38 @@ export default function DemoAudioPlayer({ src, badge, caption, title = 'Ауді
     setRate(r);
     if (a) a.playbackRate = r;
   }, []);
+
+  const cycleSleep = useCallback(() => {
+    setSleep((prev) => {
+      const i = SLEEP_OPTIONS.indexOf(prev);
+      return SLEEP_OPTIONS[(i + 1) % SLEEP_OPTIONS.length];
+    });
+  }, []);
+
+  // Таймер сну: для хвилинних опцій — таймаут на паузу, поки реально грає.
+  // 'end' обробляється через onEnded; null — нічого.
+  useEffect(() => {
+    if (sleepTimerRef.current) {
+      clearTimeout(sleepTimerRef.current);
+      sleepTimerRef.current = null;
+    }
+    if (!playing || typeof sleep !== 'number') return;
+    sleepTimerRef.current = setTimeout(() => {
+      audioRef.current?.pause();
+      setSleep(null);
+    }, sleep * 60 * 1000);
+    return () => {
+      if (sleepTimerRef.current) {
+        clearTimeout(sleepTimerRef.current);
+        sleepTimerRef.current = null;
+      }
+    };
+  }, [sleep, playing]);
+
+  // Зміна джерела — скинути таймер сну.
+  useEffect(() => {
+    setSleep(null);
+  }, [src]);
 
   const onKey = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     const tag = (e.target as HTMLElement).tagName;
@@ -142,7 +185,7 @@ export default function DemoAudioPlayer({ src, badge, caption, title = 'Ауді
         aria-label={title}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
-        onEnded={() => setPlaying(false)}
+        onEnded={() => { setPlaying(false); setSleep(null); }}
         onTimeUpdate={(e) => { setCur(e.currentTarget.currentTime); syncDur(e.currentTarget); }}
         onLoadedMetadata={(e) => syncDur(e.currentTarget)}
         onDurationChange={(e) => syncDur(e.currentTarget)}
@@ -172,6 +215,23 @@ export default function DemoAudioPlayer({ src, badge, caption, title = 'Ауді
             {s}×
           </button>
         ))}
+      </div>
+
+      {/* Таймер сну */}
+      <div role="group" aria-label="Таймер сну" style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center', marginTop: 16 }}>
+        <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: 'center', color: '#9FB3C8', fontSize: 14 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }} aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+          Таймер сну:
+        </span>
+        <button
+          type="button"
+          className={`${uid}-chip`}
+          aria-pressed={sleep !== null}
+          aria-label={`Таймер сну: ${sleepLabel(sleep)}`}
+          onClick={cycleSleep}
+        >
+          {sleepLabel(sleep)}
+        </button>
       </div>
 
       {/* Смуга перемотки */}
