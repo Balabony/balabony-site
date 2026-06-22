@@ -50,6 +50,12 @@ export default function SeriesListPage() {
   const [savingId,     setSavingId]     = useState<string | null>(null)
   const [covGenSlug,   setCovGenSlug]   = useState<string | null>(null)
   const [coverChar,    setCoverChar]    = useState<'auto' | 'panas' | 'ganya'>('auto')
+  // Батч-генерація recap
+  const [recapRunning, setRecapRunning] = useState(false)
+  const [recapDone,    setRecapDone]    = useState(0)
+  const [recapTotal,   setRecapTotal]   = useState(0)
+  const [recapLast,    setRecapLast]    = useState('')
+  const [recapMsg,     setRecapMsg]     = useState('')
 
   useEffect(() => {
     fetch('/api/admin/series')
@@ -102,6 +108,44 @@ export default function SeriesListPage() {
     }
   }
 
+  // Батч-генерація recap: викликаємо endpoint у циклі, доки done=true.
+  // Кожен виклик обробляє один епізод без recap → нема Vercel-timeout, є прогрес.
+  const runRecapBatch = async () => {
+    if (recapRunning) return
+    if (!confirm('Згенерувати recap для всіх епізодів без recap? Уже наявні не змінюються. Це може зайняти кілька хвилин.')) return
+    setRecapRunning(true); setRecapDone(0); setRecapTotal(0); setRecapLast(''); setRecapMsg('')
+    let safety = 0
+    try {
+      // doки endpoint каже done=false — продовжуємо
+      while (safety < 500) {
+        safety++
+        const res = await fetch('/api/admin/recap-batch', { method: 'POST' })
+        const data = await res.json() as {
+          done?: boolean; total?: number; remaining?: number
+          processed?: { title?: string; season?: number; episode?: number } | null
+          error?: string
+        }
+        if (!res.ok || data.error) {
+          setRecapMsg(`Помилка: ${data.error ?? 'невідома'}. Зупинено. Можна запустити знову — продовжить з місця.`)
+          break
+        }
+        if (data.total) setRecapTotal(data.total)
+        if (data.done) {
+          setRecapMsg('Готово — усі епізоди мають recap.')
+          break
+        }
+        if (data.processed) {
+          setRecapDone(d => d + 1)
+          setRecapLast(`S${data.processed.season}E${data.processed.episode} · ${data.processed.title ?? ''}`)
+        }
+      }
+    } catch {
+      setRecapMsg("Помилка з'єднання. Зупинено. Можна запустити знову — продовжить з місця.")
+    } finally {
+      setRecapRunning(false)
+    }
+  }
+
   const allSeasons = [...new Set(series.map(s => s.season_number))].sort((a, b) => a - b)
   const allTags    = [...new Set(series.flatMap(s => s.analyze_report?.tags ?? []))].sort()
 
@@ -132,6 +176,36 @@ export default function SeriesListPage() {
   return (
     <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT, padding: '24px 16px 80px' }}>
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
+
+        {/* Батч-генерація recap */}
+        <div style={{ marginBottom: 20, padding: 14, background: NAVY, borderRadius: 12, border: '1px solid rgba(240,165,0,0.25)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={runRecapBatch}
+              disabled={recapRunning}
+              style={{
+                fontSize: 13, fontWeight: 700, fontFamily: FONT,
+                color: '#1a1205', background: GOLD, border: 'none',
+                borderRadius: 8, padding: '9px 16px',
+                cursor: recapRunning ? 'default' : 'pointer', opacity: recapRunning ? 0.7 : 1,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {recapRunning ? '⏳ Генерую recap…' : '✨ Згенерувати всі recap'}
+            </button>
+            <span style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>
+              Тільки для епізодів без recap. Наявні не змінюються.
+            </span>
+          </div>
+          {(recapRunning || recapDone > 0 || recapMsg) && (
+            <div style={{ marginTop: 10, fontSize: 12, color: '#cbd5e1', fontFamily: FONT, lineHeight: 1.6 }}>
+              {recapDone > 0 && <div>Згенеровано цього запуску: <b style={{ color: GOLD }}>{recapDone}</b>{recapTotal ? ` (усього епізодів: ${recapTotal})` : ''}</div>}
+              {recapLast && <div style={{ color: '#8899bb' }}>Останній: {recapLast}</div>}
+              {recapMsg && <div style={{ color: recapMsg.startsWith('Помилка') ? '#f87171' : '#9ae6b4' }}>{recapMsg}</div>}
+            </div>
+          )}
+        </div>
 
         {/* Filters */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
