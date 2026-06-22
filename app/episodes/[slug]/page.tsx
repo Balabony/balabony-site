@@ -3,7 +3,6 @@ import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
 import EpisodePaywall from './EpisodePaywall'
-import ReportErrorWidget from '@/app/components/ReportErrorWidget'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ShareButtons from '@/app/components/ShareButtons'
 import EpisodeCliffhanger from '@/app/components/EpisodeCliffhanger'
@@ -246,8 +245,6 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         </div>
 
       </div>
-
-      <ReportErrorWidget />
 
       {/* Аудіоплеєр: показує плеєр, якщо audio_status='ready', інакше «у розробці» */}
       <AudioPlayer audioUrl={episode.audio_url} audioStatus={episode.audio_status} title={episode.title} />

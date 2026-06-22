@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
-import ReportErrorWidget from '@/app/components/ReportErrorWidget'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ShareButtons from '@/app/components/ShareButtons'
 import AgeGate from '@/app/components/AgeGate'
@@ -167,9 +166,6 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         </div>
 
       </div>
-
-      {/* Віджет «Знайшли помилку?» — тост при виділенні + фіксована кнопка */}
-      <ReportErrorWidget />
 
       {/* Аудіоплеєр: показує плеєр, якщо audio_status='ready', інакше «у розробці» */}
       <AudioPlayer audioUrl={story.audio_url} audioStatus={story.audio_status} title={story.title} />

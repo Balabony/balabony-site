@@ -99,11 +99,12 @@ export default function ShareButtons({ url, title, storyId, season }: Props) {
           border-top: 1px solid #F1EFE8;
         }
         .share-label {
+          flex-basis: 100%;
           font-size: 11px;
           font-weight: 600;
           letter-spacing: 1.2px;
           color: rgba(239, 159, 39, 0.85);
-          margin-right: 2px;
+          margin: 0 0 10px;
         }
         .share-btn {
           width: 30px;
