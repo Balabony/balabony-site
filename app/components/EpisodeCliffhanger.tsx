@@ -95,13 +95,15 @@ export default function EpisodeCliffhanger({ hook, next, allSeriesUrl = '/series
     textTransform: 'uppercase', fontFamily: FONT, marginBottom: 12,
   }
   const ctaPrimary: React.CSSProperties = {
-    display: 'inline-flex', alignItems: 'center', gap: 8, background: GOLD, color: '#081420',
-    padding: '13px 26px', borderRadius: 12, fontSize: 14, fontWeight: 700, fontFamily: FONT,
+    display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, width: '100%', boxSizing: 'border-box',
+    background: GOLD, color: '#081420',
+    padding: '14px 20px', borderRadius: 12, fontSize: 14, fontWeight: 700, fontFamily: FONT,
     textDecoration: 'none', boxShadow: '0 4px 18px rgba(239,159,39,0.38)',
   }
   const ctaGhost: React.CSSProperties = {
-    display: 'inline-flex', alignItems: 'center', gap: 8, background: 'transparent', color: colors.fg,
-    padding: '13px 24px', borderRadius: 12, fontSize: 14, fontWeight: 700, fontFamily: FONT,
+    display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, width: '100%', boxSizing: 'border-box',
+    background: 'transparent', color: colors.fg,
+    padding: '13px 20px', borderRadius: 12, fontSize: 14, fontWeight: 700, fontFamily: FONT,
     textDecoration: 'none', border: `1.5px solid ${GOLD}`,
   }
 
@@ -126,50 +128,64 @@ export default function EpisodeCliffhanger({ hook, next, allSeriesUrl = '/series
           )}
 
           {next && (
-            <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              {next.coverUrl && (
-                <img
-                  src={next.coverUrl}
-                  alt={`Сезон ${next.season} · Серія ${next.number}`}
-                  style={{
-                    width: 88, aspectRatio: '3/4', objectFit: 'cover', borderRadius: 12,
-                    border: `1.5px solid ${GOLD}`, flexShrink: 0,
-                    filter: hasFutureRelease ? 'saturate(0.85)' : 'none',
-                  }}
-                />
-              )}
-              <div style={{ flex: 1, minWidth: 220 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, fontFamily: FONT, marginBottom: 6 }}>
+            <div>
+              {/* Обкладинка-банер 16:9 з підписом «Сезон · Серія» */}
+              <div style={{
+                position: 'relative', width: '100%', aspectRatio: '16 / 9',
+                borderRadius: 12, border: `1.5px solid ${GOLD}`, overflow: 'hidden',
+                background: '#16243a',
+              }}>
+                {next.coverUrl && (
+                  <img
+                    src={next.coverUrl}
+                    alt={`Сезон ${next.season} · Серія ${next.number}`}
+                    style={{
+                      width: '100%', height: '100%', objectFit: 'cover', display: 'block',
+                      filter: hasFutureRelease ? 'saturate(0.85)' : 'none',
+                    }}
+                  />
+                )}
+                <span style={{
+                  position: 'absolute', left: 12, bottom: 12,
+                  background: 'rgba(8,20,32,0.82)', color: GOLD,
+                  fontSize: 12, fontWeight: 700, fontFamily: FONT,
+                  padding: '5px 11px', borderRadius: 9,
+                  backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)',
+                }}>
                   Сезон {next.season} · Серія {next.number}
-                </div>
-                <p style={{ fontSize: 14, color: colors.muted, fontFamily: FONT, lineHeight: 1.7, margin: '0 0 18px' }}>
+                </span>
+              </div>
+
+              {/* Інтрига наступної серії */}
+              {next.teaser && (
+                <p style={{ fontSize: 14, color: colors.muted, fontFamily: FONT, lineHeight: 1.7, margin: '14px 0 0' }}>
                   {next.teaser}
                 </p>
+              )}
 
-                {/* Стан 1: відлік до релізу */}
-                {hasFutureRelease && left && (
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: colors.fg, opacity: 0.7, letterSpacing: 1, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 10 }}>
-                      До нової серії
-                    </div>
-                    <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end' }}>
-                      <CountBox value={left.days} label={plural(left.days, 'день', 'дні', 'днів')} fg={colors.fg} />
-                      <CountBox value={left.hours} label="год" fg={colors.fg} />
-                      <CountBox value={left.minutes} label="хв" fg={colors.fg} />
-                    </div>
+              {/* Стан 1: відлік до релізу */}
+              {hasFutureRelease && left && (
+                <div style={{ marginTop: 18 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: colors.fg, opacity: 0.7, letterSpacing: 1, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 10 }}>
+                    До нової серії
                   </div>
-                )}
+                  <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end' }}>
+                    <CountBox value={left.days} label={plural(left.days, 'день', 'дні', 'днів')} fg={colors.fg} />
+                    <CountBox value={left.hours} label="год" fg={colors.fg} />
+                    <CountBox value={left.minutes} label="хв" fg={colors.fg} />
+                  </div>
+                </div>
+              )}
 
-                {/* Стан 2: наступна серія вже доступна */}
-                {nextAvailable && next.readUrl && (
-                  <a href={next.readUrl} style={ctaPrimary}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#081420" strokeWidth="2" strokeLinecap="round">
-                      <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" /><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
-                    </svg>
-                    Читати Серію {next.number}
-                  </a>
-                )}
-              </div>
+              {/* Стан 2: наступна серія вже доступна — кнопка на всю ширину */}
+              {nextAvailable && next.readUrl && (
+                <a href={next.readUrl} style={{ ...ctaPrimary, marginTop: 18 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#081420" strokeWidth="2" strokeLinecap="round">
+                    <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" /><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
+                  </svg>
+                  Читати Серію {next.number}
+                </a>
+              )}
             </div>
           )}
 
