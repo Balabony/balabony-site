@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { applyPronunciation } from '@/lib/pronunciation'
 
 // Тільки для адмінів — захист від чужого витрачання кредитів TTS.
 // (Той самий патерн, що в /api/stt.)
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
           Accept: 'audio/mpeg',
         },
         body: JSON.stringify({
-          text: String(text),
+          text: applyPronunciation(String(text)),
           model_id: 'eleven_multilingual_v2',
           voice_settings: { stability: 0.5, similarity_boost: 0.75 },
         }),
