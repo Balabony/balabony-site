@@ -70,6 +70,12 @@ export default function SeriesListPage() {
   // Діалог-конвертер (тире → «Імʼя:») — чернетка в dialog_converted
   const [dlgLoading, setDlgLoading] = useState<string | null>(null)
   const [dlgResult,  setDlgResult]  = useState<Record<string, string>>({})
+  // Батч-конвертація діалогів
+  const [dbRunning, setDbRunning] = useState(false)
+  const [dbDone,    setDbDone]    = useState(0)
+  const [dbTotal,   setDbTotal]   = useState(0)
+  const [dbLast,    setDbLast]    = useState('')
+  const [dbMsg,     setDbMsg]     = useState('')
 
   useEffect(() => {
     fetch('/api/admin/series')
@@ -245,6 +251,42 @@ export default function SeriesListPage() {
     }
   }
 
+  // Батч-конвертація діалогів: по одному, доки done=true. Наявні чернетки не чіпає.
+  const runDialogBatch = async () => {
+    if (dbRunning) return
+    if (!confirm('Згенерувати чернетки діалогів «Імʼя:» для ВСІХ епізодів без чернетки? Оригінали не змінюються. Це довше за шорти — кілька хвилин.')) return
+    setDbRunning(true); setDbDone(0); setDbTotal(0); setDbLast(''); setDbMsg('')
+    let safety = 0
+    try {
+      while (safety < 500) {
+        safety++
+        const res = await fetch('/api/admin/dialog-convert-batch', { method: 'POST' })
+        const data = await res.json() as {
+          done?: boolean; total?: number; remaining?: number
+          processed?: { title?: string; season?: number; episode?: number } | null
+          error?: string
+        }
+        if (!res.ok || data.error) {
+          setDbMsg(`Помилка: ${data.error ?? 'невідома'}. Зупинено. Можна запустити знову — продовжить з місця.`)
+          break
+        }
+        if (data.total) setDbTotal(data.total)
+        if (data.done) {
+          setDbMsg('Готово — усі епізоди мають чернетку діалогів.')
+          break
+        }
+        if (data.processed) {
+          setDbDone(d => d + 1)
+          setDbLast(`S${data.processed.season}E${data.processed.episode} · ${data.processed.title ?? ''}`)
+        }
+      }
+    } catch {
+      setDbMsg("Помилка з'єднання. Зупинено. Можна запустити знову — продовжить з місця.")
+    } finally {
+      setDbRunning(false)
+    }
+  }
+
   const allSeasons = [...new Set(series.map(s => s.season_number))].sort((a, b) => a - b)
   const allTags    = [...new Set(series.flatMap(s => s.analyze_report?.tags ?? []))].sort()
 
@@ -333,6 +375,36 @@ export default function SeriesListPage() {
               {ssLast && <div style={{ color: '#8899bb' }}>Останній: {ssLast}</div>}
               {ssText && <div style={{ marginTop: 6, padding: 10, background: 'rgba(255,255,255,0.04)', borderRadius: 8, color: '#e7d9bf', fontStyle: 'italic' }}>{ssText}</div>}
               {ssMsg && <div style={{ color: ssMsg.startsWith('Помилка') ? '#f87171' : '#9ae6b4' }}>{ssMsg}</div>}
+            </div>
+          )}
+        </div>
+
+        {/* Батч-конвертація діалогів у «Імʼя:» (чернетки) */}
+        <div style={{ marginBottom: 20, padding: 14, background: NAVY, borderRadius: 12, border: '1px solid rgba(240,165,0,0.25)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={runDialogBatch}
+              disabled={dbRunning}
+              style={{
+                fontSize: 13, fontWeight: 700, fontFamily: FONT,
+                color: '#1a1205', background: GOLD, border: 'none',
+                borderRadius: 8, padding: '9px 16px',
+                cursor: dbRunning ? 'default' : 'pointer', opacity: dbRunning ? 0.7 : 1,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {dbRunning ? '⏳ Конвертую діалоги…' : '↔ Конвертувати всі діалоги'}
+            </button>
+            <span style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>
+              Тире → «Імʼя:» у чернетку (dialog_converted). Оригінал НЕ змінюється. Тільки для епізодів без чернетки.
+            </span>
+          </div>
+          {(dbRunning || dbDone > 0 || dbMsg) && (
+            <div style={{ marginTop: 10, fontSize: 12, color: '#cbd5e1', fontFamily: FONT, lineHeight: 1.6 }}>
+              {dbDone > 0 && <div>Сконвертовано цього запуску: <b style={{ color: GOLD }}>{dbDone}</b>{dbTotal ? ` (усього епізодів: ${dbTotal})` : ''}</div>}
+              {dbLast && <div style={{ color: '#8899bb' }}>Останній: {dbLast}</div>}
+              {dbMsg && <div style={{ color: dbMsg.startsWith('Помилка') ? '#f87171' : '#9ae6b4' }}>{dbMsg}</div>}
             </div>
           )}
         </div>
