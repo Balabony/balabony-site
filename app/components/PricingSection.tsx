@@ -742,6 +742,26 @@ export default function PricingSection() {
         onGiftCta={handleGiftCtaClick}
       />
 
+      {/* РОЗМЕЖУВАННЯ ВОРОНОК — некомерційний напрям ГО */}
+      <p style={{
+        maxWidth: 720,
+        margin: '28px auto 0',
+        padding: '16px 18px 0',
+        fontSize: 13,
+        lineHeight: 1.65,
+        color: 'rgba(255,255,255,0.62)',
+        textAlign: 'center',
+        fontFamily: "'Montserrat', Arial, sans-serif",
+        borderTop: '1px solid rgba(255,255,255,0.1)',
+      }}>
+        Передплата підтримує роботу платформи й гонорари авторів. Соціальний тариф 1&nbsp;₴/рік
+        (для УБД, ВПО та людей з інвалідністю) і благодійні внески — окремий некомерційний напрям
+        ГО «Інститут громадянського суспільства».{' '}
+        <a href="/support" style={{ color: '#EF9F27', textDecoration: 'none', fontWeight: 600 }}>
+          Підтримати ініціативу →
+        </a>
+      </p>
+
       {/* PAYMENT MODAL */}
       {modal && <PaymentModal pkg={modal} onClose={() => setModal(null)} />}
 
