@@ -63,6 +63,10 @@ export default function SeriesListPage() {
   const [ssLast,    setSsLast]    = useState('')
   const [ssText,    setSsText]    = useState('')
   const [ssMsg,     setSsMsg]     = useState('')
+  // Канон-перевірка (Кімната сценариста, Ф1 — механіка)
+  type CanonFinding = { rule: string; severity: 'error' | 'warn' | 'info'; message: string; excerpt?: string }
+  const [canonLoading, setCanonLoading] = useState<string | null>(null)
+  const [canonReport,  setCanonReport]  = useState<Record<string, CanonFinding[]>>({})
 
   useEffect(() => {
     fetch('/api/admin/series')
@@ -188,6 +192,29 @@ export default function SeriesListPage() {
       setSsMsg("Помилка з'єднання. Зупинено. Можна запустити знову — продовжить з місця.")
     } finally {
       setSsRunning(false)
+    }
+  }
+
+  // Канон-перевірка одного епізоду (механіка, без AI).
+  const runCanonCheck = async (id: string) => {
+    if (canonLoading) return
+    setCanonLoading(id)
+    try {
+      const res = await fetch('/api/admin/canon-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      const data = await res.json() as { findings?: CanonFinding[]; error?: string }
+      if (!res.ok || data.error) {
+        setCanonReport(prev => ({ ...prev, [id]: [{ rule: 'помилка', severity: 'error', message: data.error ?? 'Не вдалося перевірити' }] }))
+      } else {
+        setCanonReport(prev => ({ ...prev, [id]: data.findings ?? [] }))
+      }
+    } catch {
+      setCanonReport(prev => ({ ...prev, [id]: [{ rule: 'помилка', severity: 'error', message: "Помилка з'єднання" }] }))
+    } finally {
+      setCanonLoading(null)
     }
   }
 
@@ -346,7 +373,8 @@ export default function SeriesListPage() {
           const date   = new Date(s.created_at).toLocaleDateString('uk-UA')
 
           return (
-            <div key={s.slug} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, background: NAVY, borderRadius: 12, marginBottom: 8 }}>
+            <div key={s.slug} style={{ marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, background: NAVY, borderRadius: 12 }}>
 
               {/* Cover */}
               {s.cover_url ? (
@@ -439,6 +467,22 @@ export default function SeriesListPage() {
                 {covGenSlug === s.slug ? '⏳ Малюю…' : '🔄 Обкладинка'}
               </button>
 
+              {/* Канон-перевірка */}
+              <button
+                type="button"
+                onClick={() => runCanonCheck(s.id)}
+                disabled={canonLoading === s.id}
+                title="Механічна перевірка канону (без AI)"
+                style={{
+                  flexShrink: 0, padding: '8px 12px', borderRadius: 8,
+                  background: 'rgba(255,255,255,0.05)', color: canonLoading === s.id ? '#caa24a' : '#B5D4F4',
+                  border: '1px solid rgba(255,255,255,0.12)', fontFamily: FONT,
+                  fontSize: 12, fontWeight: 700, cursor: canonLoading === s.id ? 'default' : 'pointer', whiteSpace: 'nowrap',
+                }}
+              >
+                {canonLoading === s.id ? '⏳ Канон…' : '✓ Канон'}
+              </button>
+
               {/* Edit link */}
               <a
                 href={`/admin/content/stories/${s.id}/edit`}
@@ -451,6 +495,31 @@ export default function SeriesListPage() {
               >
                 Редагувати
               </a>
+
+            </div>
+
+            {/* Канон-звіт під рядком */}
+            {canonReport[s.id] && (
+              <div style={{ margin: '6px 0 0', padding: '10px 14px', background: 'rgba(0,0,0,0.25)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', fontFamily: FONT }}>
+                {canonReport[s.id].length === 0 ? (
+                  <div style={{ fontSize: 13, color: '#9ae6b4' }}>✓ Канон чистий — механічних зауважень немає.</div>
+                ) : (
+                  <>
+                    <div style={{ fontSize: 11, color: '#8899bb', marginBottom: 6 }}>
+                      Знайдено: {canonReport[s.id].filter(f => f.severity === 'error').length} помилок · {canonReport[s.id].filter(f => f.severity === 'warn').length} попереджень
+                    </div>
+                    <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {canonReport[s.id].map((f, i) => (
+                        <li key={i} style={{ fontSize: 12.5, lineHeight: 1.5, color: f.severity === 'error' ? '#f87171' : '#e7c98a', display: 'flex', gap: 8 }}>
+                          <span style={{ flexShrink: 0, fontWeight: 700, opacity: 0.85 }}>{f.severity === 'error' ? '●' : '○'} {f.rule}:</span>
+                          <span style={{ color: '#cbd5e1' }}>{f.message}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+            )}
 
             </div>
           )
