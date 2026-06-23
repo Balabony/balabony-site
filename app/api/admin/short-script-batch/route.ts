@@ -106,7 +106,7 @@ ${sourceText}
   try {
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel(
-      { model: 'gemini-2.5-flash', generationConfig: { temperature: 0.85, maxOutputTokens: 400 } },
+      { model: 'gemini-2.5-flash', generationConfig: { temperature: 0.85 } },
       { apiVersion: 'v1beta' },
     )
     const result = await model.generateContent(prompt)
