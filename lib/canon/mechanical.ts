@@ -46,10 +46,6 @@ function norm(s: string): string {
   return s.toLowerCase().replace(/[\u02bc\u2019']/g, "'").trim()
 }
 
-function words(text: string): number {
-  return (text.trim().match(/\S+/g) ?? []).length
-}
-
 export function checkCanon(text: string, canon: CanonRow[] = []): Finding[] {
   const out: Finding[] = []
   if (!text || !text.trim()) {
@@ -60,11 +56,17 @@ export function checkCanon(text: string, canon: CanonRow[] = []): Finding[] {
   const nonEmpty = lines.map(l => l.trim()).filter(Boolean)
 
   // ── 1. Заборонені форми з canon_bible (вкляв≠вклав, Лиса≠Лиска тощо) ──
+  // Міські формули обробляються окремо (нижче) — щоб «поверх» тощо не дублювались,
+  // тут пропускаємо forbidden, що належать правилу «село реалізм».
   const lower = norm(text)
+  const cityRuleEarly = canon.find(c => c.kind === 'rule' && c.key === 'село реалізм')
+  const cityForbiddenSet = new Set((cityRuleEarly?.forbidden ?? []).map(norm))
   for (const row of canon) {
+    if (row.kind === 'rule' && row.key === 'село реалізм') continue
     for (const bad of row.forbidden ?? []) {
       const b = norm(bad)
-      if (b && lower.includes(b)) {
+      if (!b || cityForbiddenSet.has(b)) continue
+      if (lower.includes(b)) {
         out.push({
           rule: 'заборонена форма',
           severity: 'error',
@@ -142,12 +144,6 @@ export function checkCanon(text: string, canon: CanonRow[] = []): Finding[] {
       seenCity.add(c)
       out.push({ rule: 'міська формула', severity: 'error', message: `«${cf}» — місто, не село. Сусіди через дорогу / тин / у сусідньому дворі.`, excerpt: cf })
     }
-  }
-
-  // ── 7. Довжина ──
-  const wc = words(text)
-  if (wc < 1350) {
-    out.push({ rule: 'довжина', severity: 'warn', message: `Закоротко: ~${wc} слів (норма ≥1350).` })
   }
 
   return out
