@@ -67,6 +67,9 @@ export default function SeriesListPage() {
   type CanonFinding = { rule: string; severity: 'error' | 'warn' | 'info'; message: string; excerpt?: string }
   const [canonLoading, setCanonLoading] = useState<string | null>(null)
   const [canonReport,  setCanonReport]  = useState<Record<string, CanonFinding[]>>({})
+  // Діалог-конвертер (тире → «Імʼя:») — чернетка в dialog_converted
+  const [dlgLoading, setDlgLoading] = useState<string | null>(null)
+  const [dlgResult,  setDlgResult]  = useState<Record<string, string>>({})
 
   useEffect(() => {
     fetch('/api/admin/series')
@@ -215,6 +218,30 @@ export default function SeriesListPage() {
       setCanonReport(prev => ({ ...prev, [id]: [{ rule: 'помилка', severity: 'error', message: "Помилка з'єднання" }] }))
     } finally {
       setCanonLoading(null)
+    }
+  }
+
+  // Конвертація тире-діалогів у «Імʼя:» — чернетка (оригінал недоторканий).
+  const runDialogConvert = async (id: string) => {
+    if (dlgLoading) return
+    if (!confirm('Згенерувати чернетку діалогів у форматі «Імʼя:» для цього епізоду? Оригінал не змінюється — результат збережеться окремо.')) return
+    setDlgLoading(id)
+    try {
+      const res = await fetch('/api/admin/dialog-convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      const data = await res.json() as { converted?: string; error?: string }
+      if (!res.ok || data.error) {
+        setDlgResult(prev => ({ ...prev, [id]: `⚠ ${data.error ?? 'Не вдалося конвертувати'}` }))
+      } else {
+        setDlgResult(prev => ({ ...prev, [id]: data.converted ?? '' }))
+      }
+    } catch {
+      setDlgResult(prev => ({ ...prev, [id]: "⚠ Помилка з'єднання" }))
+    } finally {
+      setDlgLoading(null)
     }
   }
 
@@ -483,6 +510,22 @@ export default function SeriesListPage() {
                 {canonLoading === s.id ? '⏳ Канон…' : '✓ Канон'}
               </button>
 
+              {/* Діалоги → «Імʼя:» (чернетка) */}
+              <button
+                type="button"
+                onClick={() => runDialogConvert(s.id)}
+                disabled={dlgLoading === s.id}
+                title="Конвертувати тире-діалоги у «Імʼя:» (чернетка, оригінал недоторканий)"
+                style={{
+                  flexShrink: 0, padding: '8px 12px', borderRadius: 8,
+                  background: 'rgba(255,255,255,0.05)', color: dlgLoading === s.id ? '#caa24a' : '#B5D4F4',
+                  border: '1px solid rgba(255,255,255,0.12)', fontFamily: FONT,
+                  fontSize: 12, fontWeight: 700, cursor: dlgLoading === s.id ? 'default' : 'pointer', whiteSpace: 'nowrap',
+                }}
+              >
+                {dlgLoading === s.id ? '⏳ Діалоги…' : '↔ Діалоги'}
+              </button>
+
               {/* Edit link */}
               <a
                 href={`/admin/content/stories/${s.id}/edit`}
@@ -518,6 +561,18 @@ export default function SeriesListPage() {
                     </ul>
                   </>
                 )}
+              </div>
+            )}
+
+            {/* Результат діалог-конвертера */}
+            {dlgResult[s.id] && (
+              <div style={{ margin: '6px 0 0', padding: '10px 14px', background: 'rgba(0,0,0,0.25)', borderRadius: 10, border: '1px solid rgba(181,212,244,0.18)', fontFamily: FONT }}>
+                <div style={{ fontSize: 11, color: '#8899bb', marginBottom: 6 }}>
+                  Чернетка діалогів «Імʼя:» (оригінал не змінено; збережено в dialog_converted). Спікери зі знаком «?» — перевір.
+                </div>
+                <pre style={{ margin: 0, maxHeight: 320, overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 12.5, lineHeight: 1.6, color: '#e7d9bf', fontFamily: FONT }}>
+                  {dlgResult[s.id]}
+                </pre>
               </div>
             )}
 
