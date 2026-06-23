@@ -1088,10 +1088,10 @@ function UkrainianContent({
             <li><strong>Пільговий доступ для УБД, ВПО та людей з інвалідністю</strong> — підтримка модуля «1 грн на рік», який дає повний доступ до платформи учасникам бойових дій, ВПО і людям з підтвердженою інвалідністю</li>
             <li><strong>Створення доступного контенту</strong> — тексти та аудіоозвучення (у розробці) за міжнародними стандартами доступності (WCAG 2.1)</li>
             <li><strong>Підтримка українських авторів і журналістів</strong> — гонорари за оригінальні історії та підтримка творчої молоді</li>
-            <li><strong>Розширений модуль доступності</strong> — підтримка скрінрідерів (JAWS, NVDA, VoiceOver), голосовий пошук, додаткові шрифти для дислексії</li>
+            <li><strong>Розширений модуль доступності</strong> — підтримка скрінрідерів (JAWS, NVDA, VoiceOver), голосове керування (у розробці), додаткові шрифти для дислексії</li>
             <li><strong>Україномовна ШІ-озвучка (у розробці)</strong> — аудіодоступ для незрячих і слабкозорих, за умови грантової підтримки</li>
             <li><strong>Когнітивні ігри та довідник правопису</strong> — підтримка й розвиток наявних безкоштовних функцій</li>
-            <li><strong>Офлайн-міст для родин без інтернету</strong> — QR-коди в друкованих газетах ведуть до аудіоконтенту</li>
+            <li><strong>Офлайн-міст для родин без інтернету</strong> — QR-коди в друкованих газетах ведуть до історій на платформі (аудіоверсія — у розробці)</li>
             <li><strong>Розвиток платформи balabony.com</strong> — підтримка серверів, домен, оплата SaaS-сервісів, доопрацювання інтерфейсу</li>
           </ul>
         </section>
@@ -1254,15 +1254,15 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
       
 
       <section className="sup-intl" aria-labelledby="intl-en">
-        <h2 id="intl-en">Support Ukrainian-Language Accessible Audio Content</h2>
+        <h2 id="intl-en">Support Accessible Ukrainian-Language Content</h2>
         <div className="sup-intl-sub">International Donations &amp; Grant Partnerships</div>
 
         <p>
           <strong>balabony.com</strong> is a Ukrainian-language portal for sharing stories, series
           and fairy tales by contemporary Ukrainian authors. It also offers games for training
           memory, attention and logic, along with accessibility features for readers with special
-          needs. As part of its mission, the platform is developing <strong>accessible audio
-          narration</strong> of its texts — voiced by consenting editors and writers — to make
+          needs. As part of its mission, the platform is working to add <strong>accessible audio
+          narration</strong> of its texts (currently in development, not yet available) — to make
           Ukrainian literature available to people with visual impairments, combat veterans,
           people with disabilities, and the Ukrainian-speaking diaspora worldwide.
         </p>
@@ -1278,7 +1278,7 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
         <ul>
           <li><strong>Inclusion of users with disabilities and combat veterans (UBD)</strong> — supporting the platform's preferential-access module, which provides full content access for 1 UAH per year to people with confirmed disability status and military veterans of the Russian-Ukrainian war</li>
           <li><strong>Accessibility features development</strong> — screen-reader compatibility, high-contrast and dyslexia-friendly modes, audio narration of text content, subject to dedicated program funding</li>
-          <li><strong>Platform engineering and infrastructure</strong> — programming, server hosting, domain maintenance, third-party SaaS services required for the technical operation of the inclusive audio module</li>
+          <li><strong>Platform engineering and infrastructure</strong> — programming, server hosting, domain maintenance, third-party SaaS services required for the technical operation of the planned inclusive audio module</li>
         </ul>
 
         <h3>Grant Partnerships</h3>
@@ -1330,8 +1330,8 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
         </ul>
         <p>For any of the above, please contact <strong>{CONTACT_EMAIL}</strong>.</p>
 
-        <p style={{marginTop: 26}}>Thank you for considering supporting Ukrainian-language accessible
-        audio content. Every contribution helps build a more inclusive Ukrainian cultural space.</p>
+        <p style={{marginTop: 26}}>Thank you for considering supporting accessible Ukrainian-language
+        content. Every contribution helps build a more inclusive Ukrainian cultural space.</p>
 
         <div className="sup-intl-signature">
           On behalf of the project team and<br />
@@ -1362,7 +1362,7 @@ function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails
       
 
       <section className="sup-intl" aria-labelledby="intl-de">
-        <h2 id="intl-de">Unterstützung für ukrainischsprachige barrierefreie Audioinhalte</h2>
+        <h2 id="intl-de">Unterstützung für barrierefreie ukrainischsprachige Inhalte</h2>
         <div className="sup-intl-sub">Internationale Spenden und Förderpartnerschaften</div>
 
         <p>
@@ -1370,8 +1370,8 @@ function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails
           Geschichten, Serien und Märchen zeitgenössischer ukrainischer Autoren. Außerdem bietet
           es Spiele zum Training von Gedächtnis, Aufmerksamkeit und Logik sowie
           Barrierefreiheitsfunktionen für Leser mit besonderen Bedürfnissen. Im Rahmen ihrer
-          Mission entwickelt die Plattform <strong>barrierefreie Audionarrationen</strong> ihrer
-          Texte — gesprochen von einwilligenden Redakteuren und Autoren —, um ukrainische Literatur
+          Mission arbeitet die Plattform daran, <strong>barrierefreie Audionarrationen</strong> ihrer
+          Texte hinzuzufügen (derzeit in Entwicklung, noch nicht verfügbar) — um ukrainische Literatur
           Menschen mit Sehbehinderungen, Kriegsveteranen, Menschen mit Behinderungen sowie der
           ukrainischsprachigen Diaspora weltweit zugänglich zu machen.
         </p>
@@ -1387,8 +1387,8 @@ function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails
         <p>Das Projekt befindet sich derzeit in aktiver Entwicklung. Alle durch internationale Spenden gesammelten Mittel werden ausschließlich verwendet für:</p>
         <ul>
           <li><strong>Inklusion von Menschen mit Behinderungen und Kriegsveteranen (UBD)</strong> — Unterstützung des Vorzugszugangs-Moduls der Plattform, das Menschen mit anerkanntem Behindertenstatus sowie Veteranen des russisch-ukrainischen Krieges vollen Zugang zu Inhalten für 1 UAH pro Jahr ermöglicht</li>
-          <li><strong>Entwicklung von Barrierefreiheitsfunktionen</strong> — Kompatibilität mit Bildschirmlesern, Modi mit hohem Kontrast und für Menschen mit Legasthenie, Audionarration von Textinhalten mit geklonten Stimmen professioneller Sprecher</li>
-          <li><strong>Plattform-Entwicklung und Infrastruktur</strong> — Programmierung, Server-Hosting, Domain-Pflege, Drittanbieter-SaaS-Dienste, die für den technischen Betrieb des inklusiven Audio-Moduls erforderlich sind</li>
+          <li><strong>Entwicklung von Barrierefreiheitsfunktionen</strong> — Kompatibilität mit Bildschirmlesern, Modi mit hohem Kontrast und für Menschen mit Legasthenie, geplante Audionarration von Textinhalten</li>
+          <li><strong>Plattform-Entwicklung und Infrastruktur</strong> — Programmierung, Server-Hosting, Domain-Pflege, Drittanbieter-SaaS-Dienste, die für den technischen Betrieb des geplanten inklusiven Audio-Moduls erforderlich sind</li>
         </ul>
 
         <h3>Förderpartnerschaften</h3>
@@ -1442,8 +1442,8 @@ function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails
         </ul>
         <p>Für alle oben genannten Dokumente wenden Sie sich bitte an <strong>{CONTACT_EMAIL}</strong>.</p>
 
-        <p style={{marginTop: 26}}>Vielen Dank, dass Sie die Unterstützung ukrainischsprachiger
-        barrierefreier Audioinhalte in Betracht ziehen. Jeder Beitrag hilft beim Aufbau eines
+        <p style={{marginTop: 26}}>Vielen Dank, dass Sie die Unterstützung barrierefreier
+        ukrainischsprachiger Inhalte in Betracht ziehen. Jeder Beitrag hilft beim Aufbau eines
         inklusiveren ukrainischen Kulturraums.</p>
 
         <div className="sup-intl-signature">
