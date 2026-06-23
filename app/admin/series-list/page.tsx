@@ -56,6 +56,13 @@ export default function SeriesListPage() {
   const [recapTotal,   setRecapTotal]   = useState(0)
   const [recapLast,    setRecapLast]    = useState('')
   const [recapMsg,     setRecapMsg]     = useState('')
+  // Батч-генерація шортів-скриптів (гачки без спойлера)
+  const [ssRunning, setSsRunning] = useState(false)
+  const [ssDone,    setSsDone]    = useState(0)
+  const [ssTotal,   setSsTotal]   = useState(0)
+  const [ssLast,    setSsLast]    = useState('')
+  const [ssText,    setSsText]    = useState('')
+  const [ssMsg,     setSsMsg]     = useState('')
 
   useEffect(() => {
     fetch('/api/admin/series')
@@ -146,6 +153,44 @@ export default function SeriesListPage() {
     }
   }
 
+  // Батч-генерація шортів-скриптів: той самий патерн, що й recap.
+  // Кожен виклик обробляє один епізод без short_script → нема Vercel-timeout, є прогрес.
+  const runShortBatch = async () => {
+    if (ssRunning) return
+    if (!confirm('Згенерувати шорти-гачки для всіх епізодів без шорту? Уже наявні не змінюються. Це може зайняти кілька хвилин.')) return
+    setSsRunning(true); setSsDone(0); setSsTotal(0); setSsLast(''); setSsText(''); setSsMsg('')
+    let safety = 0
+    try {
+      while (safety < 500) {
+        safety++
+        const res = await fetch('/api/admin/short-script-batch', { method: 'POST' })
+        const data = await res.json() as {
+          done?: boolean; total?: number; remaining?: number
+          processed?: { title?: string; season?: number; episode?: number; short_script?: string } | null
+          error?: string
+        }
+        if (!res.ok || data.error) {
+          setSsMsg(`Помилка: ${data.error ?? 'невідома'}. Зупинено. Можна запустити знову — продовжить з місця.`)
+          break
+        }
+        if (data.total) setSsTotal(data.total)
+        if (data.done) {
+          setSsMsg('Готово — усі епізоди мають шорт-гачок.')
+          break
+        }
+        if (data.processed) {
+          setSsDone(d => d + 1)
+          setSsLast(`S${data.processed.season}E${data.processed.episode} · ${data.processed.title ?? ''}`)
+          if (data.processed.short_script) setSsText(data.processed.short_script)
+        }
+      }
+    } catch {
+      setSsMsg("Помилка з'єднання. Зупинено. Можна запустити знову — продовжить з місця.")
+    } finally {
+      setSsRunning(false)
+    }
+  }
+
   const allSeasons = [...new Set(series.map(s => s.season_number))].sort((a, b) => a - b)
   const allTags    = [...new Set(series.flatMap(s => s.analyze_report?.tags ?? []))].sort()
 
@@ -203,6 +248,37 @@ export default function SeriesListPage() {
               {recapDone > 0 && <div>Згенеровано цього запуску: <b style={{ color: GOLD }}>{recapDone}</b>{recapTotal ? ` (усього епізодів: ${recapTotal})` : ''}</div>}
               {recapLast && <div style={{ color: '#8899bb' }}>Останній: {recapLast}</div>}
               {recapMsg && <div style={{ color: recapMsg.startsWith('Помилка') ? '#f87171' : '#9ae6b4' }}>{recapMsg}</div>}
+            </div>
+          )}
+        </div>
+
+        {/* Батч-генерація шортів-гачків (тизери без спойлера) */}
+        <div style={{ marginBottom: 20, padding: 14, background: NAVY, borderRadius: 12, border: '1px solid rgba(240,165,0,0.25)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={runShortBatch}
+              disabled={ssRunning}
+              style={{
+                fontSize: 13, fontWeight: 700, fontFamily: FONT,
+                color: '#1a1205', background: GOLD, border: 'none',
+                borderRadius: 8, padding: '9px 16px',
+                cursor: ssRunning ? 'default' : 'pointer', opacity: ssRunning ? 0.7 : 1,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {ssRunning ? '⏳ Генерую шорти…' : '🎬 Згенерувати всі шорти-гачки'}
+            </button>
+            <span style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>
+              Тизер-гачок без спойлера (~70-90 слів). Тільки для епізодів без шорту. Аудіо — пізніше.
+            </span>
+          </div>
+          {(ssRunning || ssDone > 0 || ssMsg) && (
+            <div style={{ marginTop: 10, fontSize: 12, color: '#cbd5e1', fontFamily: FONT, lineHeight: 1.6 }}>
+              {ssDone > 0 && <div>Згенеровано цього запуску: <b style={{ color: GOLD }}>{ssDone}</b>{ssTotal ? ` (усього епізодів: ${ssTotal})` : ''}</div>}
+              {ssLast && <div style={{ color: '#8899bb' }}>Останній: {ssLast}</div>}
+              {ssText && <div style={{ marginTop: 6, padding: 10, background: 'rgba(255,255,255,0.04)', borderRadius: 8, color: '#e7d9bf', fontStyle: 'italic' }}>{ssText}</div>}
+              {ssMsg && <div style={{ color: ssMsg.startsWith('Помилка') ? '#f87171' : '#9ae6b4' }}>{ssMsg}</div>}
             </div>
           )}
         </div>
