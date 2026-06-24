@@ -67,6 +67,13 @@ export default function SeriesListPage() {
   type CanonFinding = { rule: string; severity: 'error' | 'warn' | 'info'; message: string; excerpt?: string }
   const [canonLoading, setCanonLoading] = useState<string | null>(null)
   const [canonReport,  setCanonReport]  = useState<Record<string, CanonFinding[]>>({})
+
+  // AI-continuity (Кімната сценариста, Ф2a — Gemini проти recap попередніх епізодів)
+  type ContIssue   = { severity: 'error' | 'warn'; issue: string; source?: string }
+  type VoiceIssue  = { character: string; issue: string }
+  type ContFindings = { continuity: ContIssue[]; voices: VoiceIssue[]; summary: string }
+  const [contLoading, setContLoading] = useState<string | null>(null)
+  const [contReport,  setContReport]  = useState<Record<string, ContFindings | { error: string }>>({})
   // Діалог-конвертер (тире → «Імʼя:») — чернетка в dialog_converted
   const [dlgLoading, setDlgLoading] = useState<string | null>(null)
   const [dlgResult,  setDlgResult]  = useState<Record<string, string>>({})
@@ -224,6 +231,32 @@ export default function SeriesListPage() {
       setCanonReport(prev => ({ ...prev, [id]: [{ rule: 'помилка', severity: 'error', message: "Помилка з'єднання" }] }))
     } finally {
       setCanonLoading(null)
+    }
+  }
+
+  // AI-continuity одного епізоду (Ф2a): Gemini звіряє з recap попередніх + canon_bible.
+  const runContinuityCheck = async (id: string) => {
+    if (contLoading) return
+    setContLoading(id)
+    try {
+      const res = await fetch('/api/admin/continuity-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      const data = await res.json() as { findings?: ContFindings; error?: string; overloaded?: boolean }
+      if (!res.ok || data.error) {
+        const msg = data.overloaded
+          ? 'Gemini перевантажений (503). Спробуйте ще раз за хвилину.'
+          : (data.error ?? 'Не вдалося перевірити')
+        setContReport(prev => ({ ...prev, [id]: { error: msg } }))
+      } else {
+        setContReport(prev => ({ ...prev, [id]: data.findings ?? { continuity: [], voices: [], summary: '' } }))
+      }
+    } catch {
+      setContReport(prev => ({ ...prev, [id]: { error: "Помилка з'єднання" } }))
+    } finally {
+      setContLoading(null)
     }
   }
 
@@ -582,6 +615,22 @@ export default function SeriesListPage() {
                 {canonLoading === s.id ? '⏳ Канон…' : '✓ Канон'}
               </button>
 
+              {/* AI-continuity (Ф2a) */}
+              <button
+                type="button"
+                onClick={() => runContinuityCheck(s.id)}
+                disabled={contLoading === s.id}
+                title="AI-перевірка хронології: суперечності подіям попередніх епізодів (Gemini)"
+                style={{
+                  flexShrink: 0, padding: '8px 12px', borderRadius: 8,
+                  background: 'rgba(255,255,255,0.05)', color: contLoading === s.id ? '#caa24a' : '#C9B5F4',
+                  border: '1px solid rgba(255,255,255,0.12)', fontFamily: FONT,
+                  fontSize: 12, fontWeight: 700, cursor: contLoading === s.id ? 'default' : 'pointer', whiteSpace: 'nowrap',
+                }}
+              >
+                {contLoading === s.id ? '⏳ Хронологія…' : '🔗 Хронологія'}
+              </button>
+
               {/* Діалоги → «Імʼя:» (чернетка) */}
               <button
                 type="button"
@@ -633,6 +682,49 @@ export default function SeriesListPage() {
                     </ul>
                   </>
                 )}
+              </div>
+            )}
+
+            {/* AI-continuity звіт під рядком (Ф2a) */}
+            {contReport[s.id] && (
+              <div style={{ margin: '6px 0 0', padding: '10px 14px', background: 'rgba(0,0,0,0.25)', borderRadius: 10, border: '1px solid rgba(201,181,244,0.18)', fontFamily: FONT }}>
+                {'error' in contReport[s.id] ? (
+                  <div style={{ fontSize: 13, color: '#f87171' }}>⚠ {(contReport[s.id] as { error: string }).error}</div>
+                ) : (() => {
+                  const r = contReport[s.id] as ContFindings
+                  const cont = r.continuity ?? []
+                  const voices = r.voices ?? []
+                  if (cont.length === 0 && voices.length === 0) {
+                    return (
+                      <div>
+                        <div style={{ fontSize: 13, color: '#9ae6b4' }}>🔗 Хронологія чиста — суперечностей із попередніми епізодами не знайдено.</div>
+                        {r.summary && <div style={{ fontSize: 11.5, color: '#8899bb', marginTop: 4 }}>{r.summary}</div>}
+                      </div>
+                    )
+                  }
+                  return (
+                    <>
+                      <div style={{ fontSize: 11, color: '#8899bb', marginBottom: 6 }}>
+                        Хронологія: {cont.filter(c => c.severity === 'error').length} суперечностей · {cont.filter(c => c.severity === 'warn').length} попереджень · голоси: {voices.length}
+                      </div>
+                      <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {cont.map((c, i) => (
+                          <li key={`c${i}`} style={{ fontSize: 12.5, lineHeight: 1.5, color: c.severity === 'error' ? '#f87171' : '#e7c98a', display: 'flex', gap: 8 }}>
+                            <span style={{ flexShrink: 0, fontWeight: 700, opacity: 0.85 }}>{c.severity === 'error' ? '●' : '○'}{c.source ? ` ${c.source}` : ''}:</span>
+                            <span style={{ color: '#cbd5e1' }}>{c.issue}</span>
+                          </li>
+                        ))}
+                        {voices.map((v, i) => (
+                          <li key={`v${i}`} style={{ fontSize: 12.5, lineHeight: 1.5, color: '#c9b5f4', display: 'flex', gap: 8 }}>
+                            <span style={{ flexShrink: 0, fontWeight: 700, opacity: 0.85 }}>🗣 {v.character}:</span>
+                            <span style={{ color: '#cbd5e1' }}>{v.issue}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      {r.summary && <div style={{ fontSize: 11.5, color: '#8899bb', marginTop: 6 }}>{r.summary}</div>}
+                    </>
+                  )
+                })()}
               </div>
             )}
 
