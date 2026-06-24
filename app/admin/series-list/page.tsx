@@ -84,6 +84,14 @@ export default function SeriesListPage() {
   const [dbLast,    setDbLast]    = useState('')
   const [dbMsg,     setDbMsg]     = useState('')
 
+  // Пакетний continuity-реаудит (Ф2c)
+  const [cbRunning, setCbRunning] = useState(false)
+  const [cbDone,    setCbDone]    = useState(0)
+  const [cbTotal,   setCbTotal]   = useState(0)
+  const [cbFlagged, setCbFlagged] = useState(0)
+  const [cbLast,    setCbLast]    = useState('')
+  const [cbMsg,     setCbMsg]     = useState('')
+
   useEffect(() => {
     fetch('/api/admin/series')
       .then(r => r.json())
@@ -257,6 +265,63 @@ export default function SeriesListPage() {
       setContReport(prev => ({ ...prev, [id]: { error: "Помилка з'єднання" } }))
     } finally {
       setContLoading(null)
+    }
+  }
+
+  // Пакетний continuity-реаудит (Ф2c): по одному, доки done. Повторний запуск
+  // ПРОДОВЖУЄ з місця (обробляє лише епізоди, яких ще немає в canon_audit).
+  const runContinuityBatch = async () => {
+    if (cbRunning) return
+    if (!confirm('Запустити AI-реаудит хронології? Обробляться епізоди, яких ще немає в аудиті (повторний запуск продовжує з місця). Кілька хвилин — Gemini по одному.')) return
+    setCbRunning(true); setCbMsg('')
+    let safety = 0
+    try {
+      while (safety < 500) {
+        safety++
+        const res = await fetch('/api/admin/continuity-batch', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
+        })
+        const data = await res.json() as {
+          done?: boolean; total?: number; remaining?: number
+          processed?: { title?: string; season?: number; episode?: number; errors?: number; warns?: number } | null
+          error?: string; overloaded?: boolean
+        }
+        if (!res.ok || data.error) {
+          setCbMsg(data.overloaded
+            ? 'Gemini перевантажений (503). Зупинено. Натисніть ще раз — продовжить з місця.'
+            : `Помилка: ${data.error ?? 'невідома'}. Зупинено. Можна запустити знову.`)
+          break
+        }
+        if (data.total) setCbTotal(data.total)
+        if (data.done) { setCbMsg('Готово — реаудит завершено. Тисніть «Експорт CSV».'); break }
+        if (data.processed) {
+          setCbDone(d => d + 1)
+          const p = data.processed
+          setCbLast(`S${p.season}E${p.episode} · ${p.title ?? ''} — помилок: ${p.errors ?? 0}, попереджень: ${p.warns ?? 0}`)
+          if ((p.errors ?? 0) > 0 || (p.warns ?? 0) > 0) setCbFlagged(f => f + 1)
+        }
+      }
+    } catch {
+      setCbMsg("Помилка з'єднання. Зупинено. Можна запустити знову — продовжить з місця.")
+    } finally {
+      setCbRunning(false)
+    }
+  }
+
+  // Очистити збережений аудит — щоб наступний реаудит почався з нуля.
+  const runContinuityReset = async () => {
+    if (cbRunning) return
+    if (!confirm('Очистити всі збережені результати реаудиту? Наступний реаудит почнеться з нуля.')) return
+    try {
+      const r = await fetch('/api/admin/continuity-batch', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reset: true }),
+      })
+      const d = await r.json() as { total?: number; error?: string }
+      if (!r.ok || d.error) { setCbMsg(`Помилка очищення: ${d.error ?? ''}`); return }
+      setCbDone(0); setCbFlagged(0); setCbLast(''); setCbMsg('Аудит очищено. Можна запускати реаудит з нуля.')
+      if (d.total) setCbTotal(d.total)
+    } catch {
+      setCbMsg("Помилка з'єднання при очищенні.")
     }
   }
 
@@ -438,6 +503,59 @@ export default function SeriesListPage() {
               {dbDone > 0 && <div>Сконвертовано цього запуску: <b style={{ color: GOLD }}>{dbDone}</b>{dbTotal ? ` (усього епізодів: ${dbTotal})` : ''}</div>}
               {dbLast && <div style={{ color: '#8899bb' }}>Останній: {dbLast}</div>}
               {dbMsg && <div style={{ color: dbMsg.startsWith('Помилка') ? '#f87171' : '#9ae6b4' }}>{dbMsg}</div>}
+            </div>
+          )}
+        </div>
+
+        {/* Пакетний continuity-реаудит (Ф2c) */}
+        <div style={{ marginBottom: 20, padding: 14, background: NAVY, borderRadius: 12, border: '1px solid rgba(201,181,244,0.3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={runContinuityBatch}
+              disabled={cbRunning}
+              style={{
+                fontSize: 13, fontWeight: 700, fontFamily: FONT,
+                color: '#1a1205', background: '#C9B5F4', border: 'none',
+                borderRadius: 8, padding: '9px 16px',
+                cursor: cbRunning ? 'default' : 'pointer', opacity: cbRunning ? 0.7 : 1, whiteSpace: 'nowrap',
+              }}
+            >
+              {cbRunning ? '⏳ Реаудит…' : '🔗 Реаудит хронології (всі)'}
+            </button>
+            <a
+              href="/api/admin/continuity-audit-export"
+              style={{
+                fontSize: 13, fontWeight: 700, fontFamily: FONT,
+                color: '#C9B5F4', background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(201,181,244,0.4)', borderRadius: 8,
+                padding: '9px 16px', textDecoration: 'none', whiteSpace: 'nowrap',
+              }}
+            >
+              ⬇ Експорт CSV
+            </a>
+            <button
+              type="button"
+              onClick={runContinuityReset}
+              disabled={cbRunning}
+              style={{
+                fontSize: 12, fontWeight: 600, fontFamily: FONT,
+                color: '#8899bb', background: 'transparent',
+                border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8,
+                padding: '9px 14px', cursor: cbRunning ? 'default' : 'pointer', whiteSpace: 'nowrap',
+              }}
+            >
+              🗑 Очистити аудит
+            </button>
+            <span style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>
+              Прогін Gemini по всіх епізодах → результати в canon_audit → CSV для огляду. Повторний запуск продовжує з місця.
+            </span>
+          </div>
+          {(cbRunning || cbDone > 0 || cbMsg) && (
+            <div style={{ marginTop: 10, fontSize: 12, color: '#cbd5e1', fontFamily: FONT, lineHeight: 1.6 }}>
+              {cbTotal > 0 && <div>Опрацьовано цього запуску: <b style={{ color: '#C9B5F4' }}>{cbDone}</b> з {cbTotal}{cbFlagged > 0 ? ` · з проблемами: ${cbFlagged}` : ''}</div>}
+              {cbLast && <div style={{ color: '#8899bb' }}>Останній: {cbLast}</div>}
+              {cbMsg && <div style={{ color: cbMsg.startsWith('Помилка') ? '#f87171' : '#9ae6b4' }}>{cbMsg}</div>}
             </div>
           )}
         </div>
