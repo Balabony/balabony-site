@@ -195,7 +195,7 @@ export default function DominoPage() {
   const ROW: React.CSSProperties = { display: 'flex', gap: 8, marginBottom: 12, width: '100%' };
   const plaque = (active: boolean): React.CSSProperties => ({ flex: '1 1 0', minWidth: 0, padding: '9px 6px', borderRadius: 10, fontSize: 15, fontWeight: 700, textAlign: 'center', whiteSpace: 'nowrap', cursor: 'pointer', background: active ? GOLD : CARD, color: active ? NAVY : GOLD_LIGHT, border: active ? `1.5px solid ${GOLD}` : '1.5px solid rgba(250,199,117,0.3)' });
   const bigBtn: React.CSSProperties = { fontSize: 18, fontWeight: 700, padding: '12px 26px', borderRadius: 12, border: 'none', background: GOLD, color: NAVY, cursor: 'pointer' };
-  const ghost: React.CSSProperties = { fontSize: 14, fontWeight: 700, padding: '10px 18px', borderRadius: 10, border: '1.5px solid rgba(250,199,117,0.4)', background: 'transparent', color: GOLD_LIGHT, cursor: 'pointer' };
+  const ghost: React.CSSProperties = { fontSize: 14, fontWeight: 700, padding: '10px 18px', borderRadius: 10, border: '1.5px solid rgba(250,199,117,0.4)', background: 'transparent', color: GOLD_LIGHT, cursor: 'pointer', whiteSpace: 'nowrap' };
   const detailsBox: React.CSSProperties = { marginTop: 16, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(239,159,39,0.3)', borderRadius: 16, overflow: 'hidden' };
   const summaryStyle: React.CSSProperties = { cursor: 'pointer', padding: '16px 20px', fontSize: 17, fontWeight: 700, color: GOLD, fontFamily: 'Montserrat, sans-serif', lineHeight: 1.3 };
   const detailsBody: React.CSSProperties = { padding: '0 20px 18px', fontSize: 15.5, lineHeight: 1.65, color: TEXT_SOFT };
@@ -257,11 +257,13 @@ export default function DominoPage() {
 
             {/* вибір кінця для кістки, що пасує на обидва */}
             {pending && (
-              <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 10, alignItems: 'center' }}>
-                <span style={{ fontSize: 14, color: TEXT_SOFT }}>Куди прикласти?</span>
-                <button style={ghost} onClick={() => playerPlace(pending, 'L')}>◀ Ліворуч</button>
-                <button style={ghost} onClick={() => playerPlace(pending, 'R')}>Праворуч ▶</button>
-                <button style={{ ...ghost, borderColor: 'rgba(255,255,255,0.2)' }} onClick={() => setPending(null)}>Скасувати</button>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <span style={{ fontSize: 14, color: TEXT_SOFT }}>Куди прикласти кістку?</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', width: '100%' }}>
+                  <button style={ghost} onClick={() => playerPlace(pending, 'L')}>◀ Ліворуч</button>
+                  <button style={ghost} onClick={() => playerPlace(pending, 'R')}>Праворуч ▶</button>
+                  <button style={{ ...ghost, borderColor: 'rgba(255,255,255,0.25)', color: TEXT_SOFT }} onClick={() => setPending(null)}>Скасувати</button>
+                </div>
               </div>
             )}
 
