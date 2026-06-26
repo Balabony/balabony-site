@@ -15,6 +15,15 @@ function escHtml(str: string): string {
 }
 
 // Рендер тексту як у Балабонів: сцени (порожній рядок) → абзаци з відступом,
+// Справжня мітка персонажа: усі слова з великої літери (плюс приставка «о.»
+// для священника), максимум 3 слова. Так нарація з двокрапкою («У школі
+// згодом сказали:») НЕ фарбується золотим як ім'я.
+function isSpeakerLabel(label: string): boolean {
+  const t = label.trim()
+  if (!t) return false
+  return /^(?:о\.)?[А-ЯІЇЄҐ][а-яіїєґ'ʼ’\-.]*(?:\s+[А-ЯІЇЄҐ][а-яіїєґ'ʼ’\-.]*){0,2}$/.test(t)
+}
+
 // репліки «Імʼя:» — імʼя золотим. Розділювачі * * * прибираються.
 function formatTyshaText(raw: string): string {
   const cleaned = raw.replace(/^[ \t]*\*[ \t]*\*[ \t]*\*[ \t]*$/gm, '') // прибрати * * *
@@ -25,7 +34,7 @@ function formatTyshaText(raw: string): string {
     const inner = paragraphs.map((p) => {
       const trimmed = p.trim()
       const m = trimmed.match(/^([^:]{1,40}):\s/)
-      if (m) {
+      if (m && isSpeakerLabel(m[1])) {
         const speaker = m[1]
         const rest = trimmed.slice(m[0].length)
         return `<p class="speaker"><strong style="color:${GOLD};font-weight:700">${escHtml(speaker)}:</strong> ${escHtml(rest)}</p>`
