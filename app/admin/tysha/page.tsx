@@ -137,25 +137,6 @@ function applySuggestions(src: string, accepted: Sugg[]): { text: string; applie
   return { text: out, applied, skipped }
 }
 
-// ─── AI-помічники: звіти ─────────────────────────────────────────────────────
-type ContReport = {
-  kind: 'continuity'
-  title: string | null
-  season: number | null
-  episode: number | null
-  prevCount: number
-  continuity: { severity: 'error' | 'warn'; issue: string; source?: string }[]
-  voices: { character: string; issue: string }[]
-  summary: string
-}
-type QualReport = {
-  kind: 'quality'
-  verdict: 'quality' | 'remarks' | 'poor'
-  issues: { technical: string[]; stylistics: string[]; plot: string[] }
-  summary: string
-}
-type AiReport = ContReport | QualReport
-
 export default function TyshaMaisternia() {
   const [list, setList] = useState<SeriesItem[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -164,7 +145,6 @@ export default function TyshaMaisternia() {
   const [findings, setFindings] = useState<Finding[] | null>(null)
   const [suggestions, setSuggestions] = useState<Sugg[] | null>(null)
   const [aiBusy, setAiBusy] = useState<string | null>(null)
-  const [report, setReport] = useState<AiReport | null>(null)
   const [recapText, setRecapText] = useState<string | null>(null)
   const [pubStatus, setPubStatus] = useState<string>('draft')
   const [publishAt, setPublishAt] = useState<string>('')   // ISO з БД
@@ -252,7 +232,7 @@ export default function TyshaMaisternia() {
 
   async function selectSeries(id: string) {
     if (dirty && !confirm('Є незбережені зміни. Відкрити іншу серію без збереження?')) return
-    setLoadingItem(true); setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setReport(null); setRecapText(null)
+    setLoadingItem(true); setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setRecapText(null)
     try {
       const r = await fetch(`/api/admin/content/${id}`, { credentials: 'same-origin' })
       const d = await r.json()
@@ -415,29 +395,7 @@ export default function TyshaMaisternia() {
   }
 
   // ── AI-помічники (батч 1: аналізатори + recap) ──
-  function clearPanels() { setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setReport(null); setRecapText(null) }
-
-  async function runContinuity() {
-    if (!selectedId) return
-    clearPanels(); setAiBusy('continuity')
-    try {
-      const r = await fetch('/api/admin/continuity-check', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ id: selectedId }) })
-      const d = await r.json()
-      if (!r.ok) throw new Error(d.error || 'Помилка перевірки хронології')
-      setReport({ kind: 'continuity', title: d.title ?? null, season: d.season ?? null, episode: d.episode ?? null, prevCount: d.prevCount ?? 0, continuity: d.findings?.continuity ?? [], voices: d.findings?.voices ?? [], summary: d.findings?.summary ?? '' })
-    } catch (e) { setErr(e instanceof Error ? e.message : 'Помилка') } finally { setAiBusy(null) }
-  }
-
-  async function runQuality() {
-    if (!text.trim()) return
-    clearPanels(); setAiBusy('quality')
-    try {
-      const r = await fetch('/api/admin/quality-check', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ text }) })
-      const d = await r.json()
-      if (!r.ok) throw new Error(d.error || 'Помилка перевірки якості')
-      setReport({ kind: 'quality', verdict: d.verdict ?? 'remarks', issues: { technical: d.issues?.technical ?? [], stylistics: d.issues?.stylistics ?? [], plot: d.issues?.plot ?? [] }, summary: d.summary ?? '' })
-    } catch (e) { setErr(e instanceof Error ? e.message : 'Помилка') } finally { setAiBusy(null) }
-  }
+  function clearPanels() { setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setRecapText(null) }
 
   async function genRecap() {
     if (!text.trim()) return
@@ -567,12 +525,6 @@ export default function TyshaMaisternia() {
               </button>
               <button onClick={improve} disabled={improving || !text.trim()} style={btn('#9b8cff', !improving && !!text.trim())}>
                 {improving ? 'Олюднюю…' : 'Олюднити (Gemini)'}
-              </button>
-              <button onClick={runContinuity} disabled={!selectedId || aiBusy !== null} style={btn('#7aa2c4', !!selectedId && aiBusy === null)}>
-                {aiBusy === 'continuity' ? 'Перевіряю…' : 'Хронологія'}
-              </button>
-              <button onClick={runQuality} disabled={!text.trim() || aiBusy !== null} style={btn('#7aa2c4', !!text.trim() && aiBusy === null)}>
-                {aiBusy === 'quality' ? 'Перевіряю…' : 'Якість'}
               </button>
               <button onClick={genRecap} disabled={!text.trim() || aiBusy !== null} style={btn('#c4a27a', !!text.trim() && aiBusy === null)}>
                 {aiBusy === 'recap' ? 'Генерую…' : 'Recap'}
@@ -718,52 +670,6 @@ export default function TyshaMaisternia() {
                 </div>
               )
             })()}
-
-            {/* AI-звіт: хронологія / якість */}
-            {report && (
-              <div style={{ margin: '14px 0', padding: 14, borderRadius: 10, background: 'rgba(122,162,196,0.08)', border: '1px solid #7aa2c4' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                  <strong style={{ fontSize: 13, color: '#a9c6dd' }}>{report.kind === 'continuity' ? 'Хронологія / континуїті' : 'Перевірка якості'}</strong>
-                  <button onClick={() => setReport(null)} style={{ marginLeft: 'auto', padding: '4px 10px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.5)', border: '1px solid rgba(255,255,255,0.12)', fontSize: 12, fontFamily: FONT }}>Закрити</button>
-                </div>
-                {report.kind === 'continuity' ? (
-                  <div style={{ fontSize: 13.5, lineHeight: 1.6, color: '#d8d2c6' }}>
-                    <div style={{ fontSize: 12, color: 'rgba(245,240,232,0.55)', marginBottom: 8 }}>Звірено з {report.prevCount} попередніми серіями</div>
-                    {report.summary && <p style={{ margin: '0 0 10px', fontStyle: 'italic' }}>{report.summary}</p>}
-                    {report.continuity.length === 0 && report.voices.length === 0 && <p style={{ margin: 0, color: '#7ddb9f' }}>Суперечностей не знайдено.</p>}
-                    {report.continuity.map((c, i) => (
-                      <div key={`c${i}`} style={{ padding: '7px 10px', marginBottom: 6, borderRadius: 6, borderLeft: `3px solid ${c.severity === 'error' ? '#e0484d' : '#e0a23d'}`, background: 'rgba(0,0,0,0.2)' }}>
-                        <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: c.severity === 'error' ? '#ef8a8d' : '#e0c07d' }}>{c.severity === 'error' ? 'суперечність' : 'увага'}</span>
-                        <div>{c.issue}</div>
-                        {c.source && <div style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.5)', marginTop: 2 }}>джерело: {c.source}</div>}
-                      </div>
-                    ))}
-                    {report.voices.map((v, i) => (
-                      <div key={`v${i}`} style={{ padding: '7px 10px', marginBottom: 6, borderRadius: 6, borderLeft: '3px solid #9b8cff', background: 'rgba(0,0,0,0.2)' }}>
-                        <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: '#bcb0ff' }}>голос · {v.character}</span>
-                        <div>{v.issue}</div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div style={{ fontSize: 13.5, lineHeight: 1.6, color: '#d8d2c6' }}>
-                    {(() => {
-                      const vc = report.verdict === 'quality' ? '#7ddb9f' : report.verdict === 'poor' ? '#e0484d' : '#e0a23d'
-                      const vt = report.verdict === 'quality' ? 'Якісно' : report.verdict === 'poor' ? 'Слабко' : 'Із зауваженнями'
-                      return <span style={{ display: 'inline-block', marginBottom: 8, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5, color: vc, border: `1px solid ${vc}`, borderRadius: 6, padding: '3px 10px' }}>{vt}</span>
-                    })()}
-                    {report.summary && <p style={{ margin: '0 0 10px', fontStyle: 'italic' }}>{report.summary}</p>}
-                    {([['Технічне', report.issues.technical], ['Стилістика', report.issues.stylistics], ['Сюжет/персонажі', report.issues.plot]] as [string, string[]][]).map(([label, arr]) => arr.length > 0 && (
-                      <div key={label} style={{ marginBottom: 8 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'rgba(245,240,232,0.5)', marginBottom: 3 }}>{label}</div>
-                        {arr.map((it, i) => <div key={i} style={{ padding: '5px 10px', marginBottom: 4, borderRadius: 6, borderLeft: '3px solid #e0a23d', background: 'rgba(0,0,0,0.2)' }}>{it}</div>)}
-                      </div>
-                    ))}
-                    {report.issues.technical.length === 0 && report.issues.stylistics.length === 0 && report.issues.plot.length === 0 && <p style={{ margin: 0, color: '#7ddb9f' }}>Зауважень немає.</p>}
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Recap: згенеровано — переглянь і збережи */}
             {recapText !== null && (
