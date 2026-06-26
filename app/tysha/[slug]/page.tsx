@@ -183,12 +183,14 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
           <Link href="/" style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.55)', textDecoration: 'none' }}>← На головну</Link>
           <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: '#e0484d', padding: '3px 8px', borderRadius: 6, flexShrink: 0 }}>18+</span>
         </div>
-        <span style={{ display: 'inline-block', marginTop: 16, fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD, background: 'rgba(239,159,39,0.14)', border: '1px solid rgba(239,159,39,0.5)', padding: '4px 9px', borderRadius: 4 }}>
+        <span style={{ display: 'inline-block', marginTop: 12, fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD, background: 'rgba(239,159,39,0.14)', border: '1px solid rgba(239,159,39,0.5)', padding: '4px 9px', borderRadius: 4 }}>
           Авторський серіал
         </span>
-        <h1 style={{ fontSize: 26, fontWeight: 800, color: '#fff', margin: '12px 0 6px', lineHeight: 1.2 }}>{ep.title}</h1>
-        <div style={{ fontSize: 13.5, fontWeight: 700, color: GOLD }}>Назар Колодій</div>
-        <div style={{ fontSize: 12, fontStyle: 'italic', color: 'rgba(245,240,232,0.6)', marginTop: 2 }}>Історія, яку чуєш серцем</div>
+        <h1 style={{ fontSize: 26, fontWeight: 800, color: '#fff', margin: '10px 0 5px', lineHeight: 1.2 }}>{ep.title}</h1>
+        <div style={{ fontSize: 13, lineHeight: 1.4 }}>
+          <span style={{ fontWeight: 700, color: GOLD }}>Назар Колодій</span>
+          <span style={{ color: 'rgba(245,240,232,0.55)', fontStyle: 'italic' }}> · Історія, яку чуєш серцем</span>
+        </div>
         {isAdmin && ep.status !== 'published' && (
           <div style={{ marginTop: 10, fontSize: 12, color: '#9b8cff', border: '1px solid #9b8cff', borderRadius: 6, padding: '5px 10px', display: 'inline-block' }}>
             попередній перегляд ({ep.status}) — видно лише адміну
