@@ -105,7 +105,8 @@ export default function TyshaMaisternia() {
   const [text, setText] = useState('')
   const [savedText, setSavedText] = useState('')
   const [findings, setFindings] = useState<Finding[] | null>(null)
-  const [improved, setImproved] = useState<string | null>(null)
+  const [improvedRaw, setImprovedRaw] = useState<string | null>(null)
+  const [diff, setDiff] = useState<Array<{ orig: string; imp: string; changed: boolean; accepted: boolean }> | null>(null)
   const [pubStatus, setPubStatus] = useState<string>('draft')
   const [publishAt, setPublishAt] = useState<string>('')   // ISO з БД
   const [scheduleInput, setScheduleInput] = useState<string>('') // datetime-local
@@ -184,7 +185,7 @@ export default function TyshaMaisternia() {
 
   async function selectSeries(id: string) {
     if (dirty && !confirm('Є незбережені зміни. Відкрити іншу серію без збереження?')) return
-    setLoadingItem(true); setErr(''); setMsg(''); setFindings(null); setImproved(null)
+    setLoadingItem(true); setErr(''); setMsg(''); setFindings(null); setImprovedRaw(null); setDiff(null)
     try {
       const r = await fetch(`/api/admin/content/${id}`, { credentials: 'same-origin' })
       const d = await r.json()
@@ -260,20 +261,40 @@ export default function TyshaMaisternia() {
   }
 
   async function improve() {
-    setImproving(true); setErr(''); setMsg(''); setImproved(null)
+    setImproving(true); setErr(''); setMsg(''); setImprovedRaw(null); setDiff(null)
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 75000)
     try {
       const r = await fetch('/api/admin/improve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
         body: JSON.stringify({ text, recommendations: TYSHA_RULES }),
+        signal: ctrl.signal,
       })
       const d = await r.json()
       if (!r.ok) throw new Error(d.error || 'Помилка олюднення')
-      setImproved((d.improvedText ?? '').trim())
+      const improvedText = (d.improvedText ?? '').trim()
+      // Абзацне зіставлення: якщо структура збіглася — пофразовий вибір.
+      const origParas = text.split('\n')
+      const impParas = improvedText.split('\n')
+      if (origParas.length === impParas.length && origParas.length > 1) {
+        setDiff(origParas.map((o, i) => ({
+          orig: o,
+          imp: impParas[i],
+          changed: o.trim() !== impParas[i].trim(),
+          accepted: true,
+        })))
+      } else {
+        setImprovedRaw(improvedText) // структура змінилась — цілим текстом
+      }
     } catch (e) {
-      setErr(String(e instanceof Error ? e.message : e))
+      const m = e instanceof Error && e.name === 'AbortError'
+        ? 'Gemini не встиг за 75 c. Спробуй ще раз або коротшу серію.'
+        : String(e instanceof Error ? e.message : e)
+      setErr(m)
     } finally {
+      clearTimeout(timer)
       setImproving(false)
     }
   }
@@ -429,26 +450,50 @@ export default function TyshaMaisternia() {
               </p>
             </div>
 
-            {improved !== null && (
+            {/* Пофразовий вибір змін олюднення */}
+            {diff !== null && (() => {
+              const changes = diff.map((p, i) => ({ ...p, i })).filter((p) => p.changed)
+              const acceptedCount = changes.filter((p) => p.accepted).length
+              const applyAll = () => { setText(diff.map((p) => (p.accepted ? p.imp : p.orig)).join('\n')); setDiff(null); setMsg('Застосовано — не забудь зберегти') }
+              return (
+                <div style={{ margin: '14px 0', padding: 14, borderRadius: 10, background: 'rgba(155,140,255,0.08)', border: '1px solid #9b8cff' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+                    <strong style={{ fontSize: 13, color: '#bcb0ff' }}>Олюднення: {changes.length} змін, прийнято {acceptedCount}</strong>
+                    <button onClick={() => setDiff((d) => d!.map((p) => ({ ...p, accepted: true })))} style={{ ...btn('#7ddb9f', true), padding: '5px 11px', fontSize: 12 }}>Прийняти всі</button>
+                    <button onClick={() => setDiff((d) => d!.map((p) => ({ ...p, accepted: false })))} style={{ padding: '5px 11px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.6)', border: '1px solid rgba(255,255,255,0.15)', fontSize: 12, fontFamily: FONT }}>Лишити всі</button>
+                    <button onClick={applyAll} style={{ ...btn('#9b8cff', true), padding: '5px 11px', fontSize: 12 }}>Застосувати в редактор</button>
+                    <button onClick={() => setDiff(null)} style={{ padding: '5px 11px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.5)', border: '1px solid rgba(255,255,255,0.12)', fontSize: 12, fontFamily: FONT }}>Скасувати</button>
+                  </div>
+                  {changes.length === 0 && <div style={{ fontSize: 13, color: 'rgba(245,240,232,0.6)' }}>Gemini не запропонував змін.</div>}
+                  <div style={{ maxHeight: 420, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {changes.map((p) => (
+                      <div key={p.i} style={{ borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                        <div style={{ padding: '8px 10px', background: 'rgba(217,69,69,0.10)', fontSize: 13, lineHeight: 1.5, color: 'rgba(245,240,232,0.75)', fontFamily: "'Georgia', serif" }}>
+                          <span style={{ fontSize: 10, color: '#d98b8b', textTransform: 'uppercase', letterSpacing: 0.5 }}>було</span><br />{p.orig}
+                        </div>
+                        <div style={{ padding: '8px 10px', background: 'rgba(45,143,78,0.10)', fontSize: 13, lineHeight: 1.5, color: 'rgba(245,240,232,0.9)', fontFamily: "'Georgia', serif" }}>
+                          <span style={{ fontSize: 10, color: '#7ddb9f', textTransform: 'uppercase', letterSpacing: 0.5 }}>стало</span><br />{p.imp}
+                        </div>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: 'rgba(0,0,0,0.2)', fontSize: 12.5, cursor: 'pointer', color: p.accepted ? '#7ddb9f' : 'rgba(245,240,232,0.55)' }}>
+                          <input type="checkbox" checked={p.accepted} onChange={() => setDiff((d) => d!.map((x, idx) => (idx === p.i ? { ...x, accepted: !x.accepted } : x)))} />
+                          {p.accepted ? 'прийняти цю зміну' : 'лишити як було'}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
+
+            {/* Запасний режим: структура змінилась — цілим текстом */}
+            {improvedRaw !== null && (
               <div style={{ margin: '14px 0', padding: 14, borderRadius: 10, background: 'rgba(155,140,255,0.08)', border: '1px solid #9b8cff' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                  <strong style={{ fontSize: 13, color: '#bcb0ff' }}>Олюднена версія (Gemini)</strong>
-                  <button
-                    onClick={() => { setText(improved); setImproved(null); setMsg('Застосовано — не забудь зберегти') }}
-                    style={{ ...btn('#9b8cff', true), padding: '6px 12px', fontSize: 12 }}
-                  >
-                    Застосувати в редактор
-                  </button>
-                  <button
-                    onClick={() => setImproved(null)}
-                    style={{ padding: '6px 12px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.6)', border: '1px solid rgba(255,255,255,0.15)', fontSize: 12, fontFamily: FONT }}
-                  >
-                    Відхилити
-                  </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
+                  <strong style={{ fontSize: 13, color: '#bcb0ff' }}>Олюднена версія (структура змінилась — цілим текстом)</strong>
+                  <button onClick={() => { setText(improvedRaw); setImprovedRaw(null); setMsg('Застосовано — не забудь зберегти') }} style={{ ...btn('#9b8cff', true), padding: '6px 12px', fontSize: 12 }}>Застосувати в редактор</button>
+                  <button onClick={() => setImprovedRaw(null)} style={{ padding: '6px 12px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.6)', border: '1px solid rgba(255,255,255,0.15)', fontSize: 12, fontFamily: FONT }}>Відхилити</button>
                 </div>
-                <div style={{ maxHeight: 240, overflowY: 'auto', whiteSpace: 'pre-wrap', fontSize: 13, lineHeight: 1.5, color: 'rgba(245,240,232,0.9)', fontFamily: "'Georgia', serif" }}>
-                  {improved}
-                </div>
+                <div style={{ maxHeight: 240, overflowY: 'auto', whiteSpace: 'pre-wrap', fontSize: 13, lineHeight: 1.5, color: 'rgba(245,240,232,0.9)', fontFamily: "'Georgia', serif" }}>{improvedRaw}</div>
               </div>
             )}
 
