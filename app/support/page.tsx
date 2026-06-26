@@ -43,7 +43,7 @@ const ACCOUNTS: AccountInfo[] = [
 ];
 
 const ORG_NAME_UA = 'ЛОГО „Інститут громадянського суспільства"';
-const ORG_NAME_UA_FULL = 'ГО «Львівська обласна громадська організація „Інститут громадянського суспільства"»';
+const ORG_NAME_UA_FULL = 'Львівська обласна громадська організація „Інститут громадянського суспільства"';
 const ORG_NAME_TRANS = 'Lvivska Oblasna Hromadska Orhanizatsiya "Instytut Hromadyanskoho Suspilstva"';
 const EDRPOU = '33951844';
 const BANK = 'АТ КБ «ПриватБанк»';
