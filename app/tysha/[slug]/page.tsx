@@ -47,6 +47,26 @@ function formatTyshaText(raw: string): string {
   return styles + rendered
 }
 
+// Скільки перших серій «Тиші» безкоштовні (далі — підписка).
+const FREE_EPISODES = 2
+
+// Тізер для замкненої серії: перші сцени до ~4 абзаців. Решта тексту
+// серверно НЕ потрапляє в браузер (на відміну від клієнтського приховування).
+function buildTeaser(raw: string, minParagraphs = 4): string {
+  const cleaned = raw.replace(/^[ \t]*\*[ \t]*\*[ \t]*\*[ \t]*$/gm, '')
+  const scenes = cleaned.split(/\n{2,}/)
+  const out: string[] = []
+  let collected = 0
+  for (const scene of scenes) {
+    const paras = scene.split(/\n/).filter((s) => s.trim().length > 0)
+    if (paras.length === 0) continue
+    out.push(scene)
+    collected += paras.length
+    if (collected >= minParagraphs) break
+  }
+  return out.join('\n\n')
+}
+
 interface TyshaRow {
   id: string
   slug: string
@@ -126,6 +146,11 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
   const next = await getNextEpisode(ep.episode_number, isAdmin)
   const body = (ep.corrected_text?.trim() ? ep.corrected_text : ep.text) ?? ''
 
+  // Пейвол: перші FREE_EPISODES серій вільні; далі — лише адмін бачить повністю.
+  const epNum = ep.episode_number ?? 0
+  const locked = !isAdmin && epNum > FREE_EPISODES
+  const visibleBody = locked ? buildTeaser(body) : body
+
   return (
     <div style={{ minHeight: '100dvh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT }}>
       <ReadTracker slug={ep.slug} />
@@ -155,13 +180,28 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
         </div>
       )}
 
-      {/* Текст серії — формат як у Балабонів */}
-      <article style={{ maxWidth: 720, margin: '0 auto', padding: '22px 20px 40px' }}>
-        <div dangerouslySetInnerHTML={{ __html: formatTyshaText(body) }} />
-      </article>
+      {/* Текст серії — формат як у Балабонів. Замкнена серія: тізер + пейвол. */}
+      {locked ? (
+        <article style={{ maxWidth: 720, margin: '0 auto', padding: '22px 20px 8px' }}>
+          <div style={{ position: 'relative', maxHeight: 460, overflow: 'hidden' }}>
+            <div dangerouslySetInnerHTML={{ __html: formatTyshaText(visibleBody) }} />
+            <div aria-hidden style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 180, background: `linear-gradient(to bottom, transparent, ${NAVY_DEEP})`, pointerEvents: 'none' }} />
+          </div>
+          <div style={{ marginTop: 24, padding: '32px 24px', borderRadius: 16, background: 'rgba(239,159,39,0.08)', border: `1px solid ${GOLD}44`, textAlign: 'center' }}>
+            <div style={{ fontSize: 28, marginBottom: 12 }}>🔒</div>
+            <p style={{ fontSize: 16, color: '#f5f0e8', lineHeight: 1.6, margin: '0 0 6px', fontWeight: 700 }}>Далі — за підпискою</p>
+            <p style={{ fontSize: 14, color: 'rgba(245,240,232,0.7)', lineHeight: 1.6, margin: '0 0 20px' }}>Перші дві серії «Тиші» — вільні. Щоб читати серіал далі, обери пакет.</p>
+            <a href="/#pricing" style={{ display: 'inline-block', padding: '14px 28px', background: GOLD, color: NAVY_DEEP, borderRadius: 10, fontSize: 15, fontWeight: 700, textDecoration: 'none', fontFamily: FONT }}>Обрати пакет →</a>
+          </div>
+        </article>
+      ) : (
+        <article style={{ maxWidth: 720, margin: '0 auto', padding: '22px 20px 40px' }}>
+          <div dangerouslySetInnerHTML={{ __html: formatTyshaText(body) }} />
+        </article>
+      )}
 
       {/* Наступна серія */}
-      {next && (
+      {next && !locked && (
         <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px 48px' }}>
           <Link href={`/tysha/${next.slug}`} style={{ display: 'block', padding: 16, borderRadius: 12, background: '#0f1e3a', border: `1.5px solid ${AMBER}`, textDecoration: 'none' }}>
             <div style={{ fontSize: 11, color: 'rgba(245,240,232,0.5)', marginBottom: 4 }}>Наступна серія →</div>
