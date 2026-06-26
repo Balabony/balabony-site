@@ -35,6 +35,70 @@ function countWords(t: string): number {
   return (t.match(/[А-Яа-яІіЇїЄєҐґ'’\u02bc-]+/g) ?? []).length
 }
 
+// Фон підсвітки порушення в тексті (напівпрозорий — просвічує крізь текст).
+const MARK: Record<Severity, string> = {
+  error: 'rgba(217,69,69,0.38)',
+  warn:  'rgba(240,165,0,0.32)',
+  info:  'rgba(122,162,196,0.28)',
+}
+const SEV_ORDER: Record<Severity, number> = { error: 0, warn: 1, info: 2 }
+
+interface Range { start: number; end: number; sev: Severity }
+
+// Гнучкий пошук цитати порушення в поточному тексті (пробіли = будь-які).
+function findRange(text: string, excerpt: string): [number, number] | null {
+  const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')
+  let m: RegExpMatchArray | null = null
+  try { m = text.match(new RegExp(esc(excerpt.trim()))) } catch { m = null }
+  if (!m || m.index == null) {
+    const short = excerpt.trim().split(/\s+/).slice(0, 4).join(' ')
+    try { m = text.match(new RegExp(esc(short))) } catch { m = null }
+  }
+  if (!m || m.index == null) return null
+  return [m.index, m.index + m[0].length]
+}
+
+// Зібрати діапазони порушень, відсортувати, злити перекриття.
+function computeRanges(text: string, findings: Finding[]): Range[] {
+  const raw: Range[] = []
+  for (const f of findings) {
+    if (!f.excerpt) continue
+    const r = findRange(text, f.excerpt)
+    if (r) raw.push({ start: r[0], end: r[1], sev: f.severity })
+  }
+  raw.sort((a, b) => a.start - b.start || a.end - b.end)
+  const merged: Range[] = []
+  for (const r of raw) {
+    const last = merged[merged.length - 1]
+    if (last && r.start <= last.end) {
+      last.end = Math.max(last.end, r.end)
+      if (SEV_ORDER[r.sev] < SEV_ORDER[last.sev]) last.sev = r.sev
+    } else {
+      merged.push({ ...r })
+    }
+  }
+  return merged
+}
+
+function escHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+// Побудувати HTML тексту з кольоровими <mark> навколо порушень.
+function buildHighlight(text: string, findings: Finding[]): string {
+  const ranges = computeRanges(text, findings)
+  if (!ranges.length) return escHtml(text)
+  let html = ''
+  let pos = 0
+  for (const r of ranges) {
+    if (r.start > pos) html += escHtml(text.slice(pos, r.start))
+    html += `<mark style="background:${MARK[r.sev]};color:transparent;border-radius:2px">${escHtml(text.slice(r.start, r.end))}</mark>`
+    pos = r.end
+  }
+  html += escHtml(text.slice(pos))
+  return html
+}
+
 export default function TyshaMaisternia() {
   const [list, setList] = useState<SeriesItem[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -54,6 +118,22 @@ export default function TyshaMaisternia() {
   const dirty = text !== savedText
 
   const taRef = useRef<HTMLTextAreaElement>(null)
+  const backRef = useRef<HTMLDivElement>(null)
+  const [highlightOn, setHighlightOn] = useState(true)
+
+  // HTML підсвітки: рахується від ПОТОЧНОГО тексту — щойно правиш порушення,
+  // цитата зникає й пляма гасне сама (до повторної перевірки).
+  const highlightHtml = useMemo(
+    () => (findings && highlightOn ? buildHighlight(text, findings) : ''),
+    [text, findings, highlightOn]
+  )
+
+  function syncScroll() {
+    if (backRef.current && taRef.current) {
+      backRef.current.scrollTop = taRef.current.scrollTop
+      backRef.current.scrollLeft = taRef.current.scrollLeft
+    }
+  }
 
   // Перехід до місця порушення: знаходимо цитату в тексті (пробіли гнучко),
   // виділяємо й прокручуємо поле до неї.
@@ -79,6 +159,7 @@ export default function TyshaMaisternia() {
     const line = before.split('\n').length
     const lineH = 22
     ta.scrollTop = Math.max(0, (line - 4) * lineH)
+    syncScroll()
   }
 
   const loadList = useCallback(async () => {
@@ -214,17 +295,38 @@ export default function TyshaMaisternia() {
 
         {selectedId && !loadingItem && (
           <>
-            <textarea
-              ref={taRef}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              style={{
-                width: '100%', minHeight: 360, resize: 'vertical', boxSizing: 'border-box',
-                padding: 14, borderRadius: 10, background: NAVY_DEEP, color: INK,
-                border: `1px solid ${dirty ? GOLD : 'rgba(255,255,255,0.12)'}`,
-                fontSize: 14, lineHeight: 1.55, fontFamily: "'Georgia', serif", outline: 'none',
-              }}
-            />
+            <div style={{ position: 'relative', height: 440, borderRadius: 10, border: `1px solid ${dirty ? GOLD : 'rgba(255,255,255,0.12)'}`, overflow: 'hidden', background: NAVY_DEEP }}>
+              {/* Шар підсвітки (під текстом) */}
+              <div
+                ref={backRef}
+                aria-hidden
+                style={{
+                  position: 'absolute', inset: 0, margin: 0, padding: 14, overflow: 'hidden',
+                  pointerEvents: 'none', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                  fontSize: 14, lineHeight: 1.55, fontFamily: "'Georgia', serif",
+                  color: 'transparent', boxSizing: 'border-box',
+                }}
+                dangerouslySetInnerHTML={{ __html: highlightHtml }}
+              />
+              {/* Текстове поле (прозорий фон — плями просвічують) */}
+              <textarea
+                ref={taRef}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onScroll={syncScroll}
+                spellCheck={false}
+                style={{
+                  position: 'absolute', inset: 0, width: '100%', height: '100%', resize: 'none',
+                  boxSizing: 'border-box', padding: 14, background: 'transparent', color: INK,
+                  caretColor: INK, border: 'none',
+                  fontSize: 14, lineHeight: 1.55, fontFamily: "'Georgia', serif", outline: 'none',
+                }}
+              />
+            </div>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, margin: '8px 0 0', fontSize: 12.5, color: 'rgba(245,240,232,0.6)', cursor: 'pointer' }}>
+              <input type="checkbox" checked={highlightOn} onChange={(e) => setHighlightOn(e.target.checked)} />
+              Підсвічувати порушення в тексті
+            </label>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '12px 0', flexWrap: 'wrap' }}>
               <button onClick={save} disabled={!dirty || saving} style={btn(GOLD, dirty && !saving)}>
