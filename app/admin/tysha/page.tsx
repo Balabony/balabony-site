@@ -619,10 +619,10 @@ export default function TyshaMaisternia() {
                   <div style={{ maxHeight: 460, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {suggestions.map((s, idx) => (
                       <div key={idx} style={{ borderRadius: 8, border: `1px solid ${s.accepted ? '#9b8cff' : 'rgba(255,255,255,0.14)'}`, overflow: 'hidden', opacity: s.accepted ? 1 : 0.55 }}>
-                        <div style={{ padding: '8px 10px', background: 'rgba(217,69,69,0.20)', borderLeft: '3px solid #d94545', fontSize: 13.5, lineHeight: 1.55, color: '#f3d3d3', fontFamily: "'Georgia', serif" }}>
+                        <div style={{ padding: '8px 10px', background: 'rgba(217,69,69,0.20)', borderLeft: '3px solid #d94545', fontSize: 13.5, lineHeight: 1.55, color: '#f3d3d3', fontFamily: "'Georgia', serif", maxHeight: 200, overflowY: 'auto' }}>
                           <span style={{ fontSize: 10, fontWeight: 700, color: '#e88', textTransform: 'uppercase', letterSpacing: 0.5 }}>було</span><br />{s.before}
                         </div>
-                        <div style={{ padding: '8px 10px', background: 'rgba(45,143,78,0.20)', borderLeft: '3px solid #2d8f4e', fontSize: 13.5, lineHeight: 1.55, color: '#cdebd6', fontFamily: "'Georgia', serif" }}>
+                        <div style={{ padding: '8px 10px', background: 'rgba(45,143,78,0.20)', borderLeft: '3px solid #2d8f4e', fontSize: 13.5, lineHeight: 1.55, color: '#cdebd6', fontFamily: "'Georgia', serif", maxHeight: 200, overflowY: 'auto' }}>
                           <span style={{ fontSize: 10, fontWeight: 700, color: '#7ddb9f', textTransform: 'uppercase', letterSpacing: 0.5 }}>стало</span><br />{s.after}
                         </div>
                         {s.reason && (

@@ -57,6 +57,16 @@ function parseSuggestions(raw: string): Suggestion[] {
   return out
 }
 
+// Фрагмент має бути коротким: одне речення/частина речення, не цілий абзац.
+// Інакше «олюднення» вироджується в переписування всього тексту.
+function isGranular(before: string): boolean {
+  const f = before.trim()
+  if (f.length > 240) return false
+  // більше одного завершеного речення всередині — забагато
+  const enders = (f.match(/[.!?…]\s+\p{Lu}/gu) ?? []).length
+  return enders <= 1
+}
+
 export async function POST(request: NextRequest) {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'GEMINI_API_KEY не налаштовано' }, { status: 500 })
@@ -89,7 +99,11 @@ ${recList}
   { "було": "<точна фраза, СКОПІЙОВАНА з тексту дослівно, разом з розділовими знаками>", "стало": "<покращений варіант цієї фрази>", "причина": "<коротко, 3–6 слів, чому краще>" }
 ]
 
-ВАЖЛИВО: поле "було" має бути ТОЧНОЮ підрядковою копією з тексту (символ у символ), інакше пропозицію відкинуть. Бери короткі фрагменти — речення або частину речення, не цілі абзаци.
+КРИТИЧНО ВАЖЛИВО:
+— поле "було" має бути ТОЧНОЮ підрядковою копією з тексту (символ у символ), інакше пропозицію відкинуть;
+— один "було" = МАКСИМУМ одне речення (краще частина речення). НІКОЛИ не бери абзац чи кілька речень разом;
+— якщо в тексті є кілька місць для покращення — дай КІЛЬКА окремих дрібних пропозицій, а не одну велику;
+— якщо хочеш змінити два місця в одному реченні — зроби дві окремі пропозиції з короткими "було".
 
 Текст:
 """
@@ -116,7 +130,7 @@ ${text}
 
     // Валідація: лишаємо тільки ті пропозиції, чиє «було» реально є в тексті.
     // Це відсіює галюцинації (фрази, яких у тексті нема).
-    const validated = parsed.filter((s) => existsInText(text, s.before))
+    const validated = parsed.filter((s) => isGranular(s.before) && existsInText(text, s.before))
     const dropped = parsed.length - validated.length
 
     return NextResponse.json({ suggestions: validated, dropped })
