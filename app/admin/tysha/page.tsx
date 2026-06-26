@@ -99,76 +99,42 @@ function buildHighlight(text: string, findings: Finding[]): string {
   return html
 }
 
-// ─── Реченнєвий diff (LCS) для олюднення ──────────────────────────────────────
-// Розбиваємо обидва тексти на речення й знаходимо відмінності незалежно від
-// того, як Gemini переформатував абзаци/рядки.
-function splitSentences(text: string): string[] {
-  const out: string[] = []
-  for (const line of text.split('\n')) {
-    const t = line.trim()
-    if (!t) continue
-    // Репліку «Імʼя: …» лишаємо цілою; решту ріжемо по межах речень.
-    if (/^[^:]{2,40}:\s/.test(t)) { out.push(t); continue }
-    const parts = t.split(/(?<=[.!?…])\s+/).map((s) => s.trim()).filter(Boolean)
-    for (const p of parts) out.push(p)
-  }
-  return out
-}
+// ─── Точкові пропозиції олюднення ────────────────────────────────────────────
+// Gemini повертає список {було, стало, причина}. Кожне «було» — дослівний
+// фрагмент тексту; застосування міняє лише цей фрагмент, не чіпаючи абзаци.
+type Sugg = { before: string; after: string; reason: string; accepted: boolean }
 
-type DiffOp =
-  | { kind: 'keep'; text: string }
-  | { kind: 'change'; orig: string[]; imp: string[]; accepted: boolean }
-
-// Нормалізація ЛИШЕ для порівняння (не для показу): щоб різниця апострофів,
-// тире й пробілів не рахувалась як зміна. Показуємо завжди оригінальні речення.
-function normCmp(s: string): string {
-  return s
-    .replace(/[''ʼ`´]/g, "'")
-    .replace(/[—–−]/g, '-')
-    .replace(/\s+/g, ' ')
+// Гнучкий пошук фрагмента: апострофи/тире/пробіли — будь-які варіанти.
+function flexRe(fragment: string): RegExp | null {
+  const esc = fragment
     .trim()
+    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    .replace(/['’ʼ`´]/g, "['’ʼ`´]")
+    .replace(/[—–−-]/g, '[—–−-]')
+    .replace(/\s+/g, '\\s+')
+  try {
+    return new RegExp(esc)
+  } catch {
+    return null
+  }
 }
 
-// Класичний LCS по реченнях → послідовність keep / change(було→стало).
-function buildDiffOps(origText: string, impText: string): DiffOp[] {
-  const a = splitSentences(origText)
-  const b = splitSentences(impText)
-  const na = a.map(normCmp)
-  const nb = b.map(normCmp)
-  const n = a.length, m = b.length
-  const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0))
-  for (let i = n - 1; i >= 0; i--)
-    for (let j = m - 1; j >= 0; j--)
-      dp[i][j] = na[i] === nb[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1])
-
-  const ops: DiffOp[] = []
-  let pendDel: string[] = [], pendAdd: string[] = []
-  const flush = () => {
-    if (pendDel.length || pendAdd.length) {
-      ops.push({ kind: 'change', orig: pendDel, imp: pendAdd, accepted: true })
-      pendDel = []; pendAdd = []
+// Застосувати прийняті пропозиції: для кожної міняємо ПЕРШЕ входження «було» на
+// «стало». Структура тексту (абзаци, сцени) лишається недоторканою.
+function applySuggestions(src: string, accepted: Sugg[]): { text: string; applied: number; skipped: number } {
+  let out = src
+  let applied = 0
+  let skipped = 0
+  for (const s of accepted) {
+    const re = flexRe(s.before)
+    if (re && re.test(out)) {
+      out = out.replace(re, () => s.after)
+      applied++
+    } else {
+      skipped++
     }
   }
-  let i = 0, j = 0
-  while (i < n && j < m) {
-    if (na[i] === nb[j]) { flush(); ops.push({ kind: 'keep', text: a[i] }); i++; j++ }
-    else if (dp[i + 1][j] >= dp[i][j + 1]) { pendDel.push(a[i]); i++ }
-    else { pendAdd.push(b[j]); j++ }
-  }
-  while (i < n) { pendDel.push(a[i]); i++ }
-  while (j < m) { pendAdd.push(b[j]); j++ }
-  flush()
-  return ops
-}
-
-// Зібрати фінальний текст із рішень користувача (одне речення на рядок).
-function assembleFromOps(ops: DiffOp[]): string {
-  const lines: string[] = []
-  for (const op of ops) {
-    if (op.kind === 'keep') lines.push(op.text)
-    else (op.accepted ? op.imp : op.orig).forEach((s) => lines.push(s))
-  }
-  return lines.join('\n')
+  return { text: out, applied, skipped }
 }
 
 export default function TyshaMaisternia() {
@@ -177,8 +143,7 @@ export default function TyshaMaisternia() {
   const [text, setText] = useState('')
   const [savedText, setSavedText] = useState('')
   const [findings, setFindings] = useState<Finding[] | null>(null)
-  const [improvedRaw, setImprovedRaw] = useState<string | null>(null)
-  const [ops, setOps] = useState<DiffOp[] | null>(null)
+  const [suggestions, setSuggestions] = useState<Sugg[] | null>(null)
   const [pubStatus, setPubStatus] = useState<string>('draft')
   const [publishAt, setPublishAt] = useState<string>('')   // ISO з БД
   const [scheduleInput, setScheduleInput] = useState<string>('') // datetime-local
@@ -265,7 +230,7 @@ export default function TyshaMaisternia() {
 
   async function selectSeries(id: string) {
     if (dirty && !confirm('Є незбережені зміни. Відкрити іншу серію без збереження?')) return
-    setLoadingItem(true); setErr(''); setMsg(''); setFindings(null); setImprovedRaw(null); setOps(null)
+    setLoadingItem(true); setErr(''); setMsg(''); setFindings(null); setSuggestions(null)
     try {
       const r = await fetch(`/api/admin/content/${id}`, { credentials: 'same-origin' })
       const d = await r.json()
@@ -394,7 +359,7 @@ export default function TyshaMaisternia() {
   }
 
   async function improve() {
-    setImproving(true); setErr(''); setMsg(''); setImprovedRaw(null); setOps(null)
+    setImproving(true); setErr(''); setMsg(''); setSuggestions(null)
     const ctrl = new AbortController()
     const timer = setTimeout(() => ctrl.abort(), 75000)
     try {
@@ -407,13 +372,14 @@ export default function TyshaMaisternia() {
       })
       const d = await r.json()
       if (!r.ok) throw new Error(d.error || 'Помилка олюднення')
-      const improvedText = (d.improvedText ?? '').trim()
-      const built = buildDiffOps(text, improvedText)
-      const hasChange = built.some((o) => o.kind === 'change')
-      if (hasChange) {
-        setOps(built)
+      const raw = (d.suggestions ?? []) as { before: string; after: string; reason: string }[]
+      const dropped = typeof d.dropped === 'number' ? d.dropped : 0
+      if (raw.length > 0) {
+        setSuggestions(raw.map((s) => ({ ...s, accepted: true })))
       } else {
-        setMsg('Олюднення не запропонувало змін — текст уже чистий.')
+        setMsg(dropped > 0
+          ? 'Пропозиції не пройшли перевірку (фрагментів нема в тексті) — текст лишаю як є.'
+          : 'Олюднення не запропонувало змін — текст уже чистий.')
       }
     } catch (e) {
       const m = e instanceof Error && e.name === 'AbortError'
@@ -626,63 +592,54 @@ export default function TyshaMaisternia() {
               </p>
             </div>
 
-            {/* Пофразовий вибір змін олюднення (реченнєвий diff) */}
-            {ops !== null && (() => {
-              const changeIdxs = ops.map((o, i) => ({ o, i })).filter((x) => x.o.kind === 'change')
-              const total = changeIdxs.length
-              const acceptedCount = changeIdxs.filter((x) => (x.o as Extract<DiffOp, { kind: 'change' }>).accepted).length
-              const setAll = (val: boolean) => setOps((cur) => cur!.map((o) => (o.kind === 'change' ? { ...o, accepted: val } : o)))
-              const toggle = (idx: number) => setOps((cur) => cur!.map((o, i) => (i === idx && o.kind === 'change' ? { ...o, accepted: !o.accepted } : o)))
-              const apply = () => { setText(assembleFromOps(ops)); setOps(null); setMsg('Застосовано — не забудь зберегти') }
+            {/* Точкові пропозиції олюднення */}
+            {suggestions !== null && (() => {
+              const total = suggestions.length
+              const acceptedCount = suggestions.filter((s) => s.accepted).length
+              const setAll = (val: boolean) => setSuggestions((cur) => cur!.map((s) => ({ ...s, accepted: val })))
+              const toggle = (idx: number) => setSuggestions((cur) => cur!.map((s, i) => (i === idx ? { ...s, accepted: !s.accepted } : s)))
+              const apply = () => {
+                const acc = suggestions.filter((s) => s.accepted)
+                const res = applySuggestions(text, acc)
+                setText(res.text)
+                setSuggestions(null)
+                setMsg(res.skipped > 0
+                  ? `Застосовано ${res.applied}, пропущено ${res.skipped} (фрагмент уже змінився). Не забудь зберегти.`
+                  : `Застосовано ${res.applied}. Не забудь зберегти.`)
+              }
               return (
                 <div style={{ margin: '14px 0', padding: 14, borderRadius: 10, background: 'rgba(155,140,255,0.08)', border: '1px solid #9b8cff' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
-                    <strong style={{ fontSize: 13, color: '#bcb0ff' }}>Олюднення: {total} змін, прийнято {acceptedCount}</strong>
+                    <strong style={{ fontSize: 13, color: '#bcb0ff' }}>Пропозиції олюднення: {total}, прийнято {acceptedCount}</strong>
                     <button onClick={() => setAll(true)} style={{ ...btn('#7ddb9f', true), padding: '5px 11px', fontSize: 12 }}>Прийняти всі</button>
-                    <button onClick={() => setAll(false)} style={{ padding: '5px 11px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.6)', border: '1px solid rgba(255,255,255,0.15)', fontSize: 12, fontFamily: FONT }}>Лишити всі</button>
-                    <button onClick={apply} style={{ ...btn('#9b8cff', true), padding: '5px 11px', fontSize: 12 }}>Застосувати в редактор</button>
-                    <button onClick={() => setOps(null)} style={{ padding: '5px 11px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.5)', border: '1px solid rgba(255,255,255,0.12)', fontSize: 12, fontFamily: FONT }}>Скасувати</button>
+                    <button onClick={() => setAll(false)} style={{ padding: '5px 11px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.6)', border: '1px solid rgba(255,255,255,0.15)', fontSize: 12, fontFamily: FONT }}>Зняти всі</button>
+                    <button onClick={apply} disabled={acceptedCount === 0} style={{ ...btn('#9b8cff', acceptedCount > 0), padding: '5px 11px', fontSize: 12 }}>Застосувати ({acceptedCount})</button>
+                    <button onClick={() => setSuggestions(null)} style={{ padding: '5px 11px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.5)', border: '1px solid rgba(255,255,255,0.12)', fontSize: 12, fontFamily: FONT }}>Скасувати</button>
                   </div>
-                  <div style={{ maxHeight: 460, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, fontFamily: "'Georgia', serif" }}>
-                    {ops.map((op, idx) => {
-                      if (op.kind === 'keep') {
-                        return <div key={idx} style={{ fontSize: 12.5, lineHeight: 1.5, color: 'rgba(245,240,232,0.45)', padding: '2px 4px' }}>{op.text}</div>
-                      }
-                      return (
-                        <div key={idx} style={{ borderRadius: 8, border: '1px solid rgba(255,255,255,0.18)', overflow: 'hidden' }}>
-                          {op.orig.length > 0 && (
-                            <div style={{ padding: '8px 10px', background: 'rgba(217,69,69,0.22)', borderLeft: '3px solid #d94545', fontSize: 13.5, lineHeight: 1.5, color: '#f3d3d3' }}>
-                              <span style={{ fontSize: 10, fontWeight: 700, color: '#e88', textTransform: 'uppercase', letterSpacing: 0.5 }}>було</span><br />{op.orig.join(' ')}
-                            </div>
-                          )}
-                          {op.imp.length > 0 && (
-                            <div style={{ padding: '8px 10px', background: 'rgba(45,143,78,0.22)', borderLeft: '3px solid #2d8f4e', fontSize: 13.5, lineHeight: 1.5, color: '#cdebd6' }}>
-                              <span style={{ fontSize: 10, fontWeight: 700, color: '#7ddb9f', textTransform: 'uppercase', letterSpacing: 0.5 }}>стало</span><br />{op.imp.join(' ')}
-                            </div>
-                          )}
-                          <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: 'rgba(0,0,0,0.25)', fontSize: 12.5, cursor: 'pointer', fontFamily: FONT, color: op.accepted ? '#7ddb9f' : 'rgba(245,240,232,0.55)' }}>
-                            <input type="checkbox" checked={op.accepted} onChange={() => toggle(idx)} />
-                            {op.accepted ? 'прийняти цю зміну' : 'лишити як було'}
-                          </label>
+                  <div style={{ maxHeight: 460, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {suggestions.map((s, idx) => (
+                      <div key={idx} style={{ borderRadius: 8, border: `1px solid ${s.accepted ? '#9b8cff' : 'rgba(255,255,255,0.14)'}`, overflow: 'hidden', opacity: s.accepted ? 1 : 0.55 }}>
+                        <div style={{ padding: '8px 10px', background: 'rgba(217,69,69,0.20)', borderLeft: '3px solid #d94545', fontSize: 13.5, lineHeight: 1.55, color: '#f3d3d3', fontFamily: "'Georgia', serif" }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: '#e88', textTransform: 'uppercase', letterSpacing: 0.5 }}>було</span><br />{s.before}
                         </div>
-                      )
-                    })}
+                        <div style={{ padding: '8px 10px', background: 'rgba(45,143,78,0.20)', borderLeft: '3px solid #2d8f4e', fontSize: 13.5, lineHeight: 1.55, color: '#cdebd6', fontFamily: "'Georgia', serif" }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: '#7ddb9f', textTransform: 'uppercase', letterSpacing: 0.5 }}>стало</span><br />{s.after}
+                        </div>
+                        {s.reason && (
+                          <div style={{ padding: '5px 10px', fontSize: 11.5, color: 'rgba(245,240,232,0.6)', fontStyle: 'italic', fontFamily: FONT }}>
+                            чому: {s.reason}
+                          </div>
+                        )}
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: 'rgba(0,0,0,0.25)', fontSize: 12.5, cursor: 'pointer', fontFamily: FONT, color: s.accepted ? '#7ddb9f' : 'rgba(245,240,232,0.55)' }}>
+                          <input type="checkbox" checked={s.accepted} onChange={() => toggle(idx)} />
+                          {s.accepted ? 'прийняти цю зміну' : 'лишити як було'}
+                        </label>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )
             })()}
-
-            {/* Запасний режим: цілим текстом */}
-            {improvedRaw !== null && (
-              <div style={{ margin: '14px 0', padding: 14, borderRadius: 10, background: 'rgba(155,140,255,0.08)', border: '1px solid #9b8cff' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
-                  <strong style={{ fontSize: 13, color: '#bcb0ff' }}>Олюднена версія (цілим текстом)</strong>
-                  <button onClick={() => { setText(improvedRaw); setImprovedRaw(null); setMsg('Застосовано — не забудь зберегти') }} style={{ ...btn('#9b8cff', true), padding: '6px 12px', fontSize: 12 }}>Застосувати в редактор</button>
-                  <button onClick={() => setImprovedRaw(null)} style={{ padding: '6px 12px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.6)', border: '1px solid rgba(255,255,255,0.15)', fontSize: 12, fontFamily: FONT }}>Відхилити</button>
-                </div>
-                <div style={{ maxHeight: 240, overflowY: 'auto', whiteSpace: 'pre-wrap', fontSize: 13, lineHeight: 1.5, color: 'rgba(245,240,232,0.9)', fontFamily: "'Georgia', serif" }}>{improvedRaw}</div>
-              </div>
-            )}
 
             {sum && (
               <div style={{ display: 'flex', gap: 10, margin: '14px 0' }}>
