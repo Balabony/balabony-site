@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { checkTysha, summarize, type Finding, type Severity } from '@/lib/canon/tysha'
 
 const FONT = "'Montserrat', Arial, sans-serif"
@@ -52,6 +52,34 @@ export default function TyshaMaisternia() {
 
   const words = useMemo(() => countWords(text), [text])
   const dirty = text !== savedText
+
+  const taRef = useRef<HTMLTextAreaElement>(null)
+
+  // Перехід до місця порушення: знаходимо цитату в тексті (пробіли гнучко),
+  // виділяємо й прокручуємо поле до неї.
+  function jumpTo(excerpt?: string) {
+    const ta = taRef.current
+    if (!ta || !excerpt) return
+    const needle = excerpt.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')
+    let m: RegExpMatchArray | null = null
+    try { m = text.match(new RegExp(needle)) } catch { m = null }
+    if (!m || m.index == null) {
+      // запасний варіант — перші 4 слова цитати
+      const short = excerpt.trim().split(/\s+/).slice(0, 4).join(' ')
+        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')
+      try { m = text.match(new RegExp(short)) } catch { m = null }
+    }
+    if (!m || m.index == null) return
+    const start = m.index
+    const end = start + m[0].length
+    ta.focus()
+    ta.setSelectionRange(start, end)
+    // прокрутка до місця (приблизно по номеру рядка)
+    const before = text.slice(0, start)
+    const line = before.split('\n').length
+    const lineH = 22
+    ta.scrollTop = Math.max(0, (line - 4) * lineH)
+  }
 
   const loadList = useCallback(async () => {
     setLoadingList(true); setErr('')
@@ -187,6 +215,7 @@ export default function TyshaMaisternia() {
         {selectedId && !loadingItem && (
           <>
             <textarea
+              ref={taRef}
               value={text}
               onChange={(e) => setText(e.target.value)}
               style={{
@@ -255,10 +284,16 @@ export default function TyshaMaisternia() {
             )}
 
             {sorted.map((f, i) => (
-              <div key={i} style={{ margin: '8px 0', padding: '11px 13px', borderRadius: 10, background: SEV[f.severity].bg, borderLeft: `3px solid ${SEV[f.severity].color}` }}>
+              <div
+                key={i}
+                onClick={() => jumpTo(f.excerpt)}
+                title={f.excerpt ? 'Клік — показати місце в тексті' : undefined}
+                style={{ margin: '8px 0', padding: '11px 13px', borderRadius: 10, background: SEV[f.severity].bg, borderLeft: `3px solid ${SEV[f.severity].color}`, cursor: f.excerpt ? 'pointer' : 'default' }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: SEV[f.severity].color }}>{SEV[f.severity].label}</span>
                   <span style={{ fontSize: 13, fontWeight: 600 }}>{f.rule}</span>
+                  {f.excerpt && <span style={{ marginLeft: 'auto', fontSize: 11, color: 'rgba(245,240,232,0.45)' }}>показати в тексті →</span>}
                 </div>
                 <div style={{ fontSize: 13, color: 'rgba(245,240,232,0.85)', lineHeight: 1.4 }}>{f.message}</div>
                 {f.excerpt && (
