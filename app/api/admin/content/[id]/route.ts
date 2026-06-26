@@ -30,7 +30,7 @@ export async function GET(req: NextRequest, ctx: RouteContext) {
     const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
       .from('content')
-      .select('id, slug, title, author_name, genre, category, cover_url, cover_position, status, approved_at, text, type, season_number, episode_number, description, duration_minutes, is_premium, recap')
+      .select('id, slug, title, author_name, genre, category, cover_url, cover_position, status, approved_at, text, type, season_number, episode_number, description, duration_minutes, is_premium, recap, publish_at, published_at, hook, next_teaser')
       .eq('id', id)
       .single()
 

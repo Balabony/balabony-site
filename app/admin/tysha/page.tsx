@@ -106,6 +106,10 @@ export default function TyshaMaisternia() {
   const [savedText, setSavedText] = useState('')
   const [findings, setFindings] = useState<Finding[] | null>(null)
   const [improved, setImproved] = useState<string | null>(null)
+  const [pubStatus, setPubStatus] = useState<string>('draft')
+  const [publishAt, setPublishAt] = useState<string>('')   // ISO з БД
+  const [scheduleInput, setScheduleInput] = useState<string>('') // datetime-local
+  const [pubBusy, setPubBusy] = useState(false)
 
   const [loadingList, setLoadingList] = useState(true)
   const [loadingItem, setLoadingItem] = useState(false)
@@ -187,6 +191,17 @@ export default function TyshaMaisternia() {
       if (!r.ok) throw new Error(d.error || 'Не вдалося відкрити серію')
       const body = (d.item?.text ?? '') as string
       setSelectedId(id); setText(body); setSavedText(body)
+      setPubStatus((d.item?.status ?? 'draft') as string)
+      const pa = (d.item?.publish_at ?? '') as string
+      setPublishAt(pa)
+      // ISO → формат для datetime-local (локальний час браузера)
+      if (pa) {
+        const dt = new Date(pa)
+        const pad = (n: number) => String(n).padStart(2, '0')
+        setScheduleInput(`${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`)
+      } else {
+        setScheduleInput('')
+      }
     } catch (e) {
       setErr(String(e instanceof Error ? e.message : e))
     } finally {
@@ -216,6 +231,32 @@ export default function TyshaMaisternia() {
 
   function runCheck() {
     setFindings(checkTysha(text))
+  }
+
+  async function doPublish(action: 'publish' | 'schedule' | 'unpublish') {
+    if (!selectedId) return
+    if (action === 'schedule' && !scheduleInput) { setErr('Вкажи дату й час публікації'); return }
+    setPubBusy(true); setErr(''); setMsg('')
+    try {
+      const payload: Record<string, unknown> = { id: selectedId, action }
+      if (action === 'schedule') payload.publish_at = new Date(scheduleInput).toISOString()
+      const r = await fetch('/api/admin/tysha-publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(payload),
+      })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d.error || 'Помилка публікації')
+      setPubStatus(d.status as string)
+      setPublishAt((d.publish_at ?? '') as string)
+      setMsg(action === 'publish' ? 'Опубліковано' : action === 'schedule' ? 'Заплановано' : 'Знято з публікації')
+      loadList()
+    } catch (e) {
+      setErr(String(e instanceof Error ? e.message : e))
+    } finally {
+      setPubBusy(false)
+    }
   }
 
   async function improve() {
@@ -343,6 +384,49 @@ export default function TyshaMaisternia() {
                 {words} слів{words > 0 && words < 1500 ? ' · закоротко' : ''}{words > 2300 ? ' · задовго' : ''}
                 {dirty ? ' · не збережено' : ''}
               </span>
+            </div>
+
+            {/* ─── Публікація / планувальник ─── */}
+            <div style={{ margin: '6px 0 14px', padding: 14, borderRadius: 10, background: NAVY, border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+                <strong style={{ fontSize: 13 }}>Публікація</strong>
+                {(() => {
+                  const map: Record<string, { t: string; c: string }> = {
+                    draft:     { t: 'чернетка',    c: 'rgba(255,255,255,0.5)' },
+                    scheduled: { t: 'заплановано', c: '#9b8cff' },
+                    published: { t: 'опубліковано', c: '#7ddb9f' },
+                  }
+                  const m = map[pubStatus] ?? { t: pubStatus, c: 'rgba(255,255,255,0.5)' }
+                  return <span style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: m.c }}>{m.t}</span>
+                })()}
+                {pubStatus === 'scheduled' && publishAt && (
+                  <span style={{ fontSize: 12, color: 'rgba(245,240,232,0.6)' }}>
+                    вийде: {new Date(publishAt).toLocaleString('uk-UA')}
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <input
+                  type="datetime-local"
+                  value={scheduleInput}
+                  onChange={(e) => setScheduleInput(e.target.value)}
+                  style={{ padding: '7px 9px', borderRadius: 8, background: NAVY_DEEP, color: INK, border: '1px solid rgba(255,255,255,0.15)', fontSize: 13, fontFamily: FONT, outline: 'none' }}
+                />
+                <button onClick={() => doPublish('schedule')} disabled={pubBusy || !scheduleInput} style={btn('#9b8cff', !pubBusy && !!scheduleInput)}>
+                  Запланувати
+                </button>
+                <button onClick={() => doPublish('publish')} disabled={pubBusy} style={btn('#7ddb9f', !pubBusy)}>
+                  Опублікувати зараз
+                </button>
+                {pubStatus !== 'draft' && (
+                  <button onClick={() => doPublish('unpublish')} disabled={pubBusy} style={{ padding: '9px 14px', borderRadius: 8, cursor: pubBusy ? 'default' : 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.65)', border: '1px solid rgba(255,255,255,0.15)', fontSize: 13, fontFamily: FONT }}>
+                    Зняти
+                  </button>
+                )}
+              </div>
+              <p style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.45)', margin: '8px 0 0' }}>
+                Запланована серія зʼявиться на сайті точно в заданий час (час — твого пристрою).
+              </p>
             </div>
 
             {improved !== null && (
