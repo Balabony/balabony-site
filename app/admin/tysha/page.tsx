@@ -111,6 +111,14 @@ export default function TyshaMaisternia() {
   const [publishAt, setPublishAt] = useState<string>('')   // ISO з БД
   const [scheduleInput, setScheduleInput] = useState<string>('') // datetime-local
   const [pubBusy, setPubBusy] = useState(false)
+  const [metaTitle, setMetaTitle] = useState('')
+  const [metaHook, setMetaHook] = useState('')
+  const [metaTeaser, setMetaTeaser] = useState('')
+  const [metaShort, setMetaShort] = useState('')
+  const [metaSaved, setMetaSaved] = useState({ title: '', hook: '', teaser: '', short: '' })
+  const [metaBusy, setMetaBusy] = useState(false)
+  const [titleSugg, setTitleSugg] = useState<string[] | null>(null)
+  const [titleBusy, setTitleBusy] = useState(false)
 
   const [loadingList, setLoadingList] = useState(true)
   const [loadingItem, setLoadingItem] = useState(false)
@@ -193,6 +201,14 @@ export default function TyshaMaisternia() {
       const body = (d.item?.text ?? '') as string
       setSelectedId(id); setText(body); setSavedText(body)
       setPubStatus((d.item?.status ?? 'draft') as string)
+      const it = d.item ?? {}
+      const mt = (it.title ?? '') as string
+      const mh = (it.hook ?? '') as string
+      const mte = (it.next_teaser ?? '') as string
+      const ms = (it.short_description ?? '') as string
+      setMetaTitle(mt); setMetaHook(mh); setMetaTeaser(mte); setMetaShort(ms)
+      setMetaSaved({ title: mt, hook: mh, teaser: mte, short: ms })
+      setTitleSugg(null)
       const pa = (d.item?.publish_at ?? '') as string
       setPublishAt(pa)
       // ISO → формат для datetime-local (локальний час браузера)
@@ -232,6 +248,51 @@ export default function TyshaMaisternia() {
 
   function runCheck() {
     setFindings(checkTysha(text))
+  }
+
+  const metaDirty =
+    metaTitle !== metaSaved.title || metaHook !== metaSaved.hook ||
+    metaTeaser !== metaSaved.teaser || metaShort !== metaSaved.short
+
+  async function saveMeta() {
+    if (!selectedId) return
+    setMetaBusy(true); setErr(''); setMsg('')
+    try {
+      const r = await fetch(`/api/admin/content/${selectedId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ title: metaTitle, hook: metaHook, next_teaser: metaTeaser, short_description: metaShort }),
+      })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d.error || 'Помилка збереження метаданих')
+      setMetaSaved({ title: metaTitle, hook: metaHook, teaser: metaTeaser, short: metaShort })
+      setMsg('Метадані збережено')
+      loadList()
+    } catch (e) {
+      setErr(String(e instanceof Error ? e.message : e))
+    } finally {
+      setMetaBusy(false)
+    }
+  }
+
+  async function suggestTitles() {
+    setTitleBusy(true); setErr(''); setTitleSugg(null)
+    try {
+      const r = await fetch('/api/admin/suggest-title', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ text }),
+      })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d.error || 'Помилка генерації назв')
+      setTitleSugg(Array.isArray(d.titles) ? d.titles : [])
+    } catch (e) {
+      setErr(String(e instanceof Error ? e.message : e))
+    } finally {
+      setTitleBusy(false)
+    }
   }
 
   async function doPublish(action: 'publish' | 'schedule' | 'unpublish') {
@@ -275,18 +336,19 @@ export default function TyshaMaisternia() {
       const d = await r.json()
       if (!r.ok) throw new Error(d.error || 'Помилка олюднення')
       const improvedText = (d.improvedText ?? '').trim()
-      // Абзацне зіставлення: якщо структура збіглася — пофразовий вибір.
-      const origParas = text.split('\n')
-      const impParas = improvedText.split('\n')
-      if (origParas.length === impParas.length && origParas.length > 1) {
-        setDiff(origParas.map((o, i) => ({
+      // Зіставляємо лише непорожні рядки — щоб порожні рядки, які Gemini
+      // додає/прибирає, не ламали пофразовий вибір.
+      const origLines = text.split('\n').map((s: string) => s.trim()).filter(Boolean)
+      const impLines = improvedText.split('\n').map((s: string) => s.trim()).filter(Boolean)
+      if (origLines.length === impLines.length && origLines.length > 1) {
+        setDiff(origLines.map((o, i) => ({
           orig: o,
-          imp: impParas[i],
-          changed: o.trim() !== impParas[i].trim(),
+          imp: impLines[i],
+          changed: o !== impLines[i],
           accepted: true,
         })))
       } else {
-        setImprovedRaw(improvedText) // структура змінилась — цілим текстом
+        setImprovedRaw(improvedText) // структуру не зіставити — цілим текстом
       }
     } catch (e) {
       const m = e instanceof Error && e.name === 'AbortError'
@@ -309,6 +371,12 @@ export default function TyshaMaisternia() {
     background: on ? bg : 'rgba(255,255,255,0.15)', color: on ? NAVY_DEEP : 'rgba(245,240,232,0.5)',
     fontWeight: 700, fontSize: 13, fontFamily: FONT,
   })
+
+  const metaInput: React.CSSProperties = {
+    display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 4,
+    padding: '8px 10px', borderRadius: 8, background: NAVY_DEEP, color: INK,
+    border: '1px solid rgba(255,255,255,0.15)', fontSize: 13, fontFamily: FONT, outline: 'none',
+  }
 
   return (
     <div style={{ display: 'flex', gap: 16, maxWidth: 1180, margin: '0 auto', padding: '20px 16px', fontFamily: FONT, color: INK, alignItems: 'flex-start' }}>
@@ -405,6 +473,49 @@ export default function TyshaMaisternia() {
                 {words} слів{words > 0 && words < 1500 ? ' · закоротко' : ''}{words > 2300 ? ' · задовго' : ''}
                 {dirty ? ' · не збережено' : ''}
               </span>
+            </div>
+
+            {/* ─── Метадані серії ─── */}
+            <div style={{ margin: '6px 0 14px', padding: 14, borderRadius: 10, background: NAVY, border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+                <strong style={{ fontSize: 13 }}>Метадані серії</strong>
+                <button onClick={saveMeta} disabled={!metaDirty || metaBusy} style={{ ...btn(GOLD, metaDirty && !metaBusy), padding: '6px 13px', fontSize: 12 }}>
+                  {metaBusy ? 'Зберігаю…' : metaDirty ? 'Зберегти метадані' : 'Збережено'}
+                </button>
+                <button onClick={suggestTitles} disabled={titleBusy || !text.trim()} style={{ ...btn('#9b8cff', !titleBusy && !!text.trim()), padding: '6px 13px', fontSize: 12 }}>
+                  {titleBusy ? 'Генерую…' : 'AI-назви'}
+                </button>
+              </div>
+
+              {titleSugg && (
+                <div style={{ marginBottom: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {titleSugg.length === 0 && <span style={{ fontSize: 12, color: 'rgba(245,240,232,0.5)' }}>Gemini не дав варіантів.</span>}
+                  {titleSugg.map((t, i) => (
+                    <button key={i} onClick={() => setMetaTitle(t)} style={{ fontSize: 12, color: '#bcb0ff', background: 'rgba(155,140,255,0.1)', border: '1px solid #9b8cff', borderRadius: 16, padding: '4px 11px', cursor: 'pointer', fontFamily: FONT }}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div style={{ display: 'grid', gap: 9 }}>
+                <label style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.55)' }}>
+                  Назва серії
+                  <input value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} style={metaInput} />
+                </label>
+                <label style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.55)' }}>
+                  Гачок (короткий тізер для картки рубрики)
+                  <textarea value={metaHook} onChange={(e) => setMetaHook(e.target.value)} rows={2} style={{ ...metaInput, resize: 'vertical', fontFamily: "'Georgia', serif" }} />
+                </label>
+                <label style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.55)' }}>
+                  Тізер наступної серії (рядок «далі буде» в читалці)
+                  <textarea value={metaTeaser} onChange={(e) => setMetaTeaser(e.target.value)} rows={2} style={{ ...metaInput, resize: 'vertical', fontFamily: "'Georgia', serif" }} />
+                </label>
+                <label style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.55)' }}>
+                  Короткий опис (для прев'ю / пошуку)
+                  <textarea value={metaShort} onChange={(e) => setMetaShort(e.target.value)} rows={2} style={{ ...metaInput, resize: 'vertical' }} />
+                </label>
+              </div>
             </div>
 
             {/* ─── Публікація / планувальник ─── */}

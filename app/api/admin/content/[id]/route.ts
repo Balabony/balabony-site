@@ -30,7 +30,7 @@ export async function GET(req: NextRequest, ctx: RouteContext) {
     const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
       .from('content')
-      .select('id, slug, title, author_name, genre, category, cover_url, cover_position, status, approved_at, text, type, season_number, episode_number, description, duration_minutes, is_premium, recap, publish_at, published_at, hook, next_teaser')
+      .select('id, slug, title, author_name, genre, category, cover_url, cover_position, status, approved_at, text, type, season_number, episode_number, description, duration_minutes, is_premium, recap, publish_at, published_at, hook, next_teaser, short_description')
       .eq('id', id)
       .single()
 
@@ -57,6 +57,9 @@ interface PatchBody {
   text?: string
   is_premium?: boolean
   recap?: string | null
+  hook?: string | null
+  next_teaser?: string | null
+  short_description?: string | null
 }
 
 export async function PATCH(req: NextRequest, ctx: RouteContext) {
@@ -83,6 +86,9 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
     if (body.text           !== undefined) update.text           = body.text
     if (body.is_premium     !== undefined) update.is_premium     = body.is_premium === true
     if (body.recap          !== undefined) update.recap          = body.recap
+    if (body.hook           !== undefined) update.hook           = body.hook
+    if (body.next_teaser    !== undefined) update.next_teaser    = body.next_teaser
+    if (body.short_description !== undefined) update.short_description = body.short_description
 
     if (Object.keys(update).length === 0) {
       return NextResponse.json({ error: 'nothing to update' }, { status: 400 })
