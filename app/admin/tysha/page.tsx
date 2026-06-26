@@ -154,6 +154,8 @@ function applySuggestions(src: string, accepted: Sugg[]): { text: string; applie
 
 export default function TyshaMaisternia() {
   const [list, setList] = useState<SeriesItem[]>([])
+  const [creating, setCreating] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [text, setText] = useState('')
   const [savedText, setSavedText] = useState('')
@@ -446,6 +448,33 @@ export default function TyshaMaisternia() {
     } catch (e) { setErr(e instanceof Error ? e.message : 'Помилка') } finally { setAiBusy(null) }
   }
 
+  async function createSeries() {
+    setCreating(true); setErr(''); setMsg('')
+    try {
+      const r = await fetch('/api/admin/tysha-create', { method: 'POST', credentials: 'same-origin' })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d.error || 'Не вдалося створити серію')
+      await loadList()
+      if (d.id) selectSeries(d.id)
+      setMsg(`Створено серію №${d.episode_number} (чернетка)`)
+    } catch (e) { setErr(e instanceof Error ? e.message : 'Помилка') } finally { setCreating(false) }
+  }
+
+  async function deleteSeries() {
+    if (!selectedId) return
+    const t = list.find((x) => x.id === selectedId)?.title ?? 'цю серію'
+    if (!window.confirm(`Видалити «${t}»? Цю дію НЕ можна скасувати.`)) return
+    setDeleting(true); setErr(''); setMsg('')
+    try {
+      const r = await fetch(`/api/admin/content/${selectedId}`, { method: 'DELETE', credentials: 'same-origin' })
+      const d = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(d.error || 'Не вдалося видалити')
+      setSelectedId(null); setText('')
+      await loadList()
+      setMsg('Серію видалено')
+    } catch (e) { setErr(e instanceof Error ? e.message : 'Помилка') } finally { setDeleting(false) }
+  }
+
   const sum = findings ? summarize(findings) : null
   const sorted = findings
     ? [...findings].sort((a, b) => SEV[a.severity].order - SEV[b.severity].order)
@@ -468,6 +497,9 @@ export default function TyshaMaisternia() {
 
       <aside style={{ width: 230, flexShrink: 0, position: 'sticky', top: 16 }}>
         <h2 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 10px' }}>Серії «Тиші»</h2>
+        <button onClick={createSeries} disabled={creating} style={{ display: 'block', width: '100%', marginBottom: 10, padding: '8px 11px', borderRadius: 8, cursor: creating ? 'default' : 'pointer', background: 'transparent', color: GOLD, border: `1px dashed ${GOLD}88`, fontSize: 13, fontWeight: 700, fontFamily: FONT }}>
+          {creating ? 'Створюю…' : '+ Нова серія'}
+        </button>
         {loadingList && <div style={{ fontSize: 13, color: 'rgba(245,240,232,0.5)' }}>Завантаження…</div>}
         {list.map((s) => {
           const active = s.id === selectedId
@@ -660,6 +692,14 @@ export default function TyshaMaisternia() {
               <p style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.45)', margin: '8px 0 0' }}>
                 Запланована серія зʼявиться на сайті точно в заданий час (час — твого пристрою).
               </p>
+            </div>
+
+            {/* Небезпечна зона — видалення */}
+            <div style={{ margin: '6px 0 14px', padding: 12, borderRadius: 10, border: '1px solid rgba(224,72,77,0.4)', background: 'rgba(224,72,77,0.06)', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.6)' }}>Видалення незворотне.</span>
+              <button onClick={deleteSeries} disabled={deleting} style={{ marginLeft: 'auto', padding: '8px 14px', borderRadius: 8, cursor: deleting ? 'default' : 'pointer', background: 'transparent', color: '#e0484d', border: '1px solid #e0484d', fontSize: 13, fontWeight: 700, fontFamily: FONT }}>
+                {deleting ? 'Видаляю…' : 'Видалити серію'}
+              </button>
             </div>
 
             {/* Точкові пропозиції олюднення */}
