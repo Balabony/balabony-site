@@ -616,9 +616,9 @@ export default function TyshaMaisternia() {
                     <button onClick={apply} disabled={acceptedCount === 0} style={{ ...btn('#9b8cff', acceptedCount > 0), padding: '5px 11px', fontSize: 12 }}>Застосувати ({acceptedCount})</button>
                     <button onClick={() => setSuggestions(null)} style={{ padding: '5px 11px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.5)', border: '1px solid rgba(255,255,255,0.12)', fontSize: 12, fontFamily: FONT }}>Скасувати</button>
                   </div>
-                  <div style={{ maxHeight: 460, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ maxHeight: 460, overflowY: 'auto' }}>
                     {suggestions.map((s, idx) => (
-                      <div key={idx} style={{ borderRadius: 8, border: `1px solid ${s.accepted ? '#9b8cff' : 'rgba(255,255,255,0.14)'}`, overflow: 'hidden', opacity: s.accepted ? 1 : 0.55 }}>
+                      <div key={idx} style={{ borderRadius: 8, border: `1px solid ${s.accepted ? '#9b8cff' : 'rgba(255,255,255,0.14)'}`, overflow: 'hidden', opacity: s.accepted ? 1 : 0.55, marginBottom: 10 }}>
                         <div style={{ padding: '8px 10px', background: 'rgba(217,69,69,0.20)', borderLeft: '3px solid #d94545', fontSize: 13.5, lineHeight: 1.55, color: '#f3d3d3', fontFamily: "'Georgia', serif", maxHeight: 200, overflowY: 'auto' }}>
                           <span style={{ fontSize: 10, fontWeight: 700, color: '#e88', textTransform: 'uppercase', letterSpacing: 0.5 }}>було</span><br />{s.before}
                         </div>
