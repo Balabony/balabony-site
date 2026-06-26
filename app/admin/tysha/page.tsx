@@ -119,15 +119,27 @@ type DiffOp =
   | { kind: 'keep'; text: string }
   | { kind: 'change'; orig: string[]; imp: string[]; accepted: boolean }
 
+// Нормалізація ЛИШЕ для порівняння (не для показу): щоб різниця апострофів,
+// тире й пробілів не рахувалась як зміна. Показуємо завжди оригінальні речення.
+function normCmp(s: string): string {
+  return s
+    .replace(/[''ʼ`´]/g, "'")
+    .replace(/[—–−]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 // Класичний LCS по реченнях → послідовність keep / change(було→стало).
 function buildDiffOps(origText: string, impText: string): DiffOp[] {
   const a = splitSentences(origText)
   const b = splitSentences(impText)
+  const na = a.map(normCmp)
+  const nb = b.map(normCmp)
   const n = a.length, m = b.length
   const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0))
   for (let i = n - 1; i >= 0; i--)
     for (let j = m - 1; j >= 0; j--)
-      dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1])
+      dp[i][j] = na[i] === nb[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1])
 
   const ops: DiffOp[] = []
   let pendDel: string[] = [], pendAdd: string[] = []
@@ -139,7 +151,7 @@ function buildDiffOps(origText: string, impText: string): DiffOp[] {
   }
   let i = 0, j = 0
   while (i < n && j < m) {
-    if (a[i] === b[j]) { flush(); ops.push({ kind: 'keep', text: a[i] }); i++; j++ }
+    if (na[i] === nb[j]) { flush(); ops.push({ kind: 'keep', text: a[i] }); i++; j++ }
     else if (dp[i + 1][j] >= dp[i][j + 1]) { pendDel.push(a[i]); i++ }
     else { pendAdd.push(b[j]); j++ }
   }
@@ -637,18 +649,18 @@ export default function TyshaMaisternia() {
                         return <div key={idx} style={{ fontSize: 12.5, lineHeight: 1.5, color: 'rgba(245,240,232,0.45)', padding: '2px 4px' }}>{op.text}</div>
                       }
                       return (
-                        <div key={idx} style={{ borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', overflow: 'hidden' }}>
+                        <div key={idx} style={{ borderRadius: 8, border: '1px solid rgba(255,255,255,0.18)', overflow: 'hidden' }}>
                           {op.orig.length > 0 && (
-                            <div style={{ padding: '8px 10px', background: 'rgba(217,69,69,0.10)', fontSize: 13, lineHeight: 1.5, color: 'rgba(245,240,232,0.75)' }}>
-                              <span style={{ fontSize: 10, color: '#d98b8b', textTransform: 'uppercase', letterSpacing: 0.5 }}>було</span><br />{op.orig.join(' ')}
+                            <div style={{ padding: '8px 10px', background: 'rgba(217,69,69,0.22)', borderLeft: '3px solid #d94545', fontSize: 13.5, lineHeight: 1.5, color: '#f3d3d3' }}>
+                              <span style={{ fontSize: 10, fontWeight: 700, color: '#e88', textTransform: 'uppercase', letterSpacing: 0.5 }}>було</span><br />{op.orig.join(' ')}
                             </div>
                           )}
                           {op.imp.length > 0 && (
-                            <div style={{ padding: '8px 10px', background: 'rgba(45,143,78,0.10)', fontSize: 13, lineHeight: 1.5, color: 'rgba(245,240,232,0.9)' }}>
-                              <span style={{ fontSize: 10, color: '#7ddb9f', textTransform: 'uppercase', letterSpacing: 0.5 }}>стало</span><br />{op.imp.join(' ')}
+                            <div style={{ padding: '8px 10px', background: 'rgba(45,143,78,0.22)', borderLeft: '3px solid #2d8f4e', fontSize: 13.5, lineHeight: 1.5, color: '#cdebd6' }}>
+                              <span style={{ fontSize: 10, fontWeight: 700, color: '#7ddb9f', textTransform: 'uppercase', letterSpacing: 0.5 }}>стало</span><br />{op.imp.join(' ')}
                             </div>
                           )}
-                          <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: 'rgba(0,0,0,0.2)', fontSize: 12.5, cursor: 'pointer', fontFamily: FONT, color: op.accepted ? '#7ddb9f' : 'rgba(245,240,232,0.55)' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: 'rgba(0,0,0,0.25)', fontSize: 12.5, cursor: 'pointer', fontFamily: FONT, color: op.accepted ? '#7ddb9f' : 'rgba(245,240,232,0.55)' }}>
                             <input type="checkbox" checked={op.accepted} onChange={() => toggle(idx)} />
                             {op.accepted ? 'прийняти цю зміну' : 'лишити як було'}
                           </label>
