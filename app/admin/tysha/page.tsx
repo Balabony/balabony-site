@@ -146,6 +146,7 @@ export default function TyshaMaisternia() {
   const [suggestions, setSuggestions] = useState<Sugg[] | null>(null)
   const [aiBusy, setAiBusy] = useState<string | null>(null)
   const [recapText, setRecapText] = useState<string | null>(null)
+  const [cleaned, setCleaned] = useState<string | null>(null)
   const [pubStatus, setPubStatus] = useState<string>('draft')
   const [publishAt, setPublishAt] = useState<string>('')   // ISO з БД
   const [scheduleInput, setScheduleInput] = useState<string>('') // datetime-local
@@ -232,7 +233,7 @@ export default function TyshaMaisternia() {
 
   async function selectSeries(id: string) {
     if (dirty && !confirm('Є незбережені зміни. Відкрити іншу серію без збереження?')) return
-    setLoadingItem(true); setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setRecapText(null)
+    setLoadingItem(true); setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setRecapText(null); setCleaned(null)
     try {
       const r = await fetch(`/api/admin/content/${id}`, { credentials: 'same-origin' })
       const d = await r.json()
@@ -395,7 +396,7 @@ export default function TyshaMaisternia() {
   }
 
   // ── AI-помічники (батч 1: аналізатори + recap) ──
-  function clearPanels() { setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setRecapText(null) }
+  function clearPanels() { setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setRecapText(null); setCleaned(null) }
 
   async function genRecap() {
     if (!text.trim()) return
@@ -416,6 +417,17 @@ export default function TyshaMaisternia() {
       const d = await r.json()
       if (!r.ok) throw new Error(d.error || 'Не вдалося зберегти recap')
       setMsg('Recap збережено — живить блок «Що було раніше» в наступній серії'); setRecapText(null)
+    } catch (e) { setErr(e instanceof Error ? e.message : 'Помилка') } finally { setAiBusy(null) }
+  }
+
+  async function cleanTts() {
+    if (!text.trim()) return
+    clearPanels(); setAiBusy('clean')
+    try {
+      const r = await fetch('/api/admin/clean-for-tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ text }) })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d.error || 'Помилка чистки для TTS')
+      setCleaned((d.cleanedText ?? '').trim())
     } catch (e) { setErr(e instanceof Error ? e.message : 'Помилка') } finally { setAiBusy(null) }
   }
 
@@ -528,6 +540,9 @@ export default function TyshaMaisternia() {
               </button>
               <button onClick={genRecap} disabled={!text.trim() || aiBusy !== null} style={btn('#c4a27a', !!text.trim() && aiBusy === null)}>
                 {aiBusy === 'recap' ? 'Генерую…' : 'Recap'}
+              </button>
+              <button onClick={cleanTts} disabled={!text.trim() || aiBusy !== null} style={btn('#7ac4a2', !!text.trim() && aiBusy === null)}>
+                {aiBusy === 'clean' ? 'Чищу…' : 'Чистка для TTS'}
               </button>
               {msg && <span style={{ fontSize: 13, color: '#7ddb9f' }}>{msg}</span>}
               <span style={{ marginLeft: 'auto', fontSize: 13, color: 'rgba(245,240,232,0.5)' }}>
@@ -670,6 +685,19 @@ export default function TyshaMaisternia() {
                 </div>
               )
             })()}
+
+            {/* Чистка для TTS: переглянь і застосуй */}
+            {cleaned !== null && (
+              <div style={{ margin: '14px 0', padding: 14, borderRadius: 10, background: 'rgba(122,196,162,0.08)', border: '1px solid #7ac4a2' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+                  <strong style={{ fontSize: 13, color: '#9cd6bd' }}>Текст, підготовлений для озвучки</strong>
+                  <span style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.5)' }}>переглянь — «Застосувати» замінить текст у редакторі (збереження окремо)</span>
+                  <button onClick={() => { setText(cleaned); setCleaned(null); setMsg('Текст замінено TTS-версією — перевір і збережи') }} style={{ ...btn('#7ac4a2', true), padding: '5px 12px', fontSize: 12, marginLeft: 'auto' }}>Застосувати в редактор</button>
+                  <button onClick={() => setCleaned(null)} style={{ padding: '5px 11px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.5)', border: '1px solid rgba(255,255,255,0.12)', fontSize: 12, fontFamily: FONT }}>Скасувати</button>
+                </div>
+                <textarea value={cleaned} onChange={(e) => setCleaned(e.target.value)} rows={8} style={{ width: '100%', boxSizing: 'border-box', background: 'rgba(0,0,0,0.25)', color: '#f5f0e8', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '10px 12px', fontSize: 14, lineHeight: 1.6, fontFamily: "'Georgia', serif", resize: 'vertical' }} />
+              </div>
+            )}
 
             {/* Recap: згенеровано — переглянь і збережи */}
             {recapText !== null && (
