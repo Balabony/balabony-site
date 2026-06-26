@@ -22,7 +22,11 @@ export const TYSHA_CHARACTERS = [
   'каменєв',
   'дід', 'батя', 'степа', 'жарт',
   'майстер', 'тадек', 'тадеуш', 'майк',
-  'люба', 'тітка люба',
+  'люба', 'тітка люба', 'мати',
+  // епізодичні (за посадою/роллю)
+  'начальник', 'вчителька', 'офіцер', 'військовий', 'інструктор',
+  'сержант', 'командир', 'поліцейський', 'лікарка', 'голос',
+  'боєць', 'хлопчина',
 ]
 
 // ── ПЕРЕДВІСНИКИ (розд.15, КРИТИЧНЕ) ──
@@ -207,6 +211,7 @@ export function checkTysha(text: string): Finding[] {
   }
 
   // ── 5. ФОРМАТ РЕПЛІК «Імʼя:» + нові персонажі ──
+  const seenNew = new Set<string>()
   for (const ln of nonEmpty) {
     if (/^[—–-]\s+\S/.test(ln)) {
       out.push({ rule: 'формат репліки', severity: 'warn', message: 'Репліка через тире — канон: «Імʼя: репліка».', excerpt: ln.slice(0, 60) })
@@ -217,6 +222,8 @@ export function checkTysha(text: string): Finding[] {
     const namePart = m[1].split(',')[0].trim()
     const low = norm(namePart)
     if (KNOWN.has(low)) continue
+    if (seenNew.has(low)) continue   // кожне ім'я показуємо лише раз
+    seenNew.add(low)
     const first = namePart.split(/\s+/)[0]
     if (namePart.includes(' ') && KNOWN.has(norm(first))) {
       out.push({ rule: 'нарація-двокрапка', severity: 'warn', message: `«${namePart}:» схоже на нарацію з двокрапкою. Має бути «${first}: репліка», дію — в нарацію.`, excerpt: m[1].slice(0, 50) })
