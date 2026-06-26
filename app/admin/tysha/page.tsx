@@ -25,10 +25,25 @@ const TYSHA_RULES = [
 
 interface SeriesItem {
   id: string
+  slug?: string
   title: string
   season_number: number | null
   episode_number: number | null
   status: string
+  audioStatus?: string | null
+  hasAudio?: boolean
+  canonErrors?: number
+  canonWarns?: number
+}
+
+const STATUS_META: Record<string, { label: string; color: string }> = {
+  draft: { label: 'чернетка', color: '#9aa0a6' },
+  scheduled: { label: 'заплановано', color: '#9b8cff' },
+  published: { label: 'опубліковано', color: '#7ddb9f' },
+}
+
+function chip(color: string): React.CSSProperties {
+  return { fontSize: 10, fontWeight: 700, color, background: `${color}22`, border: `1px solid ${color}66`, borderRadius: 5, padding: '1px 6px', letterSpacing: 0.3, whiteSpace: 'nowrap' }
 }
 
 function countWords(t: string): number {
@@ -469,8 +484,18 @@ export default function TyshaMaisternia() {
               }}
             >
               {s.episode_number != null ? `${s.episode_number}. ` : ''}{s.title}
-              <span style={{ display: 'block', fontSize: 10, opacity: 0.7, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 2 }}>
-                {s.status}
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, flexWrap: 'wrap' }}>
+                {(() => { const sm = STATUS_META[s.status] ?? { label: s.status, color: '#9aa0a6' }; return <span style={chip(sm.color)}>{sm.label}</span> })()}
+                {(s.canonErrors ?? 0) > 0
+                  ? <span style={chip('#e0484d')}>⚠ {s.canonErrors}</span>
+                  : (s.canonWarns ?? 0) > 0
+                    ? <span style={chip('#e0a23d')}>⚠ {s.canonWarns}</span>
+                    : <span style={chip('#7ddb9f')}>✓ канон</span>}
+                {s.hasAudio
+                  ? <span style={chip('#7ac4a2')}>♪ аудіо</span>
+                  : (s.audioStatus && s.audioStatus !== 'none' && s.audioStatus !== 'pending')
+                    ? <span style={chip('#c4a27a')}>♪ {s.audioStatus}</span>
+                    : null}
               </span>
             </button>
           )
