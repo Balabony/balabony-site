@@ -25,7 +25,18 @@ ${text}
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' }, { apiVersion: 'v1beta' })
+    const model = genAI.getGenerativeModel(
+      {
+        model: 'gemini-2.5-flash',
+        generationConfig: {
+          maxOutputTokens: 8192,
+          temperature: 0.7,
+          // Вимикаємо внутрішнє "думання" — інакше переписування довгої серії висить.
+          thinkingConfig: { thinkingBudget: 0 },
+        },
+      } as Parameters<typeof genAI.getGenerativeModel>[0],
+      { apiVersion: 'v1beta' }
+    )
     const result = await model.generateContent(prompt)
     const improvedText = result.response.text().trim()
     return NextResponse.json({ improvedText })
