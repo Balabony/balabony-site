@@ -17,6 +17,7 @@ import ResumeBanner from './components/ResumeBanner'
 import { ThemeProvider } from './context/ThemeContext'
 import SeriesStrip, { type SeriesCard } from './components/SeriesStrip'
 import FreshStoriesGrid, { type Story } from './components/FreshStoriesGrid'
+import TyshaSection from './components/TyshaSection'
 import InclusivitySection from './components/InclusivitySection'
 import BonusSection from './components/BonusSection'
 import AuthorSection from './components/AuthorSection'
@@ -117,6 +118,7 @@ export default function HomePage() {
       </div>
 
       <EmailCapture />
+      <TyshaSection />
       {freshStories.length > 0 && (
         <>
           <FreshStoriesGrid stories={freshStories} />
