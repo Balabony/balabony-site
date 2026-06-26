@@ -122,6 +122,26 @@ async function getNextEpisode(episode: number | null, isAdmin: boolean): Promise
   return { slug: data[0].slug as string, title: data[0].title as string }
 }
 
+// Recap ПОПЕРЕДНЬОЇ серії — для блоку «Що було раніше».
+// На 1-й серії повертає null (нема попередньої) → блок ховається.
+async function getPrevTyshaRecap(episode: number | null, isAdmin: boolean): Promise<string | null> {
+  if (episode == null) return null
+  const supabase = getSupabaseAdmin()
+  const nowIso = new Date().toISOString()
+  let q = supabase
+    .from('content')
+    .select('recap, status, publish_at')
+    .eq('type', 'tysha')
+    .lt('episode_number', episode)
+    .order('episode_number', { ascending: false })
+    .limit(1)
+  if (!isAdmin) q = q.or(`status.eq.published,and(status.eq.scheduled,publish_at.lte.${nowIso})`)
+  const { data } = await q
+  if (!data || data.length === 0) return null
+  const recap = (data[0].recap as string | null)?.trim()
+  return recap ? recap : null
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const ep = await getEpisode(slug, false)
@@ -150,6 +170,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
   const epNum = ep.episode_number ?? 0
   const locked = !isAdmin && epNum > FREE_EPISODES
   const visibleBody = locked ? buildTeaser(body) : body
+  const prevRecap = await getPrevTyshaRecap(ep.episode_number, isAdmin)
 
   return (
     <div style={{ minHeight: '100dvh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT }}>
@@ -157,15 +178,17 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
 
       {/* Шапка-банер */}
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '28px 20px 8px' }}>
-        <Link href="/" style={{ display: 'inline-block', fontSize: 12.5, color: 'rgba(245,240,232,0.55)', textDecoration: 'none' }}>← На головну</Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: GOLD, background: 'rgba(239,159,39,0.14)', border: '1px solid rgba(239,159,39,0.5)', padding: '4px 9px', borderRadius: 4 }}>
-            Авторський серіал
-          </span>
-          <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: '#e0484d', padding: '3px 8px', borderRadius: 6 }}>18+</span>
+        {/* Верхній рядок: назад ліворуч, 18+ праворуч — без накладання */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <Link href="/" style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.55)', textDecoration: 'none' }}>← На головну</Link>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: '#e0484d', padding: '3px 8px', borderRadius: 6, flexShrink: 0 }}>18+</span>
         </div>
-        <h1 style={{ fontSize: 26, fontWeight: 800, color: '#fff', margin: '14px 0 4px', lineHeight: 1.2 }}>{ep.title}</h1>
-        <div style={{ fontSize: 12.5, fontStyle: 'italic', color: GOLD }}>Історія, яку чуєш серцем · Назар Колодій</div>
+        <span style={{ display: 'inline-block', marginTop: 16, fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD, background: 'rgba(239,159,39,0.14)', border: '1px solid rgba(239,159,39,0.5)', padding: '4px 9px', borderRadius: 4 }}>
+          Авторський серіал
+        </span>
+        <h1 style={{ fontSize: 26, fontWeight: 800, color: '#fff', margin: '12px 0 6px', lineHeight: 1.2 }}>{ep.title}</h1>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: GOLD }}>Назар Колодій</div>
+        <div style={{ fontSize: 12, fontStyle: 'italic', color: 'rgba(245,240,232,0.6)', marginTop: 2 }}>Історія, яку чуєш серцем</div>
         {isAdmin && ep.status !== 'published' && (
           <div style={{ marginTop: 10, fontSize: 12, color: '#9b8cff', border: '1px solid #9b8cff', borderRadius: 6, padding: '5px 10px', display: 'inline-block' }}>
             попередній перегляд ({ep.status}) — видно лише адміну
@@ -177,6 +200,20 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
         <div style={{ position: 'relative', maxWidth: 720, margin: '14px auto 0', aspectRatio: '16 / 9', overflow: 'hidden', borderRadius: 4 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={ep.cover_url} alt={ep.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        </div>
+      )}
+
+      {/* Що було раніше — recap попередньої серії */}
+      {prevRecap && (
+        <div style={{ maxWidth: 720, margin: '20px auto 0', padding: '0 20px' }}>
+          <div style={{ padding: '18px 20px', background: `${GOLD}0f`, border: `1px solid ${GOLD}33`, borderRadius: 12, borderLeft: `3px solid ${GOLD}` }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 }}>
+              Що було раніше
+            </div>
+            <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: '#d8d2c6', fontStyle: 'italic' }}>
+              {prevRecap}
+            </p>
+          </div>
         </div>
       )}
 
