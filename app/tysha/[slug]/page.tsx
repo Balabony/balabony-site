@@ -157,8 +157,8 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
 
       {/* Шапка-банер */}
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '28px 20px 8px' }}>
-        <Link href="/" style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.55)', textDecoration: 'none' }}>← На головну</Link>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 14 }}>
+        <Link href="/" style={{ display: 'inline-block', fontSize: 12.5, color: 'rgba(245,240,232,0.55)', textDecoration: 'none' }}>← На головну</Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: GOLD, background: 'rgba(239,159,39,0.14)', border: '1px solid rgba(239,159,39,0.5)', padding: '4px 9px', borderRadius: 4 }}>
             Авторський серіал
           </span>
