@@ -93,16 +93,16 @@ export async function POST(req: NextRequest) {
     const [bM, bR, bS] = await Promise.all([fetchBuf(urlMaksym), fetchBuf(urlRoman), fetchBuf(urlSashko)])
 
     // Друзі — дрібні, ТЕМНІ, розмиті, знебарвлені; глибоко в тіні, по боках знизу.
-    const roman = await ovalPortrait(bR, 380, 500, { brightness: 0.32, saturation: 0.5, blur: 11 })
-    const sashko = await ovalPortrait(bS, 380, 500, { brightness: 0.32, saturation: 0.5, blur: 11 })
+    const roman = await ovalPortrait(bR, 360, 470, { brightness: 0.32, saturation: 0.5, blur: 11 })
+    const sashko = await ovalPortrait(bS, 360, 470, { brightness: 0.32, saturation: 0.5, blur: 11 })
     // Максим — великий, чіткий, спереду по центру, з виходом за верх/низ.
-    const maksym = await ovalPortrait(bM, 600, 770, { brightness: 1.05 })
+    const maksym = await ovalPortrait(bM, 560, 720, { brightness: 1.05 })
 
     const out = await sharp({ create: { width: W, height: H, channels: 3, background: BG } })
       .composite([
-        { input: roman, left: 30, top: 235 },                  // позаду ліворуч-знизу
-        { input: sashko, left: W - 380 - 30, top: 235 },       // позаду праворуч-знизу
-        { input: maksym, left: Math.round((W - 600) / 2), top: -25 }, // спереду по центру
+        { input: roman, left: 30, top: 245 },                  // позаду ліворуч-знизу
+        { input: sashko, left: W - 360 - 30, top: 245 },       // позаду праворуч-знизу
+        { input: maksym, left: Math.round((W - 560) / 2), top: 0 }, // спереду по центру
         { input: overlaySvg(), left: 0, top: 0 },              // грейд + вінєтка + низ
       ])
       .jpeg({ quality: 88 })
