@@ -137,6 +137,20 @@ export default function TyshaCoversPage() {
     } catch { setErr('Помилка мережі') } finally { setBusy('') }
   }
 
+  async function genGemini() {
+    if (!trioM.trim() || !trioR.trim() || !trioS.trim()) { setErr('Потрібні всі три URL еталонів'); return }
+    setErr(''); setMsg(''); setBusy('gemini')
+    try {
+      const r = await fetch('/api/admin/tysha-trio-gemini', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+        body: JSON.stringify({ refMaksym: trioM, refRoman: trioR, refSashko: trioS, sceneText: trioScene }),
+      })
+      const d = await r.json()
+      if (d.url) { setCoverUrl(d.url); setMsg('Gemini-трійцю згенеровано — вище можна доправити й присвоїти серії') }
+      else setErr(d.error || 'Помилка Gemini')
+    } catch { setErr('Помилка мережі') } finally { setBusy('') }
+  }
+
   async function genCollage() {
     if (!trioM.trim() || !trioR.trim() || !trioS.trim()) { setErr('Потрібні всі три URL еталонів'); return }
     setErr(''); setMsg(''); setBusy('collage')
@@ -282,16 +296,20 @@ export default function TyshaCoversPage() {
           <input value={trioS} onChange={e => setTrioS(e.target.value)} placeholder="URL еталона Сашка" style={{ ...input, marginBottom: 10, fontSize: 12 }} />
           <input value={trioScene} onChange={e => setTrioScene(e.target.value)} placeholder="опис сцени (англ., необов'язково; напр. standing in a schoolyard)" style={{ ...input, marginBottom: 12 }} />
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button onClick={genGemini} disabled={busy === 'gemini'} style={btn('#d97706', busy !== 'gemini')}>
+              {busy === 'gemini' ? 'Gemini малює…' : 'Трійця разом (Gemini, твої обличчя) ★'}
+            </button>
             <button onClick={genCollage} disabled={busy === 'collage'} style={btn('#1b9e6f', busy !== 'collage')}>
-              {busy === 'collage' ? 'Збираю колаж…' : 'Колаж (ТОЧНІ обличчя) →'}
+              {busy === 'collage' ? 'Збираю колаж…' : 'Колаж (склейка фото)'}
             </button>
             <button onClick={genTrio} disabled={busy === 'trio'} style={btn('#9b6dff', busy !== 'trio')}>
-              {busy === 'trio' ? 'Генерую…' : 'AI-трійця (FLUX.2, обличчя приблизні)'}
+              {busy === 'trio' ? 'Генерую…' : 'FLUX.2 (обличчя приблизні)'}
             </button>
           </div>
           <p style={{ fontSize: 11, opacity: 0.55, marginTop: 8, lineHeight: 1.5 }}>
-            <b>Колаж</b> — накладає готові канонні фото (обличчя точні): Максим спереду, друзі позаду.
-            <b> AI-трійця</b> — мальоване FLUX.2 (обличчя лише схожі). Опис сцени діє лише на AI-трійцю.
+            <b>Gemini ★</b> — зводить твої 3 фото в один теплий кадр «друзі разом», обличчя твої (раджу це).
+            <b> Колаж</b> — механічна склейка. <b>FLUX.2</b> — мальоване, обличчя лише схожі.
+            Опис сцени діє на Gemini і FLUX.2.
           </p>
         </section>
 

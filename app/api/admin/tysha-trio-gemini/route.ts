@@ -1,0 +1,96 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { GoogleGenerativeAI, type GenerationConfig } from '@google/generative-ai'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
+
+// =============================================================================
+// ТРІЙЦЯ «ТИША» через Nano Banana (gemini-2.5-flash-image).
+// Бере 3 канонні фото як вхід і зводить у ОДИН цілісний кадр, тримаючи обличчя
+// краще за flux-мульти-референс. Не склейка — модель малює спільну сцену.
+// =============================================================================
+
+// SDK-тип не має responseModalities — розширюємо локально.
+type GenConfigWithModalities = GenerationConfig & { responseModalities?: string[] }
+
+function checkAuth(req: NextRequest): boolean {
+  return req.cookies.get('admin_session')?.value === process.env.ADMIN_PASSWORD
+}
+
+async function fetchInline(url: string): Promise<{ inlineData: { data: string; mimeType: string } }> {
+  const r = await fetch(url)
+  if (!r.ok) throw new Error(`Не вдалося завантажити ${url}`)
+  const buf = Buffer.from(await r.arrayBuffer())
+  const mimeType = r.headers.get('content-type') || 'image/jpeg'
+  return { inlineData: { data: buf.toString('base64'), mimeType } }
+}
+
+export async function POST(req: NextRequest) {
+  if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) return NextResponse.json({ error: 'GEMINI_API_KEY не налаштовано' }, { status: 500 })
+
+  try {
+    const body = await req.json()
+    const urlM = String(body.refMaksym || '')
+    const urlR = String(body.refRoman || '')
+    const urlS = String(body.refSashko || '')
+    if (!urlM || !urlR || !urlS) {
+      return NextResponse.json({ error: 'Потрібні всі три URL еталонів' }, { status: 400 })
+    }
+    const extra = (body.sceneText && String(body.sceneText).trim()) || ''
+
+    const [imgM, imgR, imgS] = await Promise.all([fetchInline(urlM), fetchInline(urlR), fetchInline(urlS)])
+
+    const prompt =
+      `You are given three separate reference photos of three different real young men, all friends. ` +
+      `Combine all three into ONE single cohesive, warm, natural group photo — like a real candid photo of three close friends together. ` +
+      `16:9 wide, photorealistic, single unified scene with soft natural daylight (NOT a collage, no photo frames, no panels, no separate boxes). ` +
+      `Keep each man's face EXACTLY as in his own reference photo — do not change their identities or features. ` +
+      `Place the three friends standing close together, shoulder to shoulder, relaxed and friendly, looking at the camera. ` +
+      `The man from the FIRST photo (thin, pale, dark messy hair) slightly in the centre; ` +
+      `the man from the SECOND photo (athletic, blond) on one side; the man from the THIRD photo (wavy brown hair, glasses) on the other side. ` +
+      `Equal, warm, alive mood — all three clearly visible and well-lit. ` +
+      (extra ? `Scene: ${extra}. ` : 'Plain softly-blurred outdoor background. ') +
+      `No text, no captions, no logos, no watermark. All three are adults.`
+
+    const genAI = new GoogleGenerativeAI(apiKey)
+    const generationConfig: GenConfigWithModalities = { responseModalities: ['Image'] }
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-image', generationConfig }, { apiVersion: 'v1beta' })
+
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: prompt },
+            { text: 'Reference photo 1 (friend, centre):' }, imgM,
+            { text: 'Reference photo 2 (friend, side):' }, imgR,
+            { text: 'Reference photo 3 (friend, side):' }, imgS,
+          ],
+        },
+      ],
+    })
+
+    const parts = result.response.candidates?.[0]?.content?.parts || []
+    const imgPart = parts.find((p) => p.inlineData?.data)
+    if (!imgPart?.inlineData?.data) {
+      const textPart = parts.find((p) => p.text)?.text || 'модель не повернула зображення'
+      return NextResponse.json({ error: `Gemini: ${textPart}` }, { status: 502 })
+    }
+
+    const outBuf = Buffer.from(imgPart.inlineData.data, 'base64')
+    const mime = imgPart.inlineData.mimeType || 'image/png'
+    const ext = mime.includes('png') ? 'png' : 'jpg'
+
+    const supabase = getSupabaseAdmin()
+    const fileName = `tysha-gen/trio-gemini-${Date.now()}.${ext}`
+    const { error: upErr } = await supabase.storage
+      .from('covers')
+      .upload(fileName, outBuf, { contentType: mime, upsert: true })
+    if (upErr) return NextResponse.json({ error: `Storage: ${upErr.message}` }, { status: 502 })
+
+    const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(fileName)
+    return NextResponse.json({ url: publicUrl })
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 })
+  }
+}
