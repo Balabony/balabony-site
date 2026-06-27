@@ -91,14 +91,17 @@ export async function POST(req: NextRequest) {
       const posePick = poseVariations[Math.floor(Math.random() * poseVariations.length)]
       const prompt =
         `You are given one reference photo of a real young man. ` +
-        `Generate ONE photorealistic VERTICAL 3:4 portrait (taller than wide) of the SAME man — ` +
-        `keep his face EXACTLY as in the reference, do not change his identity or features. ` +
+        `Use the reference ONLY to copy his FACIAL IDENTITY (same face, same features). ` +
+        `Do NOT copy the reference's pose, framing or composition — create a COMPLETELY NEW, DIFFERENT original photograph ` +
+        `with the specific pose described below. ` +
+        `VERTICAL 3:4 portrait (taller than wide), photorealistic, same man's face. ` +
         `He is a Ukrainian soldier wearing plain pixelated digital camouflage military uniform. ` +
-        `IMPORTANT: his chest and uniform are completely BLANK and smooth — absolutely NO patches, NO name tapes, ` +
-        `NO badges, NO insignia, NO chevrons, NO embroidered text, NO labels of any kind anywhere on the uniform. Plain clean camouflage fabric only. ` +
+        `IMPORTANT: his chest, shoulders and whole uniform are completely BLANK and smooth — absolutely NO patches, NO name tapes, ` +
+        `NO badges, NO insignia, NO chevrons, NO flags, NO embroidered text, NO labels of any kind anywhere on the uniform. Plain clean camouflage fabric only. ` +
+        `His face is CLEAN — NO camouflage face paint, NO dark war-paint stripes, NO smears or marks on his face (light natural dust is ok). ` +
         (extra ? `Scene: ${extra}. ` : 'Scene: weary serious expression, overcast cold light, dust haze. ') +
         `Background detail: ${bgPick}. ` +
-        `Pose: ${posePick}. ` +
+        `POSE (must clearly follow this, NOT a plain front headshot): ${posePick}. ` +
         `Cinematic war-drama mood, photorealistic, balanced exposure (not too dark). ` +
         `FRAMING (critical): his head and face must stay fully inside the frame and clearly visible, ` +
         `framed from roughly the chest up, no hands or fingers visible, do not crop his head or cut off his face. ` +
