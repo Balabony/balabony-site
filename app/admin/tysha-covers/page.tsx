@@ -47,6 +47,12 @@ export default function TyshaCoversPage() {
   const [editText, setEditText] = useState('')
   const [editMax, setEditMax] = useState(false)
 
+  // Трійця друзів (FLUX.2 мульти-референс) — URL еталонів підставлені.
+  const [trioM, setTrioM] = useState('https://swwzsrtbfjsdsmpgfpsk.supabase.co/storage/v1/object/public/covers/tysha-gen/maksym-ref-417595-1782551508689.jpg')
+  const [trioR, setTrioR] = useState('https://swwzsrtbfjsdsmpgfpsk.supabase.co/storage/v1/object/public/covers/tysha-gen/roman-ref-389319-1782551985471.jpg')
+  const [trioS, setTrioS] = useState('https://swwzsrtbfjsdsmpgfpsk.supabase.co/storage/v1/object/public/covers/tysha-gen/sashko-ref-1325429-1782552264025.jpg')
+  const [trioScene, setTrioScene] = useState('')
+
   useEffect(() => {
     fetch('/api/admin/generate-tysha-cover').then(r => r.json()).then(d => {
       setChars(d.characters || []); setScenes(d.scenes || [])
@@ -114,6 +120,20 @@ export default function TyshaCoversPage() {
       const d = await r.json()
       if (d.url) { setCoverUrl(d.url); setEditText('') }
       else setErr(d.error || 'Помилка правки')
+    } catch { setErr('Помилка мережі') } finally { setBusy('') }
+  }
+
+  async function genTrio() {
+    if (!trioM.trim() || !trioR.trim() || !trioS.trim()) { setErr('Потрібні всі три URL еталонів'); return }
+    setErr(''); setMsg(''); setBusy('trio')
+    try {
+      const r = await fetch('/api/admin/generate-tysha-cover', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+        body: JSON.stringify({ mode: 'trio', refMaksym: trioM, refRoman: trioR, refSashko: trioS, sceneText: trioScene }),
+      })
+      const d = await r.json()
+      if (d.url) { setCoverUrl(d.url); setMsg('Трійцю згенеровано — нижче можна доправити кадр і присвоїти серії') }
+      else setErr(d.error || 'Помилка генерації трійці')
     } catch { setErr('Помилка мережі') } finally { setBusy('') }
   }
 
@@ -233,6 +253,23 @@ export default function TyshaCoversPage() {
               </div>
             </div>
           )}
+        </section>
+
+        {/* ТРІЙЦЯ ДРУЗІВ */}
+        <section style={box}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: GOLD, marginBottom: 6 }}>Трійця друзів (3 в одному кадрі)</h2>
+          <p style={{ fontSize: 12, opacity: 0.6, marginBottom: 12, lineHeight: 1.5 }}>
+            FLUX.2 мульти-референс: бере три еталони й ставить друзів разом (Максим зліва, Роман у центрі, Сашко справа).
+            URL уже підставлені. Обличчя будуть близькі до еталонів, але можливе невелике «попливання».
+            Результат з'явиться у блоці обкладинки вище — там само доправляй і присвоюй серії.
+          </p>
+          <input value={trioM} onChange={e => setTrioM(e.target.value)} placeholder="URL еталона Максима" style={{ ...input, marginBottom: 8, fontSize: 12 }} />
+          <input value={trioR} onChange={e => setTrioR(e.target.value)} placeholder="URL еталона Романа" style={{ ...input, marginBottom: 8, fontSize: 12 }} />
+          <input value={trioS} onChange={e => setTrioS(e.target.value)} placeholder="URL еталона Сашка" style={{ ...input, marginBottom: 10, fontSize: 12 }} />
+          <input value={trioScene} onChange={e => setTrioScene(e.target.value)} placeholder="опис сцени (англ., необов'язково; напр. standing in a schoolyard)" style={{ ...input, marginBottom: 12 }} />
+          <button onClick={genTrio} disabled={busy === 'trio'} style={btn('#9b6dff', busy !== 'trio')}>
+            {busy === 'trio' ? 'Генерую трійцю…' : 'Згенерувати трійцю'}
+          </button>
         </section>
 
         {/* КРОК 3 — ПРИСВОЇТИ */}

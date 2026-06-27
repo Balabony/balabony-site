@@ -128,22 +128,43 @@ export async function POST(req: NextRequest) {
   if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const body = await req.json()
-    const mode: 'reference' | 'cover' = body.mode === 'cover' ? 'cover' : 'reference'
+    const mode: 'reference' | 'cover' | 'trio' =
+      body.mode === 'trio' ? 'trio' : body.mode === 'cover' ? 'cover' : 'reference'
 
     const token = process.env.REPLICATE_API_TOKEN
     if (!token) return NextResponse.json({ error: 'REPLICATE_API_TOKEN not set' }, { status: 500 })
 
-    const charKey = String(body.character || '')
-    const character = CHARACTERS[charKey]
-    if (!character) return NextResponse.json({ error: 'Невідомий персонаж' }, { status: 400 })
-
-    // Дозволяємо редагувати look з UI; інакше — дефолт персонажа.
-    const look: string = (body.description && String(body.description).trim()) || character.look
     const seed: number = Number.isFinite(body.seed) ? Number(body.seed) : Math.floor(Math.random() * 2_000_000)
 
     let endpoint = ''
     let input: Record<string, unknown> = {}
     let tag = ''
+
+    if (mode === 'trio') {
+      // ТРІЙЦЯ ДРУЗІВ — груповий кадр із 3 еталонів через flux-2-pro (мульти-референс).
+      // Поля Replicate: input_image (image 1), input_image_2 (image 2), input_image_3 (image 3).
+      const r1 = String(body.refMaksym || '')
+      const r2 = String(body.refRoman || '')
+      const r3 = String(body.refSashko || '')
+      if (!r1 || !r2 || !r3) return NextResponse.json({ error: 'Потрібні всі три URL еталонів (Максим, Роман, Сашко)' }, { status: 400 })
+      const extra = (body.sceneText && String(body.sceneText).trim())
+        || 'calm peacetime mood before the war, plain softly-blurred outdoor background'
+      const prompt =
+        `Three young Ukrainian men, all adults, standing close together outdoors as a group, facing the camera. ` +
+        `The man from image 1 stands on the left: thin and pale, dark messy hair, a quiet introspective face. ` +
+        `The man from image 2 stands in the middle: athletic, short blond hair, an open confident face. ` +
+        `The man from image 3 stands on the right: wavy brown hair and thin glasses, a calm friendly face. ` +
+        `${extra}. Wide 16:9 cinematic group portrait, photorealistic, natural soft overcast daylight, ` +
+        `muted desaturated colours, sharp focus, three distinct faces.`
+      endpoint = 'https://api.replicate.com/v1/models/black-forest-labs/flux-2-pro/predictions'
+      input = { prompt, input_image: r1, input_image_2: r2, input_image_3: r3, aspect_ratio: '16:9', output_format: 'jpg', seed }
+      tag = 'trio'
+    } else {
+    const charKey = String(body.character || '')
+    const character = CHARACTERS[charKey]
+    if (!character) return NextResponse.json({ error: 'Невідомий персонаж' }, { status: 400 })
+    // Дозволяємо редагувати look з UI; інакше — дефолт персонажа.
+    const look: string = (body.description && String(body.description).trim()) || character.look
 
     if (mode === 'reference') {
       // Еталонне обличчя — flux-1.1-pro, поясний портрет 3:4, чистий фон.
@@ -191,6 +212,7 @@ export async function POST(req: NextRequest) {
         seed,
       }
       tag = `${charKey}-${sceneKey || (rawEdit ? 'edit' : 'scene')}`
+    }
     }
 
     const replicateRes = await fetch(endpoint, {
