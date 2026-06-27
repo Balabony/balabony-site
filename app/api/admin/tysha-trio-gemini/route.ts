@@ -49,6 +49,22 @@ export async function POST(req: NextRequest) {
       const urlM = String(body.refMaksym || '')
       if (!urlM) return NextResponse.json({ error: 'Потрібен URL еталона Максима' }, { status: 400 })
       const imgM = await fetchInline(urlM)
+      // Автоваріація фону — щоразу інша деталь оточення, навіть на тому самому пресеті.
+      const bgVariations = [
+        'a different ruined street with collapsed houses behind him',
+        'broken military vehicles and rubble in the blurred background',
+        'a shattered concrete wall close behind, distant smoke',
+        'burnt trees and a destroyed fence in the background',
+        'a half-collapsed building with a hole in the wall behind',
+        'distant fires and thick smoke on the horizon',
+        'an empty cratered road stretching behind him',
+        'piles of rubble and twisted metal in the background',
+        'a foggy ruined village barely visible behind',
+        'scattered debris and a damaged rooftop in the distance',
+        'a bombed-out school or church in the far background',
+        'low grey clouds over a flattened neighbourhood',
+      ]
+      const bgPick = bgVariations[Math.floor(Math.random() * bgVariations.length)]
       const prompt =
         `You are given one reference photo of a real young man. ` +
         `Generate ONE photorealistic VERTICAL 3:4 portrait (taller than wide) of the SAME man — ` +
@@ -56,7 +72,8 @@ export async function POST(req: NextRequest) {
         `He is a Ukrainian soldier wearing plain pixelated digital camouflage military uniform. ` +
         `IMPORTANT: his chest and uniform are completely BLANK and smooth — absolutely NO patches, NO name tapes, ` +
         `NO badges, NO insignia, NO chevrons, NO embroidered text, NO labels of any kind anywhere on the uniform. Plain clean camouflage fabric only. ` +
-        (extra ? `Scene: ${extra}. ` : 'Scene: weary serious expression, blurred destroyed war-torn village behind him, overcast cold light, dust haze. ') +
+        (extra ? `Scene: ${extra}. ` : 'Scene: weary serious expression, overcast cold light, dust haze. ') +
+        `Background detail: ${bgPick}. ` +
         `Cinematic war-drama mood, photorealistic, balanced exposure (not too dark). ` +
         `FRAMING (critical): his WHOLE HEAD and FULL FACE fully inside the frame with empty space above his head, ` +
         `framed from the shoulders/chest up, no hands or fingers visible, do not crop his head or face. ` +
