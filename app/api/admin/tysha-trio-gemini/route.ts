@@ -33,33 +33,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const urlM = String(body.refMaksym || '')
-    const urlR = String(body.refRoman || '')
-    const urlS = String(body.refSashko || '')
-    if (!urlM || !urlR || !urlS) {
-      return NextResponse.json({ error: 'Потрібні всі три URL еталонів' }, { status: 400 })
-    }
+    const solo = body.solo === true
     const extra = (body.sceneText && String(body.sceneText).trim()) || ''
-
-    const [imgM, imgR, imgS] = await Promise.all([fetchInline(urlM), fetchInline(urlR), fetchInline(urlS)])
-
-    const prompt =
-      `You are given three separate reference photos of three different real young men, all friends. ` +
-      `Combine all three into ONE single cohesive, warm, natural group photo — like a real candid photo of three close friends together. ` +
-      `VERTICAL 3:4 portrait orientation (taller than wide), photorealistic, single unified scene with soft natural daylight (NOT a collage, no photo frames, no panels, no separate boxes). ` +
-      `Keep each man's face EXACTLY as in his own reference photo — do not change their identities or features. ` +
-      `COMPOSITION (follow strictly): a balanced waist-up group shot. All THREE men are roughly the SAME size, ` +
-      `grouped very close together and slightly staggered to fill a TALL vertical frame, heads near each other, shoulder to shoulder. ` +
-      `Man from photo 1 (thin, pale, dark messy hair) in the centre; man from photo 2 (athletic, blond) on the left; ` +
-      `man from photo 3 (wavy brown hair, glasses) on the right. ` +
-      `FRAMING (critical): every man's WHOLE HEAD and FULL FACE must be completely inside the frame, ` +
-      `with clear empty space above all three heads and a margin on the left and right edges. ` +
-      `Frame them from the SHOULDERS up only — their hands, arms and crossed arms are NOT visible and stay completely out of frame. ` +
-      `Do NOT show any hands or fingers. ` +
-      `Do NOT crop or cut off any head, any face, or anyone at the edges. All three faces fully visible, eyes and foreheads visible. ` +
-      `Warm friendly alive mood, all three well-lit and equally prominent. ` +
-      (extra ? `Scene: ${extra}. ` : 'Plain softly-blurred outdoor background. ') +
-      `No text, no captions, no logos, no watermark. All three are adults.`
 
     const genAI = new GoogleGenerativeAI(apiKey)
     const generationConfig: GenConfigWithModalities = {
@@ -68,19 +43,65 @@ export async function POST(req: NextRequest) {
     }
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-image', generationConfig }, { apiVersion: 'v1beta' })
 
-    const result = await model.generateContent({
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { text: prompt },
-            { text: 'Reference photo 1 (friend, centre):' }, imgM,
-            { text: 'Reference photo 2 (friend, side):' }, imgR,
-            { text: 'Reference photo 3 (friend, side):' }, imgS,
-          ],
-        },
-      ],
-    })
+    let result
+    if (solo) {
+      // СОЛО — Максим-воїн, вертикаль 3:4, обличчя з еталона.
+      const urlM = String(body.refMaksym || '')
+      if (!urlM) return NextResponse.json({ error: 'Потрібен URL еталона Максима' }, { status: 400 })
+      const imgM = await fetchInline(urlM)
+      const prompt =
+        `You are given one reference photo of a real young man. ` +
+        `Generate ONE photorealistic VERTICAL 3:4 portrait (taller than wide) of the SAME man — ` +
+        `keep his face EXACTLY as in the reference, do not change his identity or features. ` +
+        `He is a Ukrainian soldier wearing plain pixelated digital camouflage military uniform (no badges, no insignia, no readable text on the uniform). ` +
+        (extra ? `Scene: ${extra}. ` : 'Scene: weary serious expression, blurred destroyed war-torn village behind him, overcast cold light, dust haze. ') +
+        `Cinematic war-drama mood, photorealistic, balanced exposure (not too dark). ` +
+        `FRAMING (critical): his WHOLE HEAD and FULL FACE fully inside the frame with empty space above his head, ` +
+        `framed from the shoulders/chest up, no hands or fingers visible, do not crop his head or face. ` +
+        `No text, no captions, no logos, no watermark. Adult man.`
+      result = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }, { text: 'Reference photo (the man):' }, imgM] }],
+      })
+    } else {
+      // ТРІЙЦЯ друзів.
+      const urlM = String(body.refMaksym || '')
+      const urlR = String(body.refRoman || '')
+      const urlS = String(body.refSashko || '')
+      if (!urlM || !urlR || !urlS) {
+        return NextResponse.json({ error: 'Потрібні всі три URL еталонів' }, { status: 400 })
+      }
+      const [imgM, imgR, imgS] = await Promise.all([fetchInline(urlM), fetchInline(urlR), fetchInline(urlS)])
+      const prompt =
+        `You are given three separate reference photos of three different real young men, all friends. ` +
+        `Combine all three into ONE single cohesive, warm, natural group photo — like a real candid photo of three close friends together. ` +
+        `VERTICAL 3:4 portrait orientation (taller than wide), photorealistic, single unified scene with soft natural daylight (NOT a collage, no photo frames, no panels, no separate boxes). ` +
+        `Keep each man's face EXACTLY as in his own reference photo — do not change their identities or features. ` +
+        `COMPOSITION (follow strictly): a balanced waist-up group shot. All THREE men are roughly the SAME size, ` +
+        `grouped very close together and slightly staggered to fill a TALL vertical frame, heads near each other, shoulder to shoulder. ` +
+        `Man from photo 1 (thin, pale, dark messy hair) in the centre; man from photo 2 (athletic, blond) on the left; ` +
+        `man from photo 3 (wavy brown hair, glasses) on the right. ` +
+        `FRAMING (critical): every man's WHOLE HEAD and FULL FACE must be completely inside the frame, ` +
+        `with clear empty space above all three heads and a margin on the left and right edges. ` +
+        `Frame them from the SHOULDERS up only — their hands, arms and crossed arms are NOT visible and stay completely out of frame. ` +
+        `Do NOT show any hands or fingers. ` +
+        `Do NOT crop or cut off any head, any face, or anyone at the edges. All three faces fully visible, eyes and foreheads visible. ` +
+        `Warm friendly alive mood, all three well-lit and equally prominent. ` +
+        (extra ? `Scene: ${extra}. ` : 'Plain softly-blurred outdoor background. ') +
+        `No text, no captions, no logos, no watermark. All three are adults.`
+      result = await model.generateContent({
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: prompt },
+              { text: 'Reference photo 1 (friend, centre):' }, imgM,
+              { text: 'Reference photo 2 (friend, side):' }, imgR,
+              { text: 'Reference photo 3 (friend, side):' }, imgS,
+            ],
+          },
+        ],
+      })
+    }
 
     const parts = result.response.candidates?.[0]?.content?.parts || []
     const imgPart = parts.find((p) => p.inlineData?.data)

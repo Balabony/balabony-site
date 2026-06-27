@@ -52,6 +52,7 @@ export default function TyshaCoversPage() {
   const [trioR, setTrioR] = useState('https://swwzsrtbfjsdsmpgfpsk.supabase.co/storage/v1/object/public/covers/tysha-gen/roman-ref-389319-1782551985471.jpg')
   const [trioS, setTrioS] = useState('https://swwzsrtbfjsdsmpgfpsk.supabase.co/storage/v1/object/public/covers/tysha-gen/sashko-ref-1325429-1782552264025.jpg')
   const [trioScene, setTrioScene] = useState('')
+  const [warScene, setWarScene] = useState('')
 
   useEffect(() => {
     fetch('/api/admin/generate-tysha-cover').then(r => r.json()).then(d => {
@@ -134,6 +135,20 @@ export default function TyshaCoversPage() {
       const d = await r.json()
       if (d.url) { setCoverUrl(d.url); setMsg('Трійцю згенеровано — нижче можна доправити кадр і присвоїти серії') }
       else setErr(d.error || 'Помилка генерації трійці')
+    } catch { setErr('Помилка мережі') } finally { setBusy('') }
+  }
+
+  async function genWarSolo() {
+    if (!trioM.trim()) { setErr('Потрібен URL еталона Максима'); return }
+    setErr(''); setMsg(''); setBusy('war')
+    try {
+      const r = await fetch('/api/admin/tysha-trio-gemini', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+        body: JSON.stringify({ solo: true, refMaksym: trioM, sceneText: warScene }),
+      })
+      const d = await r.json()
+      if (d.url) { setCoverUrl(d.url); setMsg('Максим-воїн готовий — вище можна присвоїти серії') }
+      else setErr(d.error || 'Помилка Gemini')
     } catch { setErr('Помилка мережі') } finally { setBusy('') }
   }
 
@@ -311,6 +326,31 @@ export default function TyshaCoversPage() {
             <b> Колаж</b> — механічна склейка. <b>FLUX.2</b> — мальоване, обличчя лише схожі.
             Опис сцени діє на Gemini і FLUX.2.
           </p>
+        </section>
+
+        {/* МАКСИМ НА ВІЙНІ (Gemini, solo) */}
+        <section style={box}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: GOLD, marginBottom: 6 }}>Максим на війні (Gemini, вертикаль 3:4)</h2>
+          <p style={{ fontSize: 12, opacity: 0.6, marginBottom: 12, lineHeight: 1.5 }}>
+            Один Максим у воєнній формі, вертикально, обличчя з еталона. URL Максима береться з блоку «Трійця» вище.
+            Опиши сцену англійською або обери пресет (порожнє = зруйноване село за замовчуванням).
+          </p>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+            {[
+              ['Село в руїнах', 'weary serious face, blurred destroyed war-torn village behind him, overcast cold light, dust haze'],
+              ['Окоп', 'tired face, in a muddy trench at the front line, grey overcast sky, smoke in the distance'],
+              ['Нічний блокпост', 'serious face at a night checkpoint, cold blue light, distant fires, dark mood'],
+              ['Втома після бою', 'exhausted hollow stare, dirt on his face, ruined building behind, cold grey light'],
+            ].map(([label, val]) => (
+              <button key={label} onClick={() => setWarScene(val)} style={{ ...input, width: 'auto', padding: '6px 10px', fontSize: 12, cursor: 'pointer', opacity: warScene === val ? 1 : 0.7, borderColor: warScene === val ? GOLD : undefined }}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <input value={warScene} onChange={e => setWarScene(e.target.value)} placeholder="опис воєнної сцени (англ.), або обери пресет вище" style={{ ...input, marginBottom: 12 }} />
+          <button onClick={genWarSolo} disabled={busy === 'war'} style={btn('#b45309', busy !== 'war')}>
+            {busy === 'war' ? 'Gemini малює…' : 'Згенерувати Максима-воїна ★'}
+          </button>
         </section>
 
         {/* КРОК 3 — ПРИСВОЇТИ */}
