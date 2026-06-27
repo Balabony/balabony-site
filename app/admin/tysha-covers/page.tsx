@@ -43,6 +43,10 @@ export default function TyshaCoversPage() {
   const [err, setErr] = useState('')
   const [msg, setMsg] = useState('')
 
+  // Ланцюжкова правка («Доправити цей кадр»)
+  const [editText, setEditText] = useState('')
+  const [editMax, setEditMax] = useState(false)
+
   useEffect(() => {
     fetch('/api/admin/generate-tysha-cover').then(r => r.json()).then(d => {
       setChars(d.characters || []); setScenes(d.scenes || [])
@@ -91,6 +95,25 @@ export default function TyshaCoversPage() {
       const d = await r.json()
       if (d.url) setCoverUrl(d.url)
       else setErr(d.error || 'Помилка генерації обкладинки')
+    } catch { setErr('Помилка мережі') } finally { setBusy('') }
+  }
+
+  async function refineCover() {
+    if (!coverUrl) { setErr('Спершу згенеруй обкладинку'); return }
+    if (!editText.trim()) { setErr('Опиши, що доправити'); return }
+    setErr(''); setMsg(''); setBusy('refine')
+    try {
+      // Правка ПОВЕРХ поточного кадру: основа = сам coverUrl, rawEdit, зберігаємо кадр.
+      const r = await fetch('/api/admin/generate-tysha-cover', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+        body: JSON.stringify({
+          mode: 'cover', character: charKey, referenceImageUrl: coverUrl,
+          sceneText: editText, rawEdit: true, model: editMax ? 'max' : 'pro',
+        }),
+      })
+      const d = await r.json()
+      if (d.url) { setCoverUrl(d.url); setEditText('') }
+      else setErr(d.error || 'Помилка правки')
     } catch { setErr('Помилка мережі') } finally { setBusy('') }
   }
 
@@ -182,6 +205,32 @@ export default function TyshaCoversPage() {
             <div style={{ maxWidth: 560, border: '2px solid #22304d', borderRadius: 8, overflow: 'hidden' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={coverUrl} alt="обкладинка" style={{ width: '100%', display: 'block', aspectRatio: '16 / 9', objectFit: 'cover' }} />
+            </div>
+          )}
+
+          {coverUrl && (
+            <div style={{ marginTop: 14, padding: 14, background: '#0c1830', border: '1px solid #22304d', borderRadius: 10 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#cdd6e6', marginBottom: 4 }}>Доправити цей кадр (одна зміна за раз)</div>
+              <div style={{ fontSize: 12, opacity: 0.6, marginBottom: 10, lineHeight: 1.5 }}>
+                Правка йде ПОВЕРХ кадру вище й зберігає обличчя. Дроби складне на кроки:
+                спершу одяг, тоді каска, тоді фон. Англійською надійніше. Приклад:
+                <i> «Put a combat helmet on his head»</i>.
+              </div>
+              <input
+                value={editText}
+                onChange={e => setEditText(e.target.value)}
+                placeholder="напр. Erase the name patch, make the chest blank"
+                style={{ ...input, marginBottom: 10 }}
+              />
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <button onClick={refineCover} disabled={busy === 'refine'} style={btn('#2E75B6', busy !== 'refine')}>
+                  {busy === 'refine' ? 'Правлю…' : 'Застосувати правку →'}
+                </button>
+                <label style={{ fontSize: 13, opacity: 0.8, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={editMax} onChange={e => setEditMax(e.target.checked)} />
+                  якісніше (kontext-max, для впертих правок)
+                </label>
+              </div>
             </div>
           )}
         </section>

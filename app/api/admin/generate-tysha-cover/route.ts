@@ -154,29 +154,43 @@ export async function POST(req: NextRequest) {
       input = { prompt, aspect_ratio: '3:4', output_format: 'jpg', safety_tolerance: 2, seed }
       tag = `${charKey}-ref`
     } else {
-      // Обкладинка з еталона — flux-kontext-pro 16:9, тримає обличчя.
+      // Обкладинка/правка з еталона — flux-kontext (тримає обличчя).
       const sceneKey = String(body.scene || '')
       const scene = SCENES[sceneKey]
       const referenceImageUrl = String(body.referenceImageUrl || '')
       // Дозволяємо вільний опис сцени через body.sceneText, інакше — пресет.
       const scenePhrase: string = (body.sceneText && String(body.sceneText).trim()) || scene?.phrase || ''
-      if (!scenePhrase) return NextResponse.json({ error: 'Обери або опиши сцену' }, { status: 400 })
-      if (!referenceImageUrl) return NextResponse.json({ error: 'Спочатку обери еталон' }, { status: 400 })
+      // rawEdit=true → ПРЯМА правка поверх основи (ланцюжок): без перекомпонування в 16:9,
+      //   зберігаємо кадр (aspect=match_input_image), вносимо лише одну зміну.
+      const rawEdit = body.rawEdit === true
+      // model='max' → flux-kontext-max (краще слухає складні правки, трохи дорожче).
+      const useMax = body.model === 'max'
+      // aspect: за замовч. 16:9; для ланцюжкових правок беремо match_input_image (зберегти кадр).
+      const aspect: string = typeof body.aspect === 'string' && body.aspect.trim()
+        ? body.aspect.trim()
+        : (rawEdit ? 'match_input_image' : '16:9')
 
-      const prompt =
-        `the same young man, keep his face identical, same person, ${scenePhrase}, ` +
-        `reframe as a wide cinematic 16:9 cover with the figure ` +
-        `off-centre and environment around, ${TECH}, seed_${seed}`
-      endpoint = 'https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions'
+      if (!scenePhrase) return NextResponse.json({ error: 'Обери або опиши сцену' }, { status: 400 })
+      if (!referenceImageUrl) return NextResponse.json({ error: 'Спочатку обери основу' }, { status: 400 })
+
+      const prompt = rawEdit
+        ? `${scenePhrase}. Keep his face and identity exactly the same. ` +
+          `Photorealistic, no text, no watermark, no insignia.`
+        : `the same young man, keep his face identical, same person, ${scenePhrase}, ` +
+          `reframe as a wide cinematic 16:9 cover with the figure ` +
+          `off-centre and environment around, ${TECH}, seed_${seed}`
+
+      const modelPath = useMax ? 'flux-kontext-max' : 'flux-kontext-pro'
+      endpoint = `https://api.replicate.com/v1/models/black-forest-labs/${modelPath}/predictions`
       input = {
         prompt,
         input_image: referenceImageUrl,
-        aspect_ratio: '16:9',
+        aspect_ratio: aspect,
         output_format: 'jpg',
         safety_tolerance: 2,
         seed,
       }
-      tag = `${charKey}-${sceneKey || 'scene'}`
+      tag = `${charKey}-${sceneKey || (rawEdit ? 'edit' : 'scene')}`
     }
 
     const replicateRes = await fetch(endpoint, {
