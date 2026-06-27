@@ -201,7 +201,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
       </div>
 
       {ep.cover_url && (
-        <div style={{ position: 'relative', maxWidth: 720, margin: '14px auto 0', aspectRatio: '16 / 9', overflow: 'hidden', borderRadius: 4 }}>
+        <div style={{ position: 'relative', maxWidth: 460, margin: '14px auto 0', aspectRatio: '3 / 4', overflow: 'hidden', borderRadius: 4 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={ep.cover_url} alt={ep.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         </div>
