@@ -137,6 +137,20 @@ export default function TyshaCoversPage() {
     } catch { setErr('Помилка мережі') } finally { setBusy('') }
   }
 
+  async function genCollage() {
+    if (!trioM.trim() || !trioR.trim() || !trioS.trim()) { setErr('Потрібні всі три URL еталонів'); return }
+    setErr(''); setMsg(''); setBusy('collage')
+    try {
+      const r = await fetch('/api/admin/tysha-trio-collage', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+        body: JSON.stringify({ refMaksym: trioM, refRoman: trioR, refSashko: trioS }),
+      })
+      const d = await r.json()
+      if (d.url) { setCoverUrl(d.url); setMsg('Колаж зібрано (точні обличчя) — вище можна присвоїти серії') }
+      else setErr(d.error || 'Помилка колажу')
+    } catch { setErr('Помилка мережі') } finally { setBusy('') }
+  }
+
   async function assignCover() {
     if (!coverUrl) { setErr('Спершу згенеруй обкладинку'); return }
     if (!assignEp) { setErr('Обери серію'); return }
@@ -267,9 +281,18 @@ export default function TyshaCoversPage() {
           <input value={trioR} onChange={e => setTrioR(e.target.value)} placeholder="URL еталона Романа" style={{ ...input, marginBottom: 8, fontSize: 12 }} />
           <input value={trioS} onChange={e => setTrioS(e.target.value)} placeholder="URL еталона Сашка" style={{ ...input, marginBottom: 10, fontSize: 12 }} />
           <input value={trioScene} onChange={e => setTrioScene(e.target.value)} placeholder="опис сцени (англ., необов'язково; напр. standing in a schoolyard)" style={{ ...input, marginBottom: 12 }} />
-          <button onClick={genTrio} disabled={busy === 'trio'} style={btn('#9b6dff', busy !== 'trio')}>
-            {busy === 'trio' ? 'Генерую трійцю…' : 'Згенерувати трійцю'}
-          </button>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button onClick={genCollage} disabled={busy === 'collage'} style={btn('#1b9e6f', busy !== 'collage')}>
+              {busy === 'collage' ? 'Збираю колаж…' : 'Колаж (ТОЧНІ обличчя) →'}
+            </button>
+            <button onClick={genTrio} disabled={busy === 'trio'} style={btn('#9b6dff', busy !== 'trio')}>
+              {busy === 'trio' ? 'Генерую…' : 'AI-трійця (FLUX.2, обличчя приблизні)'}
+            </button>
+          </div>
+          <p style={{ fontSize: 11, opacity: 0.55, marginTop: 8, lineHeight: 1.5 }}>
+            <b>Колаж</b> — накладає готові канонні фото (обличчя точні): Максим спереду, друзі позаду.
+            <b> AI-трійця</b> — мальоване FLUX.2 (обличчя лише схожі). Опис сцени діє лише на AI-трійцю.
+          </p>
         </section>
 
         {/* КРОК 3 — ПРИСВОЇТИ */}
