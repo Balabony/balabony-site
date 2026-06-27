@@ -46,10 +46,10 @@ export async function POST(req: NextRequest) {
     const prompt =
       `You are given three separate reference photos of three different real young men, all friends. ` +
       `Combine all three into ONE single cohesive, warm, natural group photo — like a real candid photo of three close friends together. ` +
-      `16:9 wide, photorealistic, single unified scene with soft natural daylight (NOT a collage, no photo frames, no panels, no separate boxes). ` +
+      `VERTICAL 3:4 portrait orientation (taller than wide), photorealistic, single unified scene with soft natural daylight (NOT a collage, no photo frames, no panels, no separate boxes). ` +
       `Keep each man's face EXACTLY as in his own reference photo — do not change their identities or features. ` +
       `COMPOSITION (follow strictly): a balanced waist-up group shot. All THREE men are roughly the SAME size, ` +
-      `standing in a row at the same distance from the camera, shoulder to shoulder, evenly spaced across the frame. ` +
+      `grouped very close together and slightly staggered to fill a TALL vertical frame, heads near each other, shoulder to shoulder. ` +
       `Man from photo 1 (thin, pale, dark messy hair) in the centre; man from photo 2 (athletic, blond) on the left; ` +
       `man from photo 3 (wavy brown hair, glasses) on the right. ` +
       `FRAMING (critical): every man's WHOLE HEAD and FULL FACE must be completely inside the frame, ` +
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     const genAI = new GoogleGenerativeAI(apiKey)
     const generationConfig: GenConfigWithModalities = {
       responseModalities: ['Image'],
-      imageConfig: { aspectRatio: '16:9' },
+      imageConfig: { aspectRatio: '3:4' },
     }
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-image', generationConfig }, { apiVersion: 'v1beta' })
 

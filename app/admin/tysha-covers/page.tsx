@@ -250,9 +250,9 @@ export default function TyshaCoversPage() {
           <input value={sceneText} onChange={e => setSceneText(e.target.value)} placeholder="…або опиши сцену словами (англ. краще; переб'є пресет)" style={{ ...input, marginBottom: 12 }} />
 
           {coverUrl && (
-            <div style={{ maxWidth: 560, border: '2px solid #22304d', borderRadius: 8, overflow: 'hidden' }}>
+            <div style={{ maxWidth: 380, border: '2px solid #22304d', borderRadius: 8, overflow: 'hidden' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={coverUrl} alt="обкладинка" style={{ width: '100%', display: 'block', aspectRatio: '16 / 9', objectFit: 'cover' }} />
+              <img src={coverUrl} alt="обкладинка" style={{ width: '100%', display: 'block', aspectRatio: '3 / 4', objectFit: 'cover' }} />
             </div>
           )}
 
