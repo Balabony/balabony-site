@@ -53,7 +53,9 @@ export async function POST(req: NextRequest) {
         `You are given one reference photo of a real young man. ` +
         `Generate ONE photorealistic VERTICAL 3:4 portrait (taller than wide) of the SAME man — ` +
         `keep his face EXACTLY as in the reference, do not change his identity or features. ` +
-        `He is a Ukrainian soldier wearing plain pixelated digital camouflage military uniform (no badges, no insignia, no readable text on the uniform). ` +
+        `He is a Ukrainian soldier wearing plain pixelated digital camouflage military uniform. ` +
+        `IMPORTANT: his chest and uniform are completely BLANK and smooth — absolutely NO patches, NO name tapes, ` +
+        `NO badges, NO insignia, NO chevrons, NO embroidered text, NO labels of any kind anywhere on the uniform. Plain clean camouflage fabric only. ` +
         (extra ? `Scene: ${extra}. ` : 'Scene: weary serious expression, blurred destroyed war-torn village behind him, overcast cold light, dust haze. ') +
         `Cinematic war-drama mood, photorealistic, balanced exposure (not too dark). ` +
         `FRAMING (critical): his WHOLE HEAD and FULL FACE fully inside the frame with empty space above his head, ` +
