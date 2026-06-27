@@ -7,7 +7,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 // Двокроковий потік (дзеркалить generate-panas-pose), щоб обличчя ТРИМАЛОСЯ
 // однаковим на всіх серіях — критично для Максима (серії 4+ — він на війні):
 //   mode='reference' → flux-1.1-pro (text→image): кілька еталонних ПОРТРЕТІВ
-//                      персонажа (4:5, чисте обличчя), з яких Богдан обирає канон.
+//                      персонажа (3:4, чисте обличчя), з яких Богдан обирає канон.
 //   mode='cover'     → flux-kontext-pro (image→image): з обраного еталона робимо
 //                      обкладинку 16:9 у заданих обставинах, ЗБЕРІГАЮЧИ обличчя.
 //
@@ -22,25 +22,31 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 // =============================================================================
 
 const CHARACTERS: Record<string, { label: string; look: string }> = {
+  // Максим — 18, «той, хто слухає»: худий, темне пряме волосся, бліде вузьке обличчя.
   maksym: {
     label: 'Максим',
     look:
-      'a thin bookish Ukrainian young man, exactly 18 years old, an adult, lean slight build, ' +
-      'dark hair, pale thoughtful intelligent face, quiet sensitive watchful eyes, ' +
-      'introspective expression, plain modern casual clothes',
+      'a thin slight Ukrainian young man, exactly 18 years old, an adult, frail lean build, ' +
+      'dark almost-black slightly-long messy hair, pale skin, narrow angular face with hollow ' +
+      'cheeks and fine delicate features, dark grey-blue eyes, tense introspective inward gaze, ' +
+      'no glasses, serious withdrawn quiet expression, plain modern casual clothes',
   },
+  // Роман — 19, «золотий»: атлет, коротке світле волосся, квадратне засмагле обличчя.
   roman: {
     label: 'Роман',
     look:
-      'an athletic Ukrainian young man, exactly 19 years old, an adult, strong fit build, ' +
-      'light blond hair, open confident friendly face, warm direct gaze, ' +
+      'a broad-shouldered athletic Ukrainian young man, exactly 19 years old, an adult, ' +
+      'strong muscular build, short sandy-blond hair, tanned healthy skin, square face with a ' +
+      'strong jaw, light blue eyes, open easy confident gaze with a faint smile, no glasses, ' +
       'plain modern casual clothes',
   },
+  // Сашко — 18, «спостерігач»: середній, каштанове хвилясте волосся, окуляри, ластовиння.
   sashko: {
     label: 'Сашко',
     look:
-      'a Ukrainian young man, exactly 18 years old, an adult, average build, ' +
-      'wearing glasses, intelligent kind slightly reserved face, calm gaze, ' +
+      'a Ukrainian young man, exactly 18 years old, an adult, average medium build, ' +
+      'wavy chestnut-brown hair, warm medium skin tone with light freckles, rounder softer face, ' +
+      'brown eyes behind thin modern glasses, curious gentle reserved expression, ' +
       'plain modern casual clothes',
   },
 }
@@ -114,7 +120,12 @@ async function pollReplicate(
   return prediction
 }
 
+function checkAuth(req: NextRequest): boolean {
+  return req.cookies.get('admin_session')?.value === process.env.ADMIN_PASSWORD
+}
+
 export async function POST(req: NextRequest) {
+  if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const body = await req.json()
     const mode: 'reference' | 'cover' = body.mode === 'cover' ? 'cover' : 'reference'
@@ -135,12 +146,12 @@ export async function POST(req: NextRequest) {
     let tag = ''
 
     if (mode === 'reference') {
-      // Еталонне обличчя — flux-1.1-pro, поясний портрет 4:5, чистий фон.
+      // Еталонне обличчя — flux-1.1-pro, поясний портрет 3:4, чистий фон.
       const prompt =
         `${look}, head and shoulders portrait, facing the camera, neutral calm expression, ` +
         `plain softly-blurred neutral background, soft even lighting, ${TECH}, seed_${seed}`
       endpoint = 'https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro/predictions'
-      input = { prompt, aspect_ratio: '4:5', output_format: 'jpg', safety_tolerance: 2, seed }
+      input = { prompt, aspect_ratio: '3:4', output_format: 'jpg', safety_tolerance: 2, seed }
       tag = `${charKey}-ref`
     } else {
       // Обкладинка з еталона — flux-kontext-pro 16:9, тримає обличчя.
