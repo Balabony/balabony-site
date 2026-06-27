@@ -8,8 +8,11 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 // краще за flux-мульти-референс. Не склейка — модель малює спільну сцену.
 // =============================================================================
 
-// SDK-тип не має responseModalities — розширюємо локально.
-type GenConfigWithModalities = GenerationConfig & { responseModalities?: string[] }
+// SDK-тип не має responseModalities/imageConfig — розширюємо локально.
+type GenConfigWithModalities = GenerationConfig & {
+  responseModalities?: string[]
+  imageConfig?: { aspectRatio?: string }
+}
 
 function checkAuth(req: NextRequest): boolean {
   return req.cookies.get('admin_session')?.value === process.env.ADMIN_PASSWORD
@@ -45,17 +48,22 @@ export async function POST(req: NextRequest) {
       `Combine all three into ONE single cohesive, warm, natural group photo — like a real candid photo of three close friends together. ` +
       `16:9 wide, photorealistic, single unified scene with soft natural daylight (NOT a collage, no photo frames, no panels, no separate boxes). ` +
       `Keep each man's face EXACTLY as in his own reference photo — do not change their identities or features. ` +
-      `Place the three friends standing close together, shoulder to shoulder, relaxed and friendly, looking at the camera. ` +
-      `The man from the FIRST photo (thin, pale, dark messy hair) slightly in the centre; ` +
-      `the man from the SECOND photo (athletic, blond) on one side; the man from the THIRD photo (wavy brown hair, glasses) on the other side. ` +
-      `Equal, warm, alive mood — all three clearly visible and well-lit. ` +
-      `IMPORTANT FRAMING: show each man from the chest up with his WHOLE HEAD and FULL FACE fully inside the frame, ` +
-      `with empty space above their heads. Do NOT crop the tops of their heads or their faces. Eyes, foreheads and hair must be visible. ` +
+      `COMPOSITION (follow strictly): a balanced waist-up group shot. All THREE men are roughly the SAME size, ` +
+      `standing in a row at the same distance from the camera, shoulder to shoulder, evenly spaced across the frame. ` +
+      `Man from photo 1 (thin, pale, dark messy hair) in the centre; man from photo 2 (athletic, blond) on the left; ` +
+      `man from photo 3 (wavy brown hair, glasses) on the right. ` +
+      `FRAMING (critical): every man's WHOLE HEAD and FULL FACE must be completely inside the frame, ` +
+      `with clear empty space above all three heads and a margin on the left and right edges. ` +
+      `Do NOT crop or cut off any head, any face, or anyone at the edges. All three faces fully visible, eyes and foreheads visible. ` +
+      `Warm friendly alive mood, all three well-lit and equally prominent. ` +
       (extra ? `Scene: ${extra}. ` : 'Plain softly-blurred outdoor background. ') +
       `No text, no captions, no logos, no watermark. All three are adults.`
 
     const genAI = new GoogleGenerativeAI(apiKey)
-    const generationConfig: GenConfigWithModalities = { responseModalities: ['Image'] }
+    const generationConfig: GenConfigWithModalities = {
+      responseModalities: ['Image'],
+      imageConfig: { aspectRatio: '16:9' },
+    }
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-image', generationConfig }, { apiVersion: 'v1beta' })
 
     const result = await model.generateContent({
