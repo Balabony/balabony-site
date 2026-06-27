@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import ReadTracker from '@/app/components/ReadTracker'
+import TyshaProgressTracker from '@/app/components/TyshaProgressTracker'
 
 const GOLD = '#ef9f27'
 const AMBER = '#FFB347'
@@ -175,6 +176,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
   return (
     <div style={{ minHeight: '100dvh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT }}>
       <ReadTracker slug={ep.slug} />
+      <TyshaProgressTracker storyId={ep.id} storyTitle={ep.title} locked={locked} />
 
       {/* Шапка-банер */}
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '28px 20px 8px' }}>
@@ -242,7 +244,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
       {/* Наступна серія */}
       {next && !locked && (
         <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px 48px' }}>
-          <Link href={`/tysha/${next.slug}`} style={{ display: 'block', padding: 16, borderRadius: 12, background: '#0f1e3a', border: `1.5px solid ${AMBER}`, textDecoration: 'none' }}>
+          <Link href={`/tysha/${next.slug}`} id="tysha-next-link" style={{ display: 'block', padding: 16, borderRadius: 12, background: '#0f1e3a', border: `1.5px solid ${AMBER}`, textDecoration: 'none' }}>
             <div style={{ fontSize: 11, color: 'rgba(245,240,232,0.5)', marginBottom: 4 }}>Наступна серія →</div>
             <div style={{ fontSize: 16, fontWeight: 700, color: GOLD }}>{next.title}</div>
             {ep.next_teaser && <div style={{ fontSize: 13, color: 'rgba(245,240,232,0.7)', marginTop: 6 }}>{ep.next_teaser}</div>}
