@@ -54,6 +54,8 @@ export async function POST(req: NextRequest) {
       `man from photo 3 (wavy brown hair, glasses) on the right. ` +
       `FRAMING (critical): every man's WHOLE HEAD and FULL FACE must be completely inside the frame, ` +
       `with clear empty space above all three heads and a margin on the left and right edges. ` +
+      `Frame them from the SHOULDERS up only — their hands, arms and crossed arms are NOT visible and stay completely out of frame. ` +
+      `Do NOT show any hands or fingers. ` +
       `Do NOT crop or cut off any head, any face, or anyone at the edges. All three faces fully visible, eyes and foreheads visible. ` +
       `Warm friendly alive mood, all three well-lit and equally prominent. ` +
       (extra ? `Scene: ${extra}. ` : 'Plain softly-blurred outdoor background. ') +
