@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI, type GenerationConfig } from '@google/generative-ai'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import sharp from 'sharp'
 
 // =============================================================================
 // ТРІЙЦЯ «ТИША» через Nano Banana (gemini-2.5-flash-image).
@@ -24,6 +25,31 @@ async function fetchInline(url: string): Promise<{ inlineData: { data: string; m
   const buf = Buffer.from(await r.arrayBuffer())
   const mimeType = r.headers.get('content-type') || 'image/jpeg'
   return { inlineData: { data: buf.toString('base64'), mimeType } }
+}
+
+// Акуратно «замазує» нашивки: м'яко розмиває горизонтальну смугу на грудях/торсі
+// (де Gemini домальовує нашивки), з плавними краями. Обличчя лишається чітким —
+// читається як кінематографічний фокус на лиці.
+async function smudgeChest(buf: Buffer): Promise<Buffer> {
+  const meta = await sharp(buf).metadata()
+  const W = meta.width || 0
+  const H = meta.height || 0
+  if (!W || !H) return buf
+  const blurred = await sharp(buf).blur(13).modulate({ brightness: 0.96 }).toBuffer()
+  const topPct = 53
+  const botPct = 87
+  const mask = Buffer.from(
+    `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">` +
+    `<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">` +
+    `<stop offset="${topPct - 7}%" stop-color="#fff" stop-opacity="0"/>` +
+    `<stop offset="${topPct}%" stop-color="#fff" stop-opacity="1"/>` +
+    `<stop offset="${botPct}%" stop-color="#fff" stop-opacity="1"/>` +
+    `<stop offset="${Math.min(botPct + 9, 100)}%" stop-color="#fff" stop-opacity="0"/>` +
+    `</linearGradient></defs>` +
+    `<rect width="100%" height="100%" fill="url(#g)"/></svg>`,
+  )
+  const band = await sharp(blurred).composite([{ input: mask, blend: 'dest-in' }]).png().toBuffer()
+  return await sharp(buf).composite([{ input: band, left: 0, top: 0 }]).jpeg({ quality: 90 }).toBuffer()
 }
 
 export async function POST(req: NextRequest) {
@@ -157,8 +183,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Gemini: ${textPart}` }, { status: 502 })
     }
 
-    const outBuf = Buffer.from(imgPart.inlineData.data, 'base64')
-    const mime = imgPart.inlineData.mimeType || 'image/png'
+    const rawBuf = Buffer.from(imgPart.inlineData.data, 'base64')
+    const rawMime = imgPart.inlineData.mimeType || 'image/png'
+    // Для воєнного solo — акуратно замазуємо нашивки на грудях.
+    const outBuf = solo ? await smudgeChest(rawBuf) : rawBuf
+    const mime = solo ? 'image/jpeg' : rawMime
     const ext = mime.includes('png') ? 'png' : 'jpg'
 
     const supabase = getSupabaseAdmin()
