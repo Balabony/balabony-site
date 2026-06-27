@@ -49,6 +49,8 @@ export async function POST(req: NextRequest) {
       `The man from the FIRST photo (thin, pale, dark messy hair) slightly in the centre; ` +
       `the man from the SECOND photo (athletic, blond) on one side; the man from the THIRD photo (wavy brown hair, glasses) on the other side. ` +
       `Equal, warm, alive mood — all three clearly visible and well-lit. ` +
+      `IMPORTANT FRAMING: show each man from the chest up with his WHOLE HEAD and FULL FACE fully inside the frame, ` +
+      `with empty space above their heads. Do NOT crop the tops of their heads or their faces. Eyes, foreheads and hair must be visible. ` +
       (extra ? `Scene: ${extra}. ` : 'Plain softly-blurred outdoor background. ') +
       `No text, no captions, no logos, no watermark. All three are adults.`
 
