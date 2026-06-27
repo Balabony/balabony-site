@@ -65,6 +65,30 @@ export async function POST(req: NextRequest) {
         'low grey clouds over a flattened neighbourhood',
       ]
       const bgPick = bgVariations[Math.floor(Math.random() * bgVariations.length)]
+      // Автоваріація ПОЗИ/ракурсу — щоразу інша, але обличчя завжди в кадрі.
+      const poseVariations = [
+        'three-quarter view, head turned slightly to one side',
+        'looking off to the side into the distance, profile-ish angle',
+        'glancing back over his shoulder toward the camera',
+        'slight low-angle shot looking up at him, heroic feel',
+        'slight high-angle shot looking down at him, vulnerable feel',
+        'head tilted down a little, eyes raised to the camera',
+        'looking upward at the sky, chin slightly lifted',
+        'turned mostly in profile, gazing forward',
+        'sitting, leaning forward with elbows on knees, calm face (hands out of frame)',
+        'leaning his shoulder against something, relaxed weary posture',
+        'three-quarter back view, face turned to show his profile',
+        'close intense face, looking directly and seriously at the camera',
+        'gazing downward in thought, eyes lowered',
+        'head turned sharply to the left, alert expression',
+        'head turned sharply to the right, watchful expression',
+        'slightly crouched, looking ahead with tension',
+        'standing tall and straight, calm steady gaze to the side',
+        'wind in his hair, eyes narrowed, looking into the distance',
+        'half-shadowed face, one side lit, dramatic side light',
+        'tired soft expression, gazing slightly past the camera',
+      ]
+      const posePick = poseVariations[Math.floor(Math.random() * poseVariations.length)]
       const prompt =
         `You are given one reference photo of a real young man. ` +
         `Generate ONE photorealistic VERTICAL 3:4 portrait (taller than wide) of the SAME man — ` +
@@ -74,9 +98,10 @@ export async function POST(req: NextRequest) {
         `NO badges, NO insignia, NO chevrons, NO embroidered text, NO labels of any kind anywhere on the uniform. Plain clean camouflage fabric only. ` +
         (extra ? `Scene: ${extra}. ` : 'Scene: weary serious expression, overcast cold light, dust haze. ') +
         `Background detail: ${bgPick}. ` +
+        `Pose: ${posePick}. ` +
         `Cinematic war-drama mood, photorealistic, balanced exposure (not too dark). ` +
-        `FRAMING (critical): his WHOLE HEAD and FULL FACE fully inside the frame with empty space above his head, ` +
-        `framed from the shoulders/chest up, no hands or fingers visible, do not crop his head or face. ` +
+        `FRAMING (critical): his head and face must stay fully inside the frame and clearly visible, ` +
+        `framed from roughly the chest up, no hands or fingers visible, do not crop his head or cut off his face. ` +
         `No text, no captions, no logos, no watermark. Adult man.`
       result = await model.generateContent({
         contents: [{ role: 'user', parts: [{ text: prompt }, { text: 'Reference photo (the man):' }, imgM] }],
