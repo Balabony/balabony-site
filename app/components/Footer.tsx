@@ -50,8 +50,6 @@ const SOCIALS = [
 
 const PLATFORMS = [
   { label: 'Web (браузер)',        href: '/',  soon: false },
-  { label: 'iOS (Safari PWA)',     href: null, soon: true  },
-  { label: 'Android (Chrome PWA)', href: null, soon: true  },
   { label: 'Telegram-бот',         href: null, soon: true  },
   { label: 'Smart TV / Tablets',   href: null, soon: true  },
 ]
