@@ -687,37 +687,130 @@ export default function PricingSection() {
       {/* FREE VIEW TIMER — приховано */}
       {/* <FreeViewTimer /> */}
 
-      {/* UTILITY ROW */}
-      <SectionLabel text="Безкоштовно" />
-      <div className="bb-pricing-util-row">
-        <button
-          type="button"
-          className="bb-pricing-util"
-          onClick={openPaymentForOneTime}
-        >
-          <div className="bb-pricing-util-info">
-            <div className="bb-pricing-util-name">Без підписки</div>
-            <div className="bb-pricing-util-sub">Одна історія або серія</div>
-          </div>
-          <div className="bb-pricing-util-price">9 ₴</div>
-        </button>
+      {/* СОЦІАЛЬНА МІСІЯ — біла картка (інверсія), пільга 1₴, окремо від комерції */}
+      <button
+        type="button"
+        onClick={openPaymentForConcessional}
+        style={{
+          display: 'block',
+          width: '100%',
+          maxWidth: 720,
+          margin: '0 auto 18px',
+          background: '#ffffff',
+          border: '2px solid var(--accent-gold)',
+          borderRadius: 14,
+          padding: '18px 20px',
+          cursor: 'pointer',
+          textAlign: 'left',
+          boxShadow: '0 4px 18px rgba(0,0,0,0.22)',
+          fontFamily: "'Montserrat', Arial, sans-serif",
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 13 }}>
+          <span style={{ fontSize: 17, lineHeight: 1, color: '#e0484d' }} aria-hidden="true">❤</span>
+          <span style={{
+            fontSize: 14,
+            fontWeight: 700,
+            color: '#e0484d',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+          }}>Соціальна місія</span>
+        </span>
+        <span style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
+          <span>
+            <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: '#0f1e3a' }}>Пільговий доступ</span>
+            <span style={{ display: 'block', fontSize: 14, color: 'rgba(15,30,58,0.75)', marginTop: 5, lineHeight: 1.5 }}>
+              Для ветеранів (УБД), ВПО та людей з інвалідністю
+            </span>
+            <span style={{
+              display: 'inline-block',
+              fontSize: 12,
+              fontWeight: 700,
+              color: '#c9820a',
+              marginTop: 9,
+              background: 'transparent',
+              border: '1.5px solid var(--accent-gold)',
+              padding: '4px 9px',
+              borderRadius: 6,
+            }}>Валідація через ДІЯ</span>
+          </span>
+          <span style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>
+            <span style={{ fontSize: 30, fontWeight: 800, color: '#0f1e3a' }}>1 ₴</span>
+            <span style={{ display: 'block', fontSize: 13, color: 'rgba(15,30,58,0.6)' }}>на рік</span>
+          </span>
+        </span>
+      </button>
 
+      {/* БЕЗКОШТОВНО — золота рамка, 0₴, веде на «Як це працює» (як Hero-банер) */}
+      <a
+        href="#how-it-works"
+        style={{
+          display: 'block',
+          width: '100%',
+          maxWidth: 720,
+          margin: '0 auto 18px',
+          border: '2px solid var(--accent-gold)',
+          background: 'rgba(239,159,39,0.10)',
+          borderRadius: 14,
+          padding: '16px 18px',
+          textDecoration: 'none',
+          fontFamily: "'Montserrat', Arial, sans-serif",
+        }}
+      >
+        <span style={{
+          display: 'inline-block',
+          fontSize: 13,
+          fontWeight: 700,
+          color: 'var(--accent-gold)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.04em',
+          marginBottom: 12,
+        }}>Безкоштовно</span>
+        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <span>
+            <span style={{ display: 'block', fontSize: 17, fontWeight: 600, color: 'var(--accent-gold)' }}>Заходь без оплати</span>
+            <span style={{ display: 'block', fontSize: 14, color: 'rgba(255,255,255,0.82)', marginTop: 4, lineHeight: 1.5 }}>
+              8 серій + 7 історій + тиждень повного доступу
+            </span>
+          </span>
+          <span style={{ fontSize: 24, fontWeight: 800, color: 'var(--accent-gold)', whiteSpace: 'nowrap' }}>0 ₴</span>
+        </span>
+      </a>
+
+      {/* РАЗОВА ОПЛАТА — плоска картка, 9₴ поштучно */}
+      <div style={{ maxWidth: 720, margin: '0 auto 26px', fontFamily: "'Montserrat', Arial, sans-serif" }}>
+        <div style={{
+          fontSize: 12,
+          fontWeight: 600,
+          color: 'rgba(255,255,255,0.6)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          marginBottom: 8,
+          paddingLeft: 2,
+        }}>Разова оплата</div>
         <button
           type="button"
-          className="bb-pricing-util"
-          onClick={openPaymentForConcessional}
+          onClick={openPaymentForOneTime}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.14)',
+            borderRadius: 10,
+            padding: '13px 15px',
+            cursor: 'pointer',
+            textAlign: 'left',
+            fontFamily: "'Montserrat', Arial, sans-serif",
+          }}
         >
-          <div className="bb-pricing-util-info">
-            <div className="bb-pricing-util-name">Пільговий доступ</div>
-            <div className="bb-pricing-util-sub">
-              <span>УБД, ВПО або інвалідність</span>
-              <span className="bb-pricing-diya-tag">Валідація через ДІЯ</span>
-            </div>
-          </div>
-          <div className="bb-pricing-util-price-wrap">
-            <span className="bb-pricing-util-price">1 ₴</span>
-            <span className="bb-pricing-util-period">/ рік</span>
-          </div>
+          <span>
+            <span style={{ display: 'block', fontSize: 15, fontWeight: 500, color: '#fff' }}>Без підписки</span>
+            <span style={{ display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>Одна історія або серія</span>
+          </span>
+          <span style={{ fontSize: 18, fontWeight: 600, color: 'var(--accent-gold)' }}>9 ₴</span>
         </button>
       </div>
 
@@ -1025,7 +1118,7 @@ const styles = `
   /* UTILITY ROW */
   .bb-pricing-util-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 12px;
     margin-bottom: 26px;
     position: relative;
