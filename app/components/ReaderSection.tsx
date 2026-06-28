@@ -648,15 +648,13 @@ export default function ReaderSection() {
               )
             })}
 
-            {/* Тизер: затухання + кнопки «Читати далі» (на повну серію) і «Серія N» (наступна) в один рядок */}
+            {/* Тизер: затухання над текстом + кнопки «Читати далі» і «Серія N» в один рядок */}
             {!loading && !error && !isLocked && isTeaser && (
-              <div style={{ position: 'relative', marginTop: -28, paddingTop: 28 }}>
+              <div>
                 <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 36,
+                  height: 44,
+                  marginTop: -44,
+                  marginBottom: 16,
                   background: 'linear-gradient(to bottom, transparent, var(--white))',
                   pointerEvents: 'none'
                 }} />
@@ -665,7 +663,7 @@ export default function ReaderSection() {
                     <a
                       href={episodeData.url}
                       style={{
-                        flex: '1 1 140px',
+                        flex: '1 1 130px',
                         display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -689,7 +687,7 @@ export default function ReaderSection() {
                     <button
                       onClick={goToNextEpisode}
                       style={{
-                        flex: '1 1 140px',
+                        flex: '1 1 130px',
                         display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center',
