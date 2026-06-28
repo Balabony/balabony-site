@@ -335,6 +335,154 @@ export function checkTysha(text: string): Finding[] {
     }
   }
 
+  // ── 14. ПРОПУЩЕНА КРАПКА / МЕЖА РЕЧЕННЯ — warn (детерміновано, не AI) ──
+  // Gemini ненадійно ловить відсутню крапку. Тут — механіка.
+  // Сигнал: «мала-літера ПРОБІЛ Велика-літера» БЕЗ розділового знака між ними
+  //   («…і пішов Уже в дверях», «…спертися Я не називав», «…оцінки Пішов»).
+  // Після «.», «!», «?», «…», «:», «—», «»» лукбехайнд НЕ спрацьовує (там стоїть
+  // не мала літера) → наявні крапки/двокрапки реплік не чіпаємо.
+  // Фільтр шуму: великим лишають імена власні. Тож показуємо лише ті випадки,
+  // де те саме слово вже трапляється в тексті З МАЛОЇ (отже зазвичай НЕ власна
+  // назва — «Уже/Пішов/Книжки/Я»). Імена персонажів «Тиші» пропускаємо завжди.
+  const nameTokens = new Set<string>()
+  for (const c of TYSHA_CHARACTERS) for (const part of c.split(/\s+/)) nameTokens.add(norm(part))
+  // Множина слів, що трапляються в тексті з малої літери (нормалізовано).
+  const lowerWordSet = new Set<string>()
+  for (const m of text.matchAll(/[а-яіїєґ’ʼ'][а-яіїєґ’ʼ'\-]*/gu)) lowerWordSet.add(norm(m[0]))
+  const reBoundary = /(?<=[а-яіїєґ’ʼ'])\s+([А-ЯІЇЄҐ][а-яіїєґ’ʼ'\-]*)/gu
+  const sureHits: Finding[] = []           // warn: майже певно крапка пропущена
+  const maybeHits: Finding[] = []          // info: кандидат (може й власна назва)
+  const maybeSeen = new Set<string>()      // дедуп info за словом
+  for (const m of text.matchAll(reBoundary)) {
+    const capWord = m[1]
+    const cw = norm(capWord)
+    if (nameTokens.has(cw)) continue       // ім'я персонажа — легітимно велике
+    const capStart = m.index! + (m[0].length - capWord.length)
+    const excerpt = text.slice(Math.max(0, capStart - 25), capStart + capWord.length + 6).replace(/\s+/g, ' ').trim()
+    if (lowerWordSet.has(cw) || cw === 'я') {
+      // те саме слово вживається в тексті з малої → майже певно НЕ власна назва
+      sureHits.push({
+        rule: 'пропущена крапка?',
+        severity: 'warn',
+        message: `Велика «${capWord}» всередині речення без крапки перед нею — ймовірно пропущено крапку.`,
+        excerpt,
+      })
+    } else if (!maybeSeen.has(cw)) {
+      maybeSeen.add(cw)
+      maybeHits.push({
+        rule: 'велика літера в реченні?',
+        severity: 'info',
+        message: `Велика «${capWord}» всередині речення без крапки. Або тут бракує крапки, або це власна назва — перевір оком.`,
+        excerpt,
+      })
+    }
+  }
+  const SURE_CAP = 25, MAYBE_CAP = 12
+  for (const f of sureHits.slice(0, SURE_CAP)) out.push(f)
+  if (sureHits.length > SURE_CAP) out.push({ rule: 'пропущена крапка?', severity: 'warn', message: `…і ще ${sureHits.length - SURE_CAP} таких місць.` })
+  for (const f of maybeHits.slice(0, MAYBE_CAP)) out.push(f)
+  if (maybeHits.length > MAYBE_CAP) out.push({ rule: 'велика літера в реченні?', severity: 'info', message: `…і ще ${maybeHits.length - MAYBE_CAP} великих літер у середині речень — перечитай оком.` })
+
+  // Абзац, що не завершується розділовим знаком (можливо обірване речення).
+  const PARA_END_OK = /[.!?…»)\];:—]$/
+  let paraHits = 0
+  for (const ln of nonEmpty) {
+    if (ln.length < 25) continue
+    if (PARA_END_OK.test(ln)) continue
+    if (/[”"']$/.test(ln)) continue
+    if (paraHits >= 10) break
+    paraHits++
+    out.push({
+      rule: 'абзац без крапки?',
+      severity: 'info',
+      message: 'Абзац не завершується розділовим знаком — можливо, бракує крапки.',
+      excerpt: ln.slice(Math.max(0, ln.length - 40)),
+    })
+  }
+
+  // ── 15. ЛАПКИ + ПРОБІЛИ — детермінована типографіка (не AI) ──
+  // НЕ чіпає коми/тире як «правильність» (то синтаксис, не патерн).
+
+  // 15a. Парність «ялинок»: скануємо стеком. » без « або незакрите « = помилка.
+  let depth = 0
+  let strayClose = -1
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]
+    if (ch === '«') depth++
+    else if (ch === '»') { if (depth === 0 && strayClose < 0) strayClose = i; else depth-- }
+  }
+  if (strayClose >= 0) {
+    out.push({
+      rule: 'лапки непарні',
+      severity: 'warn',
+      message: 'Закрите «»» без відкритого «««». Перевір пари лапок.',
+      excerpt: text.slice(Math.max(0, strayClose - 20), strayClose + 8).replace(/\s+/g, ' ').trim(),
+    })
+  }
+  if (depth > 0) {
+    const lastOpen = text.lastIndexOf('«')
+    out.push({
+      rule: 'лапки непарні',
+      severity: 'warn',
+      message: `Незакритих «««»: ${depth}. Кожне «««» має пару «»».`,
+      excerpt: text.slice(Math.max(0, lastOpen - 5), lastOpen + 25).replace(/\s+/g, ' ').trim(),
+    })
+  }
+
+  // 15b. Чужі лапки замість «»» (прямі " та англ. " " „). Апострофи НЕ чіпаємо.
+  const WRONG_QUOTES = ['"', '\u201C', '\u201D', '\u201E', '\u201F', '\u2033']
+  for (const q of WRONG_QUOTES) {
+    if (text.includes(q)) {
+      const idx = text.indexOf(q)
+      out.push({
+        rule: 'не ті лапки',
+        severity: 'warn',
+        message: `Вжито «${q}» замість українських «««…»»». Заміни на «»-ялинки.`,
+        excerpt: text.slice(Math.max(0, idx - 12), idx + 12).replace(/\s+/g, ' ').trim(),
+      })
+    }
+  }
+
+  // 15c. Подвійні пробіли (не на початку рядка) — info.
+  let dbl = 0, dblFirst = ''
+  for (const m of text.matchAll(/(?<=\S) {2,}/g)) {
+    dbl++
+    if (!dblFirst) dblFirst = text.slice(Math.max(0, m.index! - 12), m.index! + 12).replace(/ {2,}/g, '␣␣')
+  }
+  if (dbl > 0) out.push({ rule: 'подвійний пробіл', severity: 'info', message: `Подвійних пробілів: ${dbl}. Стиснути до одного. Напр.: …${dblFirst}…` })
+
+  // 15d. Пробіл ПЕРЕД розділовим (тире «—» не чіпаємо — воно з пробілами).
+  let spBefore = 0, spBeforeEx = ''
+  for (const m of text.matchAll(/ +([,.!?;:)»])/g)) {
+    spBefore++
+    if (!spBeforeEx) spBeforeEx = text.slice(Math.max(0, m.index! - 12), m.index! + 3).replace(/\s+/g, ' ').trim()
+  }
+  if (spBefore > 0) out.push({ rule: 'пробіл перед знаком', severity: 'warn', message: `Пробіл перед розділовим знаком: ${spBefore}. Напр.: «${spBeforeEx}».` })
+
+  // 15e. Немає пробілу ПІСЛЯ коми / ; (між літерами, не між цифрами — «1,5» легітимне).
+  let glued = 0, gluedEx = ''
+  for (const m of text.matchAll(/(?<=\p{L})[,;](?=\p{L})/gu)) {
+    glued++
+    if (!gluedEx) gluedEx = text.slice(Math.max(0, m.index! - 10), m.index! + 12).replace(/\s+/g, ' ').trim()
+  }
+  if (glued > 0) out.push({ rule: 'злиплий знак', severity: 'warn', message: `Кома/«;» без пробілу після: ${glued}. Напр.: «${gluedEx}».` })
+
+  // 15f. Двокрапка без пробілу між літерами («Імʼя:репліка») — час «19:00» не чіпаємо.
+  let colon = 0, colonEx = ''
+  for (const m of text.matchAll(/(?<=\p{L}):(?=\p{L})/gu)) {
+    colon++
+    if (!colonEx) colonEx = text.slice(Math.max(0, m.index! - 10), m.index! + 14).replace(/\s+/g, ' ').trim()
+  }
+  if (colon > 0) out.push({ rule: 'злиплий знак', severity: 'warn', message: `Двокрапка без пробілу після: ${colon}. Напр.: «${colonEx}».` })
+
+  // 15g. Крапка без пробілу на межі речення («вірив.Він») — мала.Велика, не абревіатури.
+  let dotGlue = 0, dotGlueEx = ''
+  for (const m of text.matchAll(/(?<=\p{Ll})\.(?=\p{Lu})/gu)) {
+    dotGlue++
+    if (!dotGlueEx) dotGlueEx = text.slice(Math.max(0, m.index! - 10), m.index! + 12).replace(/\s+/g, ' ').trim()
+  }
+  if (dotGlue > 0) out.push({ rule: 'злиплий знак', severity: 'warn', message: `Крапка без пробілу перед новим реченням: ${dotGlue}. Напр.: «${dotGlueEx}».` })
+
   return out
 }
 
