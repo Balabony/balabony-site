@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
 import { dbQuery } from '@/lib/db'
 
 // Перевірка правопису довгої серії — даємо до 60 c.
 export const maxDuration = 60
+
+const SAFETY = [
+  { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+]
+
 
 type Suggestion = { before: string; after: string; reason: string }
 
@@ -126,6 +134,7 @@ ${text}
           temperature: 0.2,
           thinkingConfig: { thinkingBudget: 0 },
         },
+        safetySettings: SAFETY,
       } as Parameters<typeof genAI.getGenerativeModel>[0],
       { apiVersion: 'v1beta' }
     )

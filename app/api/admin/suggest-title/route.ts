@@ -1,5 +1,13 @@
 import { NextRequest } from 'next/server'
-import { GoogleGenerativeAI, type GenerationConfig } from '@google/generative-ai'
+import { GoogleGenerativeAI, type GenerationConfig, HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
+
+const SAFETY = [
+  { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+]
+
 
 type GenConfigWithThinking = GenerationConfig & {
   thinkingConfig?: { thinkingBudget?: number }
@@ -34,7 +42,7 @@ export async function POST(request: NextRequest) {
       temperature: 1.1,
       thinkingConfig: { thinkingBudget: 0 },
     }
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', generationConfig }, { apiVersion: 'v1beta' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', generationConfig, safetySettings: SAFETY }, { apiVersion: 'v1beta' })
 
     const result = await model.generateContent({
       contents: [

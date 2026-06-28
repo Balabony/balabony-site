@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
 
 // Олюднення довгої серії (~1800 слів) у Gemini триває довше за дефолтний ліміт.
 export const maxDuration = 60
+
+const SAFETY = [
+  { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+]
+
 
 type Suggestion = { before: string; after: string; reason: string }
 
@@ -121,6 +129,7 @@ ${text}
           // Вимикаємо внутрішнє "думання" — інакше довга серія висить.
           thinkingConfig: { thinkingBudget: 0 },
         },
+        safetySettings: SAFETY,
       } as Parameters<typeof genAI.getGenerativeModel>[0],
       { apiVersion: 'v1beta' }
     )
