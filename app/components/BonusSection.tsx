@@ -58,7 +58,7 @@ const QUESTS: Quest[] = [
   { id: 'review',  title: 'Залиш відгук',      desc: '15 балів за відгук на твір',   reward: '+15', Icon: ReviewIcon },
   { id: 'survey',  title: 'Пройди опитування', desc: '3 хвилини · одноразово',       reward: '+50', Icon: SurveyIcon },
   { id: 'invite',  title: 'Запроси друга',     desc: 'Скоро',                        reward: '+50', soon: true, Icon: InviteIcon },
-  { id: 'share',   title: 'Поділись історією', desc: 'Скоро',                        reward: '+10', soon: true, Icon: ShareIcon  },
+  { id: 'share',   title: 'Поділись історією', desc: '+1 безкоштовна історія за кожну, якою поділишся (до 5)', reward: '🎁', Icon: ShareIcon  },
 ]
 
 export default function BonusSection() {
