@@ -165,7 +165,7 @@ export default function InclusivitySection() {
           margin-bottom: 32px;
         }
         @media (max-width: 720px) {
-          .inc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .inc-grid { grid-template-columns: 1fr; }
         }
         .inc-audience {
           background: rgba(255,255,255,0.04);
