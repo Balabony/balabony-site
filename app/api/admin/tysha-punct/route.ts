@@ -11,18 +11,49 @@ const SAFETY = [
   { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
 ]
 
-// «Скелет» тексту: лише літери й цифри в нижньому регістрі, без пробілів/розділових.
-// Якщо скелет входу й виходу збігається — модель НЕ міняла слів, лише крапки/регістр/пробіли.
+type Suggestion = { before: string; after: string; reason: string }
+
+// «Скелет»: лише літери+цифри в нижньому регістрі. Якщо у «було» і «стало»
+// він однаковий — модель НЕ міняла слів, лише крапку/регістр/пробіл.
 function skeleton(s: string): string {
   return s.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '')
 }
 
-function stripFences(raw: string): string {
-  return raw.trim().replace(/^```(?:\w+)?\s*/i, '').replace(/```$/i, '').trim()
+// Гнучкий пошук фрагмента (апострофи/тире/пробіли — будь-які) — щоб «було» збігалося.
+function flexRe(fragment: string): RegExp | null {
+  const esc = fragment.trim()
+    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    .replace(/['’ʼ`´]/g, "['’ʼ`´]")
+    .replace(/[—–−-]/g, '[—–−-]')
+    .replace(/\s+/g, '\\s+')
+  try { return new RegExp(esc) } catch { return null }
+}
+function existsInText(text: string, fragment: string): boolean {
+  const re = flexRe(fragment)
+  return !!re && re.test(text)
 }
 
-function countEnders(s: string): number {
-  return (s.match(/[.!?…]/gu) ?? []).length
+function parseSuggestions(raw: string): Suggestion[] {
+  let s = raw.trim().replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim()
+  const start = s.indexOf('[')
+  const end = s.lastIndexOf(']')
+  if (start === -1 || end === -1 || end < start) return []
+  s = s.slice(start, end + 1)
+  let arr: unknown
+  try { arr = JSON.parse(s) } catch { return [] }
+  if (!Array.isArray(arr)) return []
+  const out: Suggestion[] = []
+  for (const item of arr) {
+    if (!item || typeof item !== 'object') continue
+    const o = item as Record<string, unknown>
+    const before = typeof o.було === 'string' ? o.було : typeof o.before === 'string' ? o.before : ''
+    const after = typeof o.стало === 'string' ? o.стало : typeof o.after === 'string' ? o.after : ''
+    const reason = typeof o.причина === 'string' ? o.причина : typeof o.reason === 'string' ? o.reason : ''
+    if (before.trim() && after.trim() && before.trim() !== after.trim()) {
+      out.push({ before: before.trim(), after: after.trim(), reason: reason.trim() })
+    }
+  }
+  return out
 }
 
 export async function POST(request: NextRequest) {
@@ -34,24 +65,28 @@ export async function POST(request: NextRequest) {
 
   const prompt = `Ти — коректор-пунктуатор української мови. Перед тобою фрагмент авторського серіалу «Тиша».
 
-ЄДИНЕ ЗАВДАННЯ: розставити ПРОПУЩЕНІ крапки в кінці речень і виправити велику/малу літеру на межах речень.
+ЄДИНЕ ЗАВДАННЯ: знайти місця, де ПРОПУЩЕНА крапка в кінці речення (два речення злиплися без крапки), і запропонувати правку. Часта помилка — велика літера всередині речення без крапки перед нею: «…не слухаючи подяк Мати спершу ніяковіла» → «…не слухаючи подяк. Мати спершу ніяковіла».
 
-ЩО МОЖНА робити:
-— ставити крапку там, де закінчилося одне речення й починається інше (часта помилка — два речення злиплися без крапки: «…не слухаючи подяк Мати спершу ніяковіла» → «…не слухаючи подяк. Мати спершу ніяковіла»);
-— якщо після поставленої крапки слово було з малої — зробити його з великої; якщо всередині речення стоїть зайва велика — зробити малою;
-— ставити крапку в кінці абзацу, якщо її бракує.
+ЩО МОЖНА в полі "стало":
+— поставити крапку на межі двох речень;
+— виправити велику/малу літеру рівно на цій межі.
 
 ЩО КАТЕГОРИЧНО ЗАБОРОНЕНО:
-— міняти, додавати чи прибирати БУДЬ-ЯКІ слова — жодного;
-— чіпати коми, тире, лапки — їх НЕ додавай і НЕ прибирай;
-— переписувати, скорочувати, покращувати стиль;
-— міняти порядок слів чи речень;
-— чіпати формат реплік «Імʼя: текст» (двокрапку після імені лишай як є);
-— НЕ став крапку там, де це одне речення з інверсією (підмет після присудка: «нарешті приїхала Оля» — це ОДНЕ речення, крапки НЕ треба).
+— міняти, додавати, прибирати БУДЬ-ЯКІ слова (жодного — навіть закінчення);
+— чіпати коми, тире, лапки;
+— НЕ став крапку при інверсії (підмет після присудка — одне речення: «нарешті приїхала Оля»);
+— НЕ чіпай формат реплік «Імʼя: текст».
+Якщо сумніваєшся — НЕ пропонуй (краще пропустити, ніж розірвати ціле речення).
 
-Якщо сумніваєшся, чи це межа речення — НЕ став крапку (краще пропустити, ніж розірвати ціле речення).
+ФОРМАТ — ЛИШЕ валідний JSON-масив, без markdown, без пояснень:
+[
+  { "було": "<точна фраза з тексту дослівно, 3-6 слів навколо межі>", "стало": "<та сама фраза з поставленою крапкою>", "причина": "пропущена крапка" }
+]
 
-ФОРМАТ ВІДПОВІДІ: поверни ВЕСЬ текст повністю, з тими самими словами в тому самому порядку, лише з виправленими крапками й регістром. Без коментарів, без markdown, без лапок навколо.
+КРИТИЧНО:
+— "було" — ТОЧНА підрядкова копія з тексту (символ у символ), 3-6 слів, щоб місце було унікальним;
+— "стало" відрізняється від "було" ЛИШЕ крапкою й регістром — ті самі слова;
+— якщо пропущених крапок нема — поверни [].
 
 Текст:
 """
@@ -64,8 +99,8 @@ ${text}
       {
         model: 'gemini-2.5-flash',
         generationConfig: {
-          maxOutputTokens: 16384,
-          temperature: 0,
+          maxOutputTokens: 8192,
+          temperature: 0.1,
           thinkingConfig: { thinkingBudget: 0 },
         },
         safetySettings: SAFETY,
@@ -73,21 +108,16 @@ ${text}
       { apiVersion: 'v1beta' }
     )
     const result = await model.generateContent(prompt)
-    const out = stripFences(result.response.text())
+    const rawOut = result.response.text()
+    const parsed = parseSuggestions(rawOut)
 
-    if (!out) return NextResponse.json({ error: 'Порожня відповідь моделі' }, { status: 502 })
-
-    // ЗАПОБІЖНИК: модель сміла міняти лише крапки/регістр/пробіли. Якщо «скелет»
-    // тексту (літери+цифри) змінився — отже зачепила слова → відхиляємо.
-    if (skeleton(out) !== skeleton(text)) {
-      return NextResponse.json(
-        { error: 'AI змінив слова, а не лише крапки — правку відхилено. Спробуй ще раз.', rejected: true },
-        { status: 200 }
-      )
-    }
-
-    const added = countEnders(out) - countEnders(text)
-    return NextResponse.json({ text: out, added: Math.max(0, added) })
+    // ЗАПОБІЖНИК на КОЖНУ правку: «було» має бути в тексті; слова в «стало» —
+    // ті самі (скелет однаковий). Інакше відкидаємо саме цю правку.
+    const validated = parsed.filter(
+      (s) => existsInText(text, s.before) && skeleton(s.before) === skeleton(s.after)
+    )
+    const dropped = parsed.length - validated.length
+    return NextResponse.json({ suggestions: validated, dropped })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Помилка API'
     return NextResponse.json({ error: msg }, { status: 500 })

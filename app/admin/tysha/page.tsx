@@ -395,18 +395,54 @@ export default function TyshaMaisternia() {
     setFindings(checkTysha(text))
   }
 
-  function autofix() {
-    const r = autofixTypography(text)
-    if (r.total === 0) { setMsg('Типографіка чиста — нема що виправляти.'); setFindings(checkTysha(text)); return }
-    setText(r.text)
-    setFindings(checkTysha(r.text))
+  // ОДНА КНОПКА: типографіка (детерміновано) → AI-крапки (граматика) → перевірка.
+  async function fixAll() {
+    if (!text.trim()) return
+    setPunctBusy(true); setErr(''); setMsg('')
+
+    // 1) Детермінована типографіка — миттєво, без AI.
+    const det = autofixTypography(text)
+    let working = det.text
+
+    // 2) AI-крапки на вже причесаному тексті (імена, склеєні речення).
+    let aiApplied = 0, aiSkipped = 0, aiNote = ''
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 75000)
+    try {
+      const r = await fetch('/api/admin/tysha-punct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ text: working }),
+        signal: ctrl.signal,
+      })
+      const d = await r.json()
+      if (r.ok) {
+        const raw = (d.suggestions ?? []) as { before: string; after: string; reason: string }[]
+        if (raw.length) {
+          const res = applySuggestions(working, raw.map((s) => ({ ...s, accepted: true })))
+          working = res.text; aiApplied = res.applied; aiSkipped = res.skipped
+        }
+      } else {
+        aiNote = d.error || 'AI-крапки не спрацювали'
+      }
+    } catch (e) {
+      aiNote = e instanceof Error && e.name === 'AbortError' ? 'AI не встиг за 75 c' : 'AI недоступний'
+    } finally {
+      clearTimeout(timer)
+    }
+
+    // 3) Застосувати й оновити підсвітку.
+    if (working !== text) { setText(working); setFindings(checkTysha(working)) }
+    else setFindings(checkTysha(text))
+
     const parts: string[] = []
-    if (r.log.sentenceDots) parts.push(`крапки в реченні: ${r.log.sentenceDots}`)
-    if (r.log.paraDots) parts.push(`крапки в кінці абзацу: ${r.log.paraDots}`)
-    if (r.log.quotes) parts.push(`лапки: ${r.log.quotes}`)
-    if (r.log.spaces) parts.push(`пробіли: ${r.log.spaces}`)
-    if (r.log.gluePunct) parts.push(`пробіл після знака: ${r.log.gluePunct}`)
-    setMsg(`Виправлено ${r.total} — ${parts.join(', ')}. Перевір крапки оком і збережи.`)
+    if (det.total) parts.push(`типографіка: ${det.total}`)
+    if (aiApplied) parts.push(`крапки (AI): ${aiApplied}${aiSkipped ? ` (−${aiSkipped})` : ''}`)
+    let msg = parts.length ? `Виправлено — ${parts.join(', ')}. Перечитай і збережи.` : 'Усе вже чисто.'
+    if (aiNote) msg += ` · ${aiNote}`
+    setMsg(msg)
+    setPunctBusy(false)
   }
 
   const metaDirty =
@@ -516,37 +552,6 @@ export default function TyshaMaisternia() {
 
   // Перевірка правопису: орфографія/пунктуація/граматика з опорою на базу /pravopys.
   // Показує пропозиції в тій самій панелі, що «Олюднити» (було→стало→причина).
-  async function aiPunct() {
-    if (!text.trim()) return
-    setPunctBusy(true); setErr(''); setMsg('')
-    const ctrl = new AbortController()
-    const timer = setTimeout(() => ctrl.abort(), 75000)
-    try {
-      const r = await fetch('/api/admin/tysha-punct', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({ text }),
-        signal: ctrl.signal,
-      })
-      const d = await r.json()
-      if (d.rejected) { setErr(d.error || 'AI змінив слова — відхилено.'); return }
-      if (!r.ok) throw new Error(d.error || 'Помилка AI-крапок')
-      if (d.text && d.text !== text) {
-        setText(d.text)
-        setFindings(checkTysha(d.text))
-        setMsg(`AI-крапки: поставлено ~${d.added ?? 0}. Слова не змінено (звірено). Перечитай і збережи.`)
-      } else {
-        setMsg('AI не знайшов пропущених крапок.')
-      }
-    } catch (e) {
-      setErr(String(e instanceof Error ? e.message : e))
-    } finally {
-      clearTimeout(timer)
-      setPunctBusy(false)
-    }
-  }
-
   async function spellcheck() {
     if (!text.trim()) return
     setSpellBusy(true); setErr(''); setMsg(''); setSuggestions(null)
@@ -843,11 +848,8 @@ export default function TyshaMaisternia() {
               <button onClick={runCheck} disabled={!text.trim()} style={btn('#7aa2c4', !!text.trim())}>
                 Перевірити канон
               </button>
-              <button onClick={autofix} disabled={!text.trim()} style={btn('#c47a9e', !!text.trim())}>
-                Виправити типографіку
-              </button>
-              <button onClick={aiPunct} disabled={punctBusy || !text.trim()} style={btn('#9e7ac4', !punctBusy && !!text.trim())}>
-                {punctBusy ? 'Ставлю крапки…' : 'AI-крапки'}
+              <button onClick={fixAll} disabled={punctBusy || !text.trim()} style={btn('#c47a9e', !punctBusy && !!text.trim())}>
+                {punctBusy ? 'Виправляю…' : 'Виправити крапки й типографіку'}
               </button>
               <button onClick={improve} disabled={improving || !text.trim()} style={btn('#6b6f9e', !improving && !!text.trim())}>
                 {improving ? 'Олюднюю…' : 'Олюднити (Gemini)'}
