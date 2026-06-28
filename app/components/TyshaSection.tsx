@@ -34,7 +34,7 @@ const STYLES = `
 .ts-card:hover .ts-cover-img, .ts-card:focus-visible .ts-cover-img { transform: scale(1.05); }
 .ts-card:hover .ts-title-text, .ts-card:focus-visible .ts-title-text { color: ${AMBER}; }
 .ts-cover-img {
-  width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; display: block;
+  width: 100%; height: 100%; object-fit: cover; object-position: center 25%; transition: transform 0.3s ease; display: block;
 }
 .ts-teaser {
   font-size: 12.5px; line-height: 1.5; color: rgba(245,240,232,0.7); margin: 0;
@@ -76,18 +76,18 @@ export default function TyshaSection() {
   if (!loaded || items.length === 0) return null
 
   return (
-    <section style={{ background: colors.bg, padding: '20px 20px 40px' }}>
+    <section style={{ background: colors.bg, padding: '16px 20px 28px' }}>
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
 
-      <div style={{ maxWidth: 960, margin: '0 auto' }}>
-        <div style={{ marginBottom: 22 }}>
+      <div style={{ maxWidth: 760, margin: '0 auto' }}>
+        <div style={{ marginBottom: 16 }}>
           <div className="ts-kicker">Авторські серіали · 18+</div>
           <div style={{ fontSize: 22, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.15 }}>ТИША</div>
-          <div style={{ fontSize: 13, fontStyle: 'italic', color: GOLD, fontFamily: FONT, margin: '3px 0 2px' }}>Історія, яку чуєш серцем</div>
+          <div style={{ fontSize: 13, fontStyle: 'italic', color: colors.muted, fontFamily: FONT, margin: '3px 0 2px' }}>Історія, яку чуєш серцем</div>
           <div style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.55)', fontFamily: FONT }}>Проза про війну · психологічний реалізм</div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(275px, 100%), 1fr))', gap: 20, alignItems: 'stretch' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 100%), 1fr))', gap: 14, alignItems: 'stretch' }}>
           {items.map((ep) => (
             <a
               key={ep.id}
@@ -96,7 +96,7 @@ export default function TyshaSection() {
               className="ts-card"
             >
               <div style={{ padding: 8, flexShrink: 0 }}>
-                <div style={{ position: 'relative', width: '100%', height: 159, overflow: 'hidden', background: 'linear-gradient(135deg,#1a2a4a,#0f1e3a)', borderRadius: 8 }}>
+                <div style={{ position: 'relative', width: '100%', aspectRatio: '3 / 2', overflow: 'hidden', background: 'linear-gradient(135deg,#1a2a4a,#0f1e3a)', borderRadius: 8 }}>
                   {ep.cover_url ? (
                     <img
                       src={ep.cover_url}
@@ -113,8 +113,8 @@ export default function TyshaSection() {
                 </div>
               </div>
 
-              <div style={{ padding: '13px', flex: 1, display: 'flex', flexDirection: 'column', gap: 7 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, fontFamily: FONT, letterSpacing: 0.3 }}>Назар Колодій</div>
+              <div style={{ padding: '11px 12px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: AMBER, fontFamily: FONT, letterSpacing: 0.3 }}>Назар Колодій</div>
                 <div className="ts-title-text" style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.4, textTransform: 'uppercase' }}>
                   {ep.title}
                 </div>
