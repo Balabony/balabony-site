@@ -129,6 +129,7 @@ export default function ReaderSection() {
     const params = new URLSearchParams({
       season: String(currentSeason),
       episode: String(globalEp),
+      preview: '1',
     })
 
     setLoading(true)
@@ -370,7 +371,7 @@ export default function ReaderSection() {
     .split(/\n\n+/)
     .map(p => p.trim())
     .filter(Boolean)
-  const allParagraphs =
+  const finalParagraphs =
     paragraphs.length > 1
       ? paragraphs
       : (episodeData?.content ?? '')
@@ -378,11 +379,9 @@ export default function ReaderSection() {
           .map(p => p.trim())
           .filter(Boolean)
 
-  // На головній читалка — лише тизер: перші 3 абзаци, далі «Читати далі».
-  // Замкнені серії API і так віддає вже обрізаними (buildPreview).
-  const TEASER_PARAGRAPHS = 3
-  const isTeaser = allParagraphs.length > TEASER_PARAGRAPHS
-  const finalParagraphs = allParagraphs.slice(0, TEASER_PARAGRAPHS)
+  // На головній API завжди віддає короткий прев'ю (preview=1), тож кнопку
+  // «Читати далі» показуємо, коли є посилання на повну сторінку серії.
+  const isTeaser = !!episodeData?.url
 
   const themeLabel = theme === 'dark' ? 'Темна' : theme === 'light' ? 'Світла' : 'Сепія'
 

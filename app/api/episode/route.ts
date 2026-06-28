@@ -47,6 +47,7 @@ export async function GET(req: Request) {
     const seasonRaw = searchParams.get('season')
     const episodeRaw = searchParams.get('episode')
     const freeRaw = searchParams.get('free')
+    const previewMode = searchParams.get('preview') === '1'
 
     const season = seasonRaw ? parseInt(seasonRaw, 10) : NaN
     const episode = episodeRaw ? parseInt(episodeRaw, 10) : NaN
@@ -118,13 +119,27 @@ export async function GET(req: Request) {
 
     const fullText = data.corrected_text ?? ''
     const readingMinutes = estimateReadingMinutes(fullText)
+    const episodeUrl = data.slug ? `/episodes/${data.slug}` : null
+
+    // На головній (preview=1) завжди віддаємо короткий прев'ю — повний текст
+    // читається на /episodes/[slug]. locked:false, щоб не показувати paywall.
+    if (previewMode) {
+      return NextResponse.json({
+        title: data.title,
+        content: buildPreview(fullText, 3),
+        locked: false,
+        duration_minutes: readingMinutes,
+        url: episodeUrl,
+      })
+    }
+
     if (isUnlocked) {
       return NextResponse.json({
         title: data.title,
         content: fullText,
         locked: false,
         duration_minutes: readingMinutes,
-        url: data.slug ? `/episodes/${data.slug}` : null,
+        url: episodeUrl,
       })
     }
 
@@ -134,7 +149,7 @@ export async function GET(req: Request) {
       content: preview,
       locked: true,
       duration_minutes: readingMinutes,
-      url: data.slug ? `/episodes/${data.slug}` : null,
+      url: episodeUrl,
     })
   } catch (err: any) {
     return NextResponse.json(
