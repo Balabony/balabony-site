@@ -205,7 +205,7 @@ export default function TyshaCoversPage() {
         </p>
 
         {err && <div style={{ background: '#5b1a1a', padding: 12, borderRadius: 8, marginBottom: 16 }}>{err}</div>}
-        {msg && <div style={{ background: '#143d22', padding: 12, borderRadius: 8, marginBottom: 16, color: '#9ff0b8' }}>{msg}</div>}
+        {msg && <div style={{ background: 'rgba(47,95,74,0.25)', padding: 12, borderRadius: 8, marginBottom: 16, color: '#a9d9c2', border: '1px solid rgba(47,95,74,0.5)' }}>{msg}</div>}
 
         {/* КРОК 1 — ПЕРСОНАЖ + ЕТАЛОН */}
         <section style={box}>
@@ -311,13 +311,13 @@ export default function TyshaCoversPage() {
           <input value={trioS} onChange={e => setTrioS(e.target.value)} placeholder="URL еталона Сашка" style={{ ...input, marginBottom: 10, fontSize: 12 }} />
           <input value={trioScene} onChange={e => setTrioScene(e.target.value)} placeholder="опис сцени (англ., необов'язково; напр. standing in a schoolyard)" style={{ ...input, marginBottom: 12 }} />
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button onClick={genGemini} disabled={busy === 'gemini'} style={btn('#d97706', busy !== 'gemini')}>
+            <button onClick={genGemini} disabled={busy === 'gemini'} style={btn('#c98a2e', busy !== 'gemini')}>
               {busy === 'gemini' ? 'Gemini малює…' : 'Трійця разом (Gemini, твої обличчя) ★'}
             </button>
-            <button onClick={genCollage} disabled={busy === 'collage'} style={btn('#1b9e6f', busy !== 'collage')}>
+            <button onClick={genCollage} disabled={busy === 'collage'} style={btn('#2f5f4a', busy !== 'collage')}>
               {busy === 'collage' ? 'Збираю колаж…' : 'Колаж (склейка фото)'}
             </button>
-            <button onClick={genTrio} disabled={busy === 'trio'} style={btn('#9b6dff', busy !== 'trio')}>
+            <button onClick={genTrio} disabled={busy === 'trio'} style={btn('#3a4a6b', busy !== 'trio')}>
               {busy === 'trio' ? 'Генерую…' : 'FLUX.2 (обличчя приблизні)'}
             </button>
           </div>
@@ -367,7 +367,7 @@ export default function TyshaCoversPage() {
             ))}
           </div>
           <input value={warScene} onChange={e => setWarScene(e.target.value)} placeholder="опис воєнної сцени (англ.), або обери пресет вище" style={{ ...input, marginBottom: 12 }} />
-          <button onClick={genWarSolo} disabled={busy === 'war'} style={btn('#b45309', busy !== 'war')}>
+          <button onClick={genWarSolo} disabled={busy === 'war'} style={btn('#a06a2c', busy !== 'war')}>
             {busy === 'war' ? 'Gemini малює…' : 'Згенерувати Максима-воїна ★'}
           </button>
         </section>
