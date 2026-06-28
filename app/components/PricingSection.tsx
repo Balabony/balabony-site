@@ -697,7 +697,7 @@ export default function PricingSection() {
           maxWidth: 720,
           margin: '0 auto 18px',
           background: '#ffffff',
-          border: '2px solid var(--accent-gold)',
+          border: '2px solid #ef9f27',
           borderRadius: 14,
           padding: '18px 20px',
           cursor: 'pointer',
@@ -719,7 +719,7 @@ export default function PricingSection() {
         <span style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
           <span>
             <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: '#0f1e3a' }}>Пільговий доступ</span>
-            <span style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#0f1e3a', marginTop: 5, lineHeight: 1.5 }}>
+            <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#fff', background: '#0f1e3a', padding: '9px 12px', borderRadius: 8, marginTop: 8, lineHeight: 1.45 }}>
               Для ветеранів (УБД), ВПО та людей з інвалідністю
             </span>
             <span style={{
@@ -729,7 +729,7 @@ export default function PricingSection() {
               color: '#c9820a',
               marginTop: 9,
               background: 'transparent',
-              border: '1.5px solid var(--accent-gold)',
+              border: '1.5px solid #ef9f27',
               padding: '4px 9px',
               borderRadius: 6,
             }}>Валідація через ДІЯ</span>
@@ -749,7 +749,7 @@ export default function PricingSection() {
           width: '100%',
           maxWidth: 720,
           margin: '0 auto 18px',
-          border: '2px solid var(--accent-gold)',
+          border: '2px solid #ef9f27',
           background: 'rgba(239,159,39,0.10)',
           borderRadius: 14,
           padding: '16px 18px',
@@ -761,19 +761,19 @@ export default function PricingSection() {
           display: 'inline-block',
           fontSize: 13,
           fontWeight: 700,
-          color: 'var(--accent-gold)',
+          color: '#ef9f27',
           textTransform: 'uppercase',
           letterSpacing: '0.04em',
           marginBottom: 12,
         }}>Безкоштовно</span>
         <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <span>
-            <span style={{ display: 'block', fontSize: 17, fontWeight: 600, color: 'var(--accent-gold)' }}>Заходь без оплати</span>
+            <span style={{ display: 'block', fontSize: 17, fontWeight: 600, color: '#ef9f27' }}>Заходь без оплати</span>
             <span style={{ display: 'block', fontSize: 14, color: 'rgba(255,255,255,0.82)', marginTop: 4, lineHeight: 1.5 }}>
               8 серій + 7 історій + тиждень повного доступу
             </span>
           </span>
-          <span style={{ fontSize: 24, fontWeight: 800, color: 'var(--accent-gold)', whiteSpace: 'nowrap' }}>0 ₴</span>
+          <span style={{ fontSize: 24, fontWeight: 800, color: '#ef9f27', whiteSpace: 'nowrap' }}>0 ₴</span>
         </span>
       </a>
 
@@ -798,7 +798,7 @@ export default function PricingSection() {
             justifyContent: 'space-between',
             gap: 12,
             background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.14)',
+            border: '1.5px solid #ef9f27',
             borderRadius: 10,
             padding: '13px 15px',
             cursor: 'pointer',
@@ -810,7 +810,7 @@ export default function PricingSection() {
             <span style={{ display: 'block', fontSize: 15, fontWeight: 500, color: '#fff' }}>Без підписки</span>
             <span style={{ display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>Одна історія або серія</span>
           </span>
-          <span style={{ fontSize: 18, fontWeight: 600, color: 'var(--accent-gold)' }}>9 ₴</span>
+          <span style={{ fontSize: 18, fontWeight: 600, color: '#ef9f27' }}>9 ₴</span>
         </button>
       </div>
 
