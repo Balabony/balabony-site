@@ -11,15 +11,10 @@ const FONT = "'Montserrat', Arial, sans-serif"
 
 const STYLES = `
 .ts-kicker {
-  display: inline-block; font-size: 10px; font-weight: 700; color: ${GOLD};
+  display: inline-block; font-size: 10px; font-weight: 700; color: #1a3a6b;
   letter-spacing: 2px; text-transform: uppercase; line-height: 1;
-  background: rgba(239,159,39,0.14); border: 1px solid rgba(239,159,39,0.5);
+  background: rgba(26,58,107,0.12); border: 1px solid rgba(26,58,107,0.55);
   padding: 5px 10px; border-radius: 4px; margin-bottom: 10px;
-  animation: tsKickerGlow 2.2s ease-in-out infinite;
-}
-@keyframes tsKickerGlow {
-  0%, 100% { box-shadow: 0 0 6px rgba(239,159,39,0.35); }
-  50% { box-shadow: 0 0 18px rgba(239,159,39,0.75); }
 }
 .ts-card {
   transition: transform 0.25s ease, box-shadow 0.25s ease; will-change: transform;
@@ -95,7 +90,7 @@ export default function TyshaSection() {
         <div style={{ marginBottom: 16 }}>
           <div className="ts-kicker">Авторські серіали · 18+</div>
           <div style={{ fontSize: 22, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.15 }}>ТИША</div>
-          <div style={{ fontSize: 13.5, fontWeight: 600, color: AMBER, fontFamily: FONT, margin: '4px 0 2px', letterSpacing: 0.2 }}>Історія, яку чуєш серцем</div>
+          <div style={{ fontSize: 13, fontStyle: 'italic', color: AMBER, fontFamily: FONT, margin: '3px 0 2px' }}>Історія, яку чуєш серцем</div>
           <div style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.55)', fontFamily: FONT }}>Проза про війну · психологічний реалізм</div>
         </div>
 
