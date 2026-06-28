@@ -578,7 +578,7 @@ Verwendungszweck: ${PURPOSE_EN}`,
           .sup-section h2, .sup-section h3, .sup-section p, .sup-section li,
           .sup-intl h1, .sup-intl h2, .sup-intl h3, .sup-intl p, .sup-intl li {
             overflow-wrap: anywhere;
-            hyphens: auto;
+            hyphens: none;
           }
         }
         .sup-row-label {
