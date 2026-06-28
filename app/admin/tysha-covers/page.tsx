@@ -222,7 +222,7 @@ export default function TyshaCoversPage() {
             <>
               <label style={{ fontSize: 13, opacity: 0.7, display: 'block', marginBottom: 6 }}>Опис вигляду (можна правити перед генерацією):</label>
               <textarea value={lookText} onChange={e => setLookText(e.target.value)} rows={4} style={{ ...input, marginBottom: 12, resize: 'vertical', lineHeight: 1.5 }} />
-              <button onClick={genReference} disabled={busy === 'ref'} style={btn('#2E75B6', busy !== 'ref')}>
+              <button onClick={genReference} disabled={busy === 'ref'} style={btn('#3a5a78', busy !== 'ref')}>
                 {busy === 'ref' ? 'Генерую…' : '+ Згенерувати еталон'}
               </button>
               <span style={{ fontSize: 12, opacity: 0.55, marginLeft: 10 }}>тисни кілька разів — обери найкраще обличчя</span>
@@ -286,7 +286,7 @@ export default function TyshaCoversPage() {
                 style={{ ...input, marginBottom: 10 }}
               />
               <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-                <button onClick={refineCover} disabled={busy === 'refine'} style={btn('#2E75B6', busy !== 'refine')}>
+                <button onClick={refineCover} disabled={busy === 'refine'} style={btn('#3a5a78', busy !== 'refine')}>
                   {busy === 'refine' ? 'Правлю…' : 'Застосувати правку →'}
                 </button>
                 <label style={{ fontSize: 13, opacity: 0.8, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
@@ -380,7 +380,7 @@ export default function TyshaCoversPage() {
               <option value="">— обери серію —</option>
               {eps.map(e => <option key={e.id} value={e.id}>{e.episode_number ? `${e.episode_number}. ` : ''}{e.title}</option>)}
             </select>
-            <button onClick={assignCover} disabled={!coverUrl || busy === 'assign'} style={btn('#1b5e20', !!coverUrl && busy !== 'assign')}>
+            <button onClick={assignCover} disabled={!coverUrl || busy === 'assign'} style={btn('#2f5f4a', !!coverUrl && busy !== 'assign')}>
               {busy === 'assign' ? 'Зберігаю…' : 'Присвоїти обкладинку'}
             </button>
           </div>

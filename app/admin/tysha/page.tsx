@@ -39,8 +39,8 @@ interface SeriesItem {
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
   draft: { label: 'чернетка', color: '#9aa0a6' },
-  scheduled: { label: 'заплановано', color: '#9b8cff' },
-  published: { label: 'опубліковано', color: '#7ddb9f' },
+  scheduled: { label: 'заплановано', color: '#6b6f9e' },
+  published: { label: 'опубліковано', color: '#8fc4a6' },
 }
 
 function chip(color: string): React.CSSProperties {
@@ -625,7 +625,7 @@ export default function TyshaMaisternia() {
                   ? <span style={chip('#e0484d')}>⚠ {s.canonErrors}</span>
                   : (s.canonWarns ?? 0) > 0
                     ? <span style={chip('#e0a23d')}>⚠ {s.canonWarns}</span>
-                    : <span style={chip('#7ddb9f')}>✓ канон</span>}
+                    : <span style={chip('#6fae8a')}>✓ канон</span>}
                 {s.hasAudio
                   ? <span style={chip('#7ac4a2')}>♪ аудіо</span>
                   : (s.audioStatus && s.audioStatus !== 'none' && s.audioStatus !== 'pending')
@@ -744,7 +744,7 @@ export default function TyshaMaisternia() {
               <button onClick={runCheck} disabled={!text.trim()} style={btn('#7aa2c4', !!text.trim())}>
                 Перевірити канон
               </button>
-              <button onClick={improve} disabled={improving || !text.trim()} style={btn('#9b8cff', !improving && !!text.trim())}>
+              <button onClick={improve} disabled={improving || !text.trim()} style={btn('#6b6f9e', !improving && !!text.trim())}>
                 {improving ? 'Олюднюю…' : 'Олюднити (Gemini)'}
               </button>
               <button onClick={spellcheck} disabled={spellBusy || !text.trim()} style={btn('#5b8fb0', !spellBusy && !!text.trim())}>
@@ -756,7 +756,7 @@ export default function TyshaMaisternia() {
               <button onClick={cleanTts} disabled={!text.trim() || aiBusy !== null} style={btn('#7ac4a2', !!text.trim() && aiBusy === null)}>
                 {aiBusy === 'clean' ? 'Чищу…' : 'Чистка для TTS'}
               </button>
-              {msg && <span style={{ fontSize: 13, color: '#7ddb9f' }}>{msg}</span>}
+              {msg && <span style={{ fontSize: 13, color: '#8fc4a6' }}>{msg}</span>}
               <span style={{ marginLeft: 'auto', fontSize: 13, color: 'rgba(245,240,232,0.5)' }}>
                 {words} слів{words > 0 && words < 1500 ? ' · закоротко' : ''}{words > 2300 ? ' · задовго' : ''}
                 {dirty ? ' · не збережено' : ''}
@@ -770,7 +770,7 @@ export default function TyshaMaisternia() {
                 <button onClick={saveMeta} disabled={!metaDirty || metaBusy} style={{ ...btn(GOLD, metaDirty && !metaBusy), padding: '6px 13px', fontSize: 12 }}>
                   {metaBusy ? 'Зберігаю…' : metaDirty ? 'Зберегти метадані' : 'Збережено'}
                 </button>
-                <button onClick={suggestTitles} disabled={titleBusy || !text.trim()} style={{ ...btn('#9b8cff', !titleBusy && !!text.trim()), padding: '6px 13px', fontSize: 12 }}>
+                <button onClick={suggestTitles} disabled={titleBusy || !text.trim()} style={{ ...btn('#6b6f9e', !titleBusy && !!text.trim()), padding: '6px 13px', fontSize: 12 }}>
                   {titleBusy ? 'Генерую…' : 'AI-назви'}
                 </button>
               </div>
@@ -779,7 +779,7 @@ export default function TyshaMaisternia() {
                 <div style={{ marginBottom: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {titleSugg.length === 0 && <span style={{ fontSize: 12, color: 'rgba(245,240,232,0.5)' }}>Gemini не дав варіантів.</span>}
                   {titleSugg.map((t, i) => (
-                    <button key={i} onClick={() => setMetaTitle(t)} style={{ fontSize: 12, color: '#bcb0ff', background: 'rgba(155,140,255,0.1)', border: '1px solid #9b8cff', borderRadius: 16, padding: '4px 11px', cursor: 'pointer', fontFamily: FONT }}>
+                    <button key={i} onClick={() => setMetaTitle(t)} style={{ fontSize: 12, color: '#a8acd0', background: 'rgba(107,111,158,0.15)', border: '1px solid #6b6f9e', borderRadius: 16, padding: '4px 11px', cursor: 'pointer', fontFamily: FONT }}>
                       {t}
                     </button>
                   ))}
@@ -813,8 +813,8 @@ export default function TyshaMaisternia() {
                 {(() => {
                   const map: Record<string, { t: string; c: string }> = {
                     draft:     { t: 'чернетка',    c: 'rgba(255,255,255,0.5)' },
-                    scheduled: { t: 'заплановано', c: '#9b8cff' },
-                    published: { t: 'опубліковано', c: '#7ddb9f' },
+                    scheduled: { t: 'заплановано', c: '#6b6f9e' },
+                    published: { t: 'опубліковано', c: '#6fae8a' },
                   }
                   const m = map[pubStatus] ?? { t: pubStatus, c: 'rgba(255,255,255,0.5)' }
                   return <span style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: m.c }}>{m.t}</span>
@@ -832,10 +832,10 @@ export default function TyshaMaisternia() {
                   onChange={(e) => setScheduleInput(e.target.value)}
                   style={{ padding: '7px 9px', borderRadius: 8, background: NAVY_DEEP, color: INK, border: '1px solid rgba(255,255,255,0.15)', fontSize: 13, fontFamily: FONT, outline: 'none' }}
                 />
-                <button onClick={() => doPublish('schedule')} disabled={pubBusy || !scheduleInput} style={btn('#9b8cff', !pubBusy && !!scheduleInput)}>
+                <button onClick={() => doPublish('schedule')} disabled={pubBusy || !scheduleInput} style={btn('#6b6f9e', !pubBusy && !!scheduleInput)}>
                   Запланувати
                 </button>
-                <button onClick={() => doPublish('publish')} disabled={pubBusy} style={btn('#7ddb9f', !pubBusy)}>
+                <button onClick={() => doPublish('publish')} disabled={pubBusy} style={btn('#4f9e74', !pubBusy)}>
                   Опублікувати зараз
                 </button>
                 {pubStatus !== 'draft' && (
@@ -873,29 +873,29 @@ export default function TyshaMaisternia() {
                   : `Застосовано ${res.applied}. Не забудь зберегти.`)
               }
               return (
-                <div style={{ margin: '14px 0', padding: 14, borderRadius: 10, background: 'rgba(155,140,255,0.08)', border: '1px solid #9b8cff' }}>
+                <div style={{ margin: '14px 0', padding: 14, borderRadius: 10, background: 'rgba(107,111,158,0.10)', border: '1px solid #6b6f9e' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
-                    <strong style={{ fontSize: 13, color: '#bcb0ff' }}>Пропозиції олюднення: {total}, прийнято {acceptedCount}</strong>
-                    <button onClick={() => setAll(true)} style={{ ...btn('#7ddb9f', true), padding: '5px 11px', fontSize: 12 }}>Прийняти всі</button>
+                    <strong style={{ fontSize: 13, color: '#a8acd0' }}>Пропозиції олюднення: {total}, прийнято {acceptedCount}</strong>
+                    <button onClick={() => setAll(true)} style={{ ...btn('#4f9e74', true), padding: '5px 11px', fontSize: 12 }}>Прийняти всі</button>
                     <button onClick={() => setAll(false)} style={{ padding: '5px 11px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.6)', border: '1px solid rgba(255,255,255,0.15)', fontSize: 12, fontFamily: FONT }}>Зняти всі</button>
-                    <button onClick={apply} disabled={acceptedCount === 0} style={{ ...btn('#9b8cff', acceptedCount > 0), padding: '5px 11px', fontSize: 12 }}>Застосувати ({acceptedCount})</button>
+                    <button onClick={apply} disabled={acceptedCount === 0} style={{ ...btn('#6b6f9e', acceptedCount > 0), padding: '5px 11px', fontSize: 12 }}>Застосувати ({acceptedCount})</button>
                     <button onClick={() => setSuggestions(null)} style={{ padding: '5px 11px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.5)', border: '1px solid rgba(255,255,255,0.12)', fontSize: 12, fontFamily: FONT }}>Скасувати</button>
                   </div>
                   <div style={{ maxHeight: 460, overflowY: 'auto' }}>
                     {suggestions.map((s, idx) => (
-                      <div key={idx} style={{ borderRadius: 8, border: `1px solid ${s.accepted ? '#9b8cff' : 'rgba(255,255,255,0.14)'}`, overflow: 'hidden', opacity: s.accepted ? 1 : 0.55, marginBottom: 10 }}>
-                        <div style={{ padding: '8px 10px', background: 'rgba(217,69,69,0.20)', borderLeft: '3px solid #d94545', fontSize: 13.5, lineHeight: 1.55, color: '#f3d3d3', fontFamily: "'Georgia', serif", maxHeight: 200, overflowY: 'auto' }}>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: '#e88', textTransform: 'uppercase', letterSpacing: 0.5 }}>було</span><br />{s.before}
+                      <div key={idx} style={{ borderRadius: 8, border: `1px solid ${s.accepted ? '#6b6f9e' : 'rgba(255,255,255,0.14)'}`, overflow: 'hidden', opacity: s.accepted ? 1 : 0.55, marginBottom: 10 }}>
+                        <div style={{ padding: '8px 10px', background: 'rgba(180,90,90,0.12)', borderLeft: '3px solid #a85a5a', fontSize: 13.5, lineHeight: 1.55, color: '#d8c0c0', fontFamily: "'Georgia', serif", maxHeight: 200, overflowY: 'auto' }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: '#c89090', textTransform: 'uppercase', letterSpacing: 0.5 }}>було</span><br />{s.before}
                         </div>
-                        <div style={{ padding: '8px 10px', background: 'rgba(45,143,78,0.20)', borderLeft: '3px solid #2d8f4e', fontSize: 13.5, lineHeight: 1.55, color: '#cdebd6', fontFamily: "'Georgia', serif", maxHeight: 200, overflowY: 'auto' }}>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: '#7ddb9f', textTransform: 'uppercase', letterSpacing: 0.5 }}>стало</span><br />{s.after}
+                        <div style={{ padding: '8px 10px', background: 'rgba(47,95,74,0.15)', borderLeft: '3px solid #4f9e74', fontSize: 13.5, lineHeight: 1.55, color: '#bcd6c8', fontFamily: "'Georgia', serif", maxHeight: 200, overflowY: 'auto' }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: '#8fc4a6', textTransform: 'uppercase', letterSpacing: 0.5 }}>стало</span><br />{s.after}
                         </div>
                         {s.reason && (
                           <div style={{ padding: '5px 10px', fontSize: 11.5, color: 'rgba(245,240,232,0.6)', fontStyle: 'italic', fontFamily: FONT }}>
                             чому: {s.reason}
                           </div>
                         )}
-                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: 'rgba(0,0,0,0.25)', fontSize: 12.5, cursor: 'pointer', fontFamily: FONT, color: s.accepted ? '#7ddb9f' : 'rgba(245,240,232,0.55)' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: 'rgba(0,0,0,0.25)', fontSize: 12.5, cursor: 'pointer', fontFamily: FONT, color: s.accepted ? '#8fc4a6' : 'rgba(245,240,232,0.55)' }}>
                           <input type="checkbox" checked={s.accepted} onChange={() => toggle(idx)} />
                           {s.accepted ? 'прийняти цю зміну' : 'лишити як було'}
                         </label>
@@ -944,7 +944,7 @@ export default function TyshaMaisternia() {
             )}
 
             {findings && findings.length === 0 && (
-              <div style={{ padding: 14, borderRadius: 10, background: 'rgba(45,143,78,0.12)', border: '1px solid #2d8f4e', color: '#7ddb9f', fontSize: 14 }}>
+              <div style={{ padding: 14, borderRadius: 10, background: 'rgba(45,143,78,0.12)', border: '1px solid #2d8f4e', color: '#8fc4a6', fontSize: 14 }}>
                 Чисто — механічних зауважень немає. Усе одно перечитай оком: прихований передвісник і магію в підтексті функція не ловить.
               </div>
             )}
