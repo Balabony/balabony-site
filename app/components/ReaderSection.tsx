@@ -17,6 +17,7 @@ type EpisodeData = {
   content: string
   locked: boolean
   duration_minutes: number | null
+  url: string | null
 }
 
 type Theme = 'dark' | 'light' | 'amber'
@@ -369,13 +370,19 @@ export default function ReaderSection() {
     .split(/\n\n+/)
     .map(p => p.trim())
     .filter(Boolean)
-  const finalParagraphs =
+  const allParagraphs =
     paragraphs.length > 1
       ? paragraphs
       : (episodeData?.content ?? '')
           .split(/\n+/)
           .map(p => p.trim())
           .filter(Boolean)
+
+  // На головній читалка — лише тизер: перші 3 абзаци, далі «Читати далі».
+  // Замкнені серії API і так віддає вже обрізаними (buildPreview).
+  const TEASER_PARAGRAPHS = 3
+  const isTeaser = allParagraphs.length > TEASER_PARAGRAPHS
+  const finalParagraphs = allParagraphs.slice(0, TEASER_PARAGRAPHS)
 
   const themeLabel = theme === 'dark' ? 'Темна' : theme === 'light' ? 'Світла' : 'Сепія'
 
@@ -640,6 +647,41 @@ export default function ReaderSection() {
                 </p>
               )
             })}
+
+            {/* Тизер: затухання + «Читати далі» на повну сторінку серії */}
+            {!loading && !error && !isLocked && isTeaser && (
+              <div style={{ position: 'relative', marginTop: -40, paddingTop: 40, textAlign: 'center' }}>
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 56,
+                  background: 'linear-gradient(to bottom, transparent, var(--white))',
+                  pointerEvents: 'none'
+                }} />
+                {episodeData?.url ? (
+                  <a
+                    href={episodeData.url}
+                    style={{
+                      display: 'inline-block',
+                      padding: '12px 24px',
+                      background: 'var(--accent-gold)',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 8,
+                      fontSize: 15,
+                      fontWeight: 700,
+                      textDecoration: 'none',
+                      cursor: 'pointer',
+                      fontFamily: "'Montserrat', sans-serif"
+                    }}
+                  >
+                    Читати далі →
+                  </a>
+                ) : null}
+              </div>
+            )}
 
             {/* Next-episode button after content (only for unlocked / read) */}
             {!loading && !error && !isLocked && globalCurrentEp < TOTAL_EPISODES && (

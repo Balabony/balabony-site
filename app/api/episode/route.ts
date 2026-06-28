@@ -62,7 +62,7 @@ export async function GET(req: Request) {
     const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
       .from('content')
-      .select('title, corrected_text, is_free, season_number, episode_number, duration_minutes')
+      .select('slug, title, corrected_text, is_free, season_number, episode_number, duration_minutes')
       .eq('type', 'balabony')
       .eq('status', 'published')
       .eq('season_number', season)
@@ -124,6 +124,7 @@ export async function GET(req: Request) {
         content: fullText,
         locked: false,
         duration_minutes: readingMinutes,
+        url: data.slug ? `/episodes/${data.slug}` : null,
       })
     }
 
@@ -133,6 +134,7 @@ export async function GET(req: Request) {
       content: preview,
       locked: true,
       duration_minutes: readingMinutes,
+      url: data.slug ? `/episodes/${data.slug}` : null,
     })
   } catch (err: any) {
     return NextResponse.json(
