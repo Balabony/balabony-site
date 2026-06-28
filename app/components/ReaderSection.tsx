@@ -634,8 +634,9 @@ export default function ReaderSection() {
                 )
               }
               const parts = p.split(/(\([^)]*\))/g).filter(Boolean)
+              const isHeading = idx === 0 && /^Серія\s*№?\s*\d/.test(p)
               return (
-                <p key={idx} style={{ marginBottom: 18 }}>
+                <p key={idx} style={{ marginBottom: isHeading ? 24 : 18, fontWeight: isHeading ? 700 : undefined }}>
                   {parts.map((part, i) =>
                     part.startsWith('(') && part.endsWith(')') ? (
                       <em key={i} style={{ color: 'var(--muted)', fontStyle: 'italic' }}>{part}</em>
@@ -647,54 +648,83 @@ export default function ReaderSection() {
               )
             })}
 
-            {/* Тизер: затухання + «Читати далі» на повну сторінку серії */}
+            {/* Тизер: затухання + кнопки «Читати далі» (на повну серію) і «Серія N» (наступна) в один рядок */}
             {!loading && !error && !isLocked && isTeaser && (
-              <div style={{ position: 'relative', marginTop: -40, paddingTop: 40, textAlign: 'center' }}>
+              <div style={{ position: 'relative', marginTop: -28, paddingTop: 28 }}>
                 <div style={{
                   position: 'absolute',
                   top: 0,
                   left: 0,
                   right: 0,
-                  height: 56,
+                  height: 36,
                   background: 'linear-gradient(to bottom, transparent, var(--white))',
                   pointerEvents: 'none'
                 }} />
-                {episodeData?.url ? (
-                  <a
-                    href={episodeData.url}
-                    style={{
-                      display: 'inline-block',
-                      padding: '12px 24px',
-                      background: 'var(--accent-gold)',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: 8,
-                      fontSize: 15,
-                      fontWeight: 700,
-                      textDecoration: 'none',
-                      cursor: 'pointer',
-                      fontFamily: "'Montserrat', sans-serif"
-                    }}
-                  >
-                    Читати далі →
-                  </a>
-                ) : null}
+                <div style={{ display: 'flex', gap: 10, alignItems: 'stretch', flexWrap: 'wrap' }}>
+                  {episodeData?.url ? (
+                    <a
+                      href={episodeData.url}
+                      style={{
+                        flex: '1 1 140px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                        padding: '13px 16px',
+                        background: 'var(--accent-gold)',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 10,
+                        fontSize: 14,
+                        fontWeight: 700,
+                        textDecoration: 'none',
+                        cursor: 'pointer',
+                        fontFamily: "'Montserrat', sans-serif"
+                      }}
+                    >
+                      Читати далі →
+                    </a>
+                  ) : null}
+                  {globalCurrentEp < TOTAL_EPISODES && (
+                    <button
+                      onClick={goToNextEpisode}
+                      style={{
+                        flex: '1 1 140px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                        padding: '13px 16px',
+                        background: '#0f1e3a',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 10,
+                        fontSize: 14,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontFamily: "'Montserrat', sans-serif"
+                      }}
+                    >
+                      Серія {globalCurrentEp + 1} →
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* Next-episode button after content (only for unlocked / read) */}
-            {!loading && !error && !isLocked && globalCurrentEp < TOTAL_EPISODES && (
+            {/* Наступна серія для повністю відкритого тексту (не тизер) */}
+            {!loading && !error && !isLocked && !isTeaser && globalCurrentEp < TOTAL_EPISODES && (
               <div style={{ marginTop: 28, textAlign: 'center' }}>
                 <button
                   onClick={goToNextEpisode}
                   style={{
                     padding: '12px 24px',
-                    background: 'var(--accent-gold)',
+                    background: '#0f1e3a',
                     color: '#fff',
                     border: 'none',
                     borderRadius: 8,
                     fontSize: 15,
-                    fontWeight: 700,
+                    fontWeight: 600,
                     cursor: 'pointer',
                     fontFamily: "'Montserrat', sans-serif"
                   }}
