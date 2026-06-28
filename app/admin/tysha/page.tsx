@@ -187,6 +187,7 @@ export default function TyshaMaisternia() {
   const coverFileRef = useRef<HTMLInputElement | null>(null)
   const [saving, setSaving] = useState(false)
   const [improving, setImproving] = useState(false)
+  const [spellBusy, setSpellBusy] = useState(false)
   const [msg, setMsg] = useState('')
   const [err, setErr] = useState('')
 
@@ -473,6 +474,41 @@ export default function TyshaMaisternia() {
     }
   }
 
+  // Перевірка правопису: орфографія/пунктуація/граматика з опорою на базу /pravopys.
+  // Показує пропозиції в тій самій панелі, що «Олюднити» (було→стало→причина).
+  async function spellcheck() {
+    if (!text.trim()) return
+    setSpellBusy(true); setErr(''); setMsg(''); setSuggestions(null)
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 75000)
+    try {
+      const r = await fetch('/api/admin/tysha-spellcheck', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ text }),
+        signal: ctrl.signal,
+      })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d.error || 'Помилка перевірки правопису')
+      const raw = (d.suggestions ?? []) as { before: string; after: string; reason: string }[]
+      if (raw.length > 0) {
+        setSuggestions(raw.map((s) => ({ ...s, accepted: true })))
+        setMsg(d.usedRules ? 'Перевірено за правописом із бази /pravopys' : 'Перевірено (база правил недоступна — загальні норми)')
+      } else {
+        setMsg('Помилок правопису не знайдено — текст чистий.')
+      }
+    } catch (e) {
+      const m = e instanceof Error && e.name === 'AbortError'
+        ? 'Gemini не встиг за 75 c. Спробуй ще раз або коротшу серію.'
+        : String(e instanceof Error ? e.message : e)
+      setErr(m)
+    } finally {
+      clearTimeout(timer)
+      setSpellBusy(false)
+    }
+  }
+
   // ── AI-помічники (батч 1: аналізатори + recap) ──
   function clearPanels() { setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setRecapText(null); setCleaned(null) }
 
@@ -710,6 +746,9 @@ export default function TyshaMaisternia() {
               </button>
               <button onClick={improve} disabled={improving || !text.trim()} style={btn('#9b8cff', !improving && !!text.trim())}>
                 {improving ? 'Олюднюю…' : 'Олюднити (Gemini)'}
+              </button>
+              <button onClick={spellcheck} disabled={spellBusy || !text.trim()} style={btn('#5b8fb0', !spellBusy && !!text.trim())}>
+                {spellBusy ? 'Перевіряю…' : 'Перевірити правопис'}
               </button>
               <button onClick={genRecap} disabled={!text.trim() || aiBusy !== null} style={btn('#c4a27a', !!text.trim() && aiBusy === null)}>
                 {aiBusy === 'recap' ? 'Генерую…' : 'Recap'}
