@@ -34,7 +34,7 @@ const STYLES = `
 .ts-card:hover .ts-cover-img, .ts-card:focus-visible .ts-cover-img { transform: scale(1.05); }
 .ts-card:hover .ts-title-text, .ts-card:focus-visible .ts-title-text { color: ${AMBER}; }
 .ts-cover-img {
-  width: 100%; height: 100%; object-fit: cover; object-position: center 25%; transition: transform 0.3s ease; display: block;
+  width: 100%; height: 100%; object-fit: cover; object-position: center 40%; transition: transform 0.3s ease; display: block;
 }
 .ts-teaser {
   font-size: 12.5px; line-height: 1.5; color: rgba(245,240,232,0.7); margin: 0;
@@ -51,12 +51,24 @@ const STYLES = `
 interface TyshaItem {
   id: string
   number: number | null
+  season?: number | null
   title: string
   cover_url: string | null
   has_audio: boolean
   url: string
   description: string | null
   duration_minutes?: number
+}
+
+// Чистить назву серії для вітрини: прибирає службовий префікс «Серія N.» / «Сезон N.»
+// і зовнішні лапки, бо «Сезон · Серія» показуємо окремим рядком (як у серіалах Балабонів).
+function cleanTitle(raw: string): string {
+  let t = (raw ?? '').trim()
+  // прибрати початковий «Серія 12.» / «Серія 12 —» / «Сезон 1 Серія 2.»
+  t = t.replace(/^\s*(сезон\s*\d+[\s.,·-]*)?(серія|епізод)\s*\d+\s*[.:—–-]*\s*/i, '').trim()
+  // зняти зовнішні лапки «...» " ... " '...'
+  t = t.replace(/^[«"„'']\s*/, '').replace(/\s*[»"'']\s*$/, '').trim()
+  return t || raw
 }
 
 export default function TyshaSection() {
@@ -83,7 +95,7 @@ export default function TyshaSection() {
         <div style={{ marginBottom: 16 }}>
           <div className="ts-kicker">Авторські серіали · 18+</div>
           <div style={{ fontSize: 22, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.15 }}>ТИША</div>
-          <div style={{ fontSize: 13, fontStyle: 'italic', color: colors.muted, fontFamily: FONT, margin: '3px 0 2px' }}>Історія, яку чуєш серцем</div>
+          <div style={{ fontSize: 13, fontStyle: 'italic', color: AMBER, fontFamily: FONT, margin: '3px 0 2px' }}>Історія, яку чуєш серцем</div>
           <div style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.55)', fontFamily: FONT }}>Проза про війну · психологічний реалізм</div>
         </div>
 
@@ -115,8 +127,13 @@ export default function TyshaSection() {
 
               <div style={{ padding: '11px 12px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: AMBER, fontFamily: FONT, letterSpacing: 0.3 }}>Назар Колодій</div>
+                {ep.number != null && (
+                  <div style={{ fontSize: 10.5, fontWeight: 700, color: AMBER, fontFamily: FONT, letterSpacing: 0.4, textTransform: 'uppercase' }}>
+                    {ep.season != null ? `Сезон ${ep.season} · ` : ''}Серія {ep.number}
+                  </div>
+                )}
                 <div className="ts-title-text" style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.4, textTransform: 'uppercase' }}>
-                  {ep.title}
+                  {cleanTitle(ep.title)}
                 </div>
                 {ep.description && <p className="ts-teaser">{ep.description}</p>}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 'auto' }}>
