@@ -714,11 +714,12 @@ export default function PricingSection() {
             color: '#e0484d',
             textTransform: 'uppercase',
             letterSpacing: '0.04em',
+            whiteSpace: 'nowrap',
           }}>Соціальна місія</span>
         </span>
-        <span style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
-          <span>
-            <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: '#0f1e3a' }}>Пільговий доступ</span>
+        <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
+          <span style={{ flex: '1 1 180px', minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: '#0f1e3a', overflowWrap: 'normal', wordBreak: 'keep-all' }}>Пільговий доступ</span>
             <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#fff', background: '#0f1e3a', padding: '9px 12px', borderRadius: 8, marginTop: 8, lineHeight: 1.45 }}>
               Для ветеранів (УБД), ВПО та людей з інвалідністю
             </span>
@@ -732,9 +733,11 @@ export default function PricingSection() {
               border: '1.5px solid #ef9f27',
               padding: '4px 9px',
               borderRadius: 6,
+              overflowWrap: 'normal',
+              wordBreak: 'keep-all',
             }}>Валідація через ДІЯ</span>
           </span>
-          <span style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>
+          <span style={{ whiteSpace: 'nowrap', textAlign: 'right', flexShrink: 0 }}>
             <span style={{ fontSize: 30, fontWeight: 800, color: '#0f1e3a' }}>1 ₴</span>
             <span style={{ display: 'block', fontSize: 13, color: 'rgba(15,30,58,0.6)' }}>на рік</span>
           </span>
@@ -765,15 +768,16 @@ export default function PricingSection() {
           textTransform: 'uppercase',
           letterSpacing: '0.04em',
           marginBottom: 12,
+          whiteSpace: 'nowrap',
         }}>Безкоштовно</span>
-        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-          <span>
-            <span style={{ display: 'block', fontSize: 17, fontWeight: 600, color: '#ef9f27' }}>Заходь без оплати</span>
+        <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <span style={{ flex: '1 1 180px', minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: 17, fontWeight: 600, color: '#ef9f27', overflowWrap: 'normal', wordBreak: 'keep-all' }}>Заходь без оплати</span>
             <span style={{ display: 'block', fontSize: 14, color: 'rgba(255,255,255,0.82)', marginTop: 4, lineHeight: 1.5 }}>
               8 серій + 7 історій + тиждень повного доступу
             </span>
           </span>
-          <span style={{ fontSize: 24, fontWeight: 800, color: '#ef9f27', whiteSpace: 'nowrap' }}>0 ₴</span>
+          <span style={{ fontSize: 24, fontWeight: 800, color: '#ef9f27', whiteSpace: 'nowrap', flexShrink: 0 }}>0 ₴</span>
         </span>
       </a>
 
@@ -787,6 +791,7 @@ export default function PricingSection() {
           letterSpacing: '0.05em',
           marginBottom: 8,
           paddingLeft: 2,
+          whiteSpace: 'nowrap',
         }}>Разова оплата</div>
         <button
           type="button"
@@ -796,6 +801,7 @@ export default function PricingSection() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            flexWrap: 'wrap',
             gap: 12,
             background: 'rgba(255,255,255,0.04)',
             border: '1.5px solid #ef9f27',
@@ -806,11 +812,11 @@ export default function PricingSection() {
             fontFamily: "'Montserrat', Arial, sans-serif",
           }}
         >
-          <span>
-            <span style={{ display: 'block', fontSize: 15, fontWeight: 500, color: '#fff' }}>Без підписки</span>
+          <span style={{ flex: '1 1 180px', minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: 15, fontWeight: 500, color: '#fff', overflowWrap: 'normal', wordBreak: 'keep-all' }}>Без підписки</span>
             <span style={{ display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>Одна історія або серія</span>
           </span>
-          <span style={{ fontSize: 18, fontWeight: 600, color: '#ef9f27' }}>9 ₴</span>
+          <span style={{ fontSize: 18, fontWeight: 600, color: '#ef9f27', whiteSpace: 'nowrap', flexShrink: 0 }}>9 ₴</span>
         </button>
       </div>
 
