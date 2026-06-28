@@ -190,6 +190,7 @@ export default function TyshaMaisternia() {
   const [saving, setSaving] = useState(false)
   const [improving, setImproving] = useState(false)
   const [spellBusy, setSpellBusy] = useState(false)
+  const [punctBusy, setPunctBusy] = useState(false)
   const [msg, setMsg] = useState('')
   const [err, setErr] = useState('')
 
@@ -515,6 +516,37 @@ export default function TyshaMaisternia() {
 
   // Перевірка правопису: орфографія/пунктуація/граматика з опорою на базу /pravopys.
   // Показує пропозиції в тій самій панелі, що «Олюднити» (було→стало→причина).
+  async function aiPunct() {
+    if (!text.trim()) return
+    setPunctBusy(true); setErr(''); setMsg('')
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 75000)
+    try {
+      const r = await fetch('/api/admin/tysha-punct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ text }),
+        signal: ctrl.signal,
+      })
+      const d = await r.json()
+      if (d.rejected) { setErr(d.error || 'AI змінив слова — відхилено.'); return }
+      if (!r.ok) throw new Error(d.error || 'Помилка AI-крапок')
+      if (d.text && d.text !== text) {
+        setText(d.text)
+        setFindings(checkTysha(d.text))
+        setMsg(`AI-крапки: поставлено ~${d.added ?? 0}. Слова не змінено (звірено). Перечитай і збережи.`)
+      } else {
+        setMsg('AI не знайшов пропущених крапок.')
+      }
+    } catch (e) {
+      setErr(String(e instanceof Error ? e.message : e))
+    } finally {
+      clearTimeout(timer)
+      setPunctBusy(false)
+    }
+  }
+
   async function spellcheck() {
     if (!text.trim()) return
     setSpellBusy(true); setErr(''); setMsg(''); setSuggestions(null)
@@ -813,6 +845,9 @@ export default function TyshaMaisternia() {
               </button>
               <button onClick={autofix} disabled={!text.trim()} style={btn('#c47a9e', !!text.trim())}>
                 Виправити типографіку
+              </button>
+              <button onClick={aiPunct} disabled={punctBusy || !text.trim()} style={btn('#9e7ac4', !punctBusy && !!text.trim())}>
+                {punctBusy ? 'Ставлю крапки…' : 'AI-крапки'}
               </button>
               <button onClick={improve} disabled={improving || !text.trim()} style={btn('#6b6f9e', !improving && !!text.trim())}>
                 {improving ? 'Олюднюю…' : 'Олюднити (Gemini)'}
