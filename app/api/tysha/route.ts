@@ -41,7 +41,7 @@ export async function GET(req: Request) {
     const supabase = getSupabaseAdmin()
     let query = supabase
       .from('content')
-      .select('slug, episode_number, season_number, title, cover_url, audio_status, description, short_description, duration_minutes, text, hook, next_teaser')
+      .select('slug, episode_number, season_number, title, cover_url, cover_position, audio_status, description, short_description, duration_minutes, text, hook, next_teaser')
       .eq('type', 'tysha')
       .or(`status.eq.published,and(status.eq.scheduled,publish_at.lte.${nowIso})`)
       .order('season_number', { ascending: true })
@@ -58,6 +58,7 @@ export async function GET(req: Request) {
       season: r.season_number,
       title: r.title,
       cover_url: r.cover_url,
+      cover_position: r.cover_position ?? null,
       has_audio: r.audio_status === 'ready',
       url: `/tysha/${r.slug}`,
       description: r.hook ?? r.short_description ?? r.description ?? makeExcerpt(r.text) ?? null,

@@ -49,6 +49,7 @@ interface TyshaItem {
   season?: number | null
   title: string
   cover_url: string | null
+  cover_position?: string | null
   has_audio: boolean
   url: string
   description: string | null
@@ -90,7 +91,7 @@ export default function TyshaSection() {
         <div style={{ marginBottom: 16 }}>
           <div className="ts-kicker">Авторські серіали · 18+</div>
           <div style={{ fontSize: 22, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.15 }}>ТИША</div>
-          <div style={{ fontSize: 13.5, fontWeight: 600, color: isNight ? '#7da7d9' : '#1a3a6b', fontFamily: FONT, margin: '4px 0 2px', letterSpacing: 0.2 }}>Історія, яку чуєш серцем</div>
+          <div style={{ fontSize: 17, fontStyle: 'italic', color: isNight ? '#c9d6e8' : '#1a3a6b', fontFamily: "'Georgia', serif", margin: '6px 0 2px' }}>Історія, яку чуєш серцем</div>
           <div style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.55)', fontFamily: FONT }}>Проза про війну · психологічний реалізм</div>
         </div>
 
@@ -108,6 +109,7 @@ export default function TyshaSection() {
                     <img
                       src={ep.cover_url}
                       alt={ep.title}
+                      style={{ objectPosition: ep.cover_position || 'center 40%' }}
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
                       className="ts-cover-img"
                     />
@@ -121,7 +123,7 @@ export default function TyshaSection() {
               </div>
 
               <div style={{ padding: '11px 12px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: AMBER, fontFamily: FONT, letterSpacing: 0.3 }}>Назар Колодій</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, letterSpacing: 0.3 }}>Назар Колодій</div>
                 {ep.number != null && (
                   <div style={{ fontSize: 10.5, fontWeight: 700, color: AMBER, fontFamily: FONT, letterSpacing: 0.4, textTransform: 'uppercase' }}>
                     {ep.season != null ? `Сезон ${ep.season} · ` : ''}Серія {ep.number}

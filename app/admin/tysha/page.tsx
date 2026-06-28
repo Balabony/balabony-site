@@ -184,6 +184,8 @@ export default function TyshaMaisternia() {
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
   const [coverBusy, setCoverBusy] = useState<'' | 'upload' | 'ai'>('')
   const [coverEdit, setCoverEdit] = useState('')   // опис правки для AI
+  const [coverPos, setCoverPos] = useState(40)     // позиція кадру по вертикалі, % (менше = вище)
+  const [posBusy, setPosBusy] = useState(false)
   const coverFileRef = useRef<HTMLInputElement | null>(null)
   const [saving, setSaving] = useState(false)
   const [improving, setImproving] = useState(false)
@@ -308,6 +310,27 @@ export default function TyshaMaisternia() {
     }
   }
 
+  // Зберегти позицію кадру обкладинки (object-position center NN%).
+  async function saveCoverPos(pos: number) {
+    if (!selectedId) return
+    setPosBusy(true); setErr('')
+    try {
+      const value = `center ${pos}%`
+      const r = await fetch(`/api/admin/content/${selectedId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ cover_position: value }),
+      })
+      if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.error || 'Не вдалося зберегти позицію') }
+      setMsg('Позицію фото збережено')
+    } catch (e) {
+      setErr(String(e instanceof Error ? e.message : e))
+    } finally {
+      setPosBusy(false)
+    }
+  }
+
   async function selectSeries(id: string) {
     if (dirty && !confirm('Є незбережені зміни. Відкрити іншу серію без збереження?')) return
     setLoadingItem(true); setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setRecapText(null); setCleaned(null)
@@ -319,6 +342,8 @@ export default function TyshaMaisternia() {
       setSelectedId(id); setText(body); setSavedText(body)
       setCoverUrl((d.item?.cover_url ?? null) as string | null)
       setCoverEdit('')
+      // cover_position у форматі 'center NN%' → дістаємо NN (дефолт 40)
+      { const cp = (d.item?.cover_position ?? '') as string; const m = cp.match(/(\d+(?:\.\d+)?)%/); setCoverPos(m ? Math.round(parseFloat(m[1])) : 40) }
       setPubStatus((d.item?.status ?? 'draft') as string)
       const it = d.item ?? {}
       const mt = (it.title ?? '') as string
@@ -660,13 +685,41 @@ export default function TyshaMaisternia() {
               <div style={{ width: 200, flexShrink: 0 }}>
                 {coverUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={coverUrl} alt="обкладинка" style={{ width: '100%', aspectRatio: '3 / 2', objectFit: 'cover', objectPosition: 'center 22%', borderRadius: 8, display: 'block' }} />
+                  <img src={coverUrl} alt="обкладинка" style={{ width: '100%', aspectRatio: '3 / 2', objectFit: 'cover', objectPosition: `center ${coverPos}%`, borderRadius: 8, display: 'block' }} />
                 ) : (
                   <div style={{ width: '100%', aspectRatio: '3 / 2', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.18)', fontSize: 12, color: 'rgba(245,240,232,0.45)' }}>без обкладинки</div>
                 )}
               </div>
               <div style={{ flex: 1, minWidth: 220 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: GOLD, marginBottom: 8 }}>Обкладинка серії</div>
+
+                {coverUrl && (
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: 'rgba(245,240,232,0.65)', marginBottom: 4, fontFamily: FONT }}>
+                      <span>Посунути фото ↑↓</span>
+                      <span>{coverPos}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={coverPos}
+                      onChange={(e) => setCoverPos(parseInt(e.target.value, 10))}
+                      style={{ width: '100%', accentColor: GOLD, cursor: 'pointer' }}
+                    />
+                    <div style={{ display: 'flex', gap: 8, marginTop: 6, alignItems: 'center' }}>
+                      <button
+                        onClick={() => saveCoverPos(coverPos)}
+                        disabled={posBusy}
+                        style={{ padding: '6px 12px', borderRadius: 7, background: 'transparent', color: GOLD, border: `1px solid ${GOLD}88`, fontWeight: 700, fontSize: 12, fontFamily: FONT, cursor: posBusy ? 'default' : 'pointer' }}
+                      >
+                        {posBusy ? 'Зберігаю…' : 'Зберегти позицію'}
+                      </button>
+                      <span style={{ fontSize: 11, color: 'rgba(245,240,232,0.45)', fontFamily: FONT }}>менше = вище, більше = нижче</span>
+                    </div>
+                  </div>
+                )}
 
                 <input
                   ref={coverFileRef}
