@@ -577,9 +577,10 @@ Verwendungszweck: ${PURPOSE_EN}`,
           .sup-hero h1, .sup-hero h2, .sup-hero p,
           .sup-section h2, .sup-section h3, .sup-section p, .sup-section li,
           .sup-intl h1, .sup-intl h2, .sup-intl h3, .sup-intl p, .sup-intl li {
-            overflow-wrap: anywhere;
+            overflow-wrap: break-word;
             hyphens: none;
           }
+    .sup-hero h1 { font-size: calc(28px * var(--support-fs)); letter-spacing: -0.01em; }
         }
         .sup-row-label {
           font-size: 13px;
