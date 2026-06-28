@@ -578,9 +578,9 @@ export default function TyshaMaisternia() {
             >
               {s.coverUrl ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={s.coverUrl} alt="" style={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', borderRadius: 6, marginBottom: 7, display: 'block' }} />
+                <img src={s.coverUrl} alt="" style={{ width: '100%', aspectRatio: '3 / 2', objectFit: 'cover', objectPosition: 'center 22%', borderRadius: 6, marginBottom: 7, display: 'block' }} />
               ) : (
-                <div style={{ width: '100%', aspectRatio: '16 / 9', borderRadius: 6, marginBottom: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.15)', fontSize: 11, color: 'rgba(245,240,232,0.4)' }}>без обкладинки</div>
+                <div style={{ width: '100%', aspectRatio: '3 / 2', borderRadius: 6, marginBottom: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.15)', fontSize: 11, color: 'rgba(245,240,232,0.4)' }}>без обкладинки</div>
               )}
               {s.episode_number != null ? `${s.episode_number}. ` : ''}{s.title}
               <span style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, flexWrap: 'wrap' }}>
@@ -624,9 +624,9 @@ export default function TyshaMaisternia() {
               <div style={{ width: 200, flexShrink: 0 }}>
                 {coverUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={coverUrl} alt="обкладинка" style={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', borderRadius: 8, display: 'block' }} />
+                  <img src={coverUrl} alt="обкладинка" style={{ width: '100%', aspectRatio: '3 / 2', objectFit: 'cover', objectPosition: 'center 22%', borderRadius: 8, display: 'block' }} />
                 ) : (
-                  <div style={{ width: '100%', aspectRatio: '16 / 9', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.18)', fontSize: 12, color: 'rgba(245,240,232,0.45)' }}>без обкладинки</div>
+                  <div style={{ width: '100%', aspectRatio: '3 / 2', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.18)', fontSize: 12, color: 'rgba(245,240,232,0.45)' }}>без обкладинки</div>
                 )}
               </div>
               <div style={{ flex: 1, minWidth: 220 }}>
