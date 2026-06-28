@@ -558,7 +558,7 @@ const PLANS: PlanConfig[] = [
       { text: 'Закриті серії Балабонів', highlight: true },
       { text: 'Тиждень для знайомства', highlight: true },
     ],
-    cta: 'Спробувати тиждень',
+    cta: 'Оформити передплату',
     ctaStyle: 'primary-glow',
     cancelMain: 'Скасуй автопродовження коли хочеш',
     cancelSub: 'оплачений рік залишається твоїм',
@@ -605,7 +605,7 @@ const PLANS: PlanConfig[] = [
       { text: 'Закриті серії Балабонів', highlight: true },
       { text: 'Тиждень для знайомства', highlight: true },
     ],
-    cta: 'Спробувати тиждень',
+    cta: 'Оформити передплату',
     ctaStyle: 'primary-glow',
     cancelMain: 'Скасуй автопродовження коли хочеш',
     cancelSub: 'оплачений рік залишається твоїм',
@@ -677,15 +677,15 @@ export default function PricingSection() {
 
       {/* HEADER */}
       <header className="bb-pricing-header">
-        <div className="bb-pricing-eyebrow">Підписка</div>
+        <div className="bb-pricing-eyebrow">Доступ</div>
         <h2 className="bb-pricing-title">
-          Обери <span className="bb-pricing-accent">свій план</span>
+          Балабони доступні <span className="bb-pricing-accent">кожному</span>
         </h2>
-        <p className="bb-pricing-subtitle">Платиш лише за те, що читаєш</p>
+        <p className="bb-pricing-subtitle">Безкоштовно, за соціальним тарифом або за передплатою</p>
       </header>
 
-      {/* FREE VIEW TIMER */}
-      <FreeViewTimer />
+      {/* FREE VIEW TIMER — приховано */}
+      {/* <FreeViewTimer /> */}
 
       {/* UTILITY ROW */}
       <div className="bb-pricing-util-row">
