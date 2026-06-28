@@ -11,10 +11,10 @@ const FONT = "'Montserrat', Arial, sans-serif"
 
 const STYLES = `
 .ts-kicker {
-  display: inline-block; font-size: 10px; font-weight: 700; color: #1a3a6b;
-  letter-spacing: 2px; text-transform: uppercase; line-height: 1;
-  background: rgba(26,58,107,0.12); border: 1px solid rgba(26,58,107,0.55);
-  padding: 5px 10px; border-radius: 4px; margin-bottom: 10px;
+  display: inline-block; font-size: 10px; font-weight: 700; color: #ffffff;
+  letter-spacing: 1.5px; text-transform: uppercase; line-height: 1;
+  background: #1a3a6b; border: none;
+  padding: 7px 14px; border-radius: 6px; margin-bottom: 12px;
 }
 .ts-card {
   transition: transform 0.25s ease, box-shadow 0.25s ease; will-change: transform;
@@ -134,7 +134,7 @@ export default function TyshaSection() {
                 </div>
                 {ep.description && <p className="ts-teaser">{ep.description}</p>}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 'auto' }}>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: GOLD, fontFamily: FONT, border: `1px solid ${GOLD}`, padding: '2px 8px', borderRadius: 20 }}>Драма</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: GOLD, fontFamily: FONT, border: `1px solid ${GOLD}`, padding: '2px 8px', borderRadius: 20 }}>Військова драма</span>
                   {ep.duration_minutes && (
                     <span style={{ fontSize: 10, fontWeight: 600, color: GOLD, fontFamily: FONT, border: `1px solid ${GOLD}`, padding: '2px 8px', borderRadius: 20 }}>{ep.duration_minutes} хв</span>
                   )}
