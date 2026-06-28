@@ -515,7 +515,7 @@ export default function AboutBalabonySection() {
           }
 
           .beneficiaries-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: 1fr;
           }
 
           .highlight-text {
