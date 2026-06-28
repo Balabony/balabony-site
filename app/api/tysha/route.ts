@@ -5,6 +5,26 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
+function makeExcerpt(text?: string | null, max = 160): string | null {
+  if (!text) return null
+  // Перше «чисте» речення/абзац: прибираємо формат реплік «Імʼя: …» зі старту, беремо оповідний початок.
+  const clean = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    // пропускаємо рядки-репліки виду «Імʼя: …» (до 24 символів до двокрапки)
+    .filter((l) => !/^[\p{Lu}][\p{L}'ʼ\- ]{1,23}:\s/u.test(l))
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  const base = clean || text.replace(/\s+/g, ' ').trim()
+  if (base.length <= max) return base
+  // обрізати по межі слова, без розриву слова
+  const cut = base.slice(0, max)
+  const lastSpace = cut.lastIndexOf(' ')
+  return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).trim() + '…'
+}
+
 function estimateMinutes(text?: string | null): number | undefined {
   if (!text) return undefined
   const words = text.trim().split(/\s+/).filter(Boolean).length
@@ -40,7 +60,7 @@ export async function GET(req: Request) {
       cover_url: r.cover_url,
       has_audio: r.audio_status === 'ready',
       url: `/tysha/${r.slug}`,
-      description: r.hook ?? r.short_description ?? r.description ?? null,
+      description: r.hook ?? r.short_description ?? r.description ?? makeExcerpt(r.text) ?? null,
       duration_minutes: r.duration_minutes ?? estimateMinutes(r.text),
       next_teaser: r.next_teaser ?? null,
     }))
