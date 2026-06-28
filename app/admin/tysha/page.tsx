@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import { checkTysha, summarize, type Finding, type Severity } from '@/lib/canon/tysha'
+import { checkTysha, summarize, autofixTypography, type Finding, type Severity } from '@/lib/canon/tysha'
 
 const FONT = "'Montserrat', Arial, sans-serif"
 const GOLD = '#f0a500'
@@ -392,6 +392,20 @@ export default function TyshaMaisternia() {
 
   function runCheck() {
     setFindings(checkTysha(text))
+  }
+
+  function autofix() {
+    const r = autofixTypography(text)
+    if (r.total === 0) { setMsg('Типографіка чиста — нема що виправляти.'); setFindings(checkTysha(text)); return }
+    setText(r.text)
+    setFindings(checkTysha(r.text))
+    const parts: string[] = []
+    if (r.log.sentenceDots) parts.push(`крапки в реченні: ${r.log.sentenceDots}`)
+    if (r.log.paraDots) parts.push(`крапки в кінці абзацу: ${r.log.paraDots}`)
+    if (r.log.quotes) parts.push(`лапки: ${r.log.quotes}`)
+    if (r.log.spaces) parts.push(`пробіли: ${r.log.spaces}`)
+    if (r.log.gluePunct) parts.push(`пробіл після знака: ${r.log.gluePunct}`)
+    setMsg(`Виправлено ${r.total} — ${parts.join(', ')}. Перевір крапки оком і збережи.`)
   }
 
   const metaDirty =
@@ -796,6 +810,9 @@ export default function TyshaMaisternia() {
               </button>
               <button onClick={runCheck} disabled={!text.trim()} style={btn('#7aa2c4', !!text.trim())}>
                 Перевірити канон
+              </button>
+              <button onClick={autofix} disabled={!text.trim()} style={btn('#c47a9e', !!text.trim())}>
+                Виправити типографіку
               </button>
               <button onClick={improve} disabled={improving || !text.trim()} style={btn('#6b6f9e', !improving && !!text.trim())}>
                 {improving ? 'Олюднюю…' : 'Олюднити (Gemini)'}

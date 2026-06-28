@@ -494,3 +494,84 @@ export function summarize(findings: Finding[]) {
     info: findings.filter(f => f.severity === 'info').length,
   }
 }
+
+// ── АВТОВИПРАВЛЕННЯ ТИПОГРАФІКИ (детерміновано, БЕЗ AI, БЕЗ ком) ──
+// Виправляє лише те, що безпечно чинити автоматично. КОМИ НЕ чіпає (синтаксис).
+// Крапки в середині речення ставить ЛИШЕ для впевнених випадків (слово вже є з
+// малої → не власна назва). Решта — пробіли, лапки, крапка в кінці абзацу.
+// Повертає новий текст + лічильник по категоріях. UI має дати ПЕРЕГЛЯНУТИ перед
+// збереженням: правки крапок інколи помилкові (рідкісне слово / потрібна кома).
+export interface AutofixResult {
+  text: string
+  total: number
+  log: {
+    quotes: number       // прямі/англ. лапки → «ялинки»
+    spaces: number       // подвійні / пробіл перед знаком
+    gluePunct: number    // пробіл після коми/двокрапки/крапки
+    sentenceDots: number // крапка в середині речення (впевнені)
+    paraDots: number     // крапка в кінці абзацу
+  }
+}
+
+export function autofixTypography(input: string): AutofixResult {
+  let text = input
+  const log = { quotes: 0, spaces: 0, gluePunct: 0, sentenceDots: 0, paraDots: 0 }
+
+  // 1. ЛАПКИ. Англ./криві з напрямком — направлено; прямі " — чергуванням.
+  text = text
+    .replace(/[\u201C\u201E]/g, () => { log.quotes++; return '«' })  // " „ → «
+    .replace(/[\u201D\u201F\u2033]/g, () => { log.quotes++; return '»' }) // " ‟ ″ → »
+  {
+    let open = true
+    text = text.replace(/"/g, () => { log.quotes++; const q = open ? '«' : '»'; open = !open; return q })
+  }
+
+  // 2. ПРОБІЛИ. Подвійні → один; прибрати пробіл ПЕРЕД розділовим (тире — ні).
+  text = text.replace(/ {2,}/g, () => { log.spaces++; return ' ' })
+  text = text.replace(/ +([,.!?;:)»])/g, (_m, p1) => { log.spaces++; return p1 })
+
+  // 3. ПРОБІЛ ПІСЛЯ знака (між літерами; час 19:00 і число 1,5 — цифри, не чіпає).
+  text = text.replace(/(\p{L})([,;:])(?=\p{L})/gu, (_m, l, p) => { log.gluePunct++; return l + p + ' ' })
+  text = text.replace(/(\p{Ll})\.(?=\p{Lu})/gu, (_m, l) => { log.gluePunct++; return l + '. ' })
+
+  // 4. КРАПКА В СЕРЕДИНІ РЕЧЕННЯ — лише впевнені (слово є з малої деінде / «я»),
+  //    не імена персонажів. «…пішов Уже…» → «…пішов. Уже…».
+  const nameTokens = new Set<string>()
+  for (const c of TYSHA_CHARACTERS) for (const part of c.split(/\s+/)) nameTokens.add(norm(part))
+  const lowerWordSet = new Set<string>()
+  for (const m of input.matchAll(/[а-яіїєґ’ʼ'][а-яіїєґ’ʼ'\-]*/gu)) lowerWordSet.add(norm(m[0]))
+  text = text.replace(/([а-яіїєґ’ʼ'])(\s+)([А-ЯІЇЄҐ][а-яіїєґ’ʼ'\-]*)/gu, (full, prev, _ws, cap) => {
+    const cw = norm(cap)
+    if (nameTokens.has(cw)) return full
+    if (lowerWordSet.has(cw) || cw === 'я') { log.sentenceDots++; return `${prev}. ${cap}` }
+    return full
+  })
+
+  // 5. КРАПКА В КІНЦІ АБЗАЦУ — речення-абзац без кінцевого знака.
+  //    Захист від обірваних рядків: ставимо крапку лише якщо це останній рядок
+  //    АБО наступний непорожній рядок починається з великої / «»» / тире
+  //    (тобто рядок не продовжується малою на новому рядку).
+  const lines = text.split(/\r?\n/)
+  const nextStartsNew = (from: number) => {
+    for (let j = from + 1; j < lines.length; j++) {
+      const t = lines[j].trim()
+      if (!t) continue
+      return /^[А-ЯІЇЄҐ«—–-]/.test(t)
+    }
+    return true // більше непорожніх рядків немає
+  }
+  for (let i = 0; i < lines.length; i++) {
+    const ln = lines[i]
+    const tr = ln.replace(/\s+$/, '')
+    if (tr.trim().length < 25) continue
+    if (/[.!?…»):;—”"']$/.test(tr)) continue       // вже є кінцевий знак
+    if (!/\p{L}$/u.test(tr)) continue               // не закінчується літерою
+    if (!nextStartsNew(i)) continue                 // продовжується малою — не чіпаємо
+    lines[i] = tr + '.'
+    log.paraDots++
+  }
+  text = lines.join('\n')
+
+  const total = log.quotes + log.spaces + log.gluePunct + log.sentenceDots + log.paraDots
+  return { text, total, log }
+}
