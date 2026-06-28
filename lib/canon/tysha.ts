@@ -483,6 +483,53 @@ export function checkTysha(text: string): Finding[] {
   }
   if (dotGlue > 0) out.push({ rule: 'злиплий знак', severity: 'warn', message: `Крапка без пробілу перед новим реченням: ${dotGlue}. Напр.: «${dotGlueEx}».` })
 
+  // ── 16. ЗАДВОЄНИЙ ТЕКСТ / ПОВТОР-АБЗАЦИ — warn ──
+  // Ловить, коли фрагмент ≥8 слів повторюється в тексті (часта порча після
+  // «Олюднити»/вставки: один абзац вставлено двічі). Коротші повтори (рефрени
+  // «знову й знову») вікно 8 слів НЕ чіпає.
+  const DUP_WIN = 8
+  const toks: Array<{ w: string; i: number; len: number }> = []
+  for (const m of text.matchAll(/\S+/g)) toks.push({ w: norm(m[0]), i: m.index!, len: m[0].length })
+  if (toks.length >= DUP_WIN * 2) {
+    const shingles = new Map<string, number[]>()
+    for (let k = 0; k + DUP_WIN <= toks.length; k++) {
+      const key = toks.slice(k, k + DUP_WIN).map(t => t.w).join(' ')
+      const arr = shingles.get(key)
+      if (arr) arr.push(k); else shingles.set(key, [k])
+    }
+    // Старти других (зайвих) копій — кожне неперекрите повторне входження шингла.
+    const dupStarts: number[] = []
+    for (const positions of shingles.values()) {
+      if (positions.length < 2) continue
+      for (let p = 1; p < positions.length; p++) {
+        if (positions[p] - positions[p - 1] >= DUP_WIN) dupStarts.push(positions[p])
+      }
+    }
+    dupStarts.sort((a, b) => a - b)
+    // Злити сусідні старти в один регіон.
+    const regions: Array<[number, number]> = []
+    for (const s of dupStarts) {
+      const last = regions[regions.length - 1]
+      if (last && s - last[1] <= DUP_WIN) last[1] = Math.max(last[1], s + DUP_WIN)
+      else regions.push([s, s + DUP_WIN])
+    }
+    const DUP_CAP = 6
+    for (const [a, b] of regions.slice(0, DUP_CAP)) {
+      const startChar = toks[a].i
+      const endTok = toks[Math.min(b, toks.length - 1)]
+      const endChar = endTok.i + endTok.len
+      out.push({
+        rule: 'задвоєний текст',
+        severity: 'warn',
+        message: 'Цей фрагмент уже є в тексті вище — схоже на задвоєння (вставлено двічі). Прибери дубль.',
+        excerpt: text.slice(startChar, Math.min(endChar, startChar + 70)).replace(/\s+/g, ' ').trim(),
+      })
+    }
+    if (regions.length > DUP_CAP) {
+      out.push({ rule: 'задвоєний текст', severity: 'warn', message: `…і ще ${regions.length - DUP_CAP} повторюваних фрагментів.` })
+    }
+  }
+
   return out
 }
 
