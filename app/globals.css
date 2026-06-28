@@ -130,6 +130,5 @@ h1, h2, h3 {
 body, body * {
   -webkit-hyphens: none !important;
   hyphens: none !important;
-  overflow-wrap: normal !important;
-  word-break: normal !important;
+  overflow-wrap: break-word !important;
 }
