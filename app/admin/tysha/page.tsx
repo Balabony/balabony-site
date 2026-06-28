@@ -34,6 +34,7 @@ interface SeriesItem {
   hasAudio?: boolean
   canonErrors?: number
   canonWarns?: number
+  coverUrl?: string | null
 }
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
@@ -179,6 +180,11 @@ export default function TyshaMaisternia() {
 
   const [loadingList, setLoadingList] = useState(true)
   const [loadingItem, setLoadingItem] = useState(false)
+  // --- Обкладинка серії ---
+  const [coverUrl, setCoverUrl] = useState<string | null>(null)
+  const [coverBusy, setCoverBusy] = useState<'' | 'upload' | 'ai'>('')
+  const [coverEdit, setCoverEdit] = useState('')   // опис правки для AI
+  const coverFileRef = useRef<HTMLInputElement | null>(null)
   const [saving, setSaving] = useState(false)
   const [improving, setImproving] = useState(false)
   const [msg, setMsg] = useState('')
@@ -248,6 +254,59 @@ export default function TyshaMaisternia() {
 
   useEffect(() => { loadList() }, [loadList])
 
+  // Завантажити ВЛАСНЕ фото як обкладинку поточної серії.
+  async function uploadOwnCover(file: File) {
+    if (!selectedId) return
+    setCoverBusy('upload'); setErr(''); setMsg('')
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('episode_id', selectedId)
+      const r = await fetch('/api/admin/tysha-upload-cover', { method: 'POST', body: fd, credentials: 'same-origin' })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d.error || 'Не вдалося завантажити фото')
+      setCoverUrl(d.url)
+      setList((cur) => cur.map((x) => (x.id === selectedId ? { ...x, coverUrl: d.url } : x)))
+      setMsg('Фото завантажено й присвоєно серії')
+    } catch (e) {
+      setErr(String(e instanceof Error ? e.message : e))
+    } finally {
+      setCoverBusy('')
+      if (coverFileRef.current) coverFileRef.current.value = ''
+    }
+  }
+
+  // AI-редагування поточної обкладинки: flux-kontext змінює фото за описом, обличчя тримається.
+  async function editCoverAI() {
+    if (!selectedId || !coverUrl) { setErr('Спершу має бути обкладинка'); return }
+    if (!coverEdit.trim()) { setErr('Опиши, що змінити (англ. краще)'); return }
+    setCoverBusy('ai'); setErr(''); setMsg('')
+    try {
+      const r = await fetch('/api/admin/generate-tysha-cover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ mode: 'cover', referenceImageUrl: coverUrl, scene: coverEdit.trim() }),
+      })
+      const d = await r.json()
+      if (!r.ok || !d.url) throw new Error(d.error || 'AI не зміг відредагувати')
+      // присвоїти нову обкладинку серії
+      await fetch(`/api/admin/content/${selectedId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ cover_url: d.url }),
+      })
+      setCoverUrl(d.url)
+      setList((cur) => cur.map((x) => (x.id === selectedId ? { ...x, coverUrl: d.url } : x)))
+      setMsg('Обкладинку відредаговано через AI')
+    } catch (e) {
+      setErr(String(e instanceof Error ? e.message : e))
+    } finally {
+      setCoverBusy('')
+    }
+  }
+
   async function selectSeries(id: string) {
     if (dirty && !confirm('Є незбережені зміни. Відкрити іншу серію без збереження?')) return
     setLoadingItem(true); setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setRecapText(null); setCleaned(null)
@@ -257,6 +316,8 @@ export default function TyshaMaisternia() {
       if (!r.ok) throw new Error(d.error || 'Не вдалося відкрити серію')
       const body = (d.item?.text ?? '') as string
       setSelectedId(id); setText(body); setSavedText(body)
+      setCoverUrl((d.item?.cover_url ?? null) as string | null)
+      setCoverEdit('')
       setPubStatus((d.item?.status ?? 'draft') as string)
       const it = d.item ?? {}
       const mt = (it.title ?? '') as string
@@ -515,6 +576,12 @@ export default function TyshaMaisternia() {
                 fontWeight: active ? 700 : 500,
               }}
             >
+              {s.coverUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={s.coverUrl} alt="" style={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', borderRadius: 6, marginBottom: 7, display: 'block' }} />
+              ) : (
+                <div style={{ width: '100%', aspectRatio: '16 / 9', borderRadius: 6, marginBottom: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.15)', fontSize: 11, color: 'rgba(245,240,232,0.4)' }}>без обкладинки</div>
+              )}
               {s.episode_number != null ? `${s.episode_number}. ` : ''}{s.title}
               <span style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, flexWrap: 'wrap' }}>
                 {(() => { const sm = STATUS_META[s.status] ?? { label: s.status, color: '#9aa0a6' }; return <span style={chip(sm.color)}>{sm.label}</span> })()}
@@ -552,6 +619,55 @@ export default function TyshaMaisternia() {
 
         {selectedId && !loadingItem && (
           <>
+            {/* ── Обкладинка серії: показ + завантажити своє фото + AI-редагування ── */}
+            <div style={{ display: 'flex', gap: 14, marginBottom: 14, padding: 14, borderRadius: 10, background: NAVY, border: '1px solid rgba(255,255,255,0.1)', flexWrap: 'wrap' }}>
+              <div style={{ width: 200, flexShrink: 0 }}>
+                {coverUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={coverUrl} alt="обкладинка" style={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', borderRadius: 8, display: 'block' }} />
+                ) : (
+                  <div style={{ width: '100%', aspectRatio: '16 / 9', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.18)', fontSize: 12, color: 'rgba(245,240,232,0.45)' }}>без обкладинки</div>
+                )}
+              </div>
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: GOLD, marginBottom: 8 }}>Обкладинка серії</div>
+
+                <input
+                  ref={coverFileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: 'none' }}
+                  onChange={(e) => { const fl = e.target.files?.[0]; if (fl) uploadOwnCover(fl) }}
+                />
+                <button
+                  onClick={() => coverFileRef.current?.click()}
+                  disabled={coverBusy !== ''}
+                  style={{ padding: '8px 14px', borderRadius: 8, background: 'transparent', color: GOLD, border: `1px solid ${GOLD}88`, fontWeight: 700, fontSize: 13, fontFamily: FONT, cursor: coverBusy ? 'default' : 'pointer', marginRight: 8, marginBottom: 8 }}
+                >
+                  {coverBusy === 'upload' ? 'Завантаження…' : '⬆ Завантажити своє фото'}
+                </button>
+                <div style={{ fontSize: 11, color: 'rgba(245,240,232,0.5)', marginBottom: 10 }}>JPG, PNG або WebP, до 8 МБ. Фото одразу стає обкладинкою цієї серії.</div>
+
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <input
+                    value={coverEdit}
+                    onChange={(e) => setCoverEdit(e.target.value)}
+                    placeholder="що змінити в обкладинці (англ. краще, напр. add falling snow)"
+                    style={{ flex: 1, minWidth: 180, padding: 9, borderRadius: 8, background: NAVY_DEEP, color: INK, border: '1px solid rgba(255,255,255,0.15)', fontFamily: FONT, fontSize: 13 }}
+                  />
+                  <button
+                    onClick={editCoverAI}
+                    disabled={coverBusy !== '' || !coverUrl}
+                    title={!coverUrl ? 'Спершу має бути обкладинка' : 'AI змінить фото за описом'}
+                    style={{ padding: '9px 14px', borderRadius: 8, background: coverUrl ? '#c98a2e' : '#33405e', color: '#fff', border: 'none', fontWeight: 700, fontSize: 13, fontFamily: FONT, cursor: (coverBusy || !coverUrl) ? 'default' : 'pointer' }}
+                  >
+                    {coverBusy === 'ai' ? 'AI редагує…' : '✦ Редагувати через AI'}
+                  </button>
+                </div>
+                <div style={{ fontSize: 11, color: 'rgba(245,240,232,0.45)', marginTop: 6 }}>AI бере поточну обкладинку й вносить зміну, тримаючи кадр. Для нової з нуля — «Обкладинки Тиша».</div>
+              </div>
+            </div>
+
             <div style={{ position: 'relative', height: 440, borderRadius: 10, border: `1px solid ${dirty ? GOLD : 'rgba(255,255,255,0.12)'}`, overflow: 'hidden', background: NAVY_DEEP }}>
               {/* Шар підсвітки (під текстом) */}
               <div

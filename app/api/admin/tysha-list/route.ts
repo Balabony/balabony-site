@@ -20,6 +20,7 @@ type Row = {
   audio_url: string | null
   text: string | null
   corrected_text: string | null
+  cover_url: string | null
 }
 
 export async function GET(req: NextRequest) {
@@ -30,7 +31,7 @@ export async function GET(req: NextRequest) {
     const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
       .from('content')
-      .select('id, slug, title, season_number, episode_number, status, audio_status, audio_url, text, corrected_text')
+      .select('id, slug, title, season_number, episode_number, status, audio_status, audio_url, text, corrected_text, cover_url')
       .eq('type', 'tysha')
       .order('season_number', { ascending: true })
       .order('episode_number', { ascending: true })
@@ -53,6 +54,7 @@ export async function GET(req: NextRequest) {
         hasAudio: !!(r.audio_url && String(r.audio_url).trim()),
         canonErrors,
         canonWarns,
+        coverUrl: r.cover_url ?? null,
       }
     })
 
