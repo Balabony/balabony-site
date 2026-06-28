@@ -67,7 +67,7 @@ function cleanTitle(raw: string): string {
 }
 
 export default function TyshaSection() {
-  const { colors } = useTheme()
+  const { colors, isNight } = useTheme()
   const [items, setItems] = useState<TyshaItem[]>([])
   const [loaded, setLoaded] = useState(false)
 
@@ -90,7 +90,7 @@ export default function TyshaSection() {
         <div style={{ marginBottom: 16 }}>
           <div className="ts-kicker">Авторські серіали · 18+</div>
           <div style={{ fontSize: 22, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.15 }}>ТИША</div>
-          <div style={{ fontSize: 13, fontStyle: 'italic', color: AMBER, fontFamily: FONT, margin: '3px 0 2px' }}>Історія, яку чуєш серцем</div>
+          <div style={{ fontSize: 13.5, fontWeight: 600, color: isNight ? '#7da7d9' : '#1a3a6b', fontFamily: FONT, margin: '4px 0 2px', letterSpacing: 0.2 }}>Історія, яку чуєш серцем</div>
           <div style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.55)', fontFamily: FONT }}>Проза про війну · психологічний реалізм</div>
         </div>
 
