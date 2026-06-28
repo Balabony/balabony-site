@@ -679,7 +679,7 @@ export default function PricingSection() {
       <header className="bb-pricing-header">
         <div className="bb-pricing-eyebrow">Доступ</div>
         <h2 className="bb-pricing-title">
-          Балабони доступні <span className="bb-pricing-accent">кожному</span>
+          Балабони <span style={{whiteSpace:'nowrap'}}>доступні <span className="bb-pricing-accent">кожному</span></span>
         </h2>
         <p className="bb-pricing-subtitle">Безкоштовно, за соціальним тарифом або за передплатою</p>
       </header>
@@ -688,6 +688,7 @@ export default function PricingSection() {
       {/* <FreeViewTimer /> */}
 
       {/* UTILITY ROW */}
+      <SectionLabel text="Безкоштовно та пільгово" />
       <div className="bb-pricing-util-row">
         <button
           type="button"
