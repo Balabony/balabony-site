@@ -115,14 +115,14 @@ body, p, li, h1, h2, h3, h4, h5, h6, a, span, div, blockquote, figcaption {
 /* М'який перенос по складах там, де браузер знає правила мови
    (German тощо). Працює, коли в HTML заданий lang. */
 :lang(de), :lang(uk), :lang(en) {
-  -webkit-hyphens: auto;
-  hyphens: auto;
+  -webkit-hyphens: none;
+  hyphens: none;
 }
 /* Заголовки — переноси по складах вмикаємо, але баланс лишаємо чистим */
 h1, h2, h3 {
   overflow-wrap: break-word;
-  -webkit-hyphens: auto;
-  hyphens: auto;
+  -webkit-hyphens: none;
+  hyphens: none;
 }
 
 

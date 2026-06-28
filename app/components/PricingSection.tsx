@@ -688,7 +688,7 @@ export default function PricingSection() {
       {/* <FreeViewTimer /> */}
 
       {/* UTILITY ROW */}
-      <SectionLabel text="Безкоштовно та пільгово" />
+      <SectionLabel text="Безкоштовно" />
       <div className="bb-pricing-util-row">
         <button
           type="button"
