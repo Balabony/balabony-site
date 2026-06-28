@@ -719,7 +719,7 @@ export default function PricingSection() {
         <span style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
           <span>
             <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: '#0f1e3a' }}>Пільговий доступ</span>
-            <span style={{ display: 'block', fontSize: 14, color: 'rgba(15,30,58,0.75)', marginTop: 5, lineHeight: 1.5 }}>
+            <span style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#0f1e3a', marginTop: 5, lineHeight: 1.5 }}>
               Для ветеранів (УБД), ВПО та людей з інвалідністю
             </span>
             <span style={{
