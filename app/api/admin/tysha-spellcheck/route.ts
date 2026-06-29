@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
     ? `ЧИННИЙ ПРАВОПИС (рішення НКСДМ №47, 2026) — звіряйся з цими правилами в першу чергу:\n${rules}\n`
     : `Спирайся на чинний «Український правопис» (рішення НКСДМ №47 від 01.03.2026, чинний з 28.03.2026), НЕ на правопис 2019 року.\n`
 
-  const prompt = `Ти — коректор української мови. Перед тобою фрагмент авторського серіалу «Тиша». Знайди ОРФОГРАФІЧНІ, ПУНКТУАЦІЙНІ та ГРАМАТИЧНІ помилки. Це коректура, НЕ редагування стилю.
+  const buildPrompt = (fragment: string) => `Ти — коректор української мови. Перед тобою фрагмент авторського серіалу «Тиша». Знайди ОРФОГРАФІЧНІ, ПУНКТУАЦІЙНІ та ГРАМАТИЧНІ помилки. Це коректура, НЕ редагування стилю.
 
 ${rulesBlock}
 ЩО ШУКАТИ:
@@ -121,8 +121,22 @@ ${rulesBlock}
 
 Текст:
 """
-${text}
+${fragment}
 """`
+
+  // Дробимо на абзацні шматки ~1800 символів: коротший контекст рідше тригерить
+  // вбудований фільтр PROHIBITED_CONTENT, а блок одного шматка не рве решту.
+  const splitChunks = (s: string, maxChars = 1800): string[] => {
+    const paras = s.split(/\n/)
+    const chunks: string[] = []
+    let cur = ''
+    for (const p of paras) {
+      if (cur && cur.length + p.length + 1 > maxChars) { chunks.push(cur); cur = '' }
+      cur = cur ? cur + '\n' + p : p
+    }
+    if (cur) chunks.push(cur)
+    return chunks
+  }
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey)
@@ -138,12 +152,45 @@ ${text}
       } as Parameters<typeof genAI.getGenerativeModel>[0],
       { apiVersion: 'v1beta' }
     )
-    const result = await model.generateContent(prompt)
-    const rawOut = result.response.text()
-    const parsed = parseSuggestions(rawOut)
-    const validated = parsed.filter((s) => isGranular(s.before) && existsInText(text, s.before))
-    const dropped = parsed.length - validated.length
-    return NextResponse.json({ suggestions: validated, dropped, usedRules: !!rules })
+
+    const chunks = splitChunks(text)
+    const all: { before: string; after: string; reason: string }[] = []
+    let dropped = 0
+    let blocked = 0
+
+    for (const chunk of chunks) {
+      let rawOut = ''
+      try {
+        const result = await model.generateContent(buildPrompt(chunk))
+        rawOut = result.response.text() // кидає, якщо заблоковано
+      } catch (e) {
+        const m = e instanceof Error ? e.message : ''
+        if (/block|prohibit|safety|not available/i.test(m)) { blocked++; continue }
+        throw e
+      }
+      const parsed = parseSuggestions(rawOut)
+      for (const s of parsed) {
+        if (isGranular(s.before) && existsInText(text, s.before)) all.push(s)
+        else dropped++
+      }
+    }
+
+    // Дедуп за «було».
+    const seen = new Set<string>()
+    const suggestions = all.filter((s) => {
+      const k = s.before.trim().toLowerCase()
+      if (seen.has(k)) return false
+      seen.add(k); return true
+    })
+
+    return NextResponse.json({
+      suggestions,
+      dropped,
+      blocked,
+      chunks: chunks.length,
+      usedRules: !!rules,
+      note: blocked > 0 ? `AI заблокував ${blocked} із ${chunks.length} фрагментів (воєнний вміст) — там правопис перевір вручну.` : '',
+    })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Помилка API'
     return NextResponse.json({ error: msg }, { status: 500 })

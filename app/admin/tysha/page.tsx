@@ -215,33 +215,6 @@ export default function TyshaMaisternia() {
     }
   }
 
-  // Перехід до місця порушення: знаходимо цитату в тексті (пробіли гнучко),
-  // виділяємо й прокручуємо поле до неї.
-  function jumpTo(excerpt?: string) {
-    const ta = taRef.current
-    if (!ta || !excerpt) return
-    const needle = excerpt.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')
-    let m: RegExpMatchArray | null = null
-    try { m = text.match(new RegExp(needle)) } catch { m = null }
-    if (!m || m.index == null) {
-      // запасний варіант — перші 4 слова цитати
-      const short = excerpt.trim().split(/\s+/).slice(0, 4).join(' ')
-        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')
-      try { m = text.match(new RegExp(short)) } catch { m = null }
-    }
-    if (!m || m.index == null) return
-    const start = m.index
-    const end = start + m[0].length
-    ta.focus()
-    ta.setSelectionRange(start, end)
-    // прокрутка до місця (приблизно по номеру рядка)
-    const before = text.slice(0, start)
-    const line = before.split('\n').length
-    const lineH = 22
-    ta.scrollTop = Math.max(0, (line - 4) * lineH)
-    syncScroll()
-  }
-
   const loadList = useCallback(async () => {
     setLoadingList(true); setErr('')
     try {
@@ -568,11 +541,12 @@ export default function TyshaMaisternia() {
       const d = await r.json()
       if (!r.ok) throw new Error(d.error || 'Помилка перевірки правопису')
       const raw = (d.suggestions ?? []) as { before: string; after: string; reason: string }[]
+      const blockNote = typeof d.note === 'string' && d.note ? ` · ${d.note}` : ''
       if (raw.length > 0) {
         setSuggestions(raw.map((s) => ({ ...s, accepted: true })))
-        setMsg(d.usedRules ? 'Перевірено за правописом із бази /pravopys' : 'Перевірено (база правил недоступна — загальні норми)')
+        setMsg((d.usedRules ? 'Перевірено за правописом із бази /pravopys' : 'Перевірено (база правил недоступна — загальні норми)') + blockNote)
       } else {
-        setMsg('Помилок правопису не знайдено — текст чистий.')
+        setMsg((d.note ? d.note : 'Помилок правопису не знайдено — текст чистий.'))
       }
     } catch (e) {
       const m = e instanceof Error && e.name === 'AbortError'
@@ -652,6 +626,16 @@ export default function TyshaMaisternia() {
   const sorted = findings
     ? [...findings].sort((a, b) => SEV[a.severity].order - SEV[b.severity].order)
     : []
+  // Зведення по типах правил (для компактного списку без лінків-стрибків).
+  const grouped = (() => {
+    const map = new Map<string, { rule: string; severity: Severity; count: number; example?: string }>()
+    for (const f of sorted) {
+      const g = map.get(f.rule)
+      if (g) { g.count++; if (!g.example && f.excerpt) g.example = f.excerpt }
+      else map.set(f.rule, { rule: f.rule, severity: f.severity, count: 1, example: f.excerpt })
+    }
+    return [...map.values()].sort((a, b) => SEV[a.severity].order - SEV[b.severity].order)
+  })()
 
   const btn = (bg: string, on: boolean): React.CSSProperties => ({
     padding: '9px 16px', borderRadius: 8, border: 'none', cursor: on ? 'pointer' : 'default',
@@ -1082,26 +1066,27 @@ export default function TyshaMaisternia() {
               </div>
             )}
 
-            {sorted.map((f, i) => (
-              <div
-                key={i}
-                onClick={() => jumpTo(f.excerpt)}
-                title={f.excerpt ? 'Клік — показати місце в тексті' : undefined}
-                style={{ margin: '8px 0', padding: '11px 13px', borderRadius: 10, background: SEV[f.severity].bg, borderLeft: `3px solid ${SEV[f.severity].color}`, cursor: f.excerpt ? 'pointer' : 'default' }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: SEV[f.severity].color }}>{SEV[f.severity].label}</span>
-                  <span style={{ fontSize: 13, fontWeight: 600 }}>{f.rule}</span>
-                  {f.excerpt && <span style={{ marginLeft: 'auto', fontSize: 11, color: 'rgba(245,240,232,0.45)' }}>показати в тексті →</span>}
+            {grouped.length > 0 && (
+              <div style={{ margin: '10px 0' }}>
+                <div style={{ fontSize: 12, color: 'rgba(245,240,232,0.6)', marginBottom: 8, fontFamily: FONT }}>
+                  Підсвічено в тексті вище (галочка «Підсвічувати порушення»). Прав прямо в редакторі. Зведення:
                 </div>
-                <div style={{ fontSize: 13, color: 'rgba(245,240,232,0.85)', lineHeight: 1.4 }}>{f.message}</div>
-                {f.excerpt && (
-                  <div style={{ marginTop: 5, padding: '6px 10px', borderRadius: 6, background: 'rgba(0,0,0,0.25)', fontSize: 12.5, color: 'rgba(245,240,232,0.7)', fontFamily: "'Georgia', serif", fontStyle: 'italic' }}>
-                    «{f.excerpt}»
+                {grouped.map((g) => (
+                  <div key={g.rule} style={{ margin: '7px 0', padding: '10px 12px', borderRadius: 10, background: SEV[g.severity].bg, borderLeft: `3px solid ${SEV[g.severity].color}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, color: SEV[g.severity].color }}>{SEV[g.severity].label}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>{g.rule}</span>
+                      <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 800, color: SEV[g.severity].color }}>{g.count}</span>
+                    </div>
+                    {g.example && (
+                      <div style={{ marginTop: 5, fontSize: 12, color: 'rgba(245,240,232,0.6)', fontFamily: "'Georgia', serif", fontStyle: 'italic' }}>
+                        напр.: «{g.example}»
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
-            ))}
+            )}
           </>
         )}
       </main>
