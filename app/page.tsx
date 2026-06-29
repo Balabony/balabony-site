@@ -100,6 +100,12 @@ export default function HomePage() {
         <div id="how-it-works" style={{ display: 'block', scrollMarginTop: '80px' }}>
           <HowItWorks />
         </div>
+      {/* МІСІЯ ВГОРІ — для Google Ad Grants: сайт читається як місія, не магазин */}
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 0' }}>
+        <AboutBalabonySection />
+        <InclusivitySection />
+      </div>
+
       <div id="series"><SeriesStrip series={seriesData} /></div>
 
       <div style={viewAllWrapperStyle}>
@@ -143,15 +149,9 @@ export default function HomePage() {
         </div>
         <div id="fairytales"><FairytalesSection /></div>
 
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-        {/* ІНКЛЮЗИВНІСТЬ                                                  */}
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-        <InclusivitySection />
-        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
         <BonusSection />
 
         <PwaSection />      <ChannelsSection />
-        <AboutBalabonySection />
         <AuthorSection />
         <SurveyPreviewSection />
       </main>
