@@ -837,33 +837,39 @@ export default function TyshaMaisternia() {
               Підсвічувати порушення в тексті
             </label>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '12px 0', flexWrap: 'wrap' }}>
-              <button onClick={save} disabled={!dirty || saving} style={btn(GOLD, dirty && !saving)}>
-                {saving ? 'Зберігаю…' : dirty ? 'Зберегти' : 'Збережено'}
-              </button>
+            {/* ── Послідовність вичитки 1 → 4 ── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '12px 0 6px', flexWrap: 'wrap' }}>
               <button onClick={runCheck} disabled={!text.trim()} style={btn('#7aa2c4', !!text.trim())}>
-                Перевірити канон
+                1 · Перевірити канон
               </button>
               <button onClick={fixAll} disabled={punctBusy || !text.trim()} style={btn('#c47a9e', !punctBusy && !!text.trim())}>
-                {punctBusy ? 'Виправляю…' : 'Виправити крапки й типографіку'}
-              </button>
-              <button onClick={improve} disabled={improving || !text.trim()} style={btn('#6b6f9e', !improving && !!text.trim())}>
-                {improving ? 'Олюднюю…' : 'Олюднити (Gemini)'}
+                {punctBusy ? 'Виправляю…' : '2 · Виправити крапки й типографіку'}
               </button>
               <button onClick={spellcheck} disabled={spellBusy || !text.trim()} style={btn('#5b8fb0', !spellBusy && !!text.trim())}>
-                {spellBusy ? 'Перевіряю…' : 'Перевірити правопис'}
+                {spellBusy ? 'Перевіряю…' : '3 · Перевірити правопис'}
               </button>
-              <button onClick={genRecap} disabled={!text.trim() || aiBusy !== null} style={btn('#c4a27a', !!text.trim() && aiBusy === null)}>
-                {aiBusy === 'recap' ? 'Генерую…' : 'Recap'}
-              </button>
-              <button onClick={cleanTts} disabled={!text.trim() || aiBusy !== null} style={btn('#7ac4a2', !!text.trim() && aiBusy === null)}>
-                {aiBusy === 'clean' ? 'Чищу…' : 'Чистка для TTS'}
+              <button onClick={save} disabled={!dirty || saving} style={btn(GOLD, dirty && !saving)}>
+                {saving ? 'Зберігаю…' : dirty ? '4 · Зберегти' : '4 · Збережено'}
               </button>
               {msg && <span style={{ fontSize: 13, color: '#8fc4a6' }}>{msg}</span>}
               <span style={{ marginLeft: 'auto', fontSize: 13, color: 'rgba(245,240,232,0.5)' }}>
                 {words} слів{words > 0 && words < 1500 ? ' · закоротко' : ''}{words > 2300 ? ' · задовго' : ''}
                 {dirty ? ' · не збережено' : ''}
               </span>
+            </div>
+
+            {/* ── Окремі інструменти (поза послідовністю) ── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 12px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.4)', marginRight: 2 }}>Окремо:</span>
+              <button onClick={improve} disabled={improving || !text.trim()} style={{ ...btn('#6b6f9e', !improving && !!text.trim()), padding: '7px 13px', fontSize: 13 }}>
+                {improving ? 'Олюднюю…' : 'Олюднити (Gemini)'}
+              </button>
+              <button onClick={genRecap} disabled={!text.trim() || aiBusy !== null} style={{ ...btn('#c4a27a', !!text.trim() && aiBusy === null), padding: '7px 13px', fontSize: 13 }}>
+                {aiBusy === 'recap' ? 'Генерую…' : 'Recap'}
+              </button>
+              <button onClick={cleanTts} disabled={!text.trim() || aiBusy !== null} style={{ ...btn('#7ac4a2', !!text.trim() && aiBusy === null), padding: '7px 13px', fontSize: 13 }}>
+                {aiBusy === 'clean' ? 'Чищу…' : 'Чистка для TTS'}
+              </button>
             </div>
 
             {/* ─── Метадані серії ─── */}
