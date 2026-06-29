@@ -62,6 +62,23 @@ const SEV_ORDER: Record<Severity, number> = { error: 0, warn: 1, info: 2 }
 
 interface Range { start: number; end: number; sev: Severity }
 
+// Точковий діф двох рядків: спільний префікс/суфікс + середини, що відрізняються.
+// Дозволяє підсвічувати ЛИШЕ реально змінене (вставлену кому, змінені літери),
+// а не весь контекстний фрагмент.
+function diffParts(before: string, after: string): { pre: string; delMid: string; addMid: string; suf: string } {
+  let p = 0
+  const min = Math.min(before.length, after.length)
+  while (p < min && before[p] === after[p]) p++
+  let s = 0
+  while (s < min - p && before[before.length - 1 - s] === after[after.length - 1 - s]) s++
+  return {
+    pre: before.slice(0, p),
+    delMid: before.slice(p, before.length - s),
+    addMid: after.slice(p, after.length - s),
+    suf: before.slice(before.length - s),
+  }
+}
+
 // Гнучкий пошук цитати порушення в поточному тексті (пробіли = будь-які).
 function findRange(text: string, excerpt: string): [number, number] | null {
   const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')
@@ -1032,16 +1049,28 @@ export default function TyshaMaisternia() {
               ranges.forEach((r, n) => {
                 if (r.start > cur) previewNodes.push(<span key={`t${n}`}>{text.slice(cur, r.start)}</span>)
                 const s = suggestions[r.idx]
+                const { pre, delMid, addMid, suf } = diffParts(s.before, s.after)
                 previewNodes.push(
                   <span
                     key={`c${n}`}
                     onClick={() => toggle(r.idx)}
                     title={s.reason ? `${s.reason} · клік — прийняти/відхилити` : 'клік — прийняти/відхилити'}
-                    style={s.accepted
-                      ? { background: 'rgba(79,158,116,0.32)', borderBottom: '2px solid #4f9e74', cursor: 'pointer', borderRadius: 3, padding: '0 1px' }
-                      : { background: 'rgba(168,90,90,0.14)', textDecoration: 'line-through', textDecorationColor: '#a85a5a', color: '#c8a0a0', cursor: 'pointer', borderRadius: 3, padding: '0 1px' }}
+                    style={{ cursor: 'pointer', borderRadius: 3 }}
                   >
-                    {s.accepted ? s.after : text.slice(r.start, r.end)}
+                    {pre}
+                    {s.accepted ? (
+                      <>
+                        {delMid && (
+                          <span style={{ textDecoration: 'line-through', textDecorationColor: '#a85a5a', color: '#c8a0a0', background: 'rgba(168,90,90,0.14)' }}>{delMid}</span>
+                        )}
+                        {addMid && (
+                          <span style={{ background: 'rgba(79,158,116,0.45)', borderBottom: '2px solid #4f9e74', color: INK, padding: '0 1px', borderRadius: 2 }}>{addMid}</span>
+                        )}
+                      </>
+                    ) : (
+                      <span style={{ borderBottom: '1px dotted rgba(245,240,232,0.45)', color: 'rgba(245,240,232,0.6)' }}>{delMid}</span>
+                    )}
+                    {suf}
                   </span>
                 )
                 cur = r.end
@@ -1067,10 +1096,45 @@ export default function TyshaMaisternia() {
                     <button onClick={apply} disabled={acceptedCount === 0} style={{ ...btn('#6b6f9e', acceptedCount > 0), padding: '5px 11px', fontSize: 12 }}>Застосувати ({acceptedCount})</button>
                     <button onClick={() => setSuggestions(null)} style={{ padding: '5px 11px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.5)', border: '1px solid rgba(255,255,255,0.12)', fontSize: 12, fontFamily: FONT }}>Скасувати</button>
                   </div>
-                  <div style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.55)', marginBottom: 8, fontFamily: FONT }}>
-                    <span style={{ background: 'rgba(79,158,116,0.32)', borderBottom: '2px solid #4f9e74', borderRadius: 3, padding: '0 4px' }}>зелене</span> — буде поставлено · <span style={{ textDecoration: 'line-through', color: '#c8a0a0' }}>закреслене</span> — відхилено · клік по слову перемикає
+                  {/* СПИСОК ПРАВОК — основне: читаєш по черзі, клік = чекбокс */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+                    {suggestions.map((s, i) => {
+                      const on = s.accepted
+                      const d = diffParts(s.before, s.after)
+                      return (
+                        <div key={i} onClick={() => toggle(i)} style={{
+                          fontSize: 13, fontFamily: "'Georgia', serif", cursor: 'pointer',
+                          background: on ? 'rgba(79,158,116,0.08)' : 'rgba(255,255,255,0.02)',
+                          border: `1px solid ${on ? 'rgba(79,158,116,0.35)' : 'rgba(255,255,255,0.08)'}`,
+                          borderRadius: 8, padding: '8px 10px', lineHeight: 1.5,
+                          display: 'flex', gap: 10, alignItems: 'flex-start',
+                          opacity: on ? 1 : 0.55, transition: 'all 0.15s',
+                        }}>
+                          <div style={{
+                            width: 18, height: 18, borderRadius: 5, flexShrink: 0, marginTop: 1,
+                            background: on ? '#4f9e74' : 'transparent',
+                            border: `1.5px solid ${on ? '#4f9e74' : 'rgba(255,255,255,0.3)'}`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: NAVY_DEEP, fontSize: 12, fontWeight: 900,
+                          }}>{on ? '✓' : ''}</div>
+                          <div style={{ flex: 1, color: INK }}>
+                            <div>
+                              <span style={{ opacity: 0.6 }}>{d.pre}</span>
+                              {d.delMid && <span style={{ color: '#fca5a5', textDecoration: 'line-through' }}>{d.delMid}</span>}
+                              {d.addMid && <span style={{ color: '#bbf7d0', background: 'rgba(79,158,116,0.20)', borderRadius: 3, padding: '0 2px' }}>{d.addMid}</span>}
+                              <span style={{ opacity: 0.6 }}>{d.suf}</span>
+                            </div>
+                            {s.reason ? <div style={{ fontSize: 11.5, color: '#8899bb', marginTop: 2, fontFamily: FONT }}>{s.reason}</div> : null}
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
-                  <div style={{ maxHeight: 460, overflowY: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 14, lineHeight: 1.75, fontFamily: "'Georgia', serif", color: INK, background: NAVY_DEEP, borderRadius: 8, padding: 14 }}>
+
+                  <div style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.45)', marginBottom: 6, fontFamily: FONT }}>
+                    У контексті (за бажанням) — <span style={{ background: 'rgba(79,158,116,0.32)', borderBottom: '2px solid #4f9e74', borderRadius: 3, padding: '0 4px' }}>зелене</span> буде поставлено · клік по тексту теж перемикає:
+                  </div>
+                  <div style={{ maxHeight: 300, overflowY: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 13.5, lineHeight: 1.7, fontFamily: "'Georgia', serif", color: 'rgba(245,240,232,0.85)', background: NAVY_DEEP, borderRadius: 8, padding: 14 }}>
                     {previewNodes}
                   </div>
                   {missing > 0 && (
