@@ -365,7 +365,19 @@ export default function TyshaMaisternia() {
   }
 
   function runCheck() {
-    setFindings(checkTysha(text))
+    const f = checkTysha(text)
+    setFindings(f)
+    setErr('')
+    if (f.length === 0) {
+      setMsg('Перевірено — чисто. Усе одно перечитай оком: прихований передвісник/магію в підтексті механіка не ловить.')
+    } else {
+      const s = summarize(f)
+      const parts: string[] = []
+      if (s.error) parts.push(`помилок ${s.error}`)
+      if (s.warn) parts.push(`уваг ${s.warn}`)
+      if (s.info) parts.push(`інфо ${s.info}`)
+      setMsg(`Перевірено: ${parts.join(', ')} — підсвічено в тексті, зведення нижче ↓`)
+    }
   }
 
   // ОДНА КНОПКА: безпечне (пробіли, лапки, очевидні крапки) застосовую ОДРАЗУ;
