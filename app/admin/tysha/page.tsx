@@ -422,12 +422,14 @@ export default function TyshaMaisternia() {
       const d = await r.json()
       if (r.ok) {
         const raw = (d.suggestions ?? []) as { before: string; after: string; reason: string }[]
+        const blockNote = typeof d.note === 'string' && d.note ? ` · ${d.note}` : ''
         if (raw.length) {
           setSuggestions(raw.map((s) => ({ ...s, accepted: true })))
-          setMsg(`Типографіку виправлено (${det.total}). Крапки в реченнях — переглянь нижче (так/ні) і «Застосувати».`)
+          setMsg(`Типографіку виправлено (${det.total}). Крапки в реченнях — переглянь нижче (так/ні) і «Застосувати».${blockNote}`)
           setPunctBusy(false)
           return
         }
+        aiNote = d.note || ''
       } else {
         aiNote = d.error || 'AI-крапки не спрацювали'
       }

@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
   const { text } = await request.json() as { text?: string }
   if (!text?.trim()) return NextResponse.json({ error: 'Текст відсутній' }, { status: 400 })
 
-  const prompt = `Ти — коректор-пунктуатор української мови. Перед тобою фрагмент авторського серіалу «Тиша».
+  const buildPrompt = (fragment: string) => `Ти — коректор-пунктуатор української мови. Перед тобою фрагмент авторського серіалу «Тиша».
 
 ЄДИНЕ ЗАВДАННЯ: знайти місця, де ПРОПУЩЕНА крапка в кінці речення (два речення злиплися без крапки), і запропонувати правку. Часта помилка — велика літера всередині речення без крапки перед нею: «…не слухаючи подяк Мати спершу ніяковіла» → «…не слухаючи подяк. Мати спершу ніяковіла».
 
@@ -90,8 +90,22 @@ export async function POST(request: NextRequest) {
 
 Текст:
 """
-${text}
+${fragment}
 """`
+
+  // Дробимо на абзацні шматки ~1800 символів: на коротшому контексті фільтр
+  // PROHIBITED_CONTENT спрацьовує рідше, а блок одного шматка не рве решту.
+  const splitChunks = (s: string, maxChars = 1800): string[] => {
+    const paras = s.split(/\n/)
+    const chunks: string[] = []
+    let cur = ''
+    for (const p of paras) {
+      if (cur && cur.length + p.length + 1 > maxChars) { chunks.push(cur); cur = '' }
+      cur = cur ? cur + '\n' + p : p
+    }
+    if (cur) chunks.push(cur)
+    return chunks
+  }
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey)
@@ -107,17 +121,46 @@ ${text}
       } as Parameters<typeof genAI.getGenerativeModel>[0],
       { apiVersion: 'v1beta' }
     )
-    const result = await model.generateContent(prompt)
-    const rawOut = result.response.text()
-    const parsed = parseSuggestions(rawOut)
 
-    // ЗАПОБІЖНИК на КОЖНУ правку: «було» має бути в тексті; слова в «стало» —
-    // ті самі (скелет однаковий). Інакше відкидаємо саме цю правку.
-    const validated = parsed.filter(
-      (s) => existsInText(text, s.before) && skeleton(s.before) === skeleton(s.after)
-    )
-    const dropped = parsed.length - validated.length
-    return NextResponse.json({ suggestions: validated, dropped })
+    const chunks = splitChunks(text)
+    const all: Suggestion[] = []
+    let dropped = 0
+    let blocked = 0
+
+    for (const chunk of chunks) {
+      let rawOut = ''
+      try {
+        const result = await model.generateContent(buildPrompt(chunk))
+        // .text() кидає, якщо відповідь заблоковано (PROHIBITED_CONTENT тощо).
+        rawOut = result.response.text()
+      } catch (e) {
+        const m = e instanceof Error ? e.message : ''
+        if (/block|prohibit|safety|not available/i.test(m)) { blocked++; continue }
+        throw e // справжня помилка (мережа/ключ) — нагору
+      }
+      const parsed = parseSuggestions(rawOut)
+      for (const s of parsed) {
+        // «було» має бути в ПОВНОМУ тексті; слова не змінено (скелет однаковий).
+        if (existsInText(text, s.before) && skeleton(s.before) === skeleton(s.after)) all.push(s)
+        else dropped++
+      }
+    }
+
+    // Дедуп за нормалізованим «було».
+    const seen = new Set<string>()
+    const suggestions = all.filter((s) => {
+      const k = skeleton(s.before)
+      if (seen.has(k)) return false
+      seen.add(k); return true
+    })
+
+    return NextResponse.json({
+      suggestions,
+      dropped,
+      blocked,
+      chunks: chunks.length,
+      note: blocked > 0 ? `AI заблокував ${blocked} із ${chunks.length} фрагментів (воєнний вміст) — там крапки пройди вручну.` : '',
+    })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Помилка API'
     return NextResponse.json({ error: msg }, { status: 500 })
