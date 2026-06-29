@@ -191,7 +191,8 @@ export default function TyshaMaisternia() {
   const [metaHook, setMetaHook] = useState('')
   const [metaTeaser, setMetaTeaser] = useState('')
   const [metaShort, setMetaShort] = useState('')
-  const [metaSaved, setMetaSaved] = useState({ title: '', hook: '', teaser: '', short: '' })
+  const [metaNote, setMetaNote] = useState('')
+  const [metaSaved, setMetaSaved] = useState({ title: '', hook: '', teaser: '', short: '', note: '' })
   const [metaBusy, setMetaBusy] = useState(false)
   const [titleSugg, setTitleSugg] = useState<string[] | null>(null)
   const [titleBusy, setTitleBusy] = useState(false)
@@ -343,8 +344,9 @@ export default function TyshaMaisternia() {
       const mh = (it.hook ?? '') as string
       const mte = (it.next_teaser ?? '') as string
       const ms = (it.short_description ?? '') as string
-      setMetaTitle(mt); setMetaHook(mh); setMetaTeaser(mte); setMetaShort(ms)
-      setMetaSaved({ title: mt, hook: mh, teaser: mte, short: ms })
+      const mn = (it.writer_note ?? '') as string
+      setMetaTitle(mt); setMetaHook(mh); setMetaTeaser(mte); setMetaShort(ms); setMetaNote(mn)
+      setMetaSaved({ title: mt, hook: mh, teaser: mte, short: ms, note: mn })
       setTitleSugg(null)
       const pa = (d.item?.publish_at ?? '') as string
       setPublishAt(pa)
@@ -451,7 +453,8 @@ export default function TyshaMaisternia() {
 
   const metaDirty =
     metaTitle !== metaSaved.title || metaHook !== metaSaved.hook ||
-    metaTeaser !== metaSaved.teaser || metaShort !== metaSaved.short
+    metaTeaser !== metaSaved.teaser || metaShort !== metaSaved.short ||
+    metaNote !== metaSaved.note
 
   async function saveMeta() {
     if (!selectedId) return
@@ -461,11 +464,11 @@ export default function TyshaMaisternia() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({ title: metaTitle, hook: metaHook, next_teaser: metaTeaser, short_description: metaShort }),
+        body: JSON.stringify({ title: metaTitle, hook: metaHook, next_teaser: metaTeaser, short_description: metaShort, writer_note: metaNote }),
       })
       const d = await r.json()
       if (!r.ok) throw new Error(d.error || 'Помилка збереження метаданих')
-      setMetaSaved({ title: metaTitle, hook: metaHook, teaser: metaTeaser, short: metaShort })
+      setMetaSaved({ title: metaTitle, hook: metaHook, teaser: metaTeaser, short: metaShort, note: metaNote })
       setMsg('Метадані збережено')
       loadList()
     } catch (e) {
@@ -969,6 +972,10 @@ export default function TyshaMaisternia() {
                 <label style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.55)' }}>
                   Короткий опис (для прев'ю / пошуку)
                   <textarea value={metaShort} onChange={(e) => setMetaShort(e.target.value)} rows={2} style={{ ...metaInput, resize: 'vertical' }} />
+                </label>
+                <label style={{ fontSize: 11.5, color: '#c4a27a' }}>
+                  🔒 Нотатка сценариста (приватна — лише тут, не на сайті)
+                  <textarea value={metaNote} onChange={(e) => setMetaNote(e.target.value)} rows={4} placeholder="Зерно серії, тема, переплавлений матеріал… Видно лише в адмінці." style={{ ...metaInput, resize: 'vertical', fontFamily: "'Georgia', serif", borderColor: 'rgba(196,162,122,0.4)' }} />
                 </label>
               </div>
             </div>
