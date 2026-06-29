@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, type ReactNode } from 'react'
 import { checkTysha, summarize, autofixTypography, type Finding, type Severity } from '@/lib/canon/tysha'
 
 const FONT = "'Montserrat', Arial, sans-serif"
@@ -395,17 +395,20 @@ export default function TyshaMaisternia() {
     setFindings(checkTysha(text))
   }
 
-  // ОДНА КНОПКА: типографіка (детерміновано) → AI-крапки (граматика) → перевірка.
+  // ОДНА КНОПКА: безпечне (пробіли, лапки, очевидні крапки) застосовую ОДРАЗУ;
+  // крапки в реченнях (імена, склеєні) показую в панелі «було→стане» з так/ні.
   async function fixAll() {
     if (!text.trim()) return
-    setPunctBusy(true); setErr(''); setMsg('')
+    setPunctBusy(true); setErr(''); setMsg(''); setSuggestions(null)
 
-    // 1) Детермінована типографіка — миттєво, без AI.
+    // 1) Безпечна типографіка — миттєво, без перегляду.
     const det = autofixTypography(text)
-    let working = det.text
+    const working = det.text
+    if (working !== text) { setText(working); setFindings(checkTysha(working)) }
+    else setFindings(checkTysha(working))
 
-    // 2) AI-крапки на вже причесаному тексті (імена, склеєні речення).
-    let aiApplied = 0, aiSkipped = 0, aiNote = ''
+    // 2) AI-крапки в реченнях → у панель на перегляд (так/ні), не авто.
+    let aiNote = ''
     const ctrl = new AbortController()
     const timer = setTimeout(() => ctrl.abort(), 75000)
     try {
@@ -420,8 +423,10 @@ export default function TyshaMaisternia() {
       if (r.ok) {
         const raw = (d.suggestions ?? []) as { before: string; after: string; reason: string }[]
         if (raw.length) {
-          const res = applySuggestions(working, raw.map((s) => ({ ...s, accepted: true })))
-          working = res.text; aiApplied = res.applied; aiSkipped = res.skipped
+          setSuggestions(raw.map((s) => ({ ...s, accepted: true })))
+          setMsg(`Типографіку виправлено (${det.total}). Крапки в реченнях — переглянь нижче (так/ні) і «Застосувати».`)
+          setPunctBusy(false)
+          return
         }
       } else {
         aiNote = d.error || 'AI-крапки не спрацювали'
@@ -432,16 +437,9 @@ export default function TyshaMaisternia() {
       clearTimeout(timer)
     }
 
-    // 3) Застосувати й оновити підсвітку.
-    if (working !== text) { setText(working); setFindings(checkTysha(working)) }
-    else setFindings(checkTysha(text))
-
-    const parts: string[] = []
-    if (det.total) parts.push(`типографіка: ${det.total}`)
-    if (aiApplied) parts.push(`крапки (AI): ${aiApplied}${aiSkipped ? ` (−${aiSkipped})` : ''}`)
-    let msg = parts.length ? `Виправлено — ${parts.join(', ')}. Перечитай і збережи.` : 'Усе вже чисто.'
-    if (aiNote) msg += ` · ${aiNote}`
-    setMsg(msg)
+    // Якщо AI нічого не дав / впав.
+    const base = det.total ? `Типографіку виправлено (${det.total}).` : 'Типографіка вже чиста.'
+    setMsg(aiNote ? `${base} Крапки в реченнях не перевірено · ${aiNote}` : `${base} Пропущених крапок у реченнях не знайдено.`)
     setPunctBusy(false)
   }
 
@@ -808,7 +806,7 @@ export default function TyshaMaisternia() {
               </div>
             </div>
 
-            <div style={{ position: 'relative', height: 440, borderRadius: 10, border: `1px solid ${dirty ? GOLD : 'rgba(255,255,255,0.12)'}`, overflow: 'hidden', background: NAVY_DEEP }}>
+            <div style={{ position: 'relative', height: 520, borderRadius: 10, border: `1px solid ${dirty ? GOLD : 'rgba(255,255,255,0.12)'}`, overflow: 'hidden', background: NAVY_DEEP }}>
               {/* Шар підсвітки (під текстом) */}
               <div
                 ref={backRef}
@@ -970,10 +968,46 @@ export default function TyshaMaisternia() {
               const acceptedCount = suggestions.filter((s) => s.accepted).length
               const setAll = (val: boolean) => setSuggestions((cur) => cur!.map((s) => ({ ...s, accepted: val })))
               const toggle = (idx: number) => setSuggestions((cur) => cur!.map((s, i) => (i === idx ? { ...s, accepted: !s.accepted } : s)))
+
+              // Діапазони правок у ПОТОЧНОМУ тексті — щоб показати їх у контексті.
+              const esc = (s: string) => s.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')
+              const rangesRaw: Array<{ start: number; end: number; idx: number }> = []
+              for (let i = 0; i < suggestions.length; i++) {
+                let m: RegExpMatchArray | null = null
+                try { m = text.match(new RegExp(esc(suggestions[i].before))) } catch { m = null }
+                if (m && m.index != null) rangesRaw.push({ start: m.index, end: m.index + m[0].length, idx: i })
+              }
+              rangesRaw.sort((a, b) => a.start - b.start)
+              const ranges: Array<{ start: number; end: number; idx: number }> = []
+              let lastEnd = -1
+              for (const r of rangesRaw) { if (r.start >= lastEnd) { ranges.push(r); lastEnd = r.end } }
+              const missing = suggestions.length - ranges.length
+              const previewNodes: ReactNode[] = []
+              let cur = 0
+              ranges.forEach((r, n) => {
+                if (r.start > cur) previewNodes.push(<span key={`t${n}`}>{text.slice(cur, r.start)}</span>)
+                const s = suggestions[r.idx]
+                previewNodes.push(
+                  <span
+                    key={`c${n}`}
+                    onClick={() => toggle(r.idx)}
+                    title={s.reason ? `${s.reason} · клік — прийняти/відхилити` : 'клік — прийняти/відхилити'}
+                    style={s.accepted
+                      ? { background: 'rgba(79,158,116,0.32)', borderBottom: '2px solid #4f9e74', cursor: 'pointer', borderRadius: 3, padding: '0 1px' }
+                      : { background: 'rgba(168,90,90,0.14)', textDecoration: 'line-through', textDecorationColor: '#a85a5a', color: '#c8a0a0', cursor: 'pointer', borderRadius: 3, padding: '0 1px' }}
+                  >
+                    {s.accepted ? s.after : text.slice(r.start, r.end)}
+                  </span>
+                )
+                cur = r.end
+              })
+              if (cur < text.length) previewNodes.push(<span key="tail">{text.slice(cur)}</span>)
+
               const apply = () => {
                 const acc = suggestions.filter((s) => s.accepted)
                 const res = applySuggestions(text, acc)
                 setText(res.text)
+                setFindings(checkTysha(res.text))
                 setSuggestions(null)
                 setMsg(res.skipped > 0
                   ? `Застосовано ${res.applied}, пропущено ${res.skipped} (фрагмент уже змінився). Не забудь зберегти.`
@@ -982,33 +1016,23 @@ export default function TyshaMaisternia() {
               return (
                 <div style={{ margin: '14px 0', padding: 14, borderRadius: 10, background: 'rgba(107,111,158,0.10)', border: '1px solid #6b6f9e' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
-                    <strong style={{ fontSize: 13, color: '#a8acd0' }}>Пропозиції олюднення: {total}, прийнято {acceptedCount}</strong>
+                    <strong style={{ fontSize: 13, color: '#a8acd0' }}>Пропозиції: {total}, прийнято {acceptedCount}</strong>
                     <button onClick={() => setAll(true)} style={{ ...btn('#4f9e74', true), padding: '5px 11px', fontSize: 12 }}>Прийняти всі</button>
                     <button onClick={() => setAll(false)} style={{ padding: '5px 11px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.6)', border: '1px solid rgba(255,255,255,0.15)', fontSize: 12, fontFamily: FONT }}>Зняти всі</button>
                     <button onClick={apply} disabled={acceptedCount === 0} style={{ ...btn('#6b6f9e', acceptedCount > 0), padding: '5px 11px', fontSize: 12 }}>Застосувати ({acceptedCount})</button>
                     <button onClick={() => setSuggestions(null)} style={{ padding: '5px 11px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.5)', border: '1px solid rgba(255,255,255,0.12)', fontSize: 12, fontFamily: FONT }}>Скасувати</button>
                   </div>
-                  <div style={{ maxHeight: 460, overflowY: 'auto' }}>
-                    {suggestions.map((s, idx) => (
-                      <div key={idx} style={{ borderRadius: 8, border: `1px solid ${s.accepted ? '#6b6f9e' : 'rgba(255,255,255,0.14)'}`, overflow: 'hidden', opacity: s.accepted ? 1 : 0.55, marginBottom: 10 }}>
-                        <div style={{ padding: '8px 10px', background: 'rgba(180,90,90,0.12)', borderLeft: '3px solid #a85a5a', fontSize: 13.5, lineHeight: 1.55, color: '#d8c0c0', fontFamily: "'Georgia', serif", maxHeight: 200, overflowY: 'auto' }}>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: '#c89090', textTransform: 'uppercase', letterSpacing: 0.5 }}>було</span><br />{s.before}
-                        </div>
-                        <div style={{ padding: '8px 10px', background: 'rgba(47,95,74,0.15)', borderLeft: '3px solid #4f9e74', fontSize: 13.5, lineHeight: 1.55, color: '#bcd6c8', fontFamily: "'Georgia', serif", maxHeight: 200, overflowY: 'auto' }}>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: '#8fc4a6', textTransform: 'uppercase', letterSpacing: 0.5 }}>стало</span><br />{s.after}
-                        </div>
-                        {s.reason && (
-                          <div style={{ padding: '5px 10px', fontSize: 11.5, color: 'rgba(245,240,232,0.6)', fontStyle: 'italic', fontFamily: FONT }}>
-                            чому: {s.reason}
-                          </div>
-                        )}
-                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: 'rgba(0,0,0,0.25)', fontSize: 12.5, cursor: 'pointer', fontFamily: FONT, color: s.accepted ? '#8fc4a6' : 'rgba(245,240,232,0.55)' }}>
-                          <input type="checkbox" checked={s.accepted} onChange={() => toggle(idx)} />
-                          {s.accepted ? 'прийняти цю зміну' : 'лишити як було'}
-                        </label>
-                      </div>
-                    ))}
+                  <div style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.55)', marginBottom: 8, fontFamily: FONT }}>
+                    <span style={{ background: 'rgba(79,158,116,0.32)', borderBottom: '2px solid #4f9e74', borderRadius: 3, padding: '0 4px' }}>зелене</span> — буде поставлено · <span style={{ textDecoration: 'line-through', color: '#c8a0a0' }}>закреслене</span> — відхилено · клік по слову перемикає
                   </div>
+                  <div style={{ maxHeight: 460, overflowY: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 14, lineHeight: 1.75, fontFamily: "'Georgia', serif", color: INK, background: NAVY_DEEP, borderRadius: 8, padding: 14 }}>
+                    {previewNodes}
+                  </div>
+                  {missing > 0 && (
+                    <div style={{ fontSize: 11.5, color: '#c89090', marginTop: 6, fontFamily: FONT }}>
+                      Не знайдено в тексті: {missing} (фрагмент уже змінено — перевір вручну).
+                    </div>
+                  )}
                 </div>
               )
             })()}
