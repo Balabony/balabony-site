@@ -52,10 +52,11 @@ function countWords(t: string): number {
 }
 
 // Фон підсвітки порушення в тексті (напівпрозорий — просвічує крізь текст).
+// Жовтий, добре видимий; помилки лишаємо червоними (вони рідкісні й важливі).
 const MARK: Record<Severity, string> = {
-  error: 'rgba(217,69,69,0.38)',
-  warn:  'rgba(240,165,0,0.32)',
-  info:  'rgba(122,162,196,0.28)',
+  error: 'rgba(217,69,69,0.50)',
+  warn:  'rgba(255,213,0,0.55)',
+  info:  'rgba(255,213,0,0.45)',
 }
 const SEV_ORDER: Record<Severity, number> = { error: 0, warn: 1, info: 2 }
 
@@ -191,6 +192,7 @@ export default function TyshaMaisternia() {
   const [improving, setImproving] = useState(false)
   const [spellBusy, setSpellBusy] = useState(false)
   const [punctBusy, setPunctBusy] = useState(false)
+  const [grammarBusy, setGrammarBusy] = useState(false)
   const [msg, setMsg] = useState('')
   const [err, setErr] = useState('')
 
@@ -571,6 +573,41 @@ export default function TyshaMaisternia() {
     }
   }
 
+  // Граматика/орфографія/коми через LanguageTool (правиловий рушій, без AI-ляпів).
+  async function grammarCheck() {
+    if (!text.trim()) return
+    setGrammarBusy(true); setErr(''); setMsg(''); setSuggestions(null)
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 75000)
+    try {
+      const r = await fetch('/api/admin/tysha-grammar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ text }),
+        signal: ctrl.signal,
+      })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d.error || 'Помилка LanguageTool')
+      const raw = (d.suggestions ?? []) as { before: string; after: string; reason: string }[]
+      const note = typeof d.note === 'string' && d.note ? ` · ${d.note}` : ''
+      if (raw.length > 0) {
+        setSuggestions(raw.map((s) => ({ ...s, accepted: true })))
+        setMsg(`LanguageTool: знайдено ${raw.length} — переглянь нижче (так/ні) і «Застосувати».${note}`)
+      } else {
+        setMsg((d.note ? d.note : 'LanguageTool: граматичних помилок не знайдено.'))
+      }
+    } catch (e) {
+      const m = e instanceof Error && e.name === 'AbortError'
+        ? 'LanguageTool не встиг за 75 c. Спробуй ще раз або коротшу серію.'
+        : String(e instanceof Error ? e.message : e)
+      setErr(m)
+    } finally {
+      clearTimeout(timer)
+      setGrammarBusy(false)
+    }
+  }
+
   // ── AI-помічники (батч 1: аналізатори + recap) ──
   function clearPanels() { setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setRecapText(null); setCleaned(null) }
 
@@ -837,16 +874,17 @@ export default function TyshaMaisternia() {
               Підсвічувати порушення в тексті
             </label>
 
-            {/* ── Послідовність вичитки 1 → 4 ── */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '12px 0 6px', flexWrap: 'wrap' }}>
+            {/* ── ПОСЛІДОВНІСТЬ ВИЧИТКИ 1 → 4 ── */}
+            <div style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.5)', margin: '12px 0 4px', fontFamily: FONT }}>Послідовність вичитки серії:</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 0 6px', flexWrap: 'wrap' }}>
               <button onClick={runCheck} disabled={!text.trim()} style={btn('#7aa2c4', !!text.trim())}>
                 1 · Перевірити канон
               </button>
               <button onClick={fixAll} disabled={punctBusy || !text.trim()} style={btn('#c47a9e', !punctBusy && !!text.trim())}>
                 {punctBusy ? 'Виправляю…' : '2 · Виправити крапки й типографіку'}
               </button>
-              <button onClick={spellcheck} disabled={spellBusy || !text.trim()} style={btn('#5b8fb0', !spellBusy && !!text.trim())}>
-                {spellBusy ? 'Перевіряю…' : '3 · Перевірити правопис'}
+              <button onClick={grammarCheck} disabled={grammarBusy || !text.trim()} style={btn('#5b8fb0', !grammarBusy && !!text.trim())}>
+                {grammarBusy ? 'Перевіряю граматику…' : '3 · Граматика (LanguageTool)'}
               </button>
               <button onClick={save} disabled={!dirty || saving} style={btn(GOLD, dirty && !saving)}>
                 {saving ? 'Зберігаю…' : dirty ? '4 · Зберегти' : '4 · Збережено'}
@@ -858,16 +896,19 @@ export default function TyshaMaisternia() {
               </span>
             </div>
 
-            {/* ── Окремі інструменти (поза послідовністю) ── */}
+            {/* ── ОКРЕМІ ІНСТРУМЕНТИ (за потреби, поза послідовністю) ── */}
+            <div style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.4)', margin: '8px 0 4px', fontFamily: FONT }}>Окремо, за потреби:</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 12px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.4)', marginRight: 2 }}>Окремо:</span>
-              <button onClick={improve} disabled={improving || !text.trim()} style={{ ...btn('#6b6f9e', !improving && !!text.trim()), padding: '7px 13px', fontSize: 13 }}>
+              <button onClick={spellcheck} disabled={spellBusy || !text.trim()} title="Контекстна перевірка Gemini — на додачу до граматики, ловить смислові огріхи" style={{ ...btn('#6b6f9e', !spellBusy && !!text.trim()), padding: '7px 13px', fontSize: 13 }}>
+                {spellBusy ? 'Перевіряю…' : 'Правопис (Gemini)'}
+              </button>
+              <button onClick={improve} disabled={improving || !text.trim()} title="Олюднити стиль за правилами «Тиші» (переписує — застосовуй обережно)" style={{ ...btn('#6b6f9e', !improving && !!text.trim()), padding: '7px 13px', fontSize: 13 }}>
                 {improving ? 'Олюднюю…' : 'Олюднити (Gemini)'}
               </button>
-              <button onClick={genRecap} disabled={!text.trim() || aiBusy !== null} style={{ ...btn('#c4a27a', !!text.trim() && aiBusy === null), padding: '7px 13px', fontSize: 13 }}>
+              <button onClick={genRecap} disabled={!text.trim() || aiBusy !== null} title="Згенерувати анонс «Що було раніше» для наступної серії" style={{ ...btn('#c4a27a', !!text.trim() && aiBusy === null), padding: '7px 13px', fontSize: 13 }}>
                 {aiBusy === 'recap' ? 'Генерую…' : 'Recap'}
               </button>
-              <button onClick={cleanTts} disabled={!text.trim() || aiBusy !== null} style={{ ...btn('#7ac4a2', !!text.trim() && aiBusy === null), padding: '7px 13px', fontSize: 13 }}>
+              <button onClick={cleanTts} disabled={!text.trim() || aiBusy !== null} title="Підготувати текст до озвучки (TTS)" style={{ ...btn('#7ac4a2', !!text.trim() && aiBusy === null), padding: '7px 13px', fontSize: 13 }}>
                 {aiBusy === 'clean' ? 'Чищу…' : 'Чистка для TTS'}
               </button>
             </div>
