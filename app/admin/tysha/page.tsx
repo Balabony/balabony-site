@@ -485,7 +485,7 @@ export default function TyshaMaisternia() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, mode: 'tysha' }),
       })
       const d = await r.json()
       if (!r.ok) throw new Error(d.error || 'Помилка генерації назв')

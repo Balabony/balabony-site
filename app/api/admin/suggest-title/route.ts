@@ -15,7 +15,8 @@ type GenConfigWithThinking = GenerationConfig & {
 
 export const runtime = 'edge'
 
-const SYSTEM = `Ти — редактор серіалу теплих українських комедійних історій «Балабони» (про діда Панаса, бабу Ганю, Григорія та інших мешканців села). Тобі дають текст серії. Запропонуй 5 коротких влучних назв українською.
+// Промпт для «Балабонів» (теплі комедійні історії) — лишаємо без змін, 5 назв.
+const SYSTEM_BALABONY = `Ти — редактор серіалу теплих українських комедійних історій «Балабони» (про діда Панаса, бабу Ганю, Григорія та інших мешканців села). Тобі дають текст серії. Запропонуй 5 коротких влучних назв українською.
 
 ВИМОГИ ДО НАЗВ:
 • 2–5 слів, без крапки в кінці.
@@ -25,7 +26,20 @@ const SYSTEM = `Ти — редактор серіалу теплих украї
 
 ВИВІД: поверни СУВОРО валідний JSON-масив із 5 рядків і нічого більше. Приклад формату: ["Назва один","Назва два","Назва три","Назва чотири","Назва пʼять"]`
 
-interface Body { text?: string }
+// Промпт для «Тиші» (військова психологічна драма) — 3 назви.
+const SYSTEM_TYSHA = `Ти — редактор україномовного аудіосеріалу «Тиша» (військова психологічна драма про солдата із загостреним слухом; реалізм, без магії). Тобі дають текст серії. Запропонуй 3 короткі назви українською.
+
+ВИМОГИ ДО НАЗВ:
+• 1–4 слова, без крапки в кінці.
+• НЕ викривають головну загадку, поворот чи фінал серії — назва інтригує, а не спойлерить.
+• Тон стриманий, без пафосу й кліше («герой», «битва», «незламний», «неймовірний» — НЕ вживати).
+• Може бути образом, деталлю, реплікою або емоцією з тексту.
+• Три варіанти РІЗНІ за кутом: одна — конкретна деталь чи предмет; друга — емоція або стан; третя — коротка фраза чи образ.
+• БЕЗ лапок, БЕЗ нумерації, БЕЗ Markdown.
+
+ВИВІД: поверни СУВОРО валідний JSON-масив із 3 рядків і нічого більше. Приклад формату: ["Назва один","Назва два","Назва три"]`
+
+interface Body { text?: string; mode?: string }
 
 export async function POST(request: NextRequest) {
   const apiKey = process.env.GEMINI_API_KEY
@@ -34,6 +48,10 @@ export async function POST(request: NextRequest) {
   const body = await request.json() as Body
   const text = (body.text ?? '').trim()
   if (!text) return new Response(JSON.stringify({ error: 'Порожній текст серії' }), { status: 400 })
+
+  const isTysha = body.mode === 'tysha'
+  const SYSTEM = isTysha ? SYSTEM_TYSHA : SYSTEM_BALABONY
+  const wantCount = isTysha ? 3 : 5
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey)
@@ -65,10 +83,10 @@ export async function POST(request: NextRequest) {
     }
     if (titles.length === 0) {
       // Fallback: рядки, що схожі на назви
-      titles = raw.split('\n').map(l => l.replace(/^[\d.)\-•*"'\s]+|["'\s]+$/g, '').trim()).filter(l => l.length >= 2 && l.length <= 60).slice(0, 5)
+      titles = raw.split('\n').map(l => l.replace(/^[\d.)\-•*"'\s]+|["'\s]+$/g, '').trim()).filter(l => l.length >= 2 && l.length <= 60).slice(0, wantCount)
     }
 
-    return new Response(JSON.stringify({ titles: titles.slice(0, 5) }), {
+    return new Response(JSON.stringify({ titles: titles.slice(0, wantCount) }), {
       headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
     })
   } catch (err: unknown) {
