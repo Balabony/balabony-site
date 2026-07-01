@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 
 const FONT = "'Montserrat', Arial, sans-serif"
-const GOLD = '#f0a500'
+const GOLD = '#d0a355'
 const NAVY = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 
@@ -97,12 +97,12 @@ export default function EditorsPage() {
 
         {/* Messages */}
         {successMsg && (
-          <div style={{ background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#4ade80', marginBottom: 16 }}>
+          <div style={{ background: 'rgba(124, 199, 155,0.1)', border: '1px solid rgba(124, 199, 155,0.3)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#7cc79b', marginBottom: 16 }}>
             ✅ {successMsg}
           </div>
         )}
         {errorMsg && (
-          <div style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#f87171', marginBottom: 16 }}>
+          <div style={{ background: 'rgba(221, 143, 143,0.1)', border: '1px solid rgba(221, 143, 143,0.3)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#dd8f8f', marginBottom: 16 }}>
             ❌ {errorMsg}
           </div>
         )}
@@ -151,7 +151,7 @@ export default function EditorsPage() {
               type="submit"
               disabled={submitting}
               style={{
-                background: submitting ? 'rgba(240,165,0,0.4)' : GOLD,
+                background: submitting ? 'rgba(208, 163, 85,0.4)' : GOLD,
                 color: '#081420',
                 border: 'none',
                 borderRadius: 9,
@@ -197,7 +197,7 @@ export default function EditorsPage() {
                 borderBottom: idx < editors.length - 1 ? '0.5px solid rgba(255,255,255,0.05)' : undefined,
               }}
             >
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(240,165,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: GOLD, flexShrink: 0 }}>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(208, 163, 85,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: GOLD, flexShrink: 0 }}>
                 {editor.name.charAt(0).toUpperCase()}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -214,13 +214,13 @@ export default function EditorsPage() {
               <button
                 onClick={() => deleteEditor(editor)}
                 style={{
-                  background: 'rgba(248,113,113,0.1)',
-                  border: '1px solid rgba(248,113,113,0.25)',
+                  background: 'rgba(221, 143, 143,0.1)',
+                  border: '1px solid rgba(221, 143, 143,0.25)',
                   borderRadius: 7,
                   padding: '5px 11px',
                   fontSize: 11,
                   fontWeight: 600,
-                  color: '#f87171',
+                  color: '#dd8f8f',
                   cursor: 'pointer',
                   fontFamily: FONT,
                   flexShrink: 0,

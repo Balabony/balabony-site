@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import Cropper, { Area, Point } from 'react-easy-crop'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
-const GOLD      = '#f0a500'
+const GOLD      = '#d0a355'
 const NAVY      = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 
@@ -234,7 +234,7 @@ export default function EditStoryPage() {
         </div>
 
         {phase === 'error' && (
-          <div style={{ padding: 16, background: 'rgba(239,68,68,0.09)', borderRadius: 12, color: '#f87171', fontFamily: FONT, marginBottom: 20 }}>
+          <div style={{ padding: 16, background: 'rgba(239,68,68,0.09)', borderRadius: 12, color: '#dd8f8f', fontFamily: FONT, marginBottom: 20 }}>
             {error}
           </div>
         )}
@@ -273,7 +273,7 @@ export default function EditStoryPage() {
             <input type="file" ref={fileRef} accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
 
             <button type="button" onClick={handleFilePick} disabled={uploadingPhoto}
-              style={{ width: '100%', background: uploadingPhoto ? 'rgba(240,165,0,0.45)' : GOLD, color: NAVY_DEEP, border: 'none', borderRadius: 10, padding: '11px 14px', fontSize: 13, fontWeight: 800, cursor: uploadingPhoto ? 'wait' : 'pointer', fontFamily: FONT, marginBottom: 8 }}>
+              style={{ width: '100%', background: uploadingPhoto ? 'rgba(208, 163, 85,0.45)' : GOLD, color: NAVY_DEEP, border: 'none', borderRadius: 10, padding: '11px 14px', fontSize: 13, fontWeight: 800, cursor: uploadingPhoto ? 'wait' : 'pointer', fontFamily: FONT, marginBottom: 8 }}>
               {uploadingPhoto ? '⏳ Завантажую…' : '📷 Завантажити нове фото'}
             </button>
 
@@ -291,7 +291,7 @@ export default function EditStoryPage() {
             )}
 
             {uploadError && (
-              <div style={{ marginTop: 8, padding: '8px 12px', background: 'rgba(239,68,68,0.09)', borderRadius: 8, color: '#f87171', fontFamily: FONT, fontSize: 12 }}>{uploadError}</div>
+              <div style={{ marginTop: 8, padding: '8px 12px', background: 'rgba(239,68,68,0.09)', borderRadius: 8, color: '#dd8f8f', fontFamily: FONT, fontSize: 12 }}>{uploadError}</div>
             )}
           </div>
 
@@ -345,12 +345,12 @@ export default function EditStoryPage() {
             <textarea style={{ ...inputBase, height: 360, resize: 'vertical', lineHeight: 1.75 }} value={text} onChange={e => setText(e.target.value)} placeholder="Повний текст історії..." />
           </div>
 
-          <button onClick={handleSave} disabled={phase === 'saving' || phase === 'cropping'} style={{ width: '100%', background: (phase === 'saving' || phase === 'cropping') ? 'rgba(240,165,0,0.45)' : GOLD, color: NAVY_DEEP, border: 'none', borderRadius: 12, padding: '14px 18px', fontSize: 15, fontWeight: 800, cursor: (phase === 'saving' || phase === 'cropping') ? 'wait' : 'pointer', fontFamily: FONT }}>
+          <button onClick={handleSave} disabled={phase === 'saving' || phase === 'cropping'} style={{ width: '100%', background: (phase === 'saving' || phase === 'cropping') ? 'rgba(208, 163, 85,0.45)' : GOLD, color: NAVY_DEEP, border: 'none', borderRadius: 12, padding: '14px 18px', fontSize: 15, fontWeight: 800, cursor: (phase === 'saving' || phase === 'cropping') ? 'wait' : 'pointer', fontFamily: FONT }}>
             {saveButtonLabel}
           </button>
 
           {phase === 'done' && savedMessage && (
-            <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 10, color: '#4ade80', fontFamily: FONT, fontSize: 13, textAlign: 'center' }}>
+            <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(124, 199, 155,0.1)', border: '1px solid rgba(124, 199, 155,0.3)', borderRadius: 10, color: '#7cc79b', fontFamily: FONT, fontSize: 13, textAlign: 'center' }}>
               ✓ {savedMessage}
             </div>
           )}

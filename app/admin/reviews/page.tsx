@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
-const GOLD      = '#f0a500'
+const GOLD      = '#d0a355'
 const NAVY      = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 
@@ -90,7 +90,7 @@ export default function AdminReviewsPage() {
 
         {/* No DB warning */}
         {noDb && (
-          <div style={{ background: 'rgba(240,165,0,0.1)', border: '1px solid rgba(240,165,0,0.3)', borderRadius: 12, padding: '14px 18px', marginBottom: 24, fontSize: 13, color: '#f0a500' }}>
+          <div style={{ background: 'rgba(208, 163, 85,0.1)', border: '1px solid rgba(208, 163, 85,0.3)', borderRadius: 12, padding: '14px 18px', marginBottom: 24, fontSize: 13, color: '#d0a355' }}>
             ⚠️ <b>DATABASE_URL не налаштовано</b> — відгуки зберігаються лише локально в браузері. Щоб зберігати відгуки на сервері, додай <code>DATABASE_URL</code> у змінні середовища (Vercel → Settings → Environment Variables).
           </div>
         )}
@@ -153,12 +153,12 @@ export default function AdminReviewsPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
                   <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                     <Stars n={r.rating} />
-                    <span style={{ fontSize: 11, fontWeight: 700, background: r.content_type === 'series' ? 'rgba(240,165,0,0.15)' : 'rgba(99,179,237,0.15)', color: r.content_type === 'series' ? GOLD : '#63b3ed', borderRadius: 6, padding: '2px 8px', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, background: r.content_type === 'series' ? 'rgba(208, 163, 85,0.15)' : 'rgba(99,179,237,0.15)', color: r.content_type === 'series' ? GOLD : '#63b3ed', borderRadius: 6, padding: '2px 8px', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                       {r.content_type === 'series' ? 'Серія' : 'Авторська'}
                     </span>
                     <span style={{ fontSize: 12, color: '#445566' }}>ID: {r.content_id}</span>
                     {r.author_id && <span style={{ fontSize: 12, color: '#445566' }}>Автор: {r.author_id}</span>}
-                    {r.id < 0 && <span style={{ fontSize: 11, color: 'rgba(240,165,0,0.5)' }}>локальний</span>}
+                    {r.id < 0 && <span style={{ fontSize: 11, color: 'rgba(208, 163, 85,0.5)' }}>локальний</span>}
                   </div>
                   <span style={{ fontSize: 12, color: '#445566' }}>{formatDate(r.created_at)}</span>
                 </div>

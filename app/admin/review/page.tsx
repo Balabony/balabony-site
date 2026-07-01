@@ -3,7 +3,7 @@
 import { useState } from 'react'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
-const GOLD      = '#f0a500'
+const GOLD      = '#d0a355'
 const NAVY      = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 
@@ -29,21 +29,21 @@ interface ReviewReport {
 }
 
 function scoreColor(s: number): string {
-  if (s >= 8) return '#4ade80'
+  if (s >= 8) return '#7cc79b'
   if (s >= 5) return GOLD
-  return '#f87171'
+  return '#dd8f8f'
 }
 
 function scoreBg(s: number): string {
-  if (s >= 8) return 'rgba(74,222,128,0.08)'
-  if (s >= 5) return 'rgba(240,165,0,0.08)'
-  return 'rgba(248,113,113,0.08)'
+  if (s >= 8) return 'rgba(124, 199, 155,0.08)'
+  if (s >= 5) return 'rgba(208, 163, 85,0.08)'
+  return 'rgba(221, 143, 143,0.08)'
 }
 
 function scoreBorder(s: number): string {
-  if (s >= 8) return 'rgba(74,222,128,0.2)'
-  if (s >= 5) return 'rgba(240,165,0,0.2)'
-  return 'rgba(248,113,113,0.2)'
+  if (s >= 8) return 'rgba(124, 199, 155,0.2)'
+  if (s >= 5) return 'rgba(208, 163, 85,0.2)'
+  return 'rgba(221, 143, 143,0.2)'
 }
 
 const SCORE_ICONS: Record<string, string> = {
@@ -127,7 +127,7 @@ export default function ReviewPage() {
             onChange={e => { setText(e.target.value); setReport(null); setCleanedText('') }}
           />
           {replaced && (
-            <div style={{ fontSize: 12, color: '#4ade80', marginTop: 8, fontFamily: FONT }}>✓ Текст замінено на очищений</div>
+            <div style={{ fontSize: 12, color: '#7cc79b', marginTop: 8, fontFamily: FONT }}>✓ Текст замінено на очищений</div>
           )}
 
           {/* Buttons */}
@@ -200,7 +200,7 @@ export default function ReviewPage() {
 
         {/* Review errors */}
         {reviewError && (
-          <div style={{ fontSize: 13, color: '#f87171', marginBottom: 16, padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>
+          <div style={{ fontSize: 13, color: '#dd8f8f', marginBottom: 16, padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>
             {reviewError}
           </div>
         )}
@@ -245,11 +245,11 @@ export default function ReviewPage() {
             {/* Problems */}
             {report.problems.length > 0 && (
               <div style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 12, padding: '12px 14px', marginBottom: 10 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#f87171', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 8 }}>⚠️ Виявлені проблеми</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#dd8f8f', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 8 }}>⚠️ Виявлені проблеми</div>
                 <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {report.problems.map((p, i) => (
                     <li key={i} style={{ display: 'flex', gap: 8, fontSize: 13, color: '#c8d4e8', lineHeight: 1.5, fontFamily: FONT }}>
-                      <span style={{ color: '#f87171', fontWeight: 700, flexShrink: 0 }}>·</span>
+                      <span style={{ color: '#dd8f8f', fontWeight: 700, flexShrink: 0 }}>·</span>
                       {p}
                     </li>
                   ))}
@@ -276,7 +276,7 @@ export default function ReviewPage() {
 
         {/* TTS errors */}
         {ttsError && (
-          <div style={{ fontSize: 13, color: '#f87171', marginBottom: 16, padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>
+          <div style={{ fontSize: 13, color: '#dd8f8f', marginBottom: 16, padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>
             {ttsError}
           </div>
         )}

@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
-const GOLD      = '#f0a500'
+const GOLD      = '#d0a355'
 const NAVY      = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 
@@ -140,7 +140,7 @@ export default function ContentStoriesPage() {
 
         {/* Error */}
         {phase === 'error' && (
-          <div style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 12, padding: 16, color: '#f87171', fontFamily: FONT }}>
+          <div style={{ background: 'rgba(221, 143, 143,0.1)', border: '1px solid rgba(221, 143, 143,0.3)', borderRadius: 12, padding: 16, color: '#dd8f8f', fontFamily: FONT }}>
             ⚠ {error}
           </div>
         )}

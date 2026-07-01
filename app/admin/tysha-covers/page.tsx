@@ -7,7 +7,7 @@ type Scene = { key: string; label: string }
 type Ep = { id: string; slug: string; title: string; episode_number: number | null }
 
 const BG = '#0a1628'
-const GOLD = '#ef9f27'
+const GOLD = '#d0a355'
 const FONT = "'Montserrat', Arial, sans-serif"
 
 const box: React.CSSProperties = { background: '#101d33', border: '1px solid #22304d', borderRadius: 12, padding: 18, marginBottom: 22 }

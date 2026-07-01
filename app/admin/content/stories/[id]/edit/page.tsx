@@ -12,7 +12,7 @@ import { analyzeEpisode } from '@/lib/episode-metrics'
 import EditorialTools from '@/components/admin/EditorialTools'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
-const GOLD      = '#f0a500'
+const GOLD      = '#d0a355'
 const NAVY      = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 
@@ -227,7 +227,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
   if (phase === 'error' && !item) {
     return (
       <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT, padding: 40 }}>
-        <div style={{ maxWidth: 720, margin: '0 auto', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 12, padding: 16, color: '#f87171' }}>
+        <div style={{ maxWidth: 720, margin: '0 auto', background: 'rgba(221, 143, 143,0.1)', border: '1px solid rgba(221, 143, 143,0.3)', borderRadius: 12, padding: 16, color: '#dd8f8f' }}>
           ⚠ {error}
         </div>
         <div style={{ maxWidth: 720, margin: '20px auto 0' }}>
@@ -348,12 +348,12 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
 
         {/* Messages */}
         {error && (
-          <div style={{ marginBottom: 16, background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 12, padding: 12, color: '#f87171', fontSize: 13, fontFamily: FONT }}>
+          <div style={{ marginBottom: 16, background: 'rgba(221, 143, 143,0.1)', border: '1px solid rgba(221, 143, 143,0.3)', borderRadius: 12, padding: 12, color: '#dd8f8f', fontSize: 13, fontFamily: FONT }}>
             ⚠ {error}
           </div>
         )}
         {success && (
-          <div style={{ marginBottom: 16, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 12, padding: 12, color: '#4ade80', fontSize: 13, fontFamily: FONT }}>
+          <div style={{ marginBottom: 16, background: 'rgba(124, 199, 155,0.1)', border: '1px solid rgba(124, 199, 155,0.3)', borderRadius: 12, padding: 12, color: '#7cc79b', fontSize: 13, fontFamily: FONT }}>
             ✓ {success}
           </div>
         )}
@@ -434,7 +434,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                       onClick={() => setTitle(t)}
                       style={{
                         fontSize: 12, fontFamily: FONT, color: '#f5f0e8',
-                        background: 'rgba(240,165,0,0.10)', border: '1px solid rgba(240,165,0,0.30)',
+                        background: 'rgba(208, 163, 85,0.10)', border: '1px solid rgba(208, 163, 85,0.30)',
                         borderRadius: 999, padding: '5px 12px', cursor: 'pointer',
                       }}>
                       {t}
@@ -529,7 +529,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                       {expandLoading ? 'Дотягую обсяг…' : '↑ Дотягнути обсяг (додати діалоги)'}
                     </button>
                     {expandError && (
-                      <div style={{ fontSize: 12, color: '#f87171', marginTop: 8, fontFamily: FONT }}>{expandError}</div>
+                      <div style={{ fontSize: 12, color: '#dd8f8f', marginTop: 8, fontFamily: FONT }}>{expandError}</div>
                     )}
                   </div>
                 )}
@@ -570,7 +570,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
               </span>
             )}
             {recapError && (
-              <span style={{ fontSize: 12, color: '#f87171', fontFamily: FONT }}>{recapError}</span>
+              <span style={{ fontSize: 12, color: '#dd8f8f', fontFamily: FONT }}>{recapError}</span>
             )}
           </div>
           <p style={{ margin: '10px 0 0', fontSize: 12, color: '#667799', fontFamily: FONT, lineHeight: 1.5 }}>
@@ -633,13 +633,13 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
             onClick={handleDelete}
             disabled={phase === 'saving'}
             style={{
-              background: 'rgba(248,113,113,0.1)',
-              color: '#f87171',
+              background: 'rgba(221, 143, 143,0.1)',
+              color: '#dd8f8f',
               padding: '12px 20px',
               borderRadius: 10,
               fontSize: 13,
               fontWeight: 700,
-              border: '1px solid rgba(248,113,113,0.3)',
+              border: '1px solid rgba(221, 143, 143,0.3)',
               cursor: 'pointer',
               fontFamily: FONT,
             }}

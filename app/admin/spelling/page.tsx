@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 
 const FONT = "'Montserrat', Arial, sans-serif"
-const GOLD = '#f0a500'
+const GOLD = '#d0a355'
 const NAVY = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 
@@ -160,7 +160,7 @@ export default function SpellingAdminPage() {
         </p>
 
         {/* ФОРМА */}
-        <div style={{ background: NAVY, border: `1px solid rgba(240,165,0,0.3)`, borderRadius: 14, padding: 24, marginBottom: 28 }}>
+        <div style={{ background: NAVY, border: `1px solid rgba(208, 163, 85,0.3)`, borderRadius: 14, padding: 24, marginBottom: 28 }}>
           <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD, marginBottom: 16 }}>
             {editingId ? 'Редагувати статтю' : 'Нова стаття'}
           </div>
@@ -263,7 +263,7 @@ export default function SpellingAdminPage() {
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 6 }}>
                       <strong style={{ fontSize: 16 }}>{r.topic}</strong>
                       {r.category && <span style={tag('rgba(255,255,255,0.08)', 'rgba(255,255,255,0.7)')}>{r.category}</span>}
-                      <span style={tag(r.status === 'verified' ? 'rgba(34,197,94,0.18)' : 'rgba(240,165,0,0.18)', r.status === 'verified' ? '#7ee787' : GOLD)}>
+                      <span style={tag(r.status === 'verified' ? 'rgba(34,197,94,0.18)' : 'rgba(208, 163, 85,0.18)', r.status === 'verified' ? '#7ee787' : GOLD)}>
                         {r.status === 'verified' ? '✓ Вивірено' : 'Чернетка'}
                       </span>
                       {r.norm_type === 'variant' && <span style={tag('rgba(96,165,250,0.18)', '#93c5fd')}>Варіантна</span>}

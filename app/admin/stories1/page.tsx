@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
-const GOLD      = '#f0a500'
+const GOLD      = '#d0a355'
 const NAVY      = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 const VIOLET    = '#818cf8'
@@ -56,12 +56,12 @@ function ScoreBar({ score, color }: { score: number; color: string }) {
 
 function verdictColor(v: string): string {
   const s = v.toLowerCase()
-  if (s.includes('відповідає') && !s.includes('не') && !s.includes('частково')) return '#4ade80'
-  if (s.includes('унікальний') || s.includes('людиною') || s.includes('без помилок')) return '#4ade80'
-  if (s.includes('частково') || s.includes('можливо') || s.includes('незначні')) return '#fbbf24'
-  return '#f87171'
+  if (s.includes('відповідає') && !s.includes('не') && !s.includes('частково')) return '#7cc79b'
+  if (s.includes('унікальний') || s.includes('людиною') || s.includes('без помилок')) return '#7cc79b'
+  if (s.includes('частково') || s.includes('можливо') || s.includes('незначні')) return '#e3c47f'
+  return '#dd8f8f'
 }
-function scoreColor(n: number) { return n >= 75 ? '#4ade80' : n >= 50 ? '#fbbf24' : '#f87171' }
+function scoreColor(n: number) { return n >= 75 ? '#7cc79b' : n >= 50 ? '#e3c47f' : '#dd8f8f' }
 
 function VerdictBadge({ text }: { text: string }) {
   const color = verdictColor(text)
@@ -69,9 +69,9 @@ function VerdictBadge({ text }: { text: string }) {
 }
 
 function RecommendationBadge({ text }: { text: string }) {
-  let color = '#4ade80', bg = 'rgba(74,222,128,0.1)', border = 'rgba(74,222,128,0.35)'
-  if (text.includes('доопрацювання')) { color = '#fbbf24'; bg = 'rgba(251,191,36,0.1)'; border = 'rgba(251,191,36,0.35)' }
-  if (text.includes('Відхилити'))     { color = '#f87171'; bg = 'rgba(248,113,113,0.1)'; border = 'rgba(248,113,113,0.35)' }
+  let color = '#7cc79b', bg = 'rgba(124, 199, 155,0.1)', border = 'rgba(124, 199, 155,0.35)'
+  if (text.includes('доопрацювання')) { color = '#e3c47f'; bg = 'rgba(227, 196, 127,0.1)'; border = 'rgba(227, 196, 127,0.35)' }
+  if (text.includes('Відхилити'))     { color = '#dd8f8f'; bg = 'rgba(221, 143, 143,0.1)'; border = 'rgba(221, 143, 143,0.35)' }
   return (
     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: bg, border: `1.5px solid ${border}`, borderRadius: 12, fontFamily: FONT }}>
       <span style={{ fontSize: 20 }}>{text.includes('Рекомендовано') ? '✓' : text.includes('доопрацювання') ? '⚠' : '✕'}</span>
@@ -378,9 +378,9 @@ export default function Stories1Page() {
     if (!hasCorrected && !hasHumanized) {
       return (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-          <button onClick={() => handleAction('approve', 'original')}  disabled={disabled} style={actionBtn('#4ade80', 'rgba(74,222,128,0.12)',   'rgba(74,222,128,0.35)',   disabled)}><span>✓</span><span>Схвалити</span></button>
-          <button onClick={() => handleAction('revision')}             disabled={disabled} style={actionBtn('#fbbf24', 'rgba(251,191,36,0.1)',    'rgba(251,191,36,0.3)',    disabled)}><span>⟳</span><span>Доопрацювання</span></button>
-          <button onClick={() => handleAction('reject')}               disabled={disabled} style={actionBtn('#f87171', 'rgba(248,113,113,0.1)',   'rgba(248,113,113,0.3)',   disabled)}><span>✕</span><span>Відхилити</span></button>
+          <button onClick={() => handleAction('approve', 'original')}  disabled={disabled} style={actionBtn('#7cc79b', 'rgba(124, 199, 155,0.12)',   'rgba(124, 199, 155,0.35)',   disabled)}><span>✓</span><span>Схвалити</span></button>
+          <button onClick={() => handleAction('revision')}             disabled={disabled} style={actionBtn('#e3c47f', 'rgba(227, 196, 127,0.1)',    'rgba(227, 196, 127,0.3)',    disabled)}><span>⟳</span><span>Доопрацювання</span></button>
+          <button onClick={() => handleAction('reject')}               disabled={disabled} style={actionBtn('#dd8f8f', 'rgba(221, 143, 143,0.1)',   'rgba(221, 143, 143,0.3)',   disabled)}><span>✕</span><span>Відхилити</span></button>
         </div>
       )
     }
@@ -388,12 +388,12 @@ export default function Stories1Page() {
       return (
         <>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-            <button onClick={() => handleAction('approve', 'original')}  disabled={disabled} style={actionBtn('#4ade80', 'rgba(74,222,128,0.12)', 'rgba(74,222,128,0.35)', disabled)}><span>✓</span><span>Опублікувати оригінал</span></button>
+            <button onClick={() => handleAction('approve', 'original')}  disabled={disabled} style={actionBtn('#7cc79b', 'rgba(124, 199, 155,0.12)', 'rgba(124, 199, 155,0.35)', disabled)}><span>✓</span><span>Опублікувати оригінал</span></button>
             <button onClick={() => handleAction('approve', 'corrected')} disabled={disabled} style={actionBtn(VIOLET,   'rgba(129,140,248,0.12)', 'rgba(129,140,248,0.4)',  disabled)}><span>✍</span><span>З редакторською правкою</span></button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <button onClick={() => handleAction('revision')} disabled={disabled} style={actionBtn('#fbbf24', 'rgba(251,191,36,0.1)',  'rgba(251,191,36,0.3)',  disabled)}><span>⟳</span><span>Доопрацювання</span></button>
-            <button onClick={() => handleAction('reject')}   disabled={disabled} style={actionBtn('#f87171', 'rgba(248,113,113,0.1)', 'rgba(248,113,113,0.3)', disabled)}><span>✕</span><span>Відхилити</span></button>
+            <button onClick={() => handleAction('revision')} disabled={disabled} style={actionBtn('#e3c47f', 'rgba(227, 196, 127,0.1)',  'rgba(227, 196, 127,0.3)',  disabled)}><span>⟳</span><span>Доопрацювання</span></button>
+            <button onClick={() => handleAction('reject')}   disabled={disabled} style={actionBtn('#dd8f8f', 'rgba(221, 143, 143,0.1)', 'rgba(221, 143, 143,0.3)', disabled)}><span>✕</span><span>Відхилити</span></button>
           </div>
         </>
       )
@@ -402,12 +402,12 @@ export default function Stories1Page() {
       return (
         <>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-            <button onClick={() => handleAction('approve', 'original')}  disabled={disabled} style={actionBtn('#4ade80', 'rgba(74,222,128,0.12)', 'rgba(74,222,128,0.35)', disabled)}><span>✓</span><span>Опублікувати оригінал</span></button>
+            <button onClick={() => handleAction('approve', 'original')}  disabled={disabled} style={actionBtn('#7cc79b', 'rgba(124, 199, 155,0.12)', 'rgba(124, 199, 155,0.35)', disabled)}><span>✓</span><span>Опублікувати оригінал</span></button>
             <button onClick={() => handleAction('approve', 'humanized')} disabled={disabled} style={actionBtn(TEAL,     'rgba(45,212,191,0.12)',  'rgba(45,212,191,0.4)',  disabled)}><span>✨</span><span>Природніший варіант</span></button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <button onClick={() => handleAction('revision')} disabled={disabled} style={actionBtn('#fbbf24', 'rgba(251,191,36,0.1)',  'rgba(251,191,36,0.3)',  disabled)}><span>⟳</span><span>Доопрацювання</span></button>
-            <button onClick={() => handleAction('reject')}   disabled={disabled} style={actionBtn('#f87171', 'rgba(248,113,113,0.1)', 'rgba(248,113,113,0.3)', disabled)}><span>✕</span><span>Відхилити</span></button>
+            <button onClick={() => handleAction('revision')} disabled={disabled} style={actionBtn('#e3c47f', 'rgba(227, 196, 127,0.1)',  'rgba(227, 196, 127,0.3)',  disabled)}><span>⟳</span><span>Доопрацювання</span></button>
+            <button onClick={() => handleAction('reject')}   disabled={disabled} style={actionBtn('#dd8f8f', 'rgba(221, 143, 143,0.1)', 'rgba(221, 143, 143,0.3)', disabled)}><span>✕</span><span>Відхилити</span></button>
           </div>
         </>
       )
@@ -416,14 +416,14 @@ export default function Stories1Page() {
     return (
       <>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-          <button onClick={() => handleAction('approve', 'original')}           disabled={disabled} style={actionBtn('#4ade80', 'rgba(74,222,128,0.12)', 'rgba(74,222,128,0.35)', disabled)}><span>✓</span><span>Оригінал</span></button>
+          <button onClick={() => handleAction('approve', 'original')}           disabled={disabled} style={actionBtn('#7cc79b', 'rgba(124, 199, 155,0.12)', 'rgba(124, 199, 155,0.35)', disabled)}><span>✓</span><span>Оригінал</span></button>
           <button onClick={() => handleAction('approve', 'corrected')}          disabled={disabled} style={actionBtn(VIOLET,   'rgba(129,140,248,0.12)', 'rgba(129,140,248,0.4)',  disabled)}><span>✍</span><span>З правкою</span></button>
           <button onClick={() => handleAction('approve', 'humanized')}          disabled={disabled} style={actionBtn(TEAL,     'rgba(45,212,191,0.12)',  'rgba(45,212,191,0.4)',  disabled)}><span>✨</span><span>Природніший</span></button>
-          <button onClick={() => handleAction('approve', 'corrected_humanized')} disabled={disabled} style={actionBtn(GOLD,    'rgba(240,165,0,0.12)',   'rgba(240,165,0,0.4)',   disabled)}><span>⚡</span><span>Правка + Природній</span></button>
+          <button onClick={() => handleAction('approve', 'corrected_humanized')} disabled={disabled} style={actionBtn(GOLD,    'rgba(208, 163, 85,0.12)',   'rgba(208, 163, 85,0.4)',   disabled)}><span>⚡</span><span>Правка + Природній</span></button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <button onClick={() => handleAction('revision')} disabled={disabled} style={actionBtn('#fbbf24', 'rgba(251,191,36,0.1)',  'rgba(251,191,36,0.3)',  disabled)}><span>⟳</span><span>Доопрацювання</span></button>
-          <button onClick={() => handleAction('reject')}   disabled={disabled} style={actionBtn('#f87171', 'rgba(248,113,113,0.1)', 'rgba(248,113,113,0.3)', disabled)}><span>✕</span><span>Відхилити</span></button>
+          <button onClick={() => handleAction('revision')} disabled={disabled} style={actionBtn('#e3c47f', 'rgba(227, 196, 127,0.1)',  'rgba(227, 196, 127,0.3)',  disabled)}><span>⟳</span><span>Доопрацювання</span></button>
+          <button onClick={() => handleAction('reject')}   disabled={disabled} style={actionBtn('#dd8f8f', 'rgba(221, 143, 143,0.1)', 'rgba(221, 143, 143,0.3)', disabled)}><span>✕</span><span>Відхилити</span></button>
         </div>
       </>
     )
@@ -500,7 +500,7 @@ export default function Stories1Page() {
             <textarea style={{ ...inputBase, height: 280, resize: 'vertical', lineHeight: 1.75 }} placeholder="Вставте або введіть повний текст..." value={text} onChange={e => setText(e.target.value)} />
           </Field>
           <Field label="Фото для обкладинки">
-            <div onDragOver={e => { e.preventDefault(); setDragOver(true) }} onDragLeave={() => setDragOver(false)} onDrop={handleDrop} onClick={() => fileRef.current?.click()} style={{ border: `1.5px dashed ${dragOver ? GOLD : 'rgba(255,255,255,0.15)'}`, borderRadius: 12, padding: '22px 20px', textAlign: 'center', cursor: 'pointer', background: dragOver ? 'rgba(240,165,0,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.2s', marginBottom: imgSrc ? 10 : 0 }}>
+            <div onDragOver={e => { e.preventDefault(); setDragOver(true) }} onDragLeave={() => setDragOver(false)} onDrop={handleDrop} onClick={() => fileRef.current?.click()} style={{ border: `1.5px dashed ${dragOver ? GOLD : 'rgba(255,255,255,0.15)'}`, borderRadius: 12, padding: '22px 20px', textAlign: 'center', cursor: 'pointer', background: dragOver ? 'rgba(208, 163, 85,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.2s', marginBottom: imgSrc ? 10 : 0 }}>
               <div style={{ fontSize: 26, marginBottom: 6 }}>🖼</div>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#f5f0e8', marginBottom: 3, fontFamily: FONT }}>Перетягніть фото або клікніть</div>
               <div style={{ fontSize: 11, color: '#445566', fontFamily: FONT }}>PNG · JPG · WEBP · Обличчя не будуть обрізані</div>
@@ -530,7 +530,7 @@ export default function Stories1Page() {
               </>
             )}
           </Field>
-          <button onClick={handleCheck} disabled={checkPhase === 'loading'} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, background: checkPhase === 'loading' ? 'rgba(240,165,0,0.45)' : 'linear-gradient(135deg,#f0a500,#e8920a)', color: NAVY_DEEP, border: 'none', borderRadius: 12, padding: '15px 18px', fontSize: 15, fontWeight: 800, cursor: checkPhase === 'loading' ? 'wait' : 'pointer', fontFamily: FONT, boxShadow: checkPhase === 'loading' ? 'none' : '0 2px 14px rgba(240,165,0,0.3)', transition: 'all 0.2s' }}>
+          <button onClick={handleCheck} disabled={checkPhase === 'loading'} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, background: checkPhase === 'loading' ? 'rgba(208, 163, 85,0.45)' : 'linear-gradient(135deg,#d0a355,#e8920a)', color: NAVY_DEEP, border: 'none', borderRadius: 12, padding: '15px 18px', fontSize: 15, fontWeight: 800, cursor: checkPhase === 'loading' ? 'wait' : 'pointer', fontFamily: FONT, boxShadow: checkPhase === 'loading' ? 'none' : '0 2px 14px rgba(208, 163, 85,0.3)', transition: 'all 0.2s' }}>
             {checkPhase === 'loading' ? <><Spinner color={NAVY_DEEP} /> Claude аналізує…</> : <><StarIcon /> Перевірити через Claude AI</>}
           </button>
           {checkPhase === 'error' && <ErrorBox>{checkError}</ErrorBox>}
@@ -566,15 +566,15 @@ export default function Stories1Page() {
               })}
             </div>
             {report.grammar.errors && report.grammar.errors.length > 0 && (
-              <div style={{ marginBottom: 16, padding: '14px 16px', background: 'rgba(248,113,113,0.06)', border: '0.5px solid rgba(248,113,113,0.2)', borderRadius: 12 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#f87171', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10, fontFamily: FONT }}>Знайдені помилки</div>
+              <div style={{ marginBottom: 16, padding: '14px 16px', background: 'rgba(221, 143, 143,0.06)', border: '0.5px solid rgba(221, 143, 143,0.2)', borderRadius: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#dd8f8f', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10, fontFamily: FONT }}>Знайдені помилки</div>
                 <ul style={{ margin: 0, paddingLeft: 18 }}>
                   {report.grammar.errors.map((e, i) => <li key={i} style={{ fontSize: 13, color: '#c8d4e8', lineHeight: 1.7, fontFamily: FONT }}>{e}</li>)}
                 </ul>
               </div>
             )}
             {report.overall.suggestions && report.overall.suggestions.length > 0 && (
-              <div style={{ marginBottom: 20, padding: '14px 16px', background: 'rgba(240,165,0,0.05)', border: '0.5px solid rgba(240,165,0,0.2)', borderRadius: 12 }}>
+              <div style={{ marginBottom: 20, padding: '14px 16px', background: 'rgba(208, 163, 85,0.05)', border: '0.5px solid rgba(208, 163, 85,0.2)', borderRadius: 12 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10, fontFamily: FONT }}>Рекомендації редактора</div>
                 <ul style={{ margin: 0, paddingLeft: 18 }}>
                   {report.overall.suggestions.map((s, i) => <li key={i} style={{ fontSize: 13, color: '#c8d4e8', lineHeight: 1.7, fontFamily: FONT }}>{s}</li>)}
@@ -597,7 +597,7 @@ export default function Stories1Page() {
                 {correctEditMode ? 'правок' : 'правок · наведіть на підкреслений текст для деталей'}
               </span>
               {correctManuallyEdited && !correctEditMode && (
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#4ade80', background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 6, padding: '2px 8px', fontFamily: FONT, whiteSpace: 'nowrap' }}>✓ Відредаговано</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#7cc79b', background: 'rgba(124, 199, 155,0.12)', border: '1px solid rgba(124, 199, 155,0.3)', borderRadius: 6, padding: '2px 8px', fontFamily: FONT, whiteSpace: 'nowrap' }}>✓ Відредаговано</span>
               )}
               {!correctEditMode && (
                 <button
@@ -611,7 +611,7 @@ export default function Stories1Page() {
                 <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
                   <button
                     onClick={() => { setCorrectedText(correctDraft); setCorrectManuallyEdited(true); setCorrectEditMode(false) }}
-                    style={{ fontSize: 12, fontWeight: 700, color: '#4ade80', background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.35)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontFamily: FONT }}
+                    style={{ fontSize: 12, fontWeight: 700, color: '#7cc79b', background: 'rgba(124, 199, 155,0.12)', border: '1px solid rgba(124, 199, 155,0.35)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontFamily: FONT }}
                   >✓ Зберегти зміни</button>
                   <button
                     onClick={() => setCorrectEditMode(false)}
@@ -619,7 +619,7 @@ export default function Stories1Page() {
                   >✕ Скасувати</button>
                   <button
                     onClick={() => setCorrectDraft(claudeCorrectedText)}
-                    style={{ fontSize: 12, fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontFamily: FONT }}
+                    style={{ fontSize: 12, fontWeight: 700, color: '#dd8f8f', background: 'rgba(221, 143, 143,0.08)', border: '1px solid rgba(221, 143, 143,0.3)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontFamily: FONT }}
                   >↺ Скинути до варіанту Claude</button>
                 </div>
                 <textarea
@@ -637,8 +637,8 @@ export default function Stories1Page() {
                       {seg.content}<span className="cnum">{seg.change.id}</span>
                       <span className="tip">
                         <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#8899bb', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6 }}>Правка #{seg.change.id}</span>
-                        <span style={{ display: 'block', marginBottom: 4 }}><span style={{ color: '#8899bb', fontSize: 11 }}>було: </span><em style={{ color: '#f87171', fontSize: 12 }}>&ldquo;{seg.change.original}&rdquo;</em></span>
-                        <span style={{ display: 'block', marginBottom: 6 }}><span style={{ color: '#8899bb', fontSize: 11 }}>стало: </span><em style={{ color: '#4ade80', fontSize: 12 }}>&ldquo;{seg.change.corrected}&rdquo;</em></span>
+                        <span style={{ display: 'block', marginBottom: 4 }}><span style={{ color: '#8899bb', fontSize: 11 }}>було: </span><em style={{ color: '#dd8f8f', fontSize: 12 }}>&ldquo;{seg.change.original}&rdquo;</em></span>
+                        <span style={{ display: 'block', marginBottom: 6 }}><span style={{ color: '#8899bb', fontSize: 11 }}>стало: </span><em style={{ color: '#7cc79b', fontSize: 12 }}>&ldquo;{seg.change.corrected}&rdquo;</em></span>
                         <span style={{ display: 'block', borderTop: '0.5px solid rgba(255,255,255,0.1)', paddingTop: 6, fontSize: 11, color: '#c8d4e8', lineHeight: 1.5 }}>{seg.change.reason}</span>
                       </span>
                     </span>
@@ -654,9 +654,9 @@ export default function Stories1Page() {
                     <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(129,140,248,0.2)', border: `1px solid rgba(129,140,248,0.4)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: VIOLET, flexShrink: 0, fontFamily: FONT }}>{c.id}</div>
                     <div>
                       <div style={{ fontSize: 13, marginBottom: 4, fontFamily: FONT }}>
-                        <span style={{ color: '#f87171' }}>&ldquo;{c.original}&rdquo;</span>
+                        <span style={{ color: '#dd8f8f' }}>&ldquo;{c.original}&rdquo;</span>
                         <span style={{ color: '#445566', margin: '0 6px' }}>→</span>
-                        <span style={{ color: '#4ade80' }}>&ldquo;{c.corrected}&rdquo;</span>
+                        <span style={{ color: '#7cc79b' }}>&ldquo;{c.corrected}&rdquo;</span>
                       </div>
                       <div style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>{c.reason}</div>
                     </div>
@@ -686,7 +686,7 @@ export default function Stories1Page() {
                     <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
                       <button
                         onClick={() => { setHumanizedText(humanizeDraft); setHumanizeManuallyEdited(true); setHumanizeEditMode(false) }}
-                        style={{ fontSize: 12, fontWeight: 700, color: '#4ade80', background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.35)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontFamily: FONT }}
+                        style={{ fontSize: 12, fontWeight: 700, color: '#7cc79b', background: 'rgba(124, 199, 155,0.12)', border: '1px solid rgba(124, 199, 155,0.35)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontFamily: FONT }}
                       >✓ Зберегти зміни</button>
                       <button
                         onClick={() => setHumanizeEditMode(false)}
@@ -694,7 +694,7 @@ export default function Stories1Page() {
                       >✕ Скасувати</button>
                       <button
                         onClick={() => setHumanizeDraft(claudeHumanizedText)}
-                        style={{ fontSize: 12, fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontFamily: FONT }}
+                        style={{ fontSize: 12, fontWeight: 700, color: '#dd8f8f', background: 'rgba(221, 143, 143,0.08)', border: '1px solid rgba(221, 143, 143,0.3)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontFamily: FONT }}
                       >↺ Скинути до варіанту Claude</button>
                     </div>
                     <textarea
@@ -713,7 +713,7 @@ export default function Stories1Page() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           Природніший варіант
                           {humanizeManuallyEdited && (
-                            <span style={{ fontSize: 10, fontWeight: 700, color: '#4ade80', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 5, padding: '1px 6px', textTransform: 'none', letterSpacing: 0 }}>✓ Відредаговано</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: '#7cc79b', background: 'rgba(124, 199, 155,0.15)', border: '1px solid rgba(124, 199, 155,0.3)', borderRadius: 5, padding: '1px 6px', textTransform: 'none', letterSpacing: 0 }}>✓ Відредаговано</span>
                           )}
                         </div>
                         <button
@@ -775,7 +775,7 @@ export default function Stories1Page() {
               <textarea style={{ ...inputBase, height: 80, resize: 'vertical', lineHeight: 1.6 }} placeholder="Пояснення для автора..." value={adminNotes} onChange={e => setAdminNotes(e.target.value)} />
             </Field>
             {imgSrc && (
-              <div style={{ fontSize: 12, color: '#8899bb', marginBottom: 14, padding: '8px 12px', background: 'rgba(240,165,0,0.06)', borderRadius: 8, fontFamily: FONT }}>
+              <div style={{ fontSize: 12, color: '#8899bb', marginBottom: 14, padding: '8px 12px', background: 'rgba(208, 163, 85,0.06)', borderRadius: 8, fontFamily: FONT }}>
                 🎨 Після схвалення фото буде оброблено через Replicate (~60 с)
               </div>
             )}
@@ -803,10 +803,10 @@ export default function Stories1Page() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg) } }
-        .correction { border-bottom: 2px solid #f0a500; cursor: help; position: relative; display: inline; }
-        .correction .tip { display: none; position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); width: 270px; background: #0b1729; border: 1px solid rgba(240,165,0,0.45); border-radius: 11px; padding: 12px 14px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.75); white-space: normal; pointer-events: none; font-style: normal; }
+        .correction { border-bottom: 2px solid #d0a355; cursor: help; position: relative; display: inline; }
+        .correction .tip { display: none; position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); width: 270px; background: #0b1729; border: 1px solid rgba(208, 163, 85,0.45); border-radius: 11px; padding: 12px 14px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.75); white-space: normal; pointer-events: none; font-style: normal; }
         .correction:hover .tip { display: block; }
-        .cnum { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: #f0a500; color: #0a1628; font-size: 9px; font-weight: 800; vertical-align: super; margin-left: 1px; font-family: Montserrat, Arial, sans-serif; }
+        .cnum { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: #d0a355; color: #0a1628; font-size: 9px; font-weight: 800; vertical-align: super; margin-left: 1px; font-family: Montserrat, Arial, sans-serif; }
       `}</style>
     </div>
   )
@@ -823,7 +823,7 @@ function StarIcon() {
 }
 
 function ErrorBox({ children }: { children: React.ReactNode }) {
-  return <div style={{ marginTop: 10, fontSize: 13, color: '#f87171', padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: "'Montserrat', Arial, sans-serif" }}>{children}</div>
+  return <div style={{ marginTop: 10, fontSize: 13, color: '#dd8f8f', padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: "'Montserrat', Arial, sans-serif" }}>{children}</div>
 }
 
 // ── Style helpers ─────────────────────────────────────────────────────────────

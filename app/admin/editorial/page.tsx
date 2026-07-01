@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 
 const FONT = "'Montserrat', Arial, sans-serif"
-const GOLD = '#f0a500'
+const GOLD = '#d0a355'
 const NAVY = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 
@@ -44,9 +44,9 @@ interface RemindResponse {
 
 function StatusBadge({ status }: { status: string }) {
   const configs: Record<string, { label: string; color: string; bg: string }> = {
-    in_review: { label: '🔄 На перевірці', color: '#fbbf24', bg: 'rgba(251,191,36,0.1)' },
-    approved: { label: '✅ Погоджено', color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
-    has_revisions: { label: '✏️ Є правки', color: '#fb923c', bg: 'rgba(251,146,60,0.1)' },
+    in_review: { label: '🔄 На перевірці', color: '#e3c47f', bg: 'rgba(227, 196, 127,0.1)' },
+    approved: { label: '✅ Погоджено', color: '#7cc79b', bg: 'rgba(124, 199, 155,0.1)' },
+    has_revisions: { label: '✏️ Є правки', color: '#d8ab6a', bg: 'rgba(216, 171, 106,0.1)' },
   }
   const cfg = configs[status] ?? { label: status, color: '#8899bb', bg: 'rgba(136,153,187,0.1)' }
   return (
@@ -222,9 +222,9 @@ export default function EditorialPage() {
                                         disabled={actionLoading.has(a.id)}
                                         style={{
                                           fontSize: 11, fontWeight: 600,
-                                          color: '#fbbf24',
-                                          background: 'rgba(251,191,36,0.1)',
-                                          border: '1px solid rgba(251,191,36,0.25)',
+                                          color: '#e3c47f',
+                                          background: 'rgba(227, 196, 127,0.1)',
+                                          border: '1px solid rgba(227, 196, 127,0.25)',
                                           borderRadius: 6, padding: '4px 10px',
                                           cursor: actionLoading.has(a.id) ? 'wait' : 'pointer',
                                           fontFamily: FONT,
@@ -237,7 +237,7 @@ export default function EditorialPage() {
 
                                   {a.responseAction === 'approve' && (
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                      <span style={{ fontSize: 11, color: '#4ade80', fontWeight: 600 }}>✅ Погоджено</span>
+                                      <span style={{ fontSize: 11, color: '#7cc79b', fontWeight: 600 }}>✅ Погоджено</span>
                                       {a.respondedAt && (
                                         <span style={{ fontSize: 10, color: '#445566' }}>
                                           {new Date(a.respondedAt).toLocaleString('uk-UA')}
@@ -252,9 +252,9 @@ export default function EditorialPage() {
                                         onClick={() => toggleRevision(a.id)}
                                         style={{
                                           fontSize: 11, fontWeight: 600,
-                                          color: '#fb923c',
-                                          background: 'rgba(251,146,60,0.1)',
-                                          border: '1px solid rgba(251,146,60,0.25)',
+                                          color: '#d8ab6a',
+                                          background: 'rgba(216, 171, 106,0.1)',
+                                          border: '1px solid rgba(216, 171, 106,0.25)',
                                           borderRadius: 6, padding: '4px 10px',
                                           cursor: 'pointer',
                                           fontFamily: FONT,
@@ -267,9 +267,9 @@ export default function EditorialPage() {
                                         disabled={actionLoading.has(a.id)}
                                         style={{
                                           fontSize: 11, fontWeight: 600,
-                                          color: '#4ade80',
-                                          background: 'rgba(74,222,128,0.1)',
-                                          border: '1px solid rgba(74,222,128,0.25)',
+                                          color: '#7cc79b',
+                                          background: 'rgba(124, 199, 155,0.1)',
+                                          border: '1px solid rgba(124, 199, 155,0.25)',
                                           borderRadius: 6, padding: '4px 10px',
                                           cursor: actionLoading.has(a.id) ? 'wait' : 'pointer',
                                           fontFamily: FONT,
@@ -282,9 +282,9 @@ export default function EditorialPage() {
                                         disabled={actionLoading.has(a.id)}
                                         style={{
                                           fontSize: 11, fontWeight: 600,
-                                          color: '#f87171',
-                                          background: 'rgba(248,113,113,0.1)',
-                                          border: '1px solid rgba(248,113,113,0.25)',
+                                          color: '#dd8f8f',
+                                          background: 'rgba(221, 143, 143,0.1)',
+                                          border: '1px solid rgba(221, 143, 143,0.25)',
                                           borderRadius: 6, padding: '4px 10px',
                                           cursor: actionLoading.has(a.id) ? 'wait' : 'pointer',
                                           fontFamily: FONT,
@@ -300,7 +300,7 @@ export default function EditorialPage() {
                                 {a.responseAction === 'revise' && expandedRevisions.has(a.id) && (
                                   <div style={{ marginTop: 10 }}>
                                     {a.comment && (
-                                      <div style={{ fontSize: 12, color: '#fbbf24', marginBottom: 6, fontStyle: 'italic' }}>
+                                      <div style={{ fontSize: 12, color: '#e3c47f', marginBottom: 6, fontStyle: 'italic' }}>
                                         💬 {a.comment}
                                       </div>
                                     )}

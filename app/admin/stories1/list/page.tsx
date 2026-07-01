@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
-const GOLD      = '#f0a500'
+const GOLD      = '#d0a355'
 const NAVY      = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 
@@ -78,7 +78,7 @@ export default function StoriesListPage() {
 
         {/* Error */}
         {phase === 'error' && (
-          <div style={{ padding: 16, background: 'rgba(239,68,68,0.09)', borderRadius: 12, color: '#f87171', fontFamily: FONT }}>
+          <div style={{ padding: 16, background: 'rgba(239,68,68,0.09)', borderRadius: 12, color: '#dd8f8f', fontFamily: FONT }}>
             {error}
           </div>
         )}
@@ -108,9 +108,9 @@ export default function StoriesListPage() {
 
             {/* Actions */}
             <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-              <a href={`/admin/stories1/edit/${s.id}`} style={{ fontSize: 12, fontWeight: 700, color: GOLD, background: 'rgba(240,165,0,0.1)', border: '1px solid rgba(240,165,0,0.3)', borderRadius: 8, padding: '6px 12px', textDecoration: 'none', fontFamily: FONT, whiteSpace: 'nowrap' }}>✏️ Редагувати</a>
+              <a href={`/admin/stories1/edit/${s.id}`} style={{ fontSize: 12, fontWeight: 700, color: GOLD, background: 'rgba(208, 163, 85,0.1)', border: '1px solid rgba(208, 163, 85,0.3)', borderRadius: 8, padding: '6px 12px', textDecoration: 'none', fontFamily: FONT, whiteSpace: 'nowrap' }}>✏️ Редагувати</a>
               <a href={`/stories/${s.slug}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 700, color: '#8899bb', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '6px 12px', textDecoration: 'none', fontFamily: FONT, whiteSpace: 'nowrap' }}>👁</a>
-              <button onClick={() => handleDelete(s.id, s.title)} disabled={deletingId === s.id} style={{ fontSize: 12, fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 8, padding: '6px 10px', cursor: deletingId === s.id ? 'wait' : 'pointer', fontFamily: FONT, opacity: deletingId === s.id ? 0.5 : 1 }}>🗑</button>
+              <button onClick={() => handleDelete(s.id, s.title)} disabled={deletingId === s.id} style={{ fontSize: 12, fontWeight: 700, color: '#dd8f8f', background: 'rgba(221, 143, 143,0.08)', border: '1px solid rgba(221, 143, 143,0.3)', borderRadius: 8, padding: '6px 10px', cursor: deletingId === s.id ? 'wait' : 'pointer', fontFamily: FONT, opacity: deletingId === s.id ? 0.5 : 1 }}>🗑</button>
             </div>
           </div>
         ))}

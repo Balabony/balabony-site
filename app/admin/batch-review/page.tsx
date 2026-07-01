@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
-const GOLD      = '#f0a500'
+const GOLD      = '#d0a355'
 const NAVY      = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 const STORAGE_KEY = 'balabony-batch-v2'
@@ -74,9 +74,9 @@ function uid() { return Math.random().toString(36).slice(2) }
 function wordCount(text: string) { return text.trim().split(/\s+/).filter(Boolean).length }
 
 function verdictColor(verdict: 'quality' | 'remarks' | 'poor') {
-  if (verdict === 'quality') return '#4ade80'
-  if (verdict === 'remarks') return '#fbbf24'
-  return '#f87171'
+  if (verdict === 'quality') return '#7cc79b'
+  if (verdict === 'remarks') return '#e3c47f'
+  return '#dd8f8f'
 }
 
 function verdictIcon(verdict: 'quality' | 'remarks' | 'poor') {
@@ -471,7 +471,7 @@ export default function BatchReviewPage() {
             style={{
               border: `2px dashed ${dragOver ? GOLD : 'rgba(255,255,255,0.15)'}`,
               borderRadius: 12, padding: '28px 20px', textAlign: 'center',
-              cursor: 'pointer', background: dragOver ? 'rgba(240,165,0,0.06)' : 'rgba(255,255,255,0.02)',
+              cursor: 'pointer', background: dragOver ? 'rgba(208, 163, 85,0.06)' : 'rgba(255,255,255,0.02)',
               transition: 'all 0.2s', marginBottom: 16,
             }}
           >
@@ -537,7 +537,7 @@ export default function BatchReviewPage() {
                   setEntries([])
                   localStorage.removeItem(STORAGE_KEY)
                 }}
-                style={{ fontSize: 11, color: '#f87171', background: 'none', border: 'none', cursor: 'pointer', fontFamily: FONT }}
+                style={{ fontSize: 11, color: '#dd8f8f', background: 'none', border: 'none', cursor: 'pointer', fontFamily: FONT }}
               >
                 Очистити все
               </button>
@@ -558,7 +558,7 @@ export default function BatchReviewPage() {
 
             {/* Cross-review indicator */}
             {crossLoading && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'rgba(240,165,0,0.07)', borderRadius: 10, border: '1px solid rgba(240,165,0,0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'rgba(208, 163, 85,0.07)', borderRadius: 10, border: '1px solid rgba(208, 163, 85,0.2)' }}>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }}>
                   <circle cx="8" cy="8" r="6" stroke={GOLD} strokeWidth="2" strokeDasharray="20 18" strokeLinecap="round"/>
                 </svg>
@@ -600,11 +600,11 @@ export default function BatchReviewPage() {
                   <div key={entry.id} style={{
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '8px 14px', borderRadius: 10,
-                    background: 'rgba(248,113,113,0.07)',
-                    border: '1px solid rgba(248,113,113,0.2)',
+                    background: 'rgba(221, 143, 143,0.07)',
+                    border: '1px solid rgba(221, 143, 143,0.2)',
                   }}>
                     <span style={{ fontSize: 13, flexShrink: 0 }}>❌</span>
-                    <span style={{ flex: 1, fontSize: 13, color: '#f87171', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ flex: 1, fontSize: 13, color: '#dd8f8f', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {idx + 1}. {entry.filename} — {entry.error}
                     </span>
                     <button
@@ -612,7 +612,7 @@ export default function BatchReviewPage() {
                         setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, status: 'pending', error: undefined } : e))
                         scheduleAnalysis()
                       }}
-                      style={{ fontSize: 11, color: GOLD, background: 'rgba(240,165,0,0.1)', border: '1px solid rgba(240,165,0,0.25)', borderRadius: 6, padding: '3px 9px', cursor: 'pointer', fontFamily: FONT, flexShrink: 0 }}
+                      style={{ fontSize: 11, color: GOLD, background: 'rgba(208, 163, 85,0.1)', border: '1px solid rgba(208, 163, 85,0.25)', borderRadius: 6, padding: '3px 9px', cursor: 'pointer', fontFamily: FONT, flexShrink: 0 }}
                     >
                       Retry
                     </button>
@@ -663,7 +663,7 @@ export default function BatchReviewPage() {
                           <div style={{ fontSize: 10, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 3 }}>Технічне</div>
                           {qc.issues.technical.map((issue, ii) => (
                             <div key={ii} style={{ display: 'flex', gap: 6, fontSize: 12, color: '#c8d4e8', lineHeight: 1.5, fontFamily: FONT }}>
-                              <span style={{ color: '#f87171', fontWeight: 700, flexShrink: 0 }}>·</span>{issue}
+                              <span style={{ color: '#dd8f8f', fontWeight: 700, flexShrink: 0 }}>·</span>{issue}
                             </div>
                           ))}
                         </div>
@@ -673,7 +673,7 @@ export default function BatchReviewPage() {
                           <div style={{ fontSize: 10, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 3 }}>Стилістика</div>
                           {qc.issues.stylistics.map((issue, ii) => (
                             <div key={ii} style={{ display: 'flex', gap: 6, fontSize: 12, color: '#c8d4e8', lineHeight: 1.5, fontFamily: FONT }}>
-                              <span style={{ color: '#fbbf24', fontWeight: 700, flexShrink: 0 }}>·</span>{issue}
+                              <span style={{ color: '#e3c47f', fontWeight: 700, flexShrink: 0 }}>·</span>{issue}
                             </div>
                           ))}
                         </div>
@@ -694,10 +694,10 @@ export default function BatchReviewPage() {
                   {/* Cross issues */}
                   {hasCrossIssues && (
                     <div style={{ padding: '0 14px 10px' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: '#fb923c', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 3 }}>Крос-серійні:</div>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#d8ab6a', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 3 }}>Крос-серійні:</div>
                       {entry.crossIssues!.map((issue, ii) => (
                         <div key={ii} style={{ display: 'flex', gap: 6, fontSize: 12, color: '#c8d4e8', lineHeight: 1.5, fontFamily: FONT }}>
-                          <span style={{ color: '#fb923c', fontWeight: 700, flexShrink: 0 }}>·</span>{issue}
+                          <span style={{ color: '#d8ab6a', fontWeight: 700, flexShrink: 0 }}>·</span>{issue}
                         </div>
                       ))}
                     </div>
@@ -737,7 +737,7 @@ export default function BatchReviewPage() {
                     {/* Editorial submit */}
                     {!entry.markedForDeletion && (qc.verdict === 'quality' || qc.verdict === 'remarks') && (
                       entry.editorialStatus === 'submitted' ? (
-                        <span style={{ fontSize: 11, fontWeight: 600, color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)', borderRadius: 6, padding: '4px 10px', fontFamily: FONT, whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: '#7cc79b', background: 'rgba(124, 199, 155,0.1)', border: '1px solid rgba(124, 199, 155,0.25)', borderRadius: 6, padding: '4px 10px', fontFamily: FONT, whiteSpace: 'nowrap' }}>
                           🔄 На перевірці у редактора
                         </span>
                       ) : (
@@ -759,7 +759,7 @@ export default function BatchReviewPage() {
                       entry.markedForDeletion ? (
                         <button
                           onClick={() => setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, markedForDeletion: false } : e))}
-                          style={{ fontSize: 11, fontWeight: 600, color: '#f87171', background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
+                          style={{ fontSize: 11, fontWeight: 600, color: '#dd8f8f', background: 'rgba(221, 143, 143,0.12)', border: '1px solid rgba(221, 143, 143,0.3)', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
                         >
                           ❌ Буде видалена → Залишити
                         </button>
@@ -775,7 +775,7 @@ export default function BatchReviewPage() {
                     {qc.verdict === 'remarks' && (
                       <button
                         onClick={() => setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, markedForDeletion: !e.markedForDeletion } : e))}
-                        style={{ fontSize: 11, fontWeight: 600, color: entry.markedForDeletion ? '#f87171' : '#8899bb', background: entry.markedForDeletion ? 'rgba(248,113,113,0.1)' : 'none', border: `1px solid ${entry.markedForDeletion ? 'rgba(248,113,113,0.3)' : 'rgba(255,255,255,0.15)'}`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
+                        style={{ fontSize: 11, fontWeight: 600, color: entry.markedForDeletion ? '#dd8f8f' : '#8899bb', background: entry.markedForDeletion ? 'rgba(221, 143, 143,0.1)' : 'none', border: `1px solid ${entry.markedForDeletion ? 'rgba(221, 143, 143,0.3)' : 'rgba(255,255,255,0.15)'}`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: FONT, whiteSpace: 'nowrap' }}
                       >
                         {entry.markedForDeletion ? '❌ Позначено → Скасувати' : 'Позначити для видалення'}
                       </button>
@@ -793,9 +793,9 @@ export default function BatchReviewPage() {
 
             {/* Stats row */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginBottom: 14, alignItems: 'center' }}>
-              <span style={{ fontSize: 13, color: '#4ade80', fontFamily: FONT }}>✅ {qualityCount} якісних</span>
-              <span style={{ fontSize: 13, color: '#fbbf24', fontFamily: FONT }}>⚠️ {remarksCount} зауважень</span>
-              <span style={{ fontSize: 13, color: '#f87171', fontFamily: FONT }}>❌ {poorCount} неякісних</span>
+              <span style={{ fontSize: 13, color: '#7cc79b', fontFamily: FONT }}>✅ {qualityCount} якісних</span>
+              <span style={{ fontSize: 13, color: '#e3c47f', fontFamily: FONT }}>⚠️ {remarksCount} зауважень</span>
+              <span style={{ fontSize: 13, color: '#dd8f8f', fontFamily: FONT }}>❌ {poorCount} неякісних</span>
               <div style={{ flex: 1 }} />
               <span style={{ fontSize: 13, color: '#8899bb', fontFamily: FONT }}>Буде видалено: {deletedCount}</span>
             </div>
@@ -824,9 +824,9 @@ export default function BatchReviewPage() {
                 disabled={zipLoading || keepCount === 0}
                 style={{
                   flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  background: zipLoading || keepCount === 0 ? 'rgba(255,255,255,0.04)' : 'rgba(240,165,0,0.15)',
+                  background: zipLoading || keepCount === 0 ? 'rgba(255,255,255,0.04)' : 'rgba(208, 163, 85,0.15)',
                   color: zipLoading || keepCount === 0 ? '#445566' : GOLD,
-                  border: `1px solid ${zipLoading || keepCount === 0 ? 'rgba(255,255,255,0.08)' : 'rgba(240,165,0,0.35)'}`,
+                  border: `1px solid ${zipLoading || keepCount === 0 ? 'rgba(255,255,255,0.08)' : 'rgba(208, 163, 85,0.35)'}`,
                   borderRadius: 10, padding: '11px 18px',
                   fontSize: 13, fontWeight: 700, fontFamily: FONT,
                   cursor: zipLoading || keepCount === 0 ? 'not-allowed' : 'pointer',

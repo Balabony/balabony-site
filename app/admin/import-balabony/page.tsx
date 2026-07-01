@@ -2,15 +2,15 @@
 
 import { useState, useRef, useCallback } from 'react'
 
-const GOLD      = '#f0a500'
+const GOLD      = '#d0a355'
 const NAVY      = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 const FONT      = "'Montserrat', Arial, sans-serif"
 const IVORY     = '#f5f0e8'
 const MUTED     = '#445566'
 const LABEL     = '#8899bb'
-const RED       = '#f87171'
-const GREEN     = '#4ade80'
+const RED       = '#dd8f8f'
+const GREEN     = '#7cc79b'
 
 // ─── Types ───
 interface DryRunResultItem {
@@ -176,7 +176,7 @@ export default function ImportBalabonyPage() {
           onDrop={onDrop}
           style={{
             cursor: 'pointer',
-            background: dragOver ? 'rgba(240,165,0,0.06)' : 'rgba(255,255,255,0.02)',
+            background: dragOver ? 'rgba(208, 163, 85,0.06)' : 'rgba(255,255,255,0.02)',
             border: `1px dashed ${dragOver ? GOLD : 'rgba(255,255,255,0.15)'}`,
             borderRadius: 16,
             padding: '32px 20px',

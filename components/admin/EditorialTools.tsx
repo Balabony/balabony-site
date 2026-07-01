@@ -8,7 +8,7 @@
 
 import { useState, useCallback, useMemo } from 'react'
 
-const GOLD      = '#f0a500'
+const GOLD      = '#d0a355'
 const NAVY_DEEP = '#0a1628'
 const FONT      = "'Montserrat', Arial, sans-serif"
 const SERIF     = "'Georgia', serif"
@@ -265,17 +265,17 @@ export default function EditorialTools({
   }, [])
 
   const btn = (active: boolean, primary: boolean): React.CSSProperties => ({
-    background: primary ? 'rgba(240,165,0,0.12)' : 'rgba(255,255,255,0.06)',
+    background: primary ? 'rgba(208, 163, 85,0.12)' : 'rgba(255,255,255,0.06)',
     color: primary ? GOLD : '#f5f0e8',
-    border: `1px solid ${primary ? 'rgba(240,165,0,0.35)' : 'rgba(255,255,255,0.15)'}`,
+    border: `1px solid ${primary ? 'rgba(208, 163, 85,0.35)' : 'rgba(255,255,255,0.15)'}`,
     borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700,
     cursor: busy === 'idle' ? 'pointer' : 'wait', fontFamily: FONT,
     opacity: busy !== 'idle' && !active ? 0.5 : 1,
   })
 
-  const delStyle: React.CSSProperties = { background: 'rgba(248,113,113,0.18)', color: '#fca5a5', textDecoration: 'line-through', borderRadius: 3, padding: '0 2px' }
-  const insStyle: React.CSSProperties = { background: 'rgba(74,222,128,0.20)', color: '#bbf7d0', borderRadius: 3, padding: '0 2px' }
-  const chgStyle: React.CSSProperties = { background: 'rgba(240,165,0,0.22)', color: '#ffe9b8', borderRadius: 3, padding: '0 2px', borderBottom: `2px solid ${GOLD}` }
+  const delStyle: React.CSSProperties = { background: 'rgba(221, 143, 143,0.18)', color: '#fca5a5', textDecoration: 'line-through', borderRadius: 3, padding: '0 2px' }
+  const insStyle: React.CSSProperties = { background: 'rgba(124, 199, 155,0.20)', color: '#bbf7d0', borderRadius: 3, padding: '0 2px' }
+  const chgStyle: React.CSSProperties = { background: 'rgba(208, 163, 85,0.22)', color: '#ffe9b8', borderRadius: 3, padding: '0 2px', borderBottom: `2px solid ${GOLD}` }
 
   const paraBlocks = useMemo(
     () => (pending && pending.mode === 'humanize') ? diffParagraphs(pending.before, pending.text) : null,
@@ -314,7 +314,7 @@ export default function EditorialTools({
       )}
 
       {pending && (
-        <div style={{ border: `1px solid ${GOLD}55`, borderRadius: 12, background: 'rgba(240,165,0,0.05)', padding: 14, marginBottom: 12 }}>
+        <div style={{ border: `1px solid ${GOLD}55`, borderRadius: 12, background: 'rgba(208, 163, 85,0.05)', padding: 14, marginBottom: 12 }}>
           <div style={{ fontSize: 14, fontWeight: 800, color: GOLD, fontFamily: FONT, marginBottom: 6 }}>
             {pending.mode === 'humanize' ? 'Пропозиція олюднення (×2)' : 'Пропозиція щодо грамотності'} — рішення за тобою
           </div>
@@ -364,7 +364,7 @@ export default function EditorialTools({
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#cbd5e1', fontFamily: FONT }}>Правки (познач потрібні):</div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button onClick={() => setAccepted(new Set(pending.corrections.map((_, i) => i)))}
-                    style={{ fontSize: 11, fontWeight: 700, color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 7, padding: '4px 10px', cursor: 'pointer', fontFamily: FONT }}>
+                    style={{ fontSize: 11, fontWeight: 700, color: '#7cc79b', background: 'rgba(124, 199, 155,0.1)', border: '1px solid rgba(124, 199, 155,0.3)', borderRadius: 7, padding: '4px 10px', cursor: 'pointer', fontFamily: FONT }}>
                     Усі
                   </button>
                   <button onClick={() => setAccepted(new Set())}
@@ -380,16 +380,16 @@ export default function EditorialTools({
                     <div key={i} onClick={() => toggleChange(i)}
                       style={{
                         fontSize: 12, fontFamily: FONT, color: '#cbd5e1', cursor: 'pointer',
-                        background: on ? 'rgba(74,222,128,0.06)' : 'rgba(255,255,255,0.02)',
-                        border: `1px solid ${on ? 'rgba(74,222,128,0.3)' : 'rgba(255,255,255,0.07)'}`,
+                        background: on ? 'rgba(124, 199, 155,0.06)' : 'rgba(255,255,255,0.02)',
+                        border: `1px solid ${on ? 'rgba(124, 199, 155,0.3)' : 'rgba(255,255,255,0.07)'}`,
                         borderRadius: 8, padding: '8px 10px', lineHeight: 1.5,
                         display: 'flex', gap: 10, alignItems: 'flex-start',
                         opacity: on ? 1 : 0.6, transition: 'all 0.15s',
                       }}>
                       <div style={{
                         width: 18, height: 18, borderRadius: 5, flexShrink: 0, marginTop: 1,
-                        background: on ? '#4ade80' : 'transparent',
-                        border: `1.5px solid ${on ? '#4ade80' : 'rgba(255,255,255,0.3)'}`,
+                        background: on ? '#7cc79b' : 'transparent',
+                        border: `1.5px solid ${on ? '#7cc79b' : 'rgba(255,255,255,0.3)'}`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         color: NAVY_DEEP, fontSize: 12, fontWeight: 900,
                       }}>{on ? '✓' : ''}</div>
@@ -422,7 +422,7 @@ export default function EditorialTools({
             <button onClick={applyPending}
               disabled={pending.mode === 'correct' && acceptedCount === 0}
               style={{
-                background: (pending.mode === 'correct' && acceptedCount === 0) ? 'rgba(240,165,0,0.4)' : GOLD,
+                background: (pending.mode === 'correct' && acceptedCount === 0) ? 'rgba(208, 163, 85,0.4)' : GOLD,
                 color: NAVY_DEEP, border: 'none', borderRadius: 10, padding: '10px 20px',
                 fontSize: 14, fontWeight: 800,
                 cursor: (pending.mode === 'correct' && acceptedCount === 0) ? 'not-allowed' : 'pointer',
@@ -430,7 +430,7 @@ export default function EditorialTools({
               }}>
               {pending.mode === 'correct' ? `✓ Застосувати обрані (${acceptedCount})` : '✓ Застосувати'}
             </button>
-            <button onClick={rejectPending} style={{ background: 'transparent', color: '#f87171', border: '1px solid rgba(248,113,113,0.4)', borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FONT }}>
+            <button onClick={rejectPending} style={{ background: 'transparent', color: '#dd8f8f', border: '1px solid rgba(221, 143, 143,0.4)', borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FONT }}>
               ✗ Відхилити все
             </button>
           </div>

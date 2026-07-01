@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import type { AnalysisResult } from '@/components/admin/GeminiAnalyzer'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
-const GOLD      = '#f0a500'
+const GOLD      = '#d0a355'
 const NAVY      = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 
@@ -417,7 +417,7 @@ export default function SeriesListPage() {
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
 
         {/* Батч-генерація recap */}
-        <div style={{ marginBottom: 20, padding: 14, background: NAVY, borderRadius: 12, border: '1px solid rgba(240,165,0,0.25)' }}>
+        <div style={{ marginBottom: 20, padding: 14, background: NAVY, borderRadius: 12, border: '1px solid rgba(208, 163, 85,0.25)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <button
               type="button"
@@ -441,13 +441,13 @@ export default function SeriesListPage() {
             <div style={{ marginTop: 10, fontSize: 12, color: '#cbd5e1', fontFamily: FONT, lineHeight: 1.6 }}>
               {recapDone > 0 && <div>Згенеровано цього запуску: <b style={{ color: GOLD }}>{recapDone}</b>{recapTotal ? ` (усього епізодів: ${recapTotal})` : ''}</div>}
               {recapLast && <div style={{ color: '#8899bb' }}>Останній: {recapLast}</div>}
-              {recapMsg && <div style={{ color: recapMsg.startsWith('Помилка') ? '#f87171' : '#9ae6b4' }}>{recapMsg}</div>}
+              {recapMsg && <div style={{ color: recapMsg.startsWith('Помилка') ? '#dd8f8f' : '#9ae6b4' }}>{recapMsg}</div>}
             </div>
           )}
         </div>
 
         {/* Батч-генерація шортів-гачків (тизери без спойлера) */}
-        <div style={{ marginBottom: 20, padding: 14, background: NAVY, borderRadius: 12, border: '1px solid rgba(240,165,0,0.25)' }}>
+        <div style={{ marginBottom: 20, padding: 14, background: NAVY, borderRadius: 12, border: '1px solid rgba(208, 163, 85,0.25)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <button
               type="button"
@@ -472,13 +472,13 @@ export default function SeriesListPage() {
               {ssDone > 0 && <div>Згенеровано цього запуску: <b style={{ color: GOLD }}>{ssDone}</b>{ssTotal ? ` (усього епізодів: ${ssTotal})` : ''}</div>}
               {ssLast && <div style={{ color: '#8899bb' }}>Останній: {ssLast}</div>}
               {ssText && <div style={{ marginTop: 6, padding: 10, background: 'rgba(255,255,255,0.04)', borderRadius: 8, color: '#e7d9bf', fontStyle: 'italic' }}>{ssText}</div>}
-              {ssMsg && <div style={{ color: ssMsg.startsWith('Помилка') ? '#f87171' : '#9ae6b4' }}>{ssMsg}</div>}
+              {ssMsg && <div style={{ color: ssMsg.startsWith('Помилка') ? '#dd8f8f' : '#9ae6b4' }}>{ssMsg}</div>}
             </div>
           )}
         </div>
 
         {/* Батч-конвертація діалогів у «Імʼя:» (чернетки) */}
-        <div style={{ marginBottom: 20, padding: 14, background: NAVY, borderRadius: 12, border: '1px solid rgba(240,165,0,0.25)' }}>
+        <div style={{ marginBottom: 20, padding: 14, background: NAVY, borderRadius: 12, border: '1px solid rgba(208, 163, 85,0.25)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <button
               type="button"
@@ -502,7 +502,7 @@ export default function SeriesListPage() {
             <div style={{ marginTop: 10, fontSize: 12, color: '#cbd5e1', fontFamily: FONT, lineHeight: 1.6 }}>
               {dbDone > 0 && <div>Сконвертовано цього запуску: <b style={{ color: GOLD }}>{dbDone}</b>{dbTotal ? ` (усього епізодів: ${dbTotal})` : ''}</div>}
               {dbLast && <div style={{ color: '#8899bb' }}>Останній: {dbLast}</div>}
-              {dbMsg && <div style={{ color: dbMsg.startsWith('Помилка') ? '#f87171' : '#9ae6b4' }}>{dbMsg}</div>}
+              {dbMsg && <div style={{ color: dbMsg.startsWith('Помилка') ? '#dd8f8f' : '#9ae6b4' }}>{dbMsg}</div>}
             </div>
           )}
         </div>
@@ -555,7 +555,7 @@ export default function SeriesListPage() {
             <div style={{ marginTop: 10, fontSize: 12, color: '#cbd5e1', fontFamily: FONT, lineHeight: 1.6 }}>
               {cbTotal > 0 && <div>Опрацьовано цього запуску: <b style={{ color: '#C9B5F4' }}>{cbDone}</b> з {cbTotal}{cbFlagged > 0 ? ` · з проблемами: ${cbFlagged}` : ''}</div>}
               {cbLast && <div style={{ color: '#8899bb' }}>Останній: {cbLast}</div>}
-              {cbMsg && <div style={{ color: cbMsg.startsWith('Помилка') ? '#f87171' : '#9ae6b4' }}>{cbMsg}</div>}
+              {cbMsg && <div style={{ color: cbMsg.startsWith('Помилка') ? '#dd8f8f' : '#9ae6b4' }}>{cbMsg}</div>}
             </div>
           )}
         </div>
@@ -603,7 +603,7 @@ export default function SeriesListPage() {
 
         {/* Error */}
         {!loading && error && (
-          <div style={{ padding: '12px 16px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontSize: 13, color: '#f87171', fontFamily: FONT }}>
+          <div style={{ padding: '12px 16px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontSize: 13, color: '#dd8f8f', fontFamily: FONT }}>
             {error}
           </div>
         )}
@@ -685,7 +685,7 @@ export default function SeriesListPage() {
                 {/* Row 3: date + audio badge */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 11, color: '#445566', fontFamily: FONT }}>{date}</span>
-                  {s.audio_status === 'ready' && <AudioWaveIcon size={14} color="#EF9F27" />}
+                  {s.audio_status === 'ready' && <AudioWaveIcon size={14} color="#d0a355" />}
                 </div>
               </div>
 
@@ -770,8 +770,8 @@ export default function SeriesListPage() {
                 href={`/admin/content/stories/${s.id}/edit`}
                 style={{
                   flexShrink: 0, padding: '8px 12px', borderRadius: 8,
-                  background: 'rgba(240,165,0,0.12)', color: GOLD,
-                  border: '1px solid rgba(240,165,0,0.3)', fontFamily: FONT,
+                  background: 'rgba(208, 163, 85,0.12)', color: GOLD,
+                  border: '1px solid rgba(208, 163, 85,0.3)', fontFamily: FONT,
                   fontSize: 12, fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap',
                 }}
               >
@@ -792,7 +792,7 @@ export default function SeriesListPage() {
                     </div>
                     <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4 }}>
                       {canonReport[s.id].map((f, i) => (
-                        <li key={i} style={{ fontSize: 12.5, lineHeight: 1.5, color: f.severity === 'error' ? '#f87171' : '#e7c98a', display: 'flex', gap: 8 }}>
+                        <li key={i} style={{ fontSize: 12.5, lineHeight: 1.5, color: f.severity === 'error' ? '#dd8f8f' : '#e7c98a', display: 'flex', gap: 8 }}>
                           <span style={{ flexShrink: 0, fontWeight: 700, opacity: 0.85 }}>{f.severity === 'error' ? '●' : '○'} {f.rule}:</span>
                           <span style={{ color: '#cbd5e1' }}>{f.message}</span>
                         </li>
@@ -807,7 +807,7 @@ export default function SeriesListPage() {
             {contReport[s.id] && (
               <div style={{ margin: '6px 0 0', padding: '10px 14px', background: 'rgba(0,0,0,0.25)', borderRadius: 10, border: '1px solid rgba(201,181,244,0.18)', fontFamily: FONT }}>
                 {'error' in contReport[s.id] ? (
-                  <div style={{ fontSize: 13, color: '#f87171' }}>⚠ {(contReport[s.id] as { error: string }).error}</div>
+                  <div style={{ fontSize: 13, color: '#dd8f8f' }}>⚠ {(contReport[s.id] as { error: string }).error}</div>
                 ) : (() => {
                   const r = contReport[s.id] as ContFindings
                   const cont = r.continuity ?? []
@@ -827,7 +827,7 @@ export default function SeriesListPage() {
                       </div>
                       <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4 }}>
                         {cont.map((c, i) => (
-                          <li key={`c${i}`} style={{ fontSize: 12.5, lineHeight: 1.5, color: c.severity === 'error' ? '#f87171' : '#e7c98a', display: 'flex', gap: 8 }}>
+                          <li key={`c${i}`} style={{ fontSize: 12.5, lineHeight: 1.5, color: c.severity === 'error' ? '#dd8f8f' : '#e7c98a', display: 'flex', gap: 8 }}>
                             <span style={{ flexShrink: 0, fontWeight: 700, opacity: 0.85 }}>{c.severity === 'error' ? '●' : '○'}{c.source ? ` ${c.source}` : ''}:</span>
                             <span style={{ color: '#cbd5e1' }}>{c.issue}</span>
                           </li>

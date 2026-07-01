@@ -11,7 +11,7 @@ import { useState } from 'react'
 
 const NAVY = '#0E1A2B'
 const NAVY2 = '#14253B'
-const GOLD = '#EF9F27'
+const GOLD = '#d0a355'
 const GOLD2 = '#FAC775'
 const CREAM = '#FFF8EE'
 const BLUE = '#B5D4F4'

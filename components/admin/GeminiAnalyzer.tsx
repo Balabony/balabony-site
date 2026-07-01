@@ -3,7 +3,7 @@
 import { useState } from 'react'
 
 const FONT     = "'Montserrat', Arial, sans-serif"
-const GOLD     = '#f0a500'
+const GOLD     = '#d0a355'
 const NAVY     = '#0f1e3a'
 
 export interface AnalysisResult {
@@ -113,7 +113,7 @@ export default function GeminiAnalyzer({ text, onApplyTeaser, onApplyImprovedTex
       </button>
 
       {error && (
-        <div style={{ fontSize: 13, color: '#f87171', marginBottom: 14, padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>
+        <div style={{ fontSize: 13, color: '#dd8f8f', marginBottom: 14, padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>
           {error}
         </div>
       )}
@@ -131,18 +131,18 @@ export default function GeminiAnalyzer({ text, onApplyTeaser, onApplyImprovedTex
               </div>
             </div>
 
-            <div style={{ background: 'rgba(251,146,60,0.1)', border: '1px solid rgba(251,146,60,0.25)', borderRadius: 12, padding: '12px 14px' }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#fb923c', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>💚 Емоційність</div>
+            <div style={{ background: 'rgba(216, 171, 106,0.1)', border: '1px solid rgba(216, 171, 106,0.25)', borderRadius: 12, padding: '12px 14px' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#d8ab6a', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>💚 Емоційність</div>
               <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', fontFamily: FONT, textTransform: 'capitalize' }}>{analysis.emotion}</div>
             </div>
 
             <div style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 12, padding: '12px 14px' }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#4ade80', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>📖 Складність</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#7cc79b', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>📖 Складність</div>
               <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', fontFamily: FONT, textTransform: 'capitalize' }}>{analysis.complexity}</div>
             </div>
 
-            <div style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 12, padding: '12px 14px' }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#fbbf24', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>👤 Вік аудиторії</div>
+            <div style={{ background: 'rgba(227, 196, 127,0.08)', border: '1px solid rgba(227, 196, 127,0.2)', borderRadius: 12, padding: '12px 14px' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#e3c47f', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 6 }}>👤 Вік аудиторії</div>
               <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', fontFamily: FONT }}>{analysis.recommendedAge}</div>
             </div>
           </div>
@@ -152,7 +152,7 @@ export default function GeminiAnalyzer({ text, onApplyTeaser, onApplyImprovedTex
             <div style={{ fontSize: 10, fontWeight: 700, color: '#8899bb', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 8 }}>🏷️ Авто-теги</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {analysis.tags.map((tag, i) => (
-                <span key={i} style={{ fontSize: 12, fontWeight: 600, color: GOLD, background: 'rgba(240,165,0,0.1)', border: '1px solid rgba(240,165,0,0.25)', borderRadius: 20, padding: '4px 12px', fontFamily: FONT }}>
+                <span key={i} style={{ fontSize: 12, fontWeight: 600, color: GOLD, background: 'rgba(208, 163, 85,0.1)', border: '1px solid rgba(208, 163, 85,0.25)', borderRadius: 20, padding: '4px 12px', fontFamily: FONT }}>
                   #{tag}
                 </span>
               ))}
@@ -175,11 +175,11 @@ export default function GeminiAnalyzer({ text, onApplyTeaser, onApplyImprovedTex
 
           {/* Рекомендації */}
           <div style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 12, padding: '12px 14px' }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#f87171', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 8 }}>💡 Рекомендації по покращенню</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#dd8f8f', letterSpacing: 0.8, textTransform: 'uppercase', fontFamily: FONT, marginBottom: 8 }}>💡 Рекомендації по покращенню</div>
             <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
               {analysis.improvements.map((tip, i) => (
                 <li key={i} style={{ display: 'flex', gap: 8, fontSize: 13, color: '#c8d4e8', lineHeight: 1.5, fontFamily: FONT }}>
-                  <span style={{ color: '#f87171', fontWeight: 700, flexShrink: 0, marginTop: 1 }}>·</span>
+                  <span style={{ color: '#dd8f8f', fontWeight: 700, flexShrink: 0, marginTop: 1 }}>·</span>
                   {tip}
                 </li>
               ))}
@@ -188,7 +188,7 @@ export default function GeminiAnalyzer({ text, onApplyTeaser, onApplyImprovedTex
 
           {/* Кнопка покращення */}
           {improveError && (
-            <div style={{ fontSize: 13, color: '#f87171', padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>
+            <div style={{ fontSize: 13, color: '#dd8f8f', padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>
               {improveError}
             </div>
           )}

@@ -51,18 +51,18 @@ export default function SttTestPage() {
       <div style={{ marginBottom: 20 }}>
         <label style={{ marginRight: 12 }}>Мова:</label>
         <button onClick={() => setLang('uk')} disabled={phase === 'recording'}
-          style={{ padding: '6px 14px', marginRight: 8, borderRadius: 8, border: lang === 'uk' ? '2px solid #ef9f27' : '1px solid #555', background: lang === 'uk' ? 'rgba(239,159,39,0.15)' : 'transparent', color: '#f5f3ee', cursor: 'pointer' }}>
+          style={{ padding: '6px 14px', marginRight: 8, borderRadius: 8, border: lang === 'uk' ? '2px solid #d0a355' : '1px solid #555', background: lang === 'uk' ? 'rgba(239,159,39,0.15)' : 'transparent', color: '#f5f3ee', cursor: 'pointer' }}>
           Українська (uk)
         </button>
         <button onClick={() => setLang('eu')} disabled={phase === 'recording'}
-          style={{ padding: '6px 14px', borderRadius: 8, border: lang === 'eu' ? '2px solid #ef9f27' : '1px solid #555', background: lang === 'eu' ? 'rgba(239,159,39,0.15)' : 'transparent', color: '#f5f3ee', cursor: 'pointer' }}>
+          style={{ padding: '6px 14px', borderRadius: 8, border: lang === 'eu' ? '2px solid #d0a355' : '1px solid #555', background: lang === 'eu' ? 'rgba(239,159,39,0.15)' : 'transparent', color: '#f5f3ee', cursor: 'pointer' }}>
           Баскська (eu)
         </button>
       </div>
 
       {phase !== 'recording' ? (
         <button onClick={start} disabled={phase === 'sending'}
-          style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: '#ef9f27', color: '#13233c', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>
+          style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: '#d0a355', color: '#13233c', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>
           {phase === 'sending' ? 'Розпізнаю…' : '● Почати запис'}
         </button>
       ) : (
@@ -72,7 +72,7 @@ export default function SttTestPage() {
         </button>
       )}
 
-      {phase === 'recording' && <p style={{ marginTop: 16, color: '#ef9f27' }}>● Запис… говоріть у мікрофон, тоді натисніть «Зупинити».</p>}
+      {phase === 'recording' && <p style={{ marginTop: 16, color: '#d0a355' }}>● Запис… говоріть у мікрофон, тоді натисніть «Зупинити».</p>}
 
       {phase === 'done' && (
         <div style={{ marginTop: 24, padding: 16, borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>

@@ -8,7 +8,7 @@ import { analyzeEpisode } from '@/lib/episode-metrics'
 import EditorialTools from '@/components/admin/EditorialTools'
 
 const FONT       = "'Montserrat', Arial, sans-serif"
-const GOLD       = '#f0a500'
+const GOLD       = '#d0a355'
 const NAVY       = '#0f1e3a'
 const NAVY_DEEP  = '#0a1628'
 const JAMENDO_ID = 'a4f04bbe'
@@ -509,8 +509,8 @@ export default function StoriesAdminPage() {
                       width: '100%', textAlign: 'left', marginBottom: 6,
                       display: 'flex', alignItems: 'flex-start', gap: 10,
                       padding: '10px 12px', borderRadius: 10,
-                      background: taken ? 'rgba(255,255,255,0.03)' : 'rgba(240,165,0,0.07)',
-                      border: `1px solid ${taken ? 'rgba(255,255,255,0.06)' : 'rgba(240,165,0,0.25)'}`,
+                      background: taken ? 'rgba(255,255,255,0.03)' : 'rgba(208, 163, 85,0.07)',
+                      border: `1px solid ${taken ? 'rgba(255,255,255,0.06)' : 'rgba(208, 163, 85,0.25)'}`,
                       cursor: 'pointer', fontFamily: FONT,
                       opacity: taken ? 0.7 : 1,
                     }}
@@ -524,7 +524,7 @@ export default function StoriesAdminPage() {
                     </span>
                     <span style={{
                       fontSize: 10, fontWeight: 700, letterSpacing: 0.5, whiteSpace: 'nowrap',
-                      color: taken ? '#f87171' : '#9ae6b4', alignSelf: 'center',
+                      color: taken ? '#dd8f8f' : '#9ae6b4', alignSelf: 'center',
                     }}>
                       {taken ? 'ВЖЕ Є' : 'ВІЛЬНО'}
                     </span>
@@ -558,7 +558,7 @@ export default function StoriesAdminPage() {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
                   {titleSuggestions.map((t, i) => (
                     <button key={i} type="button" onClick={() => setTitle(t)}
-                      style={{ fontSize: 12, fontFamily: FONT, color: '#f5f0e8', background: 'rgba(240,165,0,0.10)', border: '1px solid rgba(240,165,0,0.30)', borderRadius: 999, padding: '5px 12px', cursor: 'pointer' }}>
+                      style={{ fontSize: 12, fontFamily: FONT, color: '#f5f0e8', background: 'rgba(208, 163, 85,0.10)', border: '1px solid rgba(208, 163, 85,0.30)', borderRadius: 999, padding: '5px 12px', cursor: 'pointer' }}>
                       {t}
                     </button>
                   ))}
@@ -600,11 +600,11 @@ export default function StoriesAdminPage() {
             disabled={aiLoading}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
-              background: aiLoading ? 'rgba(240,165,0,0.45)' : 'linear-gradient(135deg, #f0a500 0%, #e8920a 100%)',
+              background: aiLoading ? 'rgba(208, 163, 85,0.45)' : 'linear-gradient(135deg, #d0a355 0%, #e8920a 100%)',
               color: NAVY_DEEP, border: 'none', borderRadius: 12,
               padding: '14px 18px', fontSize: 14, fontWeight: 700,
               cursor: aiLoading ? 'wait' : 'pointer', fontFamily: FONT, marginBottom: 16,
-              boxShadow: aiLoading ? 'none' : '0 2px 12px rgba(240,165,0,0.3)',
+              boxShadow: aiLoading ? 'none' : '0 2px 12px rgba(208, 163, 85,0.3)',
               transition: 'all 0.2s',
             }}
           >
@@ -626,7 +626,7 @@ export default function StoriesAdminPage() {
           </button>
 
           {aiError && (
-            <div style={{ fontSize: 13, color: '#f87171', marginBottom: 14, padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>
+            <div style={{ fontSize: 13, color: '#dd8f8f', marginBottom: 14, padding: '10px 14px', background: 'rgba(239,68,68,0.09)', borderRadius: 10, fontFamily: FONT }}>
               {aiError}
             </div>
           )}
@@ -678,7 +678,7 @@ export default function StoriesAdminPage() {
                       {expandLoading ? 'Дотягую обсяг…' : '↑ Дотягнути обсяг (додати діалоги)'}
                     </button>
                     {expandError && (
-                      <div style={{ fontSize: 12, color: '#f87171', marginTop: 8, fontFamily: FONT }}>{expandError}</div>
+                      <div style={{ fontSize: 12, color: '#dd8f8f', marginTop: 8, fontFamily: FONT }}>{expandError}</div>
                     )}
                   </div>
                 )}
@@ -727,7 +727,7 @@ export default function StoriesAdminPage() {
             Малюється автоматично на базі образу Панаса — фото завантажувати не треба. ~60–90 с.
           </div>
           {covError && (
-            <div style={{ fontSize: 12, color: '#f87171', marginBottom: 14, fontFamily: FONT }}>{covError}</div>
+            <div style={{ fontSize: 12, color: '#dd8f8f', marginBottom: 14, fontFamily: FONT }}>{covError}</div>
           )}
 
           <div style={{ fontSize: 11, color: '#445566', fontFamily: FONT, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>або своє фото</div>
@@ -736,7 +736,7 @@ export default function StoriesAdminPage() {
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
             onClick={() => fileRef.current?.click()}
-            style={{ border: `1.5px dashed ${dragOver ? GOLD : 'rgba(255,255,255,0.15)'}`, borderRadius: 12, padding: '18px 20px', textAlign: 'center', cursor: 'pointer', background: dragOver ? 'rgba(240,165,0,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.2s', marginBottom: 14 }}
+            style={{ border: `1.5px dashed ${dragOver ? GOLD : 'rgba(255,255,255,0.15)'}`, borderRadius: 12, padding: '18px 20px', textAlign: 'center', cursor: 'pointer', background: dragOver ? 'rgba(208, 163, 85,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.2s', marginBottom: 14 }}
           >
             <div style={{ fontSize: 13, fontWeight: 600, color: '#f5f0e8', marginBottom: 4, fontFamily: FONT }}>Перетягніть фото сюди або клікніть</div>
             <div style={{ fontSize: 11, color: '#445566', fontFamily: FONT }}>PNG · JPG · WEBP · до 10 МБ</div>
@@ -781,7 +781,7 @@ export default function StoriesAdminPage() {
             disabled={musicLoading}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              background: musicLoading ? 'rgba(240,165,0,0.5)' : GOLD,
+              background: musicLoading ? 'rgba(208, 163, 85,0.5)' : GOLD,
               color: NAVY_DEEP, border: 'none', borderRadius: 12,
               padding: '13px 18px', fontSize: 14, fontWeight: 700,
               cursor: musicLoading ? 'wait' : 'pointer', fontFamily: FONT, marginBottom: 16,
@@ -807,7 +807,7 @@ export default function StoriesAdminPage() {
 
           {/* Error */}
           {musicError && (
-            <div style={{ fontSize: 13, color: '#f87171', textAlign: 'center', padding: '10px', background: 'rgba(239,68,68,0.08)', borderRadius: 10, marginBottom: 10, fontFamily: FONT }}>
+            <div style={{ fontSize: 13, color: '#dd8f8f', textAlign: 'center', padding: '10px', background: 'rgba(239,68,68,0.08)', borderRadius: 10, marginBottom: 10, fontFamily: FONT }}>
               {musicError}
             </div>
           )}
@@ -821,7 +821,7 @@ export default function StoriesAdminPage() {
               <div key={track.id} onClick={() => setSelectedTrack(track)} style={{
                 display: 'flex', alignItems: 'center', gap: 12,
                 padding: '11px 14px', borderRadius: 12, cursor: 'pointer', marginBottom: 8,
-                background: isSelected ? 'rgba(240,165,0,0.1)' : 'rgba(255,255,255,0.03)',
+                background: isSelected ? 'rgba(208, 163, 85,0.1)' : 'rgba(255,255,255,0.03)',
                 border: `1px solid ${isSelected ? GOLD : 'rgba(255,255,255,0.08)'}`,
                 transition: 'all 0.15s',
               }}>
@@ -831,7 +831,7 @@ export default function StoriesAdminPage() {
                   onClick={e => { e.stopPropagation(); togglePlay(track) }}
                   style={{
                     width: 36, height: 36, borderRadius: '50%', flexShrink: 0, cursor: 'pointer',
-                    background: isPlaying ? 'rgba(240,165,0,0.25)' : 'rgba(255,255,255,0.07)',
+                    background: isPlaying ? 'rgba(208, 163, 85,0.25)' : 'rgba(255,255,255,0.07)',
                     border: `1px solid ${isPlaying || isPaused ? GOLD : 'rgba(255,255,255,0.15)'}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}
@@ -861,9 +861,9 @@ export default function StoriesAdminPage() {
 
                 {/* Selected badge */}
                 {isSelected && (
-                  <div style={{ fontSize: 11, color: '#4ade80', fontWeight: 700, fontFamily: FONT, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ fontSize: 11, color: '#7cc79b', fontWeight: 700, fontFamily: FONT, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path d="M2 6 L5 9 L10 3" stroke="#4ade80" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M2 6 L5 9 L10 3" stroke="#7cc79b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                     Вибрано
                   </div>
@@ -874,7 +874,7 @@ export default function StoriesAdminPage() {
 
           {/* Selected track summary */}
           {selectedTrack && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4, padding: '10px 14px', background: 'rgba(240,165,0,0.07)', borderRadius: 10, border: `0.5px solid rgba(240,165,0,0.25)` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4, padding: '10px 14px', background: 'rgba(208, 163, 85,0.07)', borderRadius: 10, border: `0.5px solid rgba(208, 163, 85,0.25)` }}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M3 13V6l8-2v7" stroke={GOLD} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
                 <circle cx="2.5" cy="13" r="1.5" stroke={GOLD} strokeWidth="1.4"/>
@@ -894,7 +894,7 @@ export default function StoriesAdminPage() {
         <SectionCard n={4} title="Превʼю та Експорт">
 
           {/* Story preview card */}
-          <div style={{ background: NAVY_DEEP, border: `1px solid rgba(240,165,0,0.2)`, borderRadius: 16, overflow: 'hidden', marginBottom: 20 }}>
+          <div style={{ background: NAVY_DEEP, border: `1px solid rgba(208, 163, 85,0.2)`, borderRadius: 16, overflow: 'hidden', marginBottom: 20 }}>
             {imgSrc && (
               <div style={{ position: 'relative', height: 200 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -928,7 +928,7 @@ export default function StoriesAdminPage() {
                 </div>
               )}
               {summary && (
-                <p style={{ fontSize: 14, color: '#c8d4e8', lineHeight: 1.7, margin: '0 0 14px', fontFamily: FONT, fontStyle: 'italic', borderLeft: `2px solid rgba(240,165,0,0.35)`, paddingLeft: 12 }}>{summary}</p>
+                <p style={{ fontSize: 14, color: '#c8d4e8', lineHeight: 1.7, margin: '0 0 14px', fontFamily: FONT, fontStyle: 'italic', borderLeft: `2px solid rgba(208, 163, 85,0.35)`, paddingLeft: 12 }}>{summary}</p>
               )}
               {text ? (
                 <div style={{ paddingTop: 12, borderTop: '0.5px solid rgba(255,255,255,0.06)' }}>
@@ -942,7 +942,7 @@ export default function StoriesAdminPage() {
           </div>
 
           {/* Publish to site */}
-          <div style={{ marginBottom: 16, padding: '16px 18px', background: 'rgba(240,165,0,0.06)', border: '1px solid rgba(240,165,0,0.2)', borderRadius: 14 }}>
+          <div style={{ marginBottom: 16, padding: '16px 18px', background: 'rgba(208, 163, 85,0.06)', border: '1px solid rgba(208, 163, 85,0.2)', borderRadius: 14 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12, fontFamily: FONT }}>Опублікувати на сайті</div>
 
             {/* hasAudio toggle */}
@@ -970,7 +970,7 @@ export default function StoriesAdminPage() {
             <button
               onClick={handlePublish}
               disabled={publishState === 'loading'}
-              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: publishState === 'done' ? 'rgba(74,222,128,0.15)' : publishState === 'error' ? 'rgba(248,113,113,0.15)' : 'rgba(240,165,0,0.15)', color: publishState === 'done' ? '#4ade80' : publishState === 'error' ? '#f87171' : GOLD, border: `1px solid ${publishState === 'done' ? 'rgba(74,222,128,0.4)' : publishState === 'error' ? 'rgba(248,113,113,0.4)' : 'rgba(240,165,0,0.4)'}`, borderRadius: 12, padding: '13px 18px', fontSize: 14, fontWeight: 700, cursor: publishState === 'loading' ? 'wait' : 'pointer', fontFamily: FONT, transition: 'all 0.2s' }}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: publishState === 'done' ? 'rgba(124, 199, 155,0.15)' : publishState === 'error' ? 'rgba(221, 143, 143,0.15)' : 'rgba(208, 163, 85,0.15)', color: publishState === 'done' ? '#7cc79b' : publishState === 'error' ? '#dd8f8f' : GOLD, border: `1px solid ${publishState === 'done' ? 'rgba(124, 199, 155,0.4)' : publishState === 'error' ? 'rgba(221, 143, 143,0.4)' : 'rgba(208, 163, 85,0.4)'}`, borderRadius: 12, padding: '13px 18px', fontSize: 14, fontWeight: 700, cursor: publishState === 'loading' ? 'wait' : 'pointer', fontFamily: FONT, transition: 'all 0.2s' }}
             >
               {publishState === 'loading' ? (
                 <><svg width="16" height="16" viewBox="0 0 16 16" style={{ animation: 'spin 1s linear infinite' }}><circle cx="8" cy="8" r="6" stroke={GOLD} strokeWidth="2" fill="none" strokeDasharray="24" strokeDashoffset="8"/></svg> Публікую…</>
@@ -979,7 +979,7 @@ export default function StoriesAdminPage() {
               )}
             </button>
             {publishMsg && (
-              <div style={{ marginTop: 8, fontSize: 12, color: publishState === 'error' ? '#f87171' : '#4ade80', fontFamily: FONT }}>{publishMsg}</div>
+              <div style={{ marginTop: 8, fontSize: 12, color: publishState === 'error' ? '#dd8f8f' : '#7cc79b', fontFamily: FONT }}>{publishMsg}</div>
             )}
           </div>
 
@@ -1021,7 +1021,7 @@ export default function StoriesAdminPage() {
               { label: 'Музика',     val: selectedTrack ? '✓' : '—',    accent: !!selectedTrack },
             ].map(s => (
               <div key={s.label} style={{ textAlign: 'center', flex: '1 1 60px', padding: '6px 4px' }}>
-                <div style={{ fontSize: 18, fontWeight: 700, color: s.accent ? '#4ade80' : GOLD, fontFamily: FONT, lineHeight: 1.2 }}>{s.val}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: s.accent ? '#7cc79b' : GOLD, fontFamily: FONT, lineHeight: 1.2 }}>{s.val}</div>
                 <div style={{ fontSize: 10, color: '#445566', fontFamily: FONT, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 3 }}>{s.label}</div>
               </div>
             ))}

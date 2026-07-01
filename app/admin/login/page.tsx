@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 const FONT     = "'Montserrat', Arial, sans-serif"
-const GOLD     = '#f0a500'
+const GOLD     = '#d0a355'
 const NAVY     = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 
@@ -76,7 +76,7 @@ export default function AdminLoginPage() {
               }}
             />
             {error && (
-              <div style={{ fontSize: 13, color: '#f87171', marginBottom: 16, padding: '8px 12px', background: 'rgba(239,68,68,0.09)', borderRadius: 8, fontFamily: FONT }}>
+              <div style={{ fontSize: 13, color: '#dd8f8f', marginBottom: 16, padding: '8px 12px', background: 'rgba(239,68,68,0.09)', borderRadius: 8, fontFamily: FONT }}>
                 {error}
               </div>
             )}
@@ -84,7 +84,7 @@ export default function AdminLoginPage() {
               type="submit"
               disabled={loading || !password}
               style={{
-                width: '100%', background: loading || !password ? 'rgba(240,165,0,0.45)' : GOLD,
+                width: '100%', background: loading || !password ? 'rgba(208, 163, 85,0.45)' : GOLD,
                 color: NAVY_DEEP, border: 'none', borderRadius: 10,
                 padding: '13px', fontSize: 15, fontWeight: 700,
                 cursor: loading || !password ? 'default' : 'pointer', fontFamily: FONT,

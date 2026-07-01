@@ -232,7 +232,7 @@ function buildChannels(acq: Acquisition[], revenue: RevenueEvent[]) {
 const DarkTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) => {
   if (!active || !payload?.length) return null
   return (
-    <div style={{ background: '#1e3a5f', border: '1px solid rgba(245,166,35,0.4)', borderRadius: 8, padding: '8px 12px', fontFamily: FONT }}>
+    <div style={{ background: '#1e3a5f', border: '1px solid rgba(208, 163, 85,0.4)', borderRadius: 8, padding: '8px 12px', fontFamily: FONT }}>
       <div style={{ color: GOLD, fontWeight: 700, fontSize: 12, marginBottom: 2 }}>{label}</div>
       <div style={{ color: '#fff', fontSize: 13 }}>{payload[0].value}</div>
     </div>
@@ -241,7 +241,7 @@ const DarkTooltip = ({ active, payload, label }: { active?: boolean; payload?: {
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div style={{ background: '#0f1e3a', border: '1px solid rgba(245,166,35,0.3)', borderRadius: 12, padding: '18px 22px' }}>
+    <div style={{ background: '#0f1e3a', border: '1px solid rgba(208, 163, 85,0.3)', borderRadius: 12, padding: '18px 22px' }}>
       <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', fontFamily: FONT, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>{label}</div>
       <div style={{ fontSize: 30, fontWeight: 700, color: GOLD, fontFamily: FONT }}>{value}</div>
       {sub && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>{sub}</div>}
@@ -251,7 +251,7 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
 
 function ChartCard({ title, children, span2 }: { title: string; children: React.ReactNode; span2?: boolean }) {
   return (
-    <div style={{ background: '#0f1e3a', border: '1px solid rgba(245,166,35,0.25)', borderRadius: 14, padding: '20px 20px 16px', gridColumn: span2 ? 'span 2' : undefined }}>
+    <div style={{ background: '#0f1e3a', border: '1px solid rgba(208, 163, 85,0.25)', borderRadius: 14, padding: '20px 20px 16px', gridColumn: span2 ? 'span 2' : undefined }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, fontFamily: FONT, marginBottom: 14, textTransform: 'uppercase', letterSpacing: 1 }}>{title}</div>
       {children}
     </div>
@@ -633,7 +633,7 @@ export default function AnalyticsPage() {
             onClick={getRecommendations}
             disabled={aiLoading}
             style={{
-              padding: '12px 28px', background: aiLoading ? 'rgba(245,166,35,0.4)' : GOLD,
+              padding: '12px 28px', background: aiLoading ? 'rgba(208, 163, 85,0.4)' : GOLD,
               color: '#fff', border: 'none', borderRadius: 10, cursor: aiLoading ? 'wait' : 'pointer',
               fontWeight: 700, fontSize: 14, fontFamily: FONT,
             }}

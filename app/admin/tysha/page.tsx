@@ -4,14 +4,14 @@ import { useState, useEffect, useMemo, useCallback, useRef, type ReactNode } fro
 import { checkTysha, summarize, autofixTypography, type Finding, type Severity } from '@/lib/canon/tysha'
 
 const FONT = "'Montserrat', Arial, sans-serif"
-const GOLD = '#f0a500'
+const GOLD = '#d0a355'
 const NAVY = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 const INK = '#f5f0e8'
 
 const SEV: Record<Severity, { label: string; color: string; bg: string; order: number }> = {
   error: { label: 'помилка', color: '#d94545', bg: 'rgba(217,69,69,0.12)', order: 0 },
-  warn:  { label: 'увага',   color: '#f0a500', bg: 'rgba(240,165,0,0.10)', order: 1 },
+  warn:  { label: 'увага',   color: '#d0a355', bg: 'rgba(208, 163, 85,0.10)', order: 1 },
   info:  { label: 'інфо',    color: '#7aa2c4', bg: 'rgba(255,255,255,0.05)', order: 2 },
 }
 
