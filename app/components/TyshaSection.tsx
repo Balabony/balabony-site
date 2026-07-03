@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useTheme } from '../context/ThemeContext'
 import { trackStoryEvent } from '@/lib/analytics'
 
@@ -67,18 +68,21 @@ function cleanTitle(raw: string): string {
   return t || raw
 }
 
-export default function TyshaSection() {
+export default function TyshaSection(
+  { limit, showAllLink = false }: { limit?: number; showAllLink?: boolean } = {}
+) {
   const { colors, isNight } = useTheme()
   const [items, setItems] = useState<TyshaItem[]>([])
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    fetch('/api/tysha')
+    const url = limit ? `/api/tysha?limit=${limit}` : '/api/tysha'
+    fetch(url)
       .then((r) => r.json())
       .then((d) => setItems(Array.isArray(d) ? d : []))
       .catch(() => setItems([]))
       .finally(() => setLoaded(true))
-  }, [])
+  }, [limit])
 
   // Поки нема опублікованих серій — рубрику не показуємо взагалі.
   if (!loaded || items.length === 0) return null
@@ -92,7 +96,6 @@ export default function TyshaSection() {
           <div className="ts-kicker">Авторські серіали · 18+</div>
           <div style={{ fontSize: 22, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.15 }}>ТИША</div>
           <div style={{ fontSize: 17, fontStyle: 'italic', color: isNight ? '#c9d6e8' : '#1a3a6b', fontFamily: "'Georgia', serif", margin: '6px 0 2px' }}>Історія, яку чуєш серцем</div>
-          <div style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.55)', fontFamily: FONT }}>Проза про війну · психологічний реалізм</div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 100%), 1fr))', gap: 14, alignItems: 'stretch' }}>
@@ -146,6 +149,17 @@ export default function TyshaSection() {
             </a>
           ))}
         </div>
+
+        {showAllLink && (
+          <div style={{ textAlign: 'center', marginTop: 20 }}>
+            <Link
+              href="/tysha"
+              style={{ display: 'inline-block', color: AMBER, textDecoration: 'none', fontSize: 15, fontWeight: 700, fontFamily: FONT, textTransform: 'uppercase', letterSpacing: '0.04em' }}
+            >
+              Усі серії →
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   )

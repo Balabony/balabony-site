@@ -124,7 +124,7 @@ export default function HomePage() {
       </div>
 
       <EmailCapture />
-      <TyshaSection />
+      <TyshaSection limit={3} showAllLink />
       {freshStories.length > 0 && (
         <>
           <FreshStoriesGrid stories={freshStories} />
