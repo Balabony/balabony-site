@@ -285,14 +285,24 @@ export default function TyshaMaisternia() {
     if (!scene) { setErr('Для цієї серії в банку нема промпту (напр. «Мед» — про Олю). Постав фото вручну.'); return }
     setAutoBusy(true); setErr(''); setMsg(''); setVariants([])
     try {
-      const seeds = [0, 1, 2].map(() => Math.floor(Math.random() * 2_000_000))
+      // Три РІЗНІ плани, щоб варіанти відрізнялись композицією, а не лише сидом.
+      const shots = [
+        'close-up portrait shot',
+        'waist-up medium shot',
+        'three-quarter side view, wider shot',
+      ]
       const results = await Promise.all(
-        seeds.map((seed) =>
+        shots.map((shot) =>
           fetch('/api/admin/generate-tysha-cover', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'same-origin',
-            body: JSON.stringify({ mode: 'cover', referenceImageUrl: refForEpisode(item.episode_number), sceneText: scene, seed }),
+            body: JSON.stringify({
+              mode: 'cover',
+              referenceImageUrl: refForEpisode(item.episode_number),
+              sceneText: `${scene}, ${shot}`,
+              seed: Math.floor(Math.random() * 2_000_000),
+            }),
           })
             .then((r) => r.json())
             .catch(() => null)
