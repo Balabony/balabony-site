@@ -5,7 +5,7 @@
 export const MAKSYM_REF =
   'https://swwzsrtbfjsdsmpgfpsk.supabase.co/storage/v1/object/public/covers/tysha-gen/maksym-ref-417595-1782551508689.jpg'
 
-const SOLO = 'solo shot of one person only, no other people, his face clearly visible and well lit'
+const SOLO = 'solo shot of one person only, no other people, SAME EXACT face as the reference photo, identical facial features, symmetric natural eyes looking naturally, evenly and brightly lit face, no dark shadows on the face, bright scene'
 
 // E1–E4 — цивільний (до війни / полігон), E5+ — форма без нашивок.
 const CIV =
