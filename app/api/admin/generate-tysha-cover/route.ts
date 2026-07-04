@@ -199,9 +199,8 @@ export async function POST(req: NextRequest) {
       const prompt = rawEdit
         ? `${scenePhrase}. Keep his face and identity exactly the same. ` +
           `Photorealistic, no text, no watermark, no insignia.`
-        : `the same young man, keep his face identical, same person, ${scenePhrase}, ` +
-          `reframe as a wide cinematic 16:9 cover with the figure ` +
-          `off-centre and environment around, ${TECH}, seed_${seed}`
+        : `the same young man, keep his face identical, same person. ${scenePhrase}. ` +
+          `Compose as a cinematic 16:9 cover following the shot type described above, ${TECH}, seed_${seed}`
 
       const modelPath = useMax ? 'flux-kontext-max' : 'flux-kontext-pro'
       endpoint = `https://api.replicate.com/v1/models/black-forest-labs/${modelPath}/predictions`
