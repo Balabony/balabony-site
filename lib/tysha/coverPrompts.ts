@@ -5,6 +5,15 @@
 export const MAKSYM_REF =
   'https://swwzsrtbfjsdsmpgfpsk.supabase.co/storage/v1/object/public/covers/tysha-gen/maksym-ref-417595-1782551508689.jpg'
 
+// Бородатий еталон Максима — для фронтових серій (E9+), де він змужнів.
+export const MAKSYM_REF_BEARD =
+  'https://swwzsrtbfjsdsmpgfpsk.supabase.co/storage/v1/object/public/covers/tysha-own/cover-1783194493217-575354.jpg'
+
+// Який еталон брати для серії: голений до E8, бородатий з E9.
+export function refForEpisode(ep: number | null | undefined): string {
+  return ep && ep >= 9 ? MAKSYM_REF_BEARD : MAKSYM_REF
+}
+
 const SOLO = 'solo shot of one person only, no other people, SAME EXACT face as the reference photo, identical facial features, symmetric natural eyes looking naturally, evenly and brightly lit face, no dark shadows on the face, bright scene'
 
 // E1–E4 — цивільний (до війни / полігон), E5+ — форма без нашивок.

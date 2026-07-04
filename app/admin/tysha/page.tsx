@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef, type ReactNode } from 'react'
 import { checkTysha, summarize, autofixTypography, type Finding, type Severity } from '@/lib/canon/tysha'
-import { MAKSYM_REF, buildCoverPrompt, hasCoverPrompt } from '@/lib/tysha/coverPrompts'
+import { MAKSYM_REF, refForEpisode, buildCoverPrompt, hasCoverPrompt } from '@/lib/tysha/coverPrompts'
 
 const FONT = "'Montserrat', Arial, sans-serif"
 const GOLD = '#d0a355'
@@ -292,7 +292,7 @@ export default function TyshaMaisternia() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'same-origin',
-            body: JSON.stringify({ mode: 'cover', referenceImageUrl: MAKSYM_REF, sceneText: scene, seed }),
+            body: JSON.stringify({ mode: 'cover', referenceImageUrl: refForEpisode(item.episode_number), sceneText: scene, seed }),
           })
             .then((r) => r.json())
             .catch(() => null)
