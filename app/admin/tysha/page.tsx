@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef, type ReactNode } from 'react'
 import { checkTysha, summarize, autofixTypography, type Finding, type Severity } from '@/lib/canon/tysha'
+import { MAKSYM_REF, buildCoverPrompt, hasCoverPrompt } from '@/lib/tysha/coverPrompts'
 
 const FONT = "'Montserrat', Arial, sans-serif"
 const GOLD = '#d0a355'
@@ -204,6 +205,8 @@ export default function TyshaMaisternia() {
   const [coverBusy, setCoverBusy] = useState<'' | 'upload' | 'ai'>('')
   const [coverEdit, setCoverEdit] = useState('')   // опис правки для AI
   const [coverPos, setCoverPos] = useState(40)     // позиція кадру по вертикалі, % (менше = вище)
+  const [autoBusy, setAutoBusy] = useState(false)  // авто-генерація варіантів за банком
+  const [variants, setVariants] = useState<string[]>([])  // згенеровані варіанти на вибір
   const [posBusy, setPosBusy] = useState(false)
   const coverFileRef = useRef<HTMLInputElement | null>(null)
   const [saving, setSaving] = useState(false)
@@ -273,6 +276,59 @@ export default function TyshaMaisternia() {
     }
   }
 
+  // Авто-обкладинка за банком: бере промпт для номера серії, генерує кілька
+  // варіантів (різні seed) з еталона Максима. Ти лише обираєш.
+  async function autoCovers() {
+    const item = list.find((x) => x.id === selectedId)
+    if (!item) { setErr('Спершу обери серію'); return }
+    const scene = buildCoverPrompt(item.episode_number)
+    if (!scene) { setErr('Для цієї серії в банку нема промпту (напр. «Мед» — про Олю). Постав фото вручну.'); return }
+    setAutoBusy(true); setErr(''); setMsg(''); setVariants([])
+    try {
+      const seeds = [0, 1, 2].map(() => Math.floor(Math.random() * 2_000_000))
+      const results = await Promise.all(
+        seeds.map((seed) =>
+          fetch('/api/admin/generate-tysha-cover', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ mode: 'cover', referenceImageUrl: MAKSYM_REF, sceneText: scene, seed }),
+          })
+            .then((r) => r.json())
+            .catch(() => null)
+        )
+      )
+      const urls = results.map((d) => d?.url).filter(Boolean) as string[]
+      if (!urls.length) throw new Error('AI не повернув жодного варіанта — спробуй ще раз')
+      setVariants(urls)
+      setMsg(`Готово ${urls.length} варіант(и) — клікни «обрати» під потрібним`)
+    } catch (e) {
+      setErr(String(e instanceof Error ? e.message : e))
+    } finally {
+      setAutoBusy(false)
+    }
+  }
+
+  // Обрати варіант як обкладинку серії.
+  async function pickVariant(url: string) {
+    if (!selectedId) return
+    setErr(''); setMsg('')
+    try {
+      await fetch(`/api/admin/content/${selectedId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ cover_url: url }),
+      })
+      setCoverUrl(url)
+      setList((cur) => cur.map((x) => (x.id === selectedId ? { ...x, coverUrl: url } : x)))
+      setVariants([])
+      setMsg('Обкладинку призначено серії')
+    } catch (e) {
+      setErr(String(e instanceof Error ? e.message : e))
+    }
+  }
+
   // AI-редагування поточної обкладинки: flux-kontext змінює фото за описом, обличчя тримається.
   async function editCoverAI() {
     if (!selectedId || !coverUrl) { setErr('Спершу має бути обкладинка'); return }
@@ -283,7 +339,7 @@ export default function TyshaMaisternia() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({ mode: 'cover', referenceImageUrl: coverUrl, scene: coverEdit.trim() }),
+        body: JSON.stringify({ mode: 'cover', referenceImageUrl: coverUrl, sceneText: coverEdit.trim(), rawEdit: true, model: 'max' }),
       })
       const d = await r.json()
       if (!r.ok || !d.url) throw new Error(d.error || 'AI не зміг відредагувати')
@@ -840,6 +896,36 @@ export default function TyshaMaisternia() {
                   {coverBusy === 'upload' ? 'Завантаження…' : '⬆ Завантажити своє фото'}
                 </button>
                 <div style={{ fontSize: 11, color: 'rgba(245,240,232,0.5)', marginBottom: 10 }}>JPG, PNG або WebP, до 8 МБ. Фото одразу стає обкладинкою цієї серії.</div>
+
+                {/* ── Авто-обкладинка за банком: система генерує варіанти, ти обираєш ── */}
+                <div style={{ marginBottom: 12, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                  <button
+                    onClick={autoCovers}
+                    disabled={autoBusy || !selectedId}
+                    style={{ padding: '9px 14px', borderRadius: 8, background: autoBusy ? '#33405e' : '#2f5f4a', color: '#fff', border: 'none', fontWeight: 700, fontSize: 13, fontFamily: FONT, cursor: autoBusy ? 'default' : 'pointer' }}
+                  >
+                    {autoBusy ? 'Генерую 3 варіанти…' : '✨ Авто-обкладинка за банком'}
+                  </button>
+                  <div style={{ fontSize: 11, color: 'rgba(245,240,232,0.45)', marginTop: 6 }}>
+                    Бере готовий промпт для цієї серії + обличчя Максима, генерує 3 варіанти. Обери найкращий. (3 генерації = 3× вартість Replicate за клік.)
+                  </div>
+                  {variants.length > 0 && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 10 }}>
+                      {variants.map((u, i) => (
+                        <div key={i} style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.12)' }}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={u} alt={`варіант ${i + 1}`} style={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' }} />
+                          <button
+                            onClick={() => pickVariant(u)}
+                            style={{ width: '100%', padding: 7, background: GOLD, color: '#0a1628', border: 'none', fontWeight: 700, fontSize: 12, fontFamily: FONT, cursor: 'pointer' }}
+                          >
+                            обрати
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                   <input

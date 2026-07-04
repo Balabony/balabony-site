@@ -162,9 +162,11 @@ export async function POST(req: NextRequest) {
     } else {
     const charKey = String(body.character || '')
     const character = CHARACTERS[charKey]
-    if (!character) return NextResponse.json({ error: 'Невідомий персонаж' }, { status: 400 })
-    // Дозволяємо редагувати look з UI; інакше — дефолт персонажа.
-    const look: string = (body.description && String(body.description).trim()) || character.look
+    // character обов'язковий лише для reference (звідти береться дефолтний look);
+    // для cover-правки з готового фото персонаж не потрібен.
+    if (mode === 'reference' && !character) return NextResponse.json({ error: 'Невідомий персонаж' }, { status: 400 })
+    // Дозволяємо редагувати look з UI; інакше — дефолт персонажа (якщо є).
+    const look: string = (body.description && String(body.description).trim()) || character?.look || ''
 
     if (mode === 'reference') {
       // Еталонне обличчя — flux-1.1-pro, поясний портрет 3:4, чистий фон.
@@ -211,7 +213,7 @@ export async function POST(req: NextRequest) {
         safety_tolerance: 2,
         seed,
       }
-      tag = `${charKey}-${sceneKey || (rawEdit ? 'edit' : 'scene')}`
+      tag = `${charKey || 'cover'}-${sceneKey || (rawEdit ? 'edit' : 'scene')}`
     }
     }
 
