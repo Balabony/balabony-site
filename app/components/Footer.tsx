@@ -294,13 +294,14 @@ export default function Footer() {
         </div>
 
         {/* ───── КОЛОНКА 4: ДОКУМЕНТИ + ПРО НАС + НАВІГАЦІЯ ───── */}
-        <div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(115px, 1fr))', gap: '2px 18px', alignContent: 'start' }}>
+          <div>
           <h4 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Документи
           </h4>
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: 8 }}>
             {LEGAL_LINKS.map(d => (
-              <li key={d.title} style={{ marginBottom: 5 }}>
+              <li key={d.title} style={{ marginBottom: 4 }}>
                 <a
                   href={d.href}
                   className="footer-link"
@@ -311,46 +312,55 @@ export default function Footer() {
               </li>
             ))}
           </ul>
+          </div>
 
+          <div>
           <h4 style={{ marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             <a href="/pro-balabony" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none' }}>
               Про нас
             </a>
           </h4>
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: 8 }}>
-            <li style={{ marginBottom: 5 }}>
+            <li style={{ marginBottom: 4 }}>
               <a href="/pro-balabony" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
                 Про проєкт
               </a>
             </li>
-            <li style={{ marginBottom: 5 }}>
+            <li style={{ marginBottom: 4 }}>
               <a href="/about" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
                 Про автора
               </a>
             </li>
-            <li style={{ marginBottom: 5 }}>
+            <li style={{ marginBottom: 4 }}>
               <a href="/sitemap" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
                 Навігація сайту
               </a>
             </li>
           </ul>
+          </div>
 
-          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-            Розділи
+          <div>
+          <h4 style={{ marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            <a href="/sitemap" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none' }}>Розділи</a>
           </h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {[
-              { label: 'Рідер',    href: '/#reader'  },
-              { label: 'Тарифи',   href: '/#pricing' },
-              { label: 'Правопис', href: '/pravopys' },
+              { label: 'Серії',    href: '/episodes'   },
+              { label: 'Історії',  href: '/stories'    },
+              { label: 'Казки',    href: '/fairytales' },
+              { label: 'Ігри',     href: '/games'      },
+              { label: 'Рідер',    href: '/#reader'    },
+              { label: 'Правопис', href: '/pravopys'   },
+              { label: 'Тарифи',   href: '/#pricing'   },
             ].map(item => (
-              <li key={item.label} style={{ marginBottom: 5 }}>
+              <li key={item.label} style={{ marginBottom: 4 }}>
                 <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 14 }}>
                   {item.label}
                 </a>
               </li>
             ))}
           </ul>
+          </div>
         </div>
       </div>
 
