@@ -294,7 +294,7 @@ export default function Footer() {
         </div>
 
         {/* ───── КОЛОНКА 4: ДОКУМЕНТИ + ПРО НАС + НАВІГАЦІЯ ───── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(115px, 1fr))', gap: '2px 18px', alignContent: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '4px 32px', alignContent: 'start' }}>
           <div>
           <h4 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Документи
