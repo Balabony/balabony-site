@@ -181,6 +181,10 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           <h1 style={{ fontSize: 28, fontWeight: 800, color: '#f5f0e8', lineHeight: 1.25, margin: '14px 0 10px', fontFamily: FONT }}>
             {episode.title}
           </h1>
+          <div style={{ fontSize: 13.5, lineHeight: 1.4, margin: '0 0 12px', fontFamily: FONT }}>
+            <span style={{ fontWeight: 700, color: GOLD }}>Назар Колодій</span>
+            <span style={{ color: 'var(--on-dark-muted)', fontStyle: 'italic' }}> · Кумедні історії з українського села</span>
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 15, fontWeight: 700, color: GOLD, fontFamily: FONT }}>Балабони</span>
             {date && <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--on-dark-muted)', fontFamily: FONT }}>{date}</span>}
