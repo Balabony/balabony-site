@@ -66,6 +66,10 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
           <div>
             <div style={{ fontSize: 10, fontWeight: 700, color: GOLD, letterSpacing: 2, textTransform: 'uppercase', fontFamily: FONT, lineHeight: 1 }}>Балабони</div>
             <div style={{ fontSize: 19, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.2 }}>Серії Балабонів</div>
+            <div style={{ fontSize: 12.5, lineHeight: 1.35, marginTop: 3, fontFamily: FONT }}>
+              <span style={{ fontWeight: 700, color: GOLD }}>Назар Колодій</span>
+              <span style={{ color: colors.fg, opacity: 0.6, fontStyle: 'italic' }}> · Кумедні історії з українського села</span>
+            </div>
           </div>
         </div>
 
