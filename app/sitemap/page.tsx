@@ -28,11 +28,11 @@ const GROUPS: SitemapGroup[] = [
   {
     title: 'Читати',
     links: [
-      { href: '/',          label: 'Головна',          note: 'Hero, Reader, Pricing' },
-      { href: '/episodes',  label: 'Серії Балабонів',  note: 'Усі випуски' },
-      { href: '/series',    label: 'Огляд сезонів',    note: 'Сезонна добірка' },
-      { href: '/stories',   label: 'Історії читачів',  note: 'Реальні авторські історії' },
-      { href: '/stories?genre=Казка', label: 'Казки', note: 'Українські казки' },
+      { href: '/',           label: 'Головна',           note: 'Читалка, серії, тарифи' },
+      { href: '/episodes',   label: 'Серіал «Балабони»', note: 'Усі випуски' },
+      { href: '/tysha',      label: 'Серіал «Тиша»',     note: 'Авторський, 18+' },
+      { href: '/fairytales', label: 'Казки',             note: 'Українські казки' },
+      { href: '/stories',    label: 'Історії читачів',   note: 'Реальні авторські історії' },
     ],
   },
   {
