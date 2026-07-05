@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 
-const SEASONS = [1, 2, 3, 4]
+const SEASONS = [1, 2, 3, 4, 5]
 const EPISODES_PER_SEASON = 20
 const TOTAL_EPISODES = SEASONS.length * EPISODES_PER_SEASON
 
