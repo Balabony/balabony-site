@@ -285,12 +285,45 @@ export default function TyshaMaisternia() {
     if (!scene) { setErr('Для цієї серії в банку нема промпту (напр. «Мед» — про Олю). Постав фото вручну.'); return }
     setAutoBusy(true); setErr(''); setMsg(''); setVariants([])
     try {
-      // Три РІЗНІ плани, щоб варіанти відрізнялись композицією, а не лише сидом.
-      const shots = [
-        'close-up portrait shot',
-        'waist-up medium shot',
-        'three-quarter side view, wider shot',
+      // Щоразу збираємо 3 РІЗНІ композиції (кадр+ракурс+поза+світло) з пулів,
+      // щоб варіанти не повторювались навіть між кліками. Оточення лишає банк серії.
+      const pickS = (a: string[]) => a[Math.floor(Math.random() * a.length)]
+      const shuffleS = (a: string[]) => [...a].sort(() => Math.random() - 0.5)
+      const SHOT_TYPES = [
+        'extreme close-up portrait',
+        'close-up portrait',
+        'medium waist-up shot',
+        'cowboy shot from mid-thigh up',
+        'wide environmental shot with a small lone figure',
       ]
+      const ANGLES = [
+        'eye-level',
+        'a slightly low angle',
+        'a high angle looking down',
+        'a three-quarter view',
+        'a profile view',
+      ]
+      const POSES = [
+        'standing with his head turned to the side',
+        'looking back over his shoulder',
+        'standing tall, gazing into the distance',
+        'walking, caught in mid-motion',
+        'leaning wearily against a wall',
+        'crouched low and alert',
+        'head lowered, quiet and still',
+        'slowly turning toward the camera',
+      ]
+      const LIGHTS = [
+        'cold dawn light',
+        'flat overcast grey daylight',
+        'warm low candle glow',
+        'blue-hour backlight with a rim of light on his face',
+        'harsh side light with deep shadows',
+        'a faint cold glow lighting his face',
+      ]
+      const shots = shuffleS(SHOT_TYPES)
+        .slice(0, 3)
+        .map((st) => `${st}, ${pickS(ANGLES)}, ${pickS(POSES)}, ${pickS(LIGHTS)}`)
       const results = await Promise.all(
         shots.map((shot) =>
           fetch('/api/admin/generate-tysha-cover', {
