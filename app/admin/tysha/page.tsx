@@ -1037,7 +1037,7 @@ export default function TyshaMaisternia() {
                 </label>
                 <div style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.55)' }}>
                   Гачок (короткий тізер для картки рубрики)
-                  <textarea value={metaHook} onChange={(e) => setMetaHook(e.target.value)} rows={2} style={{ ...metaInput, resize: 'vertical', fontFamily: "'Georgia', serif" }} />
+                  <textarea value={metaHook} onChange={(e) => setMetaHook(e.target.value)} rows={4} style={{ ...metaInput, resize: 'vertical', fontFamily: "'Georgia', serif" }} />
                   <button
                     onClick={genHook}
                     disabled={hookBusy || !text.trim()}
