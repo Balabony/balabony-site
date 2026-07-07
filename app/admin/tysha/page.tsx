@@ -52,8 +52,6 @@ function countWords(t: string): number {
   return (t.match(/[А-Яа-яІіЇїЄєҐґ'’\u02bc-]+/g) ?? []).length
 }
 
-// Фон підсвітки порушення в тексті (напівпрозорий — просвічує крізь текст).
-// Жовтий, добре видимий; помилки лишаємо червоними (вони рідкісні й важливі).
 const MARK: Record<Severity, string> = {
   error: 'rgba(217,69,69,0.50)',
   warn:  'rgba(255,213,0,0.55)',
@@ -63,9 +61,6 @@ const SEV_ORDER: Record<Severity, number> = { error: 0, warn: 1, info: 2 }
 
 interface Range { start: number; end: number; sev: Severity }
 
-// Точковий діф двох рядків: спільний префікс/суфікс + середини, що відрізняються.
-// Дозволяє підсвічувати ЛИШЕ реально змінене (вставлену кому, змінені літери),
-// а не весь контекстний фрагмент.
 function diffParts(before: string, after: string): { pre: string; delMid: string; addMid: string; suf: string } {
   let p = 0
   const min = Math.min(before.length, after.length)
@@ -80,7 +75,6 @@ function diffParts(before: string, after: string): { pre: string; delMid: string
   }
 }
 
-// Гнучкий пошук цитати порушення в поточному тексті (пробіли = будь-які).
 function findRange(text: string, excerpt: string): [number, number] | null {
   const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')
   let m: RegExpMatchArray | null = null
@@ -93,7 +87,6 @@ function findRange(text: string, excerpt: string): [number, number] | null {
   return [m.index, m.index + m[0].length]
 }
 
-// Зібрати діапазони порушень, відсортувати, злити перекриття.
 function computeRanges(text: string, findings: Finding[]): Range[] {
   const raw: Range[] = []
   for (const f of findings) {
@@ -119,7 +112,6 @@ function escHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-// Побудувати HTML тексту з кольоровими <mark> навколо порушень.
 function buildHighlight(text: string, findings: Finding[]): string {
   const ranges = computeRanges(text, findings)
   if (!ranges.length) return escHtml(text)
@@ -134,12 +126,8 @@ function buildHighlight(text: string, findings: Finding[]): string {
   return html
 }
 
-// ─── Точкові пропозиції олюднення ────────────────────────────────────────────
-// Gemini повертає список {було, стало, причина}. Кожне «було» — дослівний
-// фрагмент тексту; застосування міняє лише цей фрагмент, не чіпаючи абзаци.
 type Sugg = { before: string; after: string; reason: string; accepted: boolean }
 
-// Гнучкий пошук фрагмента: апострофи/тире/пробіли — будь-які варіанти.
 function flexRe(fragment: string): RegExp | null {
   const esc = fragment
     .trim()
@@ -154,8 +142,6 @@ function flexRe(fragment: string): RegExp | null {
   }
 }
 
-// Застосувати прийняті пропозиції: для кожної міняємо ПЕРШЕ входження «було» на
-// «стало». Структура тексту (абзаци, сцени) лишається недоторканою.
 function applySuggestions(src: string, accepted: Sugg[]): { text: string; applied: number; skipped: number } {
   let out = src
   let applied = 0
@@ -182,7 +168,8 @@ export default function TyshaMaisternia() {
   const [findings, setFindings] = useState<Finding[] | null>(null)
   const [suggestions, setSuggestions] = useState<Sugg[] | null>(null)
   const [aiBusy, setAiBusy] = useState<string | null>(null)
-  const [recapText, setRecapText] = useState<string | null>(null)
+  const [savedRecap, setSavedRecap] = useState('')       // recap із БД — завжди видно
+  const [recapSaving, setRecapSaving] = useState(false)
   const [cleaned, setCleaned] = useState<string | null>(null)
   const [pubStatus, setPubStatus] = useState<string>('draft')
   const [publishAt, setPublishAt] = useState<string>('')   // ISO з БД
@@ -200,13 +187,12 @@ export default function TyshaMaisternia() {
 
   const [loadingList, setLoadingList] = useState(true)
   const [loadingItem, setLoadingItem] = useState(false)
-  // --- Обкладинка серії ---
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
   const [coverBusy, setCoverBusy] = useState<'' | 'upload' | 'ai'>('')
-  const [coverEdit, setCoverEdit] = useState('')   // опис правки для AI
-  const [coverPos, setCoverPos] = useState(40)     // позиція кадру по вертикалі, % (менше = вище)
-  const [autoBusy, setAutoBusy] = useState(false)  // авто-генерація варіантів за банком
-  const [variants, setVariants] = useState<string[]>([])  // згенеровані варіанти на вибір
+  const [coverEdit, setCoverEdit] = useState('')
+  const [coverPos, setCoverPos] = useState(40)
+  const [autoBusy, setAutoBusy] = useState(false)
+  const [variants, setVariants] = useState<string[]>([])
   const [posBusy, setPosBusy] = useState(false)
   const coverFileRef = useRef<HTMLInputElement | null>(null)
   const [saving, setSaving] = useState(false)
@@ -224,8 +210,6 @@ export default function TyshaMaisternia() {
   const backRef = useRef<HTMLDivElement>(null)
   const [highlightOn, setHighlightOn] = useState(true)
 
-  // HTML підсвітки: рахується від ПОТОЧНОГО тексту — щойно правиш порушення,
-  // цитата зникає й пляма гасне сама (до повторної перевірки).
   const highlightHtml = useMemo(
     () => (findings && highlightOn ? buildHighlight(text, findings) : ''),
     [text, findings, highlightOn]
@@ -254,7 +238,6 @@ export default function TyshaMaisternia() {
 
   useEffect(() => { loadList() }, [loadList])
 
-  // Завантажити ВЛАСНЕ фото як обкладинку поточної серії.
   async function uploadOwnCover(file: File) {
     if (!selectedId) return
     setCoverBusy('upload'); setErr(''); setMsg('')
@@ -276,8 +259,6 @@ export default function TyshaMaisternia() {
     }
   }
 
-  // Авто-обкладинка за банком: бере промпт для номера серії, генерує кілька
-  // варіантів (різні seed) з еталона Максима. Ти лише обираєш.
   async function autoCovers() {
     const item = list.find((x) => x.id === selectedId)
     if (!item) { setErr('Спершу обери серію'); return }
@@ -285,8 +266,6 @@ export default function TyshaMaisternia() {
     if (!scene) { setErr('Для цієї серії в банку нема промпту (напр. «Мед» — про Олю). Постав фото вручну.'); return }
     setAutoBusy(true); setErr(''); setMsg(''); setVariants([])
     try {
-      // Банк серії дає позу+реквізит+світло (сюжет). Генератор варіює лише КАДР і РАКУРС,
-      // щоб 3 варіанти різнились композицією, не ламаючи сцену серії.
       const pickS = (a: string[]) => a[Math.floor(Math.random() * a.length)]
       const shuffleS = (a: string[]) => [...a].sort(() => Math.random() - 0.5)
       const SHOT_TYPES = [
@@ -336,7 +315,6 @@ export default function TyshaMaisternia() {
     }
   }
 
-  // Обрати варіант як обкладинку серії.
   async function pickVariant(url: string) {
     if (!selectedId) return
     setErr(''); setMsg('')
@@ -356,7 +334,6 @@ export default function TyshaMaisternia() {
     }
   }
 
-  // AI-редагування поточної обкладинки: flux-kontext змінює фото за описом, обличчя тримається.
   async function editCoverAI() {
     if (!selectedId || !coverUrl) { setErr('Спершу має бути обкладинка'); return }
     if (!coverEdit.trim()) { setErr('Опиши, що змінити (англ. краще)'); return }
@@ -370,7 +347,6 @@ export default function TyshaMaisternia() {
       })
       const d = await r.json()
       if (!r.ok || !d.url) throw new Error(d.error || 'AI не зміг відредагувати')
-      // присвоїти нову обкладинку серії
       await fetch(`/api/admin/content/${selectedId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -387,7 +363,6 @@ export default function TyshaMaisternia() {
     }
   }
 
-  // Зберегти позицію кадру обкладинки (object-position center NN%).
   async function saveCoverPos(pos: number) {
     if (!selectedId) return
     setPosBusy(true); setErr('')
@@ -410,7 +385,7 @@ export default function TyshaMaisternia() {
 
   async function selectSeries(id: string) {
     if (dirty && !confirm('Є незбережені зміни. Відкрити іншу серію без збереження?')) return
-    setLoadingItem(true); setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setRecapText(null); setCleaned(null)
+    setLoadingItem(true); setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setCleaned(null)
     try {
       const r = await fetch(`/api/admin/content/${id}`, { credentials: 'same-origin' })
       const d = await r.json()
@@ -419,7 +394,6 @@ export default function TyshaMaisternia() {
       setSelectedId(id); setText(body); setSavedText(body)
       setCoverUrl((d.item?.cover_url ?? null) as string | null)
       setCoverEdit('')
-      // cover_position у форматі 'center NN%' → дістаємо NN (дефолт 40)
       { const cp = (d.item?.cover_position ?? '') as string; const m = cp.match(/(\d+(?:\.\d+)?)%/); setCoverPos(m ? Math.round(parseFloat(m[1])) : 40) }
       setPubStatus((d.item?.status ?? 'draft') as string)
       const it = d.item ?? {}
@@ -429,11 +403,11 @@ export default function TyshaMaisternia() {
       const ms = (it.short_description ?? '') as string
       const mn = (it.writer_note ?? '') as string
       setMetaTitle(mt); setMetaHook(mh); setMetaTeaser(mte); setMetaShort(ms); setMetaNote(mn)
+      setSavedRecap((it.recap ?? '') as string)
       setMetaSaved({ title: mt, hook: mh, teaser: mte, short: ms, note: mn })
       setTitleSugg(null)
       const pa = (d.item?.publish_at ?? '') as string
       setPublishAt(pa)
-      // ISO → формат для datetime-local (локальний час браузера)
       if (pa) {
         const dt = new Date(pa)
         const pad = (n: number) => String(n).padStart(2, '0')
@@ -484,19 +458,15 @@ export default function TyshaMaisternia() {
     }
   }
 
-  // ОДНА КНОПКА: безпечне (пробіли, лапки, очевидні крапки) застосовую ОДРАЗУ;
-  // крапки в реченнях (імена, склеєні) показую в панелі «було→стане» з так/ні.
   async function fixAll() {
     if (!text.trim()) return
     setPunctBusy(true); setErr(''); setMsg(''); setSuggestions(null)
 
-    // 1) Безпечна типографіка — миттєво, без перегляду.
     const det = autofixTypography(text)
     const working = det.text
     if (working !== text) { setText(working); setFindings(checkTysha(working)) }
     else setFindings(checkTysha(working))
 
-    // 2) AI-крапки в реченнях → у панель на перегляд (так/ні), не авто.
     let aiNote = ''
     const ctrl = new AbortController()
     const timer = setTimeout(() => ctrl.abort(), 75000)
@@ -528,7 +498,6 @@ export default function TyshaMaisternia() {
       clearTimeout(timer)
     }
 
-    // Якщо AI нічого не дав / впав.
     const base = det.total ? `Типографіку виправлено (${det.total}).` : 'Типографіка вже чиста.'
     setMsg(aiNote ? `${base} Крапки в реченнях не перевірено · ${aiNote}` : `${base} Пропущених крапок у реченнях не знайдено.`)
     setPunctBusy(false)
@@ -640,8 +609,6 @@ export default function TyshaMaisternia() {
     }
   }
 
-  // Перевірка правопису: орфографія/пунктуація/граматика з опорою на базу /pravopys.
-  // Показує пропозиції в тій самій панелі, що «Олюднити» (було→стало→причина).
   async function spellcheck() {
     if (!text.trim()) return
     setSpellBusy(true); setErr(''); setMsg(''); setSuggestions(null)
@@ -676,7 +643,6 @@ export default function TyshaMaisternia() {
     }
   }
 
-  // Граматика/орфографія/коми через LanguageTool (правиловий рушій, без AI-ляпів).
   async function grammarCheck() {
     if (!text.trim()) return
     setGrammarBusy(true); setErr(''); setMsg(''); setSuggestions(null)
@@ -711,8 +677,7 @@ export default function TyshaMaisternia() {
     }
   }
 
-  // ── AI-помічники (батч 1: аналізатори + recap) ──
-  function clearPanels() { setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setRecapText(null); setCleaned(null) }
+  function clearPanels() { setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setCleaned(null) }
 
   async function genRecap() {
     if (!text.trim()) return
@@ -721,18 +686,8 @@ export default function TyshaMaisternia() {
       const r = await fetch('/api/admin/recap', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ text, title: metaTitle }) })
       const d = await r.json()
       if (!r.ok) throw new Error(d.error || 'Помилка генерації recap')
-      setRecapText((d.recap ?? '').trim())
-    } catch (e) { setErr(e instanceof Error ? e.message : 'Помилка') } finally { setAiBusy(null) }
-  }
-
-  async function saveRecap() {
-    if (!selectedId || !recapText) return
-    setAiBusy('recap-save'); setErr(''); setMsg('')
-    try {
-      const r = await fetch(`/api/admin/content/${selectedId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ recap: recapText }) })
-      const d = await r.json()
-      if (!r.ok) throw new Error(d.error || 'Не вдалося зберегти recap')
-      setMsg('Recap збережено — живить блок «Що було раніше» в наступній серії'); setRecapText(null)
+      setSavedRecap((d.recap ?? '').trim())
+      setMsg('Recap згенеровано — з’явився в полі метаданих вище. Перевір і натисни «Зберегти recap».')
     } catch (e) { setErr(e instanceof Error ? e.message : 'Помилка') } finally { setAiBusy(null) }
   }
 
@@ -778,7 +733,6 @@ export default function TyshaMaisternia() {
   const sorted = findings
     ? [...findings].sort((a, b) => SEV[a.severity].order - SEV[b.severity].order)
     : []
-  // Зведення по типах правил (для компактного списку без лінків-стрибків).
   const grouped = (() => {
     const map = new Map<string, { rule: string; severity: Severity; count: number; example?: string }>()
     for (const f of sorted) {
@@ -867,7 +821,6 @@ export default function TyshaMaisternia() {
 
         {selectedId && !loadingItem && (
           <>
-            {/* ── Обкладинка серії: показ + завантажити своє фото + AI-редагування ── */}
             <div style={{ display: 'flex', gap: 14, marginBottom: 14, padding: 14, borderRadius: 10, background: NAVY, border: '1px solid rgba(255,255,255,0.1)', flexWrap: 'wrap' }}>
               <div style={{ width: 200, flexShrink: 0 }}>
                 {coverUrl ? (
@@ -924,7 +877,6 @@ export default function TyshaMaisternia() {
                 </button>
                 <div style={{ fontSize: 11, color: 'rgba(245,240,232,0.5)', marginBottom: 10 }}>JPG, PNG або WebP, до 8 МБ. Фото одразу стає обкладинкою цієї серії.</div>
 
-                {/* ── Авто-обкладинка за банком: система генерує варіанти, ти обираєш ── */}
                 <div style={{ marginBottom: 12, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                   <button
                     onClick={autoCovers}
@@ -975,7 +927,6 @@ export default function TyshaMaisternia() {
             </div>
 
             <div style={{ position: 'relative', height: 520, borderRadius: 10, border: `1px solid ${dirty ? GOLD : 'rgba(255,255,255,0.12)'}`, overflow: 'hidden', background: NAVY_DEEP }}>
-              {/* Шар підсвітки (під текстом) */}
               <div
                 ref={backRef}
                 aria-hidden
@@ -987,7 +938,6 @@ export default function TyshaMaisternia() {
                 }}
                 dangerouslySetInnerHTML={{ __html: highlightHtml }}
               />
-              {/* Текстове поле (прозорий фон — плями просвічують) */}
               <textarea
                 ref={taRef}
                 value={text}
@@ -1007,7 +957,6 @@ export default function TyshaMaisternia() {
               Підсвічувати порушення в тексті
             </label>
 
-            {/* ── ПОСЛІДОВНІСТЬ ВИЧИТКИ 1 → 4 ── */}
             <div style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.5)', margin: '12px 0 4px', fontFamily: FONT }}>Послідовність вичитки серії:</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 0 6px', flexWrap: 'wrap' }}>
               <button onClick={runCheck} disabled={!text.trim()} style={btn('#7aa2c4', !!text.trim())}>
@@ -1029,7 +978,6 @@ export default function TyshaMaisternia() {
               </span>
             </div>
 
-            {/* ── ОКРЕМІ ІНСТРУМЕНТИ (за потреби, поза послідовністю) ── */}
             <div style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.4)', margin: '8px 0 4px', fontFamily: FONT }}>Окремо, за потреби:</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 12px', flexWrap: 'wrap' }}>
               <button onClick={spellcheck} disabled={spellBusy || !text.trim()} title="Контекстна перевірка Gemini — на додачу до граматики, ловить смислові огріхи" style={{ ...btn('#6b6f9e', !spellBusy && !!text.trim()), padding: '7px 13px', fontSize: 13 }}>
@@ -1046,7 +994,6 @@ export default function TyshaMaisternia() {
               </button>
             </div>
 
-            {/* ─── Метадані серії ─── */}
             <div style={{ margin: '6px 0 14px', padding: 14, borderRadius: 10, background: NAVY, border: '1px solid rgba(255,255,255,0.1)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
                 <strong style={{ fontSize: 13 }}>Метадані серії</strong>
@@ -1086,6 +1033,26 @@ export default function TyshaMaisternia() {
                   Короткий опис (для прев'ю / пошуку)
                   <textarea value={metaShort} onChange={(e) => setMetaShort(e.target.value)} rows={2} style={{ ...metaInput, resize: 'vertical' }} />
                 </label>
+                <div style={{ fontSize: 11.5, color: '#c4a27a' }}>
+                  Recap — «Що було раніше» (показує наступна серія)
+                  <textarea value={savedRecap} onChange={(e) => setSavedRecap(e.target.value)} rows={4} placeholder="Порожньо. Натисни «Recap» вище, щоб згенерувати, або впиши вручну." style={{ ...metaInput, resize: 'vertical', fontFamily: "'Georgia', serif", borderColor: 'rgba(196,162,122,0.4)' }} />
+                  <button
+                    onClick={async () => {
+                      if (!selectedId) return
+                      setRecapSaving(true); setErr(''); setMsg('')
+                      try {
+                        const r = await fetch(`/api/admin/content/${selectedId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ recap: savedRecap }) })
+                        const d = await r.json()
+                        if (!r.ok) throw new Error(d.error || 'Не вдалося зберегти recap')
+                        setMsg('Recap збережено')
+                      } catch (e) { setErr(e instanceof Error ? e.message : 'Помилка') } finally { setRecapSaving(false) }
+                    }}
+                    disabled={recapSaving}
+                    style={{ ...btn('#c4a27a', !recapSaving), padding: '6px 13px', fontSize: 12, marginTop: 6 }}
+                  >
+                    {recapSaving ? 'Зберігаю…' : 'Зберегти recap'}
+                  </button>
+                </div>
                 <label style={{ fontSize: 11.5, color: '#c4a27a' }}>
                   🔒 Нотатка сценариста (приватна — лише тут, не на сайті)
                   <textarea value={metaNote} onChange={(e) => setMetaNote(e.target.value)} rows={4} placeholder="Зерно серії, тема, переплавлений матеріал… Видно лише в адмінці." style={{ ...metaInput, resize: 'vertical', fontFamily: "'Georgia', serif", borderColor: 'rgba(196,162,122,0.4)' }} />
@@ -1093,7 +1060,6 @@ export default function TyshaMaisternia() {
               </div>
             </div>
 
-            {/* ─── Публікація / планувальник ─── */}
             <div style={{ margin: '6px 0 14px', padding: 14, borderRadius: 10, background: NAVY, border: '1px solid rgba(255,255,255,0.1)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
                 <strong style={{ fontSize: 13 }}>Публікація</strong>
@@ -1136,7 +1102,6 @@ export default function TyshaMaisternia() {
               </p>
             </div>
 
-            {/* Небезпечна зона — видалення */}
             <div style={{ margin: '6px 0 14px', padding: 12, borderRadius: 10, border: '1px solid rgba(224,72,77,0.4)', background: 'rgba(224,72,77,0.06)', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.6)' }}>Видалення незворотне.</span>
               <button onClick={deleteSeries} disabled={deleting} style={{ marginLeft: 'auto', padding: '8px 14px', borderRadius: 8, cursor: deleting ? 'default' : 'pointer', background: 'transparent', color: '#e0484d', border: '1px solid #e0484d', fontSize: 13, fontWeight: 700, fontFamily: FONT }}>
@@ -1144,14 +1109,12 @@ export default function TyshaMaisternia() {
               </button>
             </div>
 
-            {/* Точкові пропозиції олюднення */}
             {suggestions !== null && (() => {
               const total = suggestions.length
               const acceptedCount = suggestions.filter((s) => s.accepted).length
               const setAll = (val: boolean) => setSuggestions((cur) => cur!.map((s) => ({ ...s, accepted: val })))
               const toggle = (idx: number) => setSuggestions((cur) => cur!.map((s, i) => (i === idx ? { ...s, accepted: !s.accepted } : s)))
 
-              // Діапазони правок у ПОТОЧНОМУ тексті — щоб показати їх у контексті.
               const esc = (s: string) => s.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')
               const rangesRaw: Array<{ start: number; end: number; idx: number }> = []
               for (let i = 0; i < suggestions.length; i++) {
@@ -1216,7 +1179,6 @@ export default function TyshaMaisternia() {
                     <button onClick={apply} disabled={acceptedCount === 0} style={{ ...btn('#6b6f9e', acceptedCount > 0), padding: '5px 11px', fontSize: 12 }}>Застосувати ({acceptedCount})</button>
                     <button onClick={() => setSuggestions(null)} style={{ padding: '5px 11px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.5)', border: '1px solid rgba(255,255,255,0.12)', fontSize: 12, fontFamily: FONT }}>Скасувати</button>
                   </div>
-                  {/* СПИСОК ПРАВОК — основне: читаєш по черзі, клік = чекбокс */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
                     {suggestions.map((s, i) => {
                       const on = s.accepted
@@ -1266,7 +1228,6 @@ export default function TyshaMaisternia() {
               )
             })()}
 
-            {/* Чистка для TTS: переглянь і застосуй */}
             {cleaned !== null && (
               <div style={{ margin: '14px 0', padding: 14, borderRadius: 10, background: 'rgba(122,196,162,0.08)', border: '1px solid #7ac4a2' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
@@ -1276,19 +1237,6 @@ export default function TyshaMaisternia() {
                   <button onClick={() => setCleaned(null)} style={{ padding: '5px 11px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.5)', border: '1px solid rgba(255,255,255,0.12)', fontSize: 12, fontFamily: FONT }}>Скасувати</button>
                 </div>
                 <textarea value={cleaned} onChange={(e) => setCleaned(e.target.value)} rows={8} style={{ width: '100%', boxSizing: 'border-box', background: 'rgba(0,0,0,0.25)', color: '#f5f0e8', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '10px 12px', fontSize: 14, lineHeight: 1.6, fontFamily: "'Georgia', serif", resize: 'vertical' }} />
-              </div>
-            )}
-
-            {/* Recap: згенеровано — переглянь і збережи */}
-            {recapText !== null && (
-              <div style={{ margin: '14px 0', padding: 14, borderRadius: 10, background: 'rgba(196,162,122,0.08)', border: '1px solid #c4a27a' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
-                  <strong style={{ fontSize: 13, color: '#d6bd9c' }}>Recap цієї серії</strong>
-                  <span style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.5)' }}>покаже наступна серія в блоці «Що було раніше»</span>
-                  <button onClick={saveRecap} disabled={aiBusy === 'recap-save' || !recapText.trim()} style={{ ...btn('#c4a27a', aiBusy !== 'recap-save' && !!recapText.trim()), padding: '5px 12px', fontSize: 12, marginLeft: 'auto' }}>{aiBusy === 'recap-save' ? 'Зберігаю…' : 'Зберегти recap'}</button>
-                  <button onClick={() => setRecapText(null)} style={{ padding: '5px 11px', borderRadius: 6, cursor: 'pointer', background: 'transparent', color: 'rgba(245,240,232,0.5)', border: '1px solid rgba(255,255,255,0.12)', fontSize: 12, fontFamily: FONT }}>Скасувати</button>
-                </div>
-                <textarea value={recapText} onChange={(e) => setRecapText(e.target.value)} rows={4} style={{ width: '100%', boxSizing: 'border-box', background: 'rgba(0,0,0,0.25)', color: '#f5f0e8', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '10px 12px', fontSize: 14, lineHeight: 1.6, fontFamily: "'Georgia', serif", resize: 'vertical' }} />
               </div>
             )}
 
