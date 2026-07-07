@@ -789,9 +789,6 @@ export default function TyshaMaisternia() {
               ) : (
                 <div style={{ width: '100%', aspectRatio: '3 / 2', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: `1px dashed ${GOLD}66`, fontSize: 11, color: 'rgba(245,240,232,0.45)' }}>без обкладинки</div>
               )}
-              <div style={{ fontSize: 13, fontWeight: 700, color: GOLD, marginTop: 6 }}>
-                {sel.episode_number != null ? `${sel.episode_number}. ` : ''}{sel.title}
-              </div>
             </div>
           )
         })()}
