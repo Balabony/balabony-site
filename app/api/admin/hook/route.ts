@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
   const prompt = buildPrompt(text, titleLine)
 
   // Основна модель. Якщо Google блокує зміст (PROHIBITED_CONTENT) — пробуємо запасну.
-  const models = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-3-flash-preview']
+  const models = ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-flash-latest', 'gemini-2.5-flash']
   let lastErr: unknown = null
 
   for (const model of models) {
