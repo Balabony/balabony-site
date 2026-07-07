@@ -209,8 +209,6 @@ export default function TyshaMaisternia() {
   const dirty = text !== savedText
 
   const taRef = useRef<HTMLTextAreaElement>(null)
-  const mainRef = useRef<HTMLDivElement>(null)
-  const anchorRef = useRef<HTMLDivElement>(null)
   const backRef = useRef<HTMLDivElement>(null)
   const [highlightOn, setHighlightOn] = useState(true)
 
@@ -425,10 +423,6 @@ export default function TyshaMaisternia() {
       setErr(String(e instanceof Error ? e.message : e))
     } finally {
       setLoadingItem(false)
-      // Скрол до якоря на верху панелі (найнадійніший спосіб)
-      setTimeout(() => {
-        anchorRef.current?.scrollIntoView({ block: 'start' })
-      }, 80)
     }
   }
 
@@ -780,53 +774,71 @@ export default function TyshaMaisternia() {
   return (
     <div style={{ display: 'flex', gap: 16, maxWidth: 1180, margin: '0 auto', padding: '20px 16px', fontFamily: FONT, color: INK, alignItems: 'flex-start' }}>
 
-      <aside style={{ width: 230, flexShrink: 0, position: 'sticky', top: 16 }}>
+      <aside style={{ width: 230, flexShrink: 0, position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', maxHeight: 'calc(100vh - 32px)' }}>
         <h2 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 10px' }}>Серії «Тиші»</h2>
-        <button onClick={createSeries} disabled={creating} style={{ display: 'block', width: '100%', marginBottom: 10, padding: '8px 11px', borderRadius: 8, cursor: creating ? 'default' : 'pointer', background: 'transparent', color: GOLD, border: `1px dashed ${GOLD}88`, fontSize: 13, fontWeight: 700, fontFamily: FONT }}>
+
+        {/* Обкладинка ОБРАНОЇ серії — завжди зверху, не з'їжджає */}
+        {(() => {
+          const sel = list.find((s) => s.id === selectedId)
+          if (!sel) return null
+          return (
+            <div style={{ marginBottom: 10 }}>
+              {sel.coverUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={sel.coverUrl} alt="" style={{ width: '100%', aspectRatio: '3 / 2', objectFit: 'cover', objectPosition: 'center 22%', borderRadius: 8, display: 'block', border: `1px solid ${GOLD}66` }} />
+              ) : (
+                <div style={{ width: '100%', aspectRatio: '3 / 2', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: `1px dashed ${GOLD}66`, fontSize: 11, color: 'rgba(245,240,232,0.45)' }}>без обкладинки</div>
+              )}
+              <div style={{ fontSize: 13, fontWeight: 700, color: GOLD, marginTop: 6 }}>
+                {sel.episode_number != null ? `${sel.episode_number}. ` : ''}{sel.title}
+              </div>
+            </div>
+          )
+        })()}
+
+        <button onClick={createSeries} disabled={creating} style={{ display: 'block', width: '100%', marginBottom: 8, padding: '7px 11px', borderRadius: 8, cursor: creating ? 'default' : 'pointer', background: 'transparent', color: GOLD, border: `1px dashed ${GOLD}88`, fontSize: 13, fontWeight: 700, fontFamily: FONT }}>
           {creating ? 'Створюю…' : '+ Нова серія'}
         </button>
         {loadingList && <div style={{ fontSize: 13, color: 'rgba(245,240,232,0.5)' }}>Завантаження…</div>}
+
+        {/* Компактний список — гортається окремо, без великих обкладинок */}
+        <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4, display: 'flex', flexDirection: 'column', gap: 3 }}>
         {list.map((s) => {
           const active = s.id === selectedId
+          const sm = STATUS_META[s.status] ?? { label: s.status, color: '#9aa0a6' }
           return (
             <button
               key={s.id}
               onClick={() => selectSeries(s.id)}
               style={{
-                display: 'block', width: '100%', textAlign: 'left', marginBottom: 4,
-                padding: '9px 11px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontFamily: FONT,
+                display: 'block', width: '100%', textAlign: 'left',
+                padding: '8px 10px', borderRadius: 8, cursor: 'pointer', fontSize: 12.5, fontFamily: FONT,
                 background: active ? GOLD : NAVY, color: active ? NAVY_DEEP : INK,
                 border: `1px solid ${active ? GOLD : 'rgba(255,255,255,0.1)'}`,
                 fontWeight: active ? 700 : 500,
               }}
             >
-              {s.coverUrl ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={s.coverUrl} alt="" style={{ width: '100%', aspectRatio: '3 / 2', objectFit: 'cover', objectPosition: 'center 22%', borderRadius: 6, marginBottom: 7, display: 'block' }} />
-              ) : (
-                <div style={{ width: '100%', aspectRatio: '3 / 2', borderRadius: 6, marginBottom: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.15)', fontSize: 11, color: 'rgba(245,240,232,0.4)' }}>без обкладинки</div>
-              )}
-              {s.episode_number != null ? `${s.episode_number}. ` : ''}{s.title}
-              <span style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, flexWrap: 'wrap' }}>
-                {(() => { const sm = STATUS_META[s.status] ?? { label: s.status, color: '#9aa0a6' }; return <span style={chip(sm.color)}>{sm.label}</span> })()}
+              <div>{s.episode_number != null ? `${s.episode_number}. ` : ''}{s.title}</div>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5, flexWrap: 'wrap' }}>
+                <span style={chip(active ? '#0a1628' : sm.color)}>{sm.label}</span>
                 {(s.canonErrors ?? 0) > 0
                   ? <span style={chip('#e0484d')}>⚠ {s.canonErrors}</span>
                   : (s.canonWarns ?? 0) > 0
                     ? <span style={chip('#e0a23d')}>⚠ {s.canonWarns}</span>
-                    : <span style={chip('#6fae8a')}>✓ канон</span>}
+                    : <span style={chip('#6fae8a')}>✓</span>}
                 {s.hasAudio
-                  ? <span style={chip('#7ac4a2')}>♪ аудіо</span>
+                  ? <span style={chip('#7ac4a2')}>♪</span>
                   : (s.audioStatus && s.audioStatus !== 'none' && s.audioStatus !== 'pending')
-                    ? <span style={chip('#c4a27a')}>♪ {s.audioStatus}</span>
+                    ? <span style={chip('#c4a27a')}>♪</span>
                     : null}
               </span>
             </button>
           )
         })}
+        </div>
       </aside>
 
-      <main ref={mainRef} style={{ flex: 1, minWidth: 0 }}>
-        <div ref={anchorRef} style={{ position: 'absolute', top: -80 }} aria-hidden />
+      <main style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontSize: 13, color: 'rgba(245,240,232,0.6)', margin: '0 0 12px' }}>
           Обери серію зліва, правь текст, перевіряй канон і зберігай. «Олюднити» — Gemini за правилами «Тиші».
           Механіка ловить грубе — вичитуй ще й оком.
