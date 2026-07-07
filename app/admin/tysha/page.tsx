@@ -241,12 +241,7 @@ export default function TyshaMaisternia() {
 
   useEffect(() => { loadList() }, [loadList])
 
-  // Скрол до тексту серії при відкритті іншої (щоб не бігати вниз-вгору)
-  useEffect(() => {
-    if (selectedId && !loadingItem && mainRef.current) {
-      mainRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }, [selectedId, loadingItem])
+
 
   async function uploadOwnCover(file: File) {
     if (!selectedId) return
@@ -429,6 +424,11 @@ export default function TyshaMaisternia() {
       setErr(String(e instanceof Error ? e.message : e))
     } finally {
       setLoadingItem(false)
+      // Скрол до тексту серії — з невеликою затримкою, щоб панель встигла намалюватись
+      setTimeout(() => {
+        if (mainRef.current) mainRef.current.scrollIntoView({ block: 'start' })
+        else if (typeof window !== 'undefined') window.scrollTo(0, 0)
+      }, 60)
     }
   }
 
