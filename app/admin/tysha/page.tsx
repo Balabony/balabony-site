@@ -185,6 +185,7 @@ export default function TyshaMaisternia() {
   const [metaBusy, setMetaBusy] = useState(false)
   const [titleSugg, setTitleSugg] = useState<string[] | null>(null)
   const [titleBusy, setTitleBusy] = useState(false)
+  const [hookBusy, setHookBusy] = useState(false)
 
   const [loadingList, setLoadingList] = useState(true)
   const [loadingItem, setLoadingItem] = useState(false)
@@ -529,6 +530,18 @@ export default function TyshaMaisternia() {
     } finally {
       setMetaBusy(false)
     }
+  }
+
+  async function genHook() {
+    if (!text.trim()) { setErr('Спершу має бути текст серії'); return }
+    setHookBusy(true); setErr(''); setMsg('')
+    try {
+      const r = await fetch('/api/admin/hook', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ text, title: metaTitle }) })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d.error || 'Не вдалося згенерувати гачок')
+      setMetaHook((d.hook ?? '').trim())
+      setMsg('Гачок згенеровано — у полі метаданих. Перевір, за потреби виправ і «Зберегти метадані».')
+    } catch (e) { setErr(e instanceof Error ? e.message : 'Помилка') } finally { setHookBusy(false) }
   }
 
   async function suggestTitles() {
@@ -1022,10 +1035,18 @@ export default function TyshaMaisternia() {
                   Назва серії
                   <input value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} style={metaInput} />
                 </label>
-                <label style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.55)' }}>
+                <div style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.55)' }}>
                   Гачок (короткий тізер для картки рубрики)
                   <textarea value={metaHook} onChange={(e) => setMetaHook(e.target.value)} rows={2} style={{ ...metaInput, resize: 'vertical', fontFamily: "'Georgia', serif" }} />
-                </label>
+                  <button
+                    onClick={genHook}
+                    disabled={hookBusy || !text.trim()}
+                    title="AI напише гачок з інтригою й недомовкою, без спойлера"
+                    style={{ ...btn('#6b6f9e', !hookBusy && !!text.trim()), padding: '6px 13px', fontSize: 12, marginTop: 6 }}
+                  >
+                    {hookBusy ? 'Генерую…' : '✦ Згенерувати гачок'}
+                  </button>
+                </div>
                 <label style={{ fontSize: 11.5, color: 'rgba(245,240,232,0.55)' }}>
                   Тізер наступної серії (рядок «далі буде» в читалці)
                   <textarea value={metaTeaser} onChange={(e) => setMetaTeaser(e.target.value)} rows={2} style={{ ...metaInput, resize: 'vertical', fontFamily: "'Georgia', serif" }} />
