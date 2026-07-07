@@ -210,6 +210,7 @@ export default function TyshaMaisternia() {
 
   const taRef = useRef<HTMLTextAreaElement>(null)
   const mainRef = useRef<HTMLDivElement>(null)
+  const anchorRef = useRef<HTMLDivElement>(null)
   const backRef = useRef<HTMLDivElement>(null)
   const [highlightOn, setHighlightOn] = useState(true)
 
@@ -424,11 +425,10 @@ export default function TyshaMaisternia() {
       setErr(String(e instanceof Error ? e.message : e))
     } finally {
       setLoadingItem(false)
-      // Скрол до тексту серії — з невеликою затримкою, щоб панель встигла намалюватись
+      // Скрол до якоря на верху панелі (найнадійніший спосіб)
       setTimeout(() => {
-        if (mainRef.current) mainRef.current.scrollIntoView({ block: 'start' })
-        else if (typeof window !== 'undefined') window.scrollTo(0, 0)
-      }, 60)
+        anchorRef.current?.scrollIntoView({ block: 'start' })
+      }, 80)
     }
   }
 
@@ -826,6 +826,7 @@ export default function TyshaMaisternia() {
       </aside>
 
       <main ref={mainRef} style={{ flex: 1, minWidth: 0 }}>
+        <div ref={anchorRef} style={{ position: 'absolute', top: -80 }} aria-hidden />
         <p style={{ fontSize: 13, color: 'rgba(245,240,232,0.6)', margin: '0 0 12px' }}>
           Обери серію зліва, правь текст, перевіряй канон і зберігай. «Олюднити» — Gemini за правилами «Тиші».
           Механіка ловить грубе — вичитуй ще й оком.
