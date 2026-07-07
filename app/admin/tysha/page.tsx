@@ -209,6 +209,7 @@ export default function TyshaMaisternia() {
   const dirty = text !== savedText
 
   const taRef = useRef<HTMLTextAreaElement>(null)
+  const mainRef = useRef<HTMLDivElement>(null)
   const backRef = useRef<HTMLDivElement>(null)
   const [highlightOn, setHighlightOn] = useState(true)
 
@@ -240,10 +241,10 @@ export default function TyshaMaisternia() {
 
   useEffect(() => { loadList() }, [loadList])
 
-  // Скрол угору при відкритті іншої серії (щоб не бігати вниз-вгору)
+  // Скрол до тексту серії при відкритті іншої (щоб не бігати вниз-вгору)
   useEffect(() => {
-    if (selectedId && !loadingItem && typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (selectedId && !loadingItem && mainRef.current) {
+      mainRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   }, [selectedId, loadingItem])
 
@@ -824,7 +825,7 @@ export default function TyshaMaisternia() {
         })}
       </aside>
 
-      <main style={{ flex: 1, minWidth: 0 }}>
+      <main ref={mainRef} style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontSize: 13, color: 'rgba(245,240,232,0.6)', margin: '0 0 12px' }}>
           Обери серію зліва, правь текст, перевіряй канон і зберігай. «Олюднити» — Gemini за правилами «Тиші».
           Механіка ловить грубе — вичитуй ще й оком.
