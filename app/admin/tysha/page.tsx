@@ -170,6 +170,7 @@ export default function TyshaMaisternia() {
   const [aiBusy, setAiBusy] = useState<string | null>(null)
   const [savedRecap, setSavedRecap] = useState('')       // recap із БД — завжди видно
   const [recapSaving, setRecapSaving] = useState(false)
+  const [recapImproving, setRecapImproving] = useState(false)
   const [cleaned, setCleaned] = useState<string | null>(null)
   const [pubStatus, setPubStatus] = useState<string>('draft')
   const [publishAt, setPublishAt] = useState<string>('')   // ISO з БД
@@ -1036,22 +1037,42 @@ export default function TyshaMaisternia() {
                 <div style={{ fontSize: 11.5, color: '#c4a27a' }}>
                   Recap — «Що було раніше» (показує наступна серія)
                   <textarea value={savedRecap} onChange={(e) => setSavedRecap(e.target.value)} rows={4} placeholder="Порожньо. Натисни «Recap» вище, щоб згенерувати, або впиши вручну." style={{ ...metaInput, resize: 'vertical', fontFamily: "'Georgia', serif", borderColor: 'rgba(196,162,122,0.4)' }} />
-                  <button
-                    onClick={async () => {
-                      if (!selectedId) return
-                      setRecapSaving(true); setErr(''); setMsg('')
-                      try {
-                        const r = await fetch(`/api/admin/content/${selectedId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ recap: savedRecap }) })
-                        const d = await r.json()
-                        if (!r.ok) throw new Error(d.error || 'Не вдалося зберегти recap')
-                        setMsg('Recap збережено')
-                      } catch (e) { setErr(e instanceof Error ? e.message : 'Помилка') } finally { setRecapSaving(false) }
-                    }}
-                    disabled={recapSaving}
-                    style={{ ...btn('#c4a27a', !recapSaving), padding: '6px 13px', fontSize: 12, marginTop: 6 }}
-                  >
-                    {recapSaving ? 'Зберігаю…' : 'Зберегти recap'}
-                  </button>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
+                    <button
+                      onClick={async () => {
+                        if (!selectedId) return
+                        setRecapSaving(true); setErr(''); setMsg('')
+                        try {
+                          const r = await fetch(`/api/admin/content/${selectedId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ recap: savedRecap }) })
+                          const d = await r.json()
+                          if (!r.ok) throw new Error(d.error || 'Не вдалося зберегти recap')
+                          setMsg('Recap збережено')
+                        } catch (e) { setErr(e instanceof Error ? e.message : 'Помилка') } finally { setRecapSaving(false) }
+                      }}
+                      disabled={recapSaving}
+                      style={{ ...btn('#c4a27a', !recapSaving), padding: '6px 13px', fontSize: 12 }}
+                    >
+                      {recapSaving ? 'Зберігаю…' : 'Зберегти recap'}
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!savedRecap.trim()) { setErr('Поле рекапу порожнє — нема що покращувати'); return }
+                        setRecapImproving(true); setErr(''); setMsg('')
+                        try {
+                          const r = await fetch('/api/admin/recap', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ text: savedRecap, title: metaTitle, mode: 'improve' }) })
+                          const d = await r.json()
+                          if (!r.ok) throw new Error(d.error || 'Не вдалося покращити рекап')
+                          setSavedRecap((d.recap ?? '').trim())
+                          setMsg('Рекап покращено — перевір і натисни «Зберегти recap»')
+                        } catch (e) { setErr(e instanceof Error ? e.message : 'Помилка') } finally { setRecapImproving(false) }
+                      }}
+                      disabled={recapImproving || !savedRecap.trim()}
+                      title="AI покращить наявний текст рекапу й виправить помилки, не міняючи змісту"
+                      style={{ ...btn('#6b6f9e', !recapImproving && !!savedRecap.trim()), padding: '6px 13px', fontSize: 12 }}
+                    >
+                      {recapImproving ? 'Покращую…' : '✦ Покращити рекап'}
+                    </button>
+                  </div>
                 </div>
                 <label style={{ fontSize: 11.5, color: '#c4a27a' }}>
                   🔒 Нотатка сценариста (приватна — лише тут, не на сайті)
