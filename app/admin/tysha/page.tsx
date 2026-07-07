@@ -240,6 +240,13 @@ export default function TyshaMaisternia() {
 
   useEffect(() => { loadList() }, [loadList])
 
+  // Скрол угору при відкритті іншої серії (щоб не бігати вниз-вгору)
+  useEffect(() => {
+    if (selectedId && !loadingItem && typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [selectedId, loadingItem])
+
   async function uploadOwnCover(file: File) {
     if (!selectedId) return
     setCoverBusy('upload'); setErr(''); setMsg('')
@@ -388,7 +395,6 @@ export default function TyshaMaisternia() {
   async function selectSeries(id: string) {
     if (dirty && !confirm('Є незбережені зміни. Відкрити іншу серію без збереження?')) return
     setLoadingItem(true); setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setCleaned(null)
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
     try {
       const r = await fetch(`/api/admin/content/${id}`, { credentials: 'same-origin' })
       const d = await r.json()
