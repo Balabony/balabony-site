@@ -12,22 +12,8 @@ function checkAuth(req: NextRequest): boolean {
   return req.cookies.get('admin_session')?.value === process.env.ADMIN_PASSWORD
 }
 
-export async function POST(req: NextRequest) {
-  if (!checkAuth(req)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) {
-    return NextResponse.json({ error: 'GEMINI_API_KEY не налаштовано' }, { status: 500 })
-  }
-  const { text, title } = await req.json() as { text?: string; title?: string }
-  if (!text?.trim()) {
-    return NextResponse.json({ error: 'Текст відсутній' }, { status: 400 })
-  }
-
-  const titleLine = title?.trim() ? `Назва епізоду: «${title.trim()}»\n\n` : ''
-
-  const prompt = `Ти — редактор дорослого українського серіалу «Тиша». Прочитай серію й напиши дуже короткий ГАЧОК для картки — приманку, що інтригує.
+function buildPrompt(text: string, titleLine: string): string {
+  return `Ти — редактор дорослого українського серіалу «Тиша». Прочитай серію й напиши дуже короткий ГАЧОК для картки — приманку, що інтригує.
 
 ФОРМАТ (суворо):
 - МАКСИМУМ 2 короткі речення. Краще 1 сильне.
@@ -55,15 +41,57 @@ ${titleLine}Текст серії:
 """
 ${text}
 """`
+}
 
-  try {
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', safetySettings: SAFETY }, { apiVersion: 'v1beta' })
-    const result = await model.generateContent(prompt)
-    const hook = result.response.text().trim().replace(/^["«»]+|["«»]+$/g, '').trim()
-    return NextResponse.json({ hook })
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Помилка API'
-    return NextResponse.json({ error: msg }, { status: 500 })
+async function tryGenerate(apiKey: string, model: string, prompt: string): Promise<string> {
+  const genAI = new GoogleGenerativeAI(apiKey)
+  const m = genAI.getGenerativeModel({ model, safetySettings: SAFETY }, { apiVersion: 'v1beta' })
+  const result = await m.generateContent(prompt)
+  return result.response.text().trim().replace(/^["«»]+|["«»]+$/g, '').trim()
+}
+
+function isBlocked(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err)
+  return /PROHIBITED_CONTENT|blocked|SAFETY|Text not available/i.test(msg)
+}
+
+export async function POST(req: NextRequest) {
+  if (!checkAuth(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) {
+    return NextResponse.json({ error: 'GEMINI_API_KEY не налаштовано' }, { status: 500 })
+  }
+  const { text, title } = await req.json() as { text?: string; title?: string }
+  if (!text?.trim()) {
+    return NextResponse.json({ error: 'Текст відсутній' }, { status: 400 })
+  }
+
+  const titleLine = title?.trim() ? `Назва епізоду: «${title.trim()}»\n\n` : ''
+  const prompt = buildPrompt(text, titleLine)
+
+  // Основна модель. Якщо Google блокує зміст (PROHIBITED_CONTENT) — пробуємо запасну.
+  const models = ['gemini-2.5-flash', 'gemini-2.0-flash']
+  let lastErr: unknown = null
+
+  for (const model of models) {
+    try {
+      const hook = await tryGenerate(apiKey, model, prompt)
+      if (hook) return NextResponse.json({ hook })
+      lastErr = new Error('Порожня відповідь')
+    } catch (err) {
+      lastErr = err
+      if (isBlocked(err)) continue // блокування — пробуємо наступну модель
+      break // інша помилка (мережа/ключ) — далі пробувати нема сенсу
+    }
+  }
+
+  if (isBlocked(lastErr)) {
+    return NextResponse.json({
+      error: 'Gemini заблокував цю серію через воєнний зміст (полон, поранення тощо). Автогенерація тут неможлива — напиши гачок вручну в полі вище.',
+    }, { status: 422 })
+  }
+  const msg = lastErr instanceof Error ? lastErr.message : 'Помилка API'
+  return NextResponse.json({ error: msg }, { status: 500 })
 }

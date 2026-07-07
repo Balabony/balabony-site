@@ -388,6 +388,7 @@ export default function TyshaMaisternia() {
   async function selectSeries(id: string) {
     if (dirty && !confirm('Є незбережені зміни. Відкрити іншу серію без збереження?')) return
     setLoadingItem(true); setErr(''); setMsg(''); setFindings(null); setSuggestions(null); setCleaned(null)
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
     try {
       const r = await fetch(`/api/admin/content/${id}`, { credentials: 'same-origin' })
       const d = await r.json()
