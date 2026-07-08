@@ -992,6 +992,31 @@ function PensionCard() {
         ))}
       </ul>
 
+      <div className="bb-pricing-installments bb-pricing-installments-soon">
+        <div className="bb-pricing-installments-title">Оплата частинами</div>
+        <div className="bb-pricing-installments-sub">
+          Без комісій · від <b>100 ₴/міс</b> на 3–6 місяців
+        </div>
+        <div className="bb-pricing-bank-row">
+          <button
+            type="button"
+            className="bb-pricing-bank-btn bb-pricing-bank-pb bb-pricing-bank-off"
+            disabled
+            aria-disabled="true"
+          >
+            ПриватБанк
+          </button>
+          <button
+            type="button"
+            className="bb-pricing-bank-btn bb-pricing-bank-os bb-pricing-bank-off"
+            disabled
+            aria-disabled="true"
+          >
+            Ощадбанк
+          </button>
+        </div>
+      </div>
+
       <button
         type="button"
         className="bb-pricing-cta bb-pricing-cta-diia"
@@ -1770,5 +1795,26 @@ const styles = `
     color: rgba(181,212,244,0.65);
     margin-bottom: 4px;
     font-family: 'Montserrat', Arial, sans-serif;
+  }
+  .bb-pricing-installments-soon:hover {
+    background: rgba(239,159,39,0.10);
+    border-color: rgba(239,159,39,0.35);
+  }
+  .bb-pricing-bank-off {
+    opacity: 0.5;
+    cursor: default;
+    filter: grayscale(35%);
+  }
+  .bb-pricing-bank-off:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .bb-pricing-bank-pb.bb-pricing-bank-off:hover {
+    background: rgba(0,174,70,0.15);
+    color: #4CD881;
+  }
+  .bb-pricing-bank-os.bb-pricing-bank-off:hover {
+    background: rgba(231,91,0,0.15);
+    color: #FFA259;
   }
 `
