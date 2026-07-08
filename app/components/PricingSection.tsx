@@ -499,7 +499,7 @@ interface PlanConfig {
   priceSuffix: string   // "/міс"
   unit: string          // "₴/міс" — передається в PaymentModal
   subline?: string
-  perks: { text: string; highlight?: boolean }[]
+  perks: { text: string; highlight?: boolean; ad?: boolean }[]
   cta: string
   ctaStyle: 'outline' | 'primary-glow'
   cancelMain: string
@@ -532,9 +532,9 @@ const PLANS: PlanConfig[] = [
     unit: '₴/міс',
     subline: 'Перший місяць — 49 ₴, далі 129 ₴',
     perks: [
-      { text: 'Жодної реклами' },
       { text: 'Офлайн-завантаження' },
-      { text: 'Усі відкриті серії Балабонів' },
+      { text: 'Усі відкриті серії, історії та казки' },
+      { text: 'Реклама між серіями', ad: true },
     ],
     cta: 'Підписатись',
     ctaStyle: 'outline',
@@ -554,9 +554,8 @@ const PLANS: PlanConfig[] = [
     perks: [
       { text: 'Жодної реклами' },
       { text: 'Офлайн-завантаження' },
-      { text: 'Усі відкриті серії Балабонів' },
-      { text: 'Закриті серії Балабонів', highlight: true },
-      { text: 'Тиждень для знайомства', highlight: true },
+      { text: 'Усі відкриті серії, історії та казки' },
+      { text: 'Закриті серії та історії', highlight: true },
     ],
     cta: 'Оформити передплату',
     ctaStyle: 'primary-glow',
@@ -577,10 +576,10 @@ const PLANS: PlanConfig[] = [
     unit: '₴/міс',
     subline: '50 ₴ на особу · до 4 акаунтів',
     perks: [
-      { text: 'Жодної реклами для всіх' },
       { text: 'Офлайн-завантаження' },
-      { text: 'Усі відкриті серії Балабонів' },
+      { text: 'Усі відкриті серії, історії та казки' },
       { text: 'До 4 акаунтів у родині' },
+      { text: 'Реклама між серіями', ad: true },
     ],
     cta: 'Підписатись',
     ctaStyle: 'outline',
@@ -600,10 +599,9 @@ const PLANS: PlanConfig[] = [
     perks: [
       { text: 'Жодної реклами для всіх' },
       { text: 'Офлайн-завантаження' },
-      { text: 'Усі відкриті серії Балабонів' },
+      { text: 'Усі відкриті серії, історії та казки' },
       { text: 'До 4 акаунтів у родині' },
-      { text: 'Закриті серії Балабонів', highlight: true },
-      { text: 'Тиждень для знайомства', highlight: true },
+      { text: 'Закриті серії та історії', highlight: true },
     ],
     cta: 'Оформити передплату',
     ctaStyle: 'primary-glow',
@@ -912,7 +910,7 @@ function PlanCard({
 
       <ul className="bb-pricing-perks">
         {plan.perks.map((perk, i) => (
-          <li key={i} className={perk.highlight ? 'bb-pricing-perk-highlight' : ''}>
+          <li key={i} className={perk.ad ? 'bb-pricing-perk-ad' : perk.highlight ? 'bb-pricing-perk-highlight' : ''}>
             {perk.text}
           </li>
         ))}
@@ -1328,6 +1326,15 @@ const styles = `
   .bb-pricing-perk-highlight {
     color: #FFB347 !important;
     font-weight: 600;
+  }
+  .bb-pricing-perk-ad {
+    color: #E24B4A !important;
+  }
+  .bb-pricing-perk-ad::before {
+    content: "\\25B6" !important;
+    color: #E24B4A !important;
+    font-size: 12px !important;
+    margin-top: 2px;
   }
 
   /* INSTALLMENTS */
