@@ -832,6 +832,12 @@ export default function PricingSection() {
         <PlanCard plan={PLANS[3]} onSubscribe={() => openPaymentForPlan(PLANS[3])} onInstallment={() => openPaymentForPlan(PLANS[3])} />
       </div>
 
+      {/* FOR PENSIONERS */}
+      <SectionLabel text="Для пенсіонерів" />
+      <div className="bb-pricing-single">
+        <PensionCard />
+      </div>
+
       {/* GIFT SECTION */}
       <GiftSection
         gifts={GIFTS_INDIVIDUAL}
@@ -953,6 +959,48 @@ function PlanCard({
         <span className="bb-pricing-cancel-line"><b>{plan.cancelMain}</b></span>
         <span className="bb-pricing-cancel-second">{plan.cancelSub}</span>
       </div>
+    </div>
+  )
+}
+
+function PensionCard() {
+  const perks: { text: string; highlight?: boolean; ad?: boolean }[] = [
+    { text: 'Усі відкриті серії, історії та казки' },
+    { text: 'Закриті серії та історії', highlight: true },
+    { text: 'Офлайн-завантаження' },
+    { text: 'Великий шрифт для читання' },
+    { text: 'Реклама між серіями', ad: true },
+  ]
+  return (
+    <div className="bb-pricing-card bb-pricing-card-featured bb-pricing-pension">
+      <div className="bb-pricing-badge">ЗНИЖКА 33%</div>
+
+      <div className="bb-pricing-card-name">Пенсійний річний</div>
+      <div className="bb-pricing-price-main">
+        600 ₴<small>/рік</small>
+      </div>
+      <div className="bb-pricing-pension-pill">Всього 50 ₴/міс</div>
+
+      <ul className="bb-pricing-perks">
+        {perks.map((perk, i) => (
+          <li
+            key={i}
+            className={perk.ad ? 'bb-pricing-perk-ad' : perk.highlight ? 'bb-pricing-perk-highlight' : ''}
+          >
+            {perk.text}
+          </li>
+        ))}
+      </ul>
+
+      <button
+        type="button"
+        className="bb-pricing-cta bb-pricing-cta-diia"
+        disabled
+        aria-disabled="true"
+      >
+        ↻ Підтвердження через «Дію»
+      </button>
+      <div className="bb-pricing-diia-soon">Онлайн-підтвердження статусу — незабаром</div>
     </div>
   )
 }
@@ -1681,5 +1729,46 @@ const styles = `
     .bb-pricing-gift-cta {
       transition: none !important;
     }
+  }
+
+  /* PENSION */
+  .bb-pricing-single {
+    max-width: 380px;
+    margin: 0 auto 28px;
+    position: relative;
+    z-index: 1;
+  }
+  .bb-pricing-pension-pill {
+    display: inline-block;
+    background: rgba(239,159,39,0.14);
+    border: 1px solid rgba(239,159,39,0.40);
+    color: #EF9F27;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 18px;
+  }
+  .bb-pricing-cta-diia {
+    background: transparent;
+    color: #B5D4F4 !important;
+    border: 1.5px solid rgba(181,212,244,0.35);
+    cursor: default;
+    opacity: 0.78;
+    margin-bottom: 6px;
+    animation: none;
+    box-shadow: none;
+  }
+  .bb-pricing-cta-diia:hover {
+    transform: none;
+    box-shadow: none;
+    background: transparent;
+  }
+  .bb-pricing-diia-soon {
+    text-align: center;
+    font-size: 12px;
+    color: rgba(181,212,244,0.65);
+    margin-bottom: 4px;
+    font-family: 'Montserrat', Arial, sans-serif;
   }
 `
