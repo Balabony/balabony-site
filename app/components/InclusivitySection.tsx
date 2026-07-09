@@ -54,10 +54,10 @@ function EyeIcon() {
 }
 
 const AUDIENCES: Audience[] = [
-  { id: 'veterans', title: 'УБД',             subtitle: 'Учасники бойових дій',  Icon: ShieldIcon     },
+  { id: 'veterans', title: 'Ветерани',             subtitle: 'Учасники бойових дій',  Icon: ShieldIcon     },
   { id: 'disability', title: 'Люди',  subtitle: 'з інвалідністю',   Icon: WheelchairIcon },
-  { id: 'idp',      title: 'Діти ВПО',         subtitle: 'Внутрішньо переміщені', Icon: HomeMoveIcon   },
-  { id: 'vision',   title: 'Зір',   subtitle: 'Крупний шрифт і темна тема', Icon: EyeIcon       },
+  { id: 'idp',      title: 'Родини ВПО',         subtitle: 'Внутрішньо переміщені', Icon: HomeMoveIcon   },
+  { id: 'vision',   title: 'Зір',   subtitle: 'Великий шрифт і темна тема', Icon: EyeIcon       },
 ]
 
 export default function InclusivitySection() {

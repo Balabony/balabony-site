@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 /**
  * FreeBanner — тонкий банер під Hero.
@@ -9,7 +9,7 @@
 export default function FreeBanner() {
   return (
     <section
-      aria-label="Безкоштовний доступ"
+      aria-label="Безкоштовне ознайомлення"
       style={{
         fontFamily: 'Montserrat, sans-serif',
         padding: '1rem 1.25rem',
