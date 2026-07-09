@@ -193,21 +193,25 @@ export default function PwaSection() {
       <div className="pwa-instructions">
         <div className="pwa-col">
           <div className="pwa-col-title">iPhone · Safari</div>
-          {IPHONE_STEPS.map((step, i) => (
-            <div key={i} className="pwa-step">
-              <span className="pwa-step-num">{i + 1}</span>
+          <ol className="pwa-steps">
+            {IPHONE_STEPS.map((step, i) => (
+            <li key={i} className="pwa-step">
+              <span className="pwa-step-num" aria-hidden="true">{i + 1}</span>
               <span className="pwa-step-text">{step}</span>
-            </div>
+            </li>
           ))}
+          </ol>
         </div>
         <div className="pwa-col">
           <div className="pwa-col-title">Android · Chrome</div>
-          {ANDROID_STEPS.map((step, i) => (
-            <div key={i} className="pwa-step">
-              <span className="pwa-step-num">{i + 1}</span>
+          <ol className="pwa-steps">
+            {ANDROID_STEPS.map((step, i) => (
+            <li key={i} className="pwa-step">
+              <span className="pwa-step-num" aria-hidden="true">{i + 1}</span>
               <span className="pwa-step-text">{step}</span>
-            </div>
+            </li>
           ))}
+          </ol>
         </div>
       </div>
 
@@ -710,7 +714,12 @@ export default function PwaSection() {
           text-align: center;
           font-family: ${FONT};
         }
-        .pwa-step {
+        .pwa-steps {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+          }
+          .pwa-step {
           display: flex;
           align-items: flex-start;
           gap: 12px;
