@@ -268,6 +268,7 @@ export default function PwaSection() {
           width: 158px;
           height: 322px;
           background: #1a1a1a;
+          border: 2px solid #5A7396;
           border-radius: 28px;
           padding: 5px;
           box-shadow: 0 20px 44px rgba(0,0,0,0.55);
@@ -481,6 +482,7 @@ export default function PwaSection() {
           width: 158px;
           height: 322px;
           background: #2a2a2a;
+          border: 2px solid #5A7396;
           border-radius: 24px;
           padding: 4px;
           box-shadow: 0 20px 44px rgba(0,0,0,0.55);
