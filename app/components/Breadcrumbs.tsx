@@ -8,7 +8,7 @@ const PALETTES = {
     homeColor:    'var(--accent-gold)', // золото
     linkColor:    '#8899bb', // сіро-синій
     currentColor: '#f5f0e8', // світлий (поточна сторінка)
-    separator:    '#445566', // приглушений
+    separator:    '#7d90a6', // приглушений, WCAG AA 5.45:1 на темному
   },
   light: {
     homeColor:    '#BA7517', // темно-помаранчевий (legal accent)
