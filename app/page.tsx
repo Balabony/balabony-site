@@ -140,11 +140,11 @@ export default function HomePage() {
           <ReaderSection />
         </div>
 
-        <div id="pricing" style={{ display: 'block', scrollMarginTop: '80px' }}>
+        <div style={{ display: 'block' }}>
           <PricingSection />
         </div>
 
-        <div id="faq" style={{ display: 'block', scrollMarginTop: '80px' }}>
+        <div style={{ display: 'block' }}>
           <FAQ />
         </div>
         <div id="fairytales"><FairytalesSection /></div>

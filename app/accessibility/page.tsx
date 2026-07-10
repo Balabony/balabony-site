@@ -118,6 +118,7 @@ export default function AccessibilityPage() {
           --a11y-text-muted: #64748b;
           --a11y-accent: #ef9f27;
           --a11y-accent-text: #1e293b;
+          --a11y-accent-on-surface: #a05f00;
           --a11y-border: #e2e8f0;
           --a11y-focus: #ef9f27;
         }
@@ -128,6 +129,7 @@ export default function AccessibilityPage() {
           --a11y-text-muted: #94a3b8;
           --a11y-accent: #ef9f27;
           --a11y-accent-text: #0f172a;
+          --a11y-accent-on-surface: #ef9f27;
           --a11y-border: rgba(255,255,255,0.15);
           --a11y-focus: #ef9f27;
         }
@@ -138,6 +140,7 @@ export default function AccessibilityPage() {
           --a11y-text-muted: #ffeb3b;
           --a11y-accent: #ffeb3b;
           --a11y-accent-text: #000000;
+          --a11y-accent-on-surface: #ffeb3b;
           --a11y-border: #ffffff;
           --a11y-focus: #ffeb3b;
         }
@@ -148,6 +151,7 @@ export default function AccessibilityPage() {
           --a11y-text-muted: #586e75;
           --a11y-accent: #b58900;
           --a11y-accent-text: #fdf6e3;
+          --a11y-accent-on-surface: #7d5c00;
           --a11y-border: #93a1a1;
           --a11y-focus: #b58900;
         }
@@ -330,7 +334,7 @@ export default function AccessibilityPage() {
           letter-spacing: -0.02em;
         }
         .a11y-hero h1 .accent {
-          color: var(--a11y-accent);
+          color: var(--a11y-accent-on-surface);
         }
         .a11y-hero-lead {
           max-width: 720px;
@@ -360,7 +364,7 @@ export default function AccessibilityPage() {
           font-size: calc(48px * var(--a11y-fs));
           font-family: 'Lora', serif;
           font-weight: 700;
-          color: var(--a11y-accent);
+          color: var(--a11y-accent-on-surface);
           margin-bottom: 16px;
           line-height: 1;
         }
@@ -414,7 +418,7 @@ export default function AccessibilityPage() {
           font-family: 'Lora', serif;
           font-weight: 700;
           font-size: calc(20px * var(--a11y-fs));
-          color: var(--a11y-accent);
+          color: var(--a11y-accent-on-surface);
           margin-bottom: 8px;
         }
         .a11y-line {

@@ -341,7 +341,7 @@ export default function BonusSection() {
         }
         .bn-invite-btn {
           background: ${GOLD};
-          color: #FFFFFF;
+          color: #0a0f1a;
           border: none;
           padding: 10px 22px;
           border-radius: 8px;

@@ -498,7 +498,7 @@ export default function ReaderSection() {
           >
             {isBookmarked ? '✦' : '✧'}
           </button>
-          <span style={{ marginLeft: 'auto', fontSize: 10, background: 'var(--accent-gold)', color: '#fff', padding: '3px 10px', borderRadius: 20, fontWeight: 700, opacity: 0.7 }}>Офлайн · скоро</span>
+          <span style={{ marginLeft: 'auto', fontSize: 10, background: 'var(--accent-gold)', color: 'var(--on-gold)', padding: '3px 10px', borderRadius: 20, fontWeight: 700 }}>Офлайн · скоро</span>
         </div>
 
         {/* Story title */}
@@ -528,7 +528,7 @@ export default function ReaderSection() {
                   padding: '8px 14px', borderRadius: 8, minHeight: 36,
                   border: `1.5px solid ${isActive ? 'var(--accent-gold)' : 'var(--border)'}`,
                   background: isActive ? 'var(--accent-gold)' : 'transparent',
-                  color: isActive ? '#fff' : 'var(--text)',
+                  color: isActive ? 'var(--on-gold)' : 'var(--text)',
                   fontSize: 13, fontWeight: 700, cursor: 'pointer',
                   fontFamily: "'Montserrat', sans-serif"
                 }}
@@ -561,7 +561,7 @@ export default function ReaderSection() {
                     padding: '8px 10px', borderRadius: 8, minWidth: 44, minHeight: 44,
                     border: `1.5px solid ${isActive ? 'var(--accent-gold)' : isFree ? 'var(--accent-gold)' : 'var(--border)'}`,
                     background: isActive ? 'var(--accent-gold)' : isFree ? 'rgba(239,159,39,0.12)' : isRead ? 'rgba(239,159,39,0.05)' : 'var(--white)',
-                    color: isActive ? '#fff' : isFree ? 'var(--accent-gold)' : isRead ? 'var(--text)' : 'var(--muted)',
+                    color: isActive ? 'var(--on-gold)' : isFree ? '#a05f00' : isRead ? 'var(--text)' : 'var(--muted)',
                     fontSize: 12, fontWeight: 700, cursor: 'pointer',
                     fontFamily: "'Montserrat', sans-serif"
                   }}
@@ -670,7 +670,7 @@ export default function ReaderSection() {
                         gap: 6,
                         padding: '13px 16px',
                         background: 'var(--accent-gold)',
-                        color: '#fff',
+                        color: 'var(--on-gold)',
                         border: 'none',
                         borderRadius: 10,
                         fontSize: 14,
@@ -764,7 +764,7 @@ export default function ReaderSection() {
                 style={{
                   padding: '12px 24px',
                   background: 'var(--accent-gold)',
-                  color: '#fff',
+                  color: 'var(--on-gold)',
                   border: 'none',
                   borderRadius: 8,
                   fontSize: 15,

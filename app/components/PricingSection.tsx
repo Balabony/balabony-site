@@ -705,11 +705,11 @@ export default function PricingSection() {
         }}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 13 }}>
-          <span style={{ fontSize: 17, lineHeight: 1, color: '#e0484d' }} aria-hidden="true">❤</span>
+          <span style={{ fontSize: 17, lineHeight: 1, color: '#c42a30' }} aria-hidden="true">❤</span>
           <span style={{
             fontSize: 14,
             fontWeight: 700,
-            color: '#e0484d',
+            color: '#c42a30',
             textTransform: 'uppercase',
             letterSpacing: '0.04em',
             whiteSpace: 'nowrap',
@@ -725,7 +725,7 @@ export default function PricingSection() {
               display: 'inline-block',
               fontSize: 12,
               fontWeight: 700,
-              color: '#c9820a',
+              color: '#a05f00',
               marginTop: 9,
               background: 'transparent',
               border: '1.5px solid #ef9f27',

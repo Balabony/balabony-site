@@ -32,7 +32,7 @@ export default function AuthMenu() {
         style={{
           fontSize: 11, fontWeight: 700, padding: '5px 10px',
           border: '1px solid var(--accent-gold)', borderRadius: 8,
-          background: 'var(--accent-gold)', color: '#fff',
+          background: 'var(--accent-gold)', color: 'var(--on-gold)',
           textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
           lineHeight: 1, whiteSpace: 'nowrap',
         }}
