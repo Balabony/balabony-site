@@ -3,6 +3,7 @@
 // Фільтр-за-часом: показуємо published АБО scheduled, у яких час уже настав
 // (так планувальник публікує серію точно в заданий момент навіть на Hobby-плані).
 import { NextResponse } from 'next/server'
+import { readingMinutes } from '@/lib/readingTime'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 function makeExcerpt(text?: string | null, max = 160): string | null {
@@ -25,12 +26,6 @@ function makeExcerpt(text?: string | null, max = 160): string | null {
   return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).trim() + '…'
 }
 
-function estimateMinutes(text?: string | null): number | undefined {
-  if (!text) return undefined
-  const words = text.trim().split(/\s+/).filter(Boolean).length
-  return words ? Math.max(1, Math.round(words / 150)) : undefined
-}
-
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
@@ -41,7 +36,7 @@ export async function GET(req: Request) {
     const supabase = getSupabaseAdmin()
     let query = supabase
       .from('content')
-      .select('slug, episode_number, season_number, title, cover_url, cover_position, audio_status, description, short_description, duration_minutes, text, hook, next_teaser')
+      .select('slug, episode_number, season_number, title, cover_url, cover_position, audio_status, description, short_description, text, corrected_text, humanized_text, published_version, hook, next_teaser')
       .eq('type', 'tysha')
       .or(`status.eq.published,and(status.eq.scheduled,publish_at.lte.${nowIso})`)
       .order('season_number', { ascending: true })
@@ -62,7 +57,7 @@ export async function GET(req: Request) {
       has_audio: r.audio_status === 'ready',
       url: `/tysha/${r.slug}`,
       description: r.hook ?? r.short_description ?? r.description ?? makeExcerpt(r.text) ?? null,
-      duration_minutes: r.duration_minutes ?? estimateMinutes(r.text),
+      duration_minutes: readingMinutes(r) || undefined,
       next_teaser: r.next_teaser ?? null,
     }))
 

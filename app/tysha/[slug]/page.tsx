@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { readingMinutes, countWords } from '@/lib/readingTime'
 import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
@@ -77,6 +78,8 @@ interface TyshaRow {
   episode_number: number | null
   text: string
   corrected_text: string | null
+  humanized_text: string | null
+  published_version: string | null
   cover_url: string | null
   status: string
   publish_at: string | null
@@ -92,7 +95,7 @@ async function getEpisode(slug: string, isAdmin: boolean): Promise<TyshaRow | nu
   const supabase = getSupabaseAdmin()
   const q = supabase
     .from('content')
-    .select('id, slug, title, description, season_number, episode_number, text, corrected_text, cover_url, status, publish_at, hook, next_teaser, audio_url, audio_status')
+    .select('id, slug, title, description, season_number, episode_number, text, corrected_text, humanized_text, published_version, cover_url, status, publish_at, hook, next_teaser, audio_url, audio_status')
     .eq('type', 'tysha')
     .eq('slug', slug)
 
@@ -193,6 +196,15 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
           <span style={{ fontWeight: 700, color: GOLD }}>Назар Колодій</span>
           <span style={{ color: 'rgba(245,240,232,0.55)', fontStyle: 'italic' }}> · Історія, яку чуєш серцем</span>
         </div>
+        {(() => {
+          const min = readingMinutes(ep)
+          const wc = countWords((ep.published_version === 'humanized' || ep.published_version === 'corrected_humanized') && ep.humanized_text ? ep.humanized_text : ep.published_version === 'corrected' && ep.corrected_text ? ep.corrected_text : ep.text)
+          return min ? (
+            <div style={{ marginTop: 8, fontSize: 13, color: 'rgba(245,240,232,0.55)', fontFamily: FONT }}>
+              {wc} слів · ~{min} хв
+            </div>
+          ) : null
+        })()}
         {isAdmin && ep.status !== 'published' && (
           <div style={{ marginTop: 10, fontSize: 12, color: '#9b8cff', border: '1px solid #9b8cff', borderRadius: 6, padding: '5px 10px', display: 'inline-block' }}>
             попередній перегляд ({ep.status}) — видно лише адміну
