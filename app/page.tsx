@@ -97,7 +97,7 @@ export default function HomePage() {
       <ResumeBanner />
       <Hero />
         <FreeBanner />
-        <div id="how-it-works" style={{ display: 'block', scrollMarginTop: '80px' }}>
+        <div style={{ display: 'block' }}>
           <HowItWorks />
         </div>
       {/* МІСІЯ ВГОРІ — для Google Ad Grants: сайт читається як місія, не магазин */}
@@ -136,7 +136,7 @@ export default function HomePage() {
 
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 0' }}>
 
-        <div id="reader" style={{ display: 'block', scrollMarginTop: '80px' }}>
+        <div style={{ display: 'block' }}>
           <ReaderSection />
         </div>
 

@@ -103,6 +103,7 @@ export default function EmailCapture() {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
               <input
                 type="email"
+                aria-label="Ваша електронна пошта"
                 value={email}
                 onChange={e => { setEmail(e.target.value); if (status === 'error') setStatus('idle') }}
                 onKeyDown={e => { if (e.key === 'Enter') submit() }}

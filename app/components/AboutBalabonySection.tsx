@@ -252,7 +252,7 @@ export default function AboutBalabonySection() {
           style={{
             display: 'inline-block',
             background: '#EF9F27',
-            color: '#FFFFFF',
+            color: '#0a0f1a',
             padding: '14px 28px',
             borderRadius: '12px',
             fontWeight: 600,

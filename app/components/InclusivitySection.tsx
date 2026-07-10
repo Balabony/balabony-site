@@ -209,7 +209,7 @@ export default function InclusivitySection() {
         }
         .inc-btn-primary {
           background: ${GOLD};
-          color: #FFFFFF;
+          color: #0a0f1a;
           padding: 13px 28px;
           border-radius: 9px;
           font-size: 15px;
