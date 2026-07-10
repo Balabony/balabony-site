@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { countWords } from '@/lib/readingTime'
 
 const SEASONS = [1, 2, 3, 4, 5]
 const EPISODES_PER_SEASON = 20
@@ -508,12 +509,16 @@ export default function ReaderSection() {
               ? `Серія ${globalCurrentEp}: ${episodeData.title}`
               : `Серія ${globalCurrentEp}`}
           </div>
-          {episodeData?.duration_minutes ? (
-            <div style={{ fontSize: 15, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500 }}>
-              <span aria-hidden="true" style={{ fontSize: 16 }}>⏱</span>
-              <span>~{episodeData.duration_minutes} хв читання</span>
-            </div>
-          ) : null}
+          {(() => {
+            const w = countWords(episodeData?.content)
+            const min = w ? Math.max(1, Math.round(w / 150)) : 0
+            return min ? (
+              <div style={{ fontSize: 15, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500 }}>
+                <span aria-hidden="true" style={{ fontSize: 16 }}>⏱</span>
+                <span>~{min} хв читання</span>
+              </div>
+            ) : null
+          })()}
         </div>
 
         {/* Season tabs */}

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { readingMinutes } from '@/lib/readingTime'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 // Каталог змінюється при публікації нових серій — не тримаємо вічний статичний кеш.
@@ -30,20 +31,16 @@ interface EpisodeRow {
   description: string | null
   duration_minutes: number | null
   text: string | null
-}
-
-// Якщо тривалість не задана в базі — рахуємо орієнтовний час читання з тексту (~150 слів/хв).
-function estimateMinutes(text?: string | null): number | undefined {
-  if (!text) return undefined
-  const words = text.trim().split(/\s+/).filter(Boolean).length
-  return words ? Math.max(1, Math.round(words / 150)) : undefined
+  corrected_text: string | null
+  humanized_text: string | null
+  published_version: string | null
 }
 
 async function getEpisodes(): Promise<SeriesCard[]> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('slug, title, season_number, episode_number, cover_url, description, duration_minutes, text')
+    .select('slug, title, season_number, episode_number, cover_url, description, text, corrected_text, humanized_text, published_version')
     .eq('type', 'balabony')
     .eq('status', 'published')
     .order('season_number', { ascending: true })
@@ -60,7 +57,7 @@ async function getEpisodes(): Promise<SeriesCard[]> {
     hasAudio: false,
     url: `/episodes/${e.slug}`,
     description: e.description ?? undefined,
-    durationMinutes: e.duration_minutes ?? estimateMinutes(e.text),
+    durationMinutes: readingMinutes(e) || undefined,
   }))
 }
 

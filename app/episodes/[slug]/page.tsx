@@ -1,4 +1,5 @@
 ﻿import { notFound } from 'next/navigation'
+import { readingMinutes } from '@/lib/readingTime'
 import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
@@ -149,8 +150,8 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
       ? episode.corrected_text
       : episode.text
 
-  const wordCount = body.trim().split(/\s+/).length
-  const readMin   = Math.ceil(wordCount / 180)
+  const wordCount = body.trim().split(/\s+/).filter(Boolean).length
+  const readMin   = readingMinutes(episode)
   const date      = episode.approved_at
     ? new Date(episode.approved_at).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' })
     : ''
