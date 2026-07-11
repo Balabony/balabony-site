@@ -118,7 +118,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 'auto' }}>
                       <AudioBadge hasAudio={s.hasAudio} size={14} />
                       <span style={{ fontSize: 10, fontWeight: 600, color: GOLD, fontFamily: FONT, border: `1px solid ${GOLD}`, padding: '2px 8px', borderRadius: 20 }}>
-                        Комедія
+                        Сільська комедія
                       </span>
                       {s.durationMinutes ? (
                         <span style={{ fontSize: 10, fontWeight: 600, color: GOLD, fontFamily: FONT, border: `1px solid ${GOLD}`, padding: '2px 8px', borderRadius: 20 }}>
