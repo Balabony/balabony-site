@@ -44,7 +44,7 @@ export default function HomePage() {
   useEffect(() => {
     fetch('/api/series?limit=3&order=asc')
       .then(r => r.ok ? r.json() : Promise.reject())
-      .then((rows: Array<{ id: string; number: number; season: number; title: string; cover_url: string | null; has_audio: boolean; url: string; description?: string; duration_minutes?: number | null }>) => {
+      .then((rows: Array<{ id: string; number: number; season: number; title: string; cover_url: string | null; has_audio: boolean; url: string; description?: string; teaser?: string | null; duration_minutes?: number | null }>) => {
         if (Array.isArray(rows) && rows.length > 0) {
           setSeriesData(rows.map(s => ({
             id:          s.id,
@@ -55,6 +55,7 @@ export default function HomePage() {
             hasAudio:    s.has_audio,
             url:         s.url,
             description: s.description,
+            teaser:      s.teaser ?? undefined,
             durationMinutes: s.duration_minutes ?? undefined,
           })))
         }

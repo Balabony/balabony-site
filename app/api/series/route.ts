@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     const supabase = getSupabaseAdmin()
     let query = supabase
       .from('content')
-      .select('slug, episode_number, season_number, title, cover_url, audio_status, description, duration_minutes, text, hook, next_teaser, next_release_date')
+      .select('slug, episode_number, season_number, title, cover_url, audio_status, description, short_script, duration_minutes, text, hook, next_teaser, next_release_date')
       .eq('type', 'balabony')
       .eq('status', 'published')
       .order('season_number', { ascending })
@@ -42,6 +42,9 @@ export async function GET(req: Request) {
       url: `/episodes/${r.slug}`,
       description: r.description,
       duration_minutes: r.duration_minutes ?? estimateMinutes(r.text),
+      // Зачин для картки: НЕ-спойлерний гачок. Для Балабонів description = переказ (спойлер),
+      // тому в тизер його НЕ пускаємо: short_script → hook, і все.
+      teaser: r.hook ?? r.short_script ?? null,
       hook: r.hook ?? null,
       next_teaser: r.next_teaser ?? null,
       next_release_date: r.next_release_date ?? null,

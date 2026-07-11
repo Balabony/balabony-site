@@ -63,6 +63,12 @@ export default function SeriesListPage() {
   const [ssLast,    setSsLast]    = useState('')
   const [ssText,    setSsText]    = useState('')
   const [ssMsg,     setSsMsg]     = useState('')
+  const [hkRunning, setHkRunning] = useState(false)
+  const [hkDone,    setHkDone]    = useState(0)
+  const [hkTotal,   setHkTotal]   = useState(0)
+  const [hkLast,    setHkLast]    = useState('')
+  const [hkText,    setHkText]    = useState('')
+  const [hkMsg,     setHkMsg]     = useState('')
   // Канон-перевірка (Кімната сценариста, Ф1 — механіка)
   type CanonFinding = { rule: string; severity: 'error' | 'warn' | 'info'; message: string; excerpt?: string }
   const [canonLoading, setCanonLoading] = useState<string | null>(null)
@@ -216,6 +222,43 @@ export default function SeriesListPage() {
       setSsMsg("Помилка з'єднання. Зупинено. Можна запустити знову — продовжить з місця.")
     } finally {
       setSsRunning(false)
+    }
+  }
+
+  // Батч-генерація коротких гачків (hook) для картки: той самий патерн, що й шорти.
+  const runHookBatch = async () => {
+    if (hkRunning) return
+    if (!confirm('Згенерувати короткі гачки (1 речення) для всіх епізодів без гачка? Уже наявні не змінюються. Це може зайняти кілька хвилин.')) return
+    setHkRunning(true); setHkDone(0); setHkTotal(0); setHkLast(''); setHkText(''); setHkMsg('')
+    let safety = 0
+    try {
+      while (safety < 500) {
+        safety++
+        const res = await fetch('/api/admin/hook-batch', { method: 'POST' })
+        const data = await res.json() as {
+          done?: boolean; total?: number; remaining?: number
+          processed?: { title?: string; season?: number; episode?: number; hook?: string } | null
+          error?: string
+        }
+        if (!res.ok || data.error) {
+          setHkMsg(`Помилка: ${data.error ?? 'невідома'}. Зупинено. Можна запустити знову — продовжить з місця.`)
+          break
+        }
+        if (data.total) setHkTotal(data.total)
+        if (data.done) {
+          setHkMsg('Готово — усі епізоди мають гачок.')
+          break
+        }
+        if (data.processed) {
+          setHkDone(d => d + 1)
+          setHkLast(`S${data.processed.season}E${data.processed.episode} · ${data.processed.title ?? ''}`)
+          if (data.processed.hook) setHkText(data.processed.hook)
+        }
+      }
+    } catch {
+      setHkMsg("Помилка з'єднання. Зупинено. Можна запустити знову — продовжить з місця.")
+    } finally {
+      setHkRunning(false)
     }
   }
 
@@ -473,6 +516,37 @@ export default function SeriesListPage() {
               {ssLast && <div style={{ color: '#8899bb' }}>Останній: {ssLast}</div>}
               {ssText && <div style={{ marginTop: 6, padding: 10, background: 'rgba(255,255,255,0.04)', borderRadius: 8, color: '#e7d9bf', fontStyle: 'italic' }}>{ssText}</div>}
               {ssMsg && <div style={{ color: ssMsg.startsWith('Помилка') ? '#dd8f8f' : '#9ae6b4' }}>{ssMsg}</div>}
+            </div>
+          )}
+        </div>
+
+        {/* Батч-генерація коротких гачків (1 речення) — для тизера на картці */}
+        <div style={{ marginBottom: 20, padding: 14, background: NAVY, borderRadius: 12, border: '1px solid rgba(208, 163, 85,0.25)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={runHookBatch}
+              disabled={hkRunning}
+              style={{
+                fontSize: 13, fontWeight: 700, fontFamily: FONT,
+                color: '#1a1205', background: GOLD, border: 'none',
+                borderRadius: 8, padding: '9px 16px',
+                cursor: hkRunning ? 'default' : 'pointer', opacity: hkRunning ? 0.7 : 1,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {hkRunning ? '⏳ Генерую гачки…' : '✦ Згенерувати всі гачки (картка)'}
+            </button>
+            <span style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>
+              Однореченнєвий гачок без спойлера — саме він показується зачином на картці серії. Тільки для епізодів без гачка.
+            </span>
+          </div>
+          {(hkRunning || hkDone > 0 || hkMsg) && (
+            <div style={{ marginTop: 10, fontSize: 12, color: '#cbd5e1', fontFamily: FONT, lineHeight: 1.6 }}>
+              {hkDone > 0 && <div>Згенеровано цього запуску: <b style={{ color: GOLD }}>{hkDone}</b>{hkTotal ? ` (усього епізодів: ${hkTotal})` : ''}</div>}
+              {hkLast && <div style={{ color: '#8899bb' }}>Останній: {hkLast}</div>}
+              {hkText && <div style={{ marginTop: 6, padding: 10, background: 'rgba(255,255,255,0.04)', borderRadius: 8, color: '#e7d9bf', fontStyle: 'italic' }}>{hkText}</div>}
+              {hkMsg && <div style={{ color: hkMsg.startsWith('Помилка') ? '#dd8f8f' : '#9ae6b4' }}>{hkMsg}</div>}
             </div>
           )}
         </div>
