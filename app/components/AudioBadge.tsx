@@ -88,7 +88,7 @@ export default function AudioBadge({
       }}
     >
       <AudioWaveIcon size={size + 5} color={color} />
-      {hasAudio ? 'Аудіо доступно' : 'Аудіо готується'}
+      {hasAudio ? 'Аудіо доступно' : 'Аудіо скоро'}
     </span>
   )
 }
