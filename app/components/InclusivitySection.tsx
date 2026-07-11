@@ -151,7 +151,7 @@ export default function InclusivitySection() {
           margin: 0 0 14px;
         }
         .inc-lead {
-          font-size: 15px;
+          font-size: 17px;
           color: #DCE5F0;
           line-height: 1.7;
           margin: 0 auto 32px;
@@ -186,7 +186,7 @@ export default function InclusivitySection() {
           justify-content: center;
         }
         .inc-audience-title {
-          font-size: 14px;
+          font-size: 15px;
           font-weight: 700;
           color: #FFFFFF;
           margin-bottom: 4px;
@@ -196,7 +196,7 @@ export default function InclusivitySection() {
           hyphens: auto;
         }
         .inc-audience-sub {
-          font-size: 11px;
+          font-size: 13px;
           color: #B5D4F4;
           line-height: 1.4;
           font-family: ${FONT};
@@ -212,7 +212,7 @@ export default function InclusivitySection() {
           color: #0a0f1a;
           padding: 13px 28px;
           border-radius: 9px;
-          font-size: 15px;
+          font-size: 16px;
           font-weight: 700;
           text-decoration: none;
           display: inline-block;
@@ -229,7 +229,7 @@ export default function InclusivitySection() {
           border: 1px solid rgba(255,255,255,0.2);
           padding: 13px 28px;
           border-radius: 9px;
-          font-size: 15px;
+          font-size: 16px;
           font-weight: 700;
           text-decoration: none;
           display: inline-block;
