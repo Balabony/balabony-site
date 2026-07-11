@@ -1,4 +1,4 @@
-﻿import { notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { readingMinutes } from '@/lib/readingTime'
 import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
@@ -80,6 +80,21 @@ interface PrevRecapRow {
   recap:          string | null
 }
 
+// Позиція серії В МЕЖАХ сезону (1 = перша серія сезону).
+// episode_number наскрізний по всьому серіалу, тому рахуємо, скільки
+// опублікованих серій цього ж сезону мають менший номер.
+async function positionInSeason(season: number, episode: number): Promise<number> {
+  const supabase = getSupabaseAdmin()
+  const { count, error } = await supabase
+    .from('content')
+    .select('id', { count: 'exact', head: true })
+    .eq('type', 'balabony')
+    .eq('status', 'published')
+    .eq('season_number', season)
+    .lt('episode_number', episode)
+  if (error || count == null) return 1
+  return count + 1
+}
 // Попередній епізод за наскрізною нумерацією (дзеркало getNextEpisode).
 // Через межу сезону теж працює: останній епізод минулого сезону.
 async function getPrevEpisode(season: number, episode: number): Promise<PrevRecapRow | null> {
@@ -140,6 +155,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
   const isAdmin = cookieStore.get('admin_session')?.value === process.env.ADMIN_PASSWORD
 
   const nextEp = await getNextEpisode(episode.season_number, episode.episode_number)
+  const seasonPosition = await positionInSeason(episode.season_number, episode.episode_number)
   const prevEp = await getPrevEpisode(episode.season_number, episode.episode_number)
   const prevRecap = prevEp?.recap?.trim() ? prevEp : null
 
@@ -219,7 +235,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           </div>
         )}
 
-        <EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={episode.episode_number} bypass={isAdmin} />
+        <EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={seasonPosition} bypass={isAdmin} />
 
         <div style={{ marginTop: 40 }}>
           <ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} storyId={`episodes/${slug}`} season={episode.season_number} />
