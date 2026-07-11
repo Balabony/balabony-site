@@ -22,6 +22,7 @@ interface EpisodeRow {
   description:       string | null
   season_number:     number
   episode_number:    number
+  is_premium:        boolean
   text:              string
   corrected_text:    string | null
   humanized_text:    string | null
@@ -40,7 +41,7 @@ async function getEpisode(slug: string): Promise<EpisodeRow | null> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('id, slug, title, description, season_number, episode_number, text, corrected_text, humanized_text, published_version, cover_url, approved_at, hook, next_teaser, next_release_date, audio_url, audio_status, recap')
+    .select('id, slug, title, description, season_number, episode_number, is_premium, text, corrected_text, humanized_text, published_version, cover_url, approved_at, hook, next_teaser, next_release_date, audio_url, audio_status, recap')
     .eq('type', 'balabony')
     .eq('slug', slug)
     .eq('status', 'published')
@@ -54,6 +55,7 @@ interface NextRow {
   slug:           string
   season_number:  number
   episode_number: number
+  is_premium:        boolean
   cover_url:      string | null
 }
 
@@ -77,6 +79,7 @@ interface PrevRecapRow {
   title:          string
   season_number:  number
   episode_number: number
+  is_premium:        boolean
   recap:          string | null
 }
 
@@ -235,7 +238,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           </div>
         )}
 
-        <EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={seasonPosition} bypass={isAdmin} />
+        <EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={seasonPosition} bypass={isAdmin} isPremium={episode.is_premium} />
 
         <div style={{ marginTop: 40 }}>
           <ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} storyId={`episodes/${slug}`} season={episode.season_number} />

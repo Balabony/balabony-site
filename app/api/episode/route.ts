@@ -63,7 +63,7 @@ export async function GET(req: Request) {
     const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
       .from('content')
-      .select('slug, title, corrected_text, is_free, season_number, episode_number, duration_minutes')
+      .select('slug, title, corrected_text, is_free, is_premium, season_number, episode_number, duration_minutes')
       .eq('type', 'balabony')
       .eq('status', 'published')
       .eq('season_number', season)
@@ -84,7 +84,9 @@ export async function GET(req: Request) {
     //   3. user already picked it via /api/pick (tracked in user_free_picks)
     // Note: legacy ?free= query parameter is parsed but ignored — kept only for
     // backward compatibility with cached URLs. Real source of truth is the DB.
-    let isUnlocked = data.is_free === true
+    const isPremium = data.is_premium === true
+    // Преміум (закриті) серії: не безкоштовні й не через pick; лише річна підписка.
+    let isUnlocked = !isPremium && data.is_free === true
     if (!isUnlocked) {
       const userId = await getAnonUserId()
       if (userId) {
@@ -92,19 +94,19 @@ export async function GET(req: Request) {
         const nowIso = new Date().toISOString()
         const { data: subRow } = await supabase
           .from('app_subscriptions')
-          .select('id')
+          .select('id, plan')
           .eq('user_id', userId)
           .eq('status', 'active')
           .gt('expires_at', nowIso)
           .limit(1)
           .maybeSingle()
-        if (subRow) {
+        if (subRow && (!isPremium || subRow.plan === 'yearly')) {
           isUnlocked = true
-        } else {
+        } else if (!isPremium) {
           // (3) Fall back to per-episode pick
           const { data: pickRow } = await supabase
             .from('user_free_picks')
-            .select('id')
+            .select('id, plan')
             .eq('user_id', userId)
             .eq('content_type', 'series')
             .eq('content_id', globalIndex)
@@ -148,6 +150,7 @@ export async function GET(req: Request) {
       title: data.title,
       content: preview,
       locked: true,
+      premium: isPremium,
       duration_minutes: readingMinutes,
       url: episodeUrl,
     })

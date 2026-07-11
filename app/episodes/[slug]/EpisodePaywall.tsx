@@ -11,6 +11,7 @@ interface Props {
   seasonNumber:   number
   episodeNumber:  number
   bypass?:        boolean
+  isPremium?:     boolean
 }
 
 // Бере перші ~10% параграфів як безкоштовний тізер.
@@ -53,7 +54,7 @@ function getTeaserHtml(html: string): string {
   return styles + teaserScenes.join('')
 }
 
-export default function EpisodePaywall({ html, fontFamily, episodeNumber, bypass = false }: Props) {
+export default function EpisodePaywall({ html, fontFamily, episodeNumber, bypass = false, isPremium = false }: Props) {
   const scrollToPricing = () => {
     window.location.href = '/#pricing'
   }
@@ -64,7 +65,7 @@ export default function EpisodePaywall({ html, fontFamily, episodeNumber, bypass
   }
 
   // Безкоштовно — перші дві серії кожного сезону («по дві серії з кожного сезону»).
-  const isLocked = episodeNumber > FREE_PER_SEASON
+  const isLocked = isPremium || episodeNumber > FREE_PER_SEASON
 
   if (!isLocked) {
     return <EpisodeBody html={html} fontFamily={fontFamily} />
@@ -123,7 +124,7 @@ export default function EpisodePaywall({ html, fontFamily, episodeNumber, bypass
             fontFamily,
           }}
         >
-          Це була твоя безкоштовна серія. Щоб читати далі&nbsp;— обери&nbsp;пакет.
+          {isPremium ? 'Це закрита серія. Вона доступна лише за річною передплатою.' : 'Це була твоя безкоштовна серія. Щоб читати далі — обери пакет.'}
         </p>
         <button
           onClick={scrollToPricing}
@@ -139,7 +140,7 @@ export default function EpisodePaywall({ html, fontFamily, episodeNumber, bypass
             fontFamily,
           }}
         >
-          Обрати пакет →
+          {isPremium ? 'Оформити річну передплату →' : 'Обрати пакет →'}
         </button>
       </div>
     </div>
