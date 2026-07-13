@@ -17,6 +17,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import DiiaValidationModal from './DiiaValidationModal'
 
 // ═════════════════════════════════════════════════════════════════════
 // 1. FREE VIEW TIMER (8-годинний цикл нових історій)
@@ -638,6 +639,7 @@ const GIFT_FAMILY: GiftConfig = {
 
 export default function PricingSection() {
   const [modal, setModal] = useState<PaymentPkg | null>(null)
+  const [socialDiiaOpen, setSocialDiiaOpen] = useState(false)
 
   const openPaymentForPlan = useCallback((plan: PlanConfig) => {
     setModal({
@@ -652,7 +654,9 @@ export default function PricingSection() {
   }, [])
 
   const openPaymentForConcessional = useCallback(() => {
-    setModal({ price: '1', tier: 'Пільговий', unit: '₴/рік' })
+    // Варіант А: підтвердження статусу через Дію = отримання пільги.
+    // Крок оплати 1₴ прибрано (валідація записує benefit_status на рік).
+    setSocialDiiaOpen(true)
   }, [])
 
   const openPaymentForGift = useCallback((gift: GiftConfig) => {
@@ -870,6 +874,34 @@ export default function PricingSection() {
       {/* PAYMENT MODAL */}
       {modal && <PaymentModal pkg={modal} onClose={() => setModal(null)} />}
 
+      {/* СОЦІАЛЬНА МІСІЯ — валідація статусу через Дію (пільга на рік) */}
+      {socialDiiaOpen && (
+        <DiiaValidationModal
+          title="Соціальний тариф"
+          subtitle="Підтвердьте свій статус через «Дію» — доступ за соціальним тарифом на рік"
+          options={[
+            {
+              docType: 'reference-internally-displaced-person',
+              label: 'Внутрішньо переміщена особа (ВПО)',
+              hint: 'Довідка ВПО',
+            },
+            {
+              docType: 'veteran-certificate',
+              label: 'Ветеран / учасник бойових дій',
+              hint: 'Посвідчення УБД',
+            },
+            {
+              // Інвалідність читається лише шерингом pension-card (Етап 2),
+              // тому наразі неактивна. docType — placeholder, API не викликається.
+              docType: 'pension-card',
+              label: 'Людина з інвалідністю',
+              soon: true,
+            },
+          ]}
+          onClose={() => setSocialDiiaOpen(false)}
+        />
+      )}
+
       {/* STYLES */}
       <style jsx>{styles}</style>
     </section>
@@ -964,6 +996,7 @@ function PlanCard({
 }
 
 function PensionCard() {
+  const [diiaOpen, setDiiaOpen] = useState(false)
   const perks: { text: string; highlight?: boolean; ad?: boolean }[] = [
     { text: 'Усі відкриті серії, історії та казки' },
     { text: 'Закриті серії та історії', highlight: true },
@@ -1020,12 +1053,26 @@ function PensionCard() {
       <button
         type="button"
         className="bb-pricing-cta bb-pricing-cta-diia"
-        disabled
-        aria-disabled="true"
+        onClick={() => setDiiaOpen(true)}
       >
-        ↻ Підтвердження через «Дію»
+        ↻ Підтвердити статус через «Дію»
       </button>
-      <div className="bb-pricing-diia-soon">Онлайн-підтвердження статусу — незабаром</div>
+      <div className="bb-pricing-diia-soon">Підтвердіть пенсійний статус онлайн за 1 хвилину</div>
+
+      {diiaOpen && (
+        <DiiaValidationModal
+          title="Пенсійний тариф"
+          subtitle="Підтвердьте пенсійний статус через «Дію», щоб отримати доступ за 600 ₴/рік"
+          options={[
+            {
+              docType: 'pension-card',
+              label: 'Пенсійне посвідчення',
+              hint: 'Пенсійне посвідчення',
+            },
+          ]}
+          onClose={() => setDiiaOpen(false)}
+        />
+      )}
     </div>
   )
 }
@@ -1777,18 +1824,20 @@ const styles = `
   .bb-pricing-cta-diia {
     background: transparent;
     color: #B5D4F4 !important;
-    border: 1.5px solid rgba(181,212,244,0.35);
-    cursor: default;
-    opacity: 0.78;
+    border: 1.5px solid rgba(181,212,244,0.55);
+    cursor: pointer;
+    opacity: 1;
     margin-bottom: 6px;
     animation: none;
     box-shadow: none;
   }
   .bb-pricing-cta-diia:hover {
-    transform: none;
+    transform: translateY(-1px);
     box-shadow: none;
-    background: transparent;
+    background: rgba(181,212,244,0.10);
+    border-color: rgba(181,212,244,0.75);
   }
+  .bb-pricing-cta-diia:active { transform: translateY(0) scale(0.98); }
   .bb-pricing-diia-soon {
     text-align: center;
     font-size: 12px;
