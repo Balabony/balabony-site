@@ -61,7 +61,7 @@ const overlay: React.CSSProperties = {
 }
 
 const card: React.CSSProperties = {
-  background: 'var(--white, #fff)',
+  background: '#ffffff',
   padding: '32px 28px',
   borderRadius: 24,
   width: '90%',
@@ -76,6 +76,7 @@ const h3: React.CSSProperties = {
   fontSize: 20,
   fontWeight: 600,
   marginBottom: 6,
+  color: '#0f1e3a',
 }
 
 const sub: React.CSSProperties = {
@@ -357,7 +358,7 @@ export default function DiiaValidationModal({
         {/* ── КРОК 3: успіх ── */}
         {step === 'success' && (
           <>
-            <div style={{ fontSize: 48, marginBottom: 8 }}>✓</div>
+            <div style={{ fontSize: 48, marginBottom: 8, color: '#1d9e75' }}>✓</div>
             <h3 style={h3}>Статус підтверджено</h3>
             <p style={sub}>
               Дякуємо! Ваш пільговий статус активовано. Він діє протягом року —
@@ -372,7 +373,7 @@ export default function DiiaValidationModal({
         {/* ── КРОК 3: невдача ── */}
         {step === 'fail' && (
           <>
-            <div style={{ fontSize: 48, marginBottom: 8 }}>✕</div>
+            <div style={{ fontSize: 48, marginBottom: 8, color: '#dc2626' }}>✕</div>
             <h3 style={h3}>Не вдалося підтвердити</h3>
             <p style={sub}>
               {message ?? 'Документ не підтверджено.'}
