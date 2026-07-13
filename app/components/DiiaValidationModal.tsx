@@ -17,7 +17,8 @@
  * Один компонент, дві точки входу — набір статусів задається через `options`.
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 export type DiiaDocType =
   | 'reference-internally-displaced-person'
@@ -81,7 +82,7 @@ const h3: React.CSSProperties = {
 
 const sub: React.CSSProperties = {
   fontSize: 14,
-  color: 'var(--muted, #64748b)',
+  color: '#475569',
   marginBottom: 24,
   lineHeight: 1.5,
 }
@@ -126,6 +127,9 @@ export default function DiiaValidationModal({
   const [barcode, setBarcode] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), [])
 
   const pickStatus = useCallback((opt: DiiaOption) => {
     if (opt.soon) return
@@ -178,7 +182,9 @@ export default function DiiaValidationModal({
     if (e.target === e.currentTarget) onClose()
   }
 
-  return (
+  if (!mounted) return null
+
+  return createPortal(
     <div onClick={closeOnBackdrop} style={overlay}>
       <div style={card}>
         {/* ── КРОК 1: вибір статусу ── */}
@@ -391,6 +397,7 @@ export default function DiiaValidationModal({
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
