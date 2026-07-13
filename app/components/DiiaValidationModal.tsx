@@ -82,7 +82,7 @@ const h3: React.CSSProperties = {
 
 const sub: React.CSSProperties = {
   fontSize: 14,
-  color: '#475569',
+  color: '#1e293b',
   marginBottom: 24,
   lineHeight: 1.5,
 }
@@ -275,7 +275,7 @@ export default function DiiaValidationModal({
                   }}>
                     {i + 1}
                   </span>
-                  <span style={{ fontSize: 15, color: '#334155', lineHeight: 1.5, paddingTop: 3 }}>
+                  <span style={{ fontSize: 15, color: '#1f2937', lineHeight: 1.5, paddingTop: 3 }}>
                     {text}
                   </span>
                 </div>
@@ -298,7 +298,7 @@ export default function DiiaValidationModal({
 
             <div style={{
               fontSize: 13,
-              color: '#64748b',
+              color: '#475569',
               textAlign: 'left',
               marginBottom: 16,
               lineHeight: 1.5,
@@ -325,7 +325,7 @@ export default function DiiaValidationModal({
                 boxSizing: 'border-box',
               }}
             />
-            <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 16 }}>
+            <div style={{ fontSize: 12, color: '#64748b', marginBottom: 16 }}>
               {barcode.length}/13
             </div>
 
