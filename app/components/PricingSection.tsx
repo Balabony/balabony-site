@@ -17,6 +17,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import DiiaValidationModal from './DiiaValidationModal'
 
 // ═════════════════════════════════════════════════════════════════════
@@ -196,6 +197,8 @@ function PaymentModal({ pkg, onClose }: PaymentModalProps) {
   const [loading, setLoading] = useState(false)
   const [installmentLoading, setInstallmentLoading] = useState<'privat' | 'oschadbank' | null>(null)
   const [agreed, setAgreed] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   const handlePay = async () => {
     setLoading(true)
@@ -217,7 +220,9 @@ function PaymentModal({ pkg, onClose }: PaymentModalProps) {
   const isAnnual = pkg.tier.includes('Річний')
   const canInstallment = isAnnual // оплата частинами лише для річних планів
 
-  return (
+  if (!mounted) return null
+
+  return createPortal(
     <div
       onClick={(e) => e.target === e.currentTarget && onClose()}
       style={{
@@ -481,7 +486,8 @@ function PaymentModal({ pkg, onClose }: PaymentModalProps) {
           Скасувати
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
