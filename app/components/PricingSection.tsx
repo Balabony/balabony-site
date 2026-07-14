@@ -156,7 +156,7 @@ async function initiateInstallment(
       const form = document.createElement('form')
       form.method = 'POST'
       form.action = provider === 'privat'
-        ? 'https://api.privatbank.ua/p24api/ishop'
+        ? 'https://www.liqpay.ua/api/3/checkout'
         : 'https://secure.wayforpay.com/pay'
       form.style.display = 'none'
       Object.entries(data.formData).forEach(([key, value]) => {
