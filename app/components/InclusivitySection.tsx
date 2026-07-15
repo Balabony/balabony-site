@@ -73,10 +73,10 @@ export default function InclusivitySection() {
 
         <div className="inc-eyebrow">Для кожного</div>
         <h2 className="inc-title">Балабони доступні всім</h2>
+        <div className="inc-price-label">Соціальний тариф</div>
+        <div className="inc-price">1&nbsp;₴ <span className="inc-price-unit">на рік</span></div>
         <p className="inc-lead">
-          Соціальний тариф{' '}
-          <span className="inc-price">1&nbsp;₴&nbsp;на&nbsp;рік</span>{' '}
-          — для тих, кому це найважливіше. Верифікація через сервіс «Дія».
+          для тих, кому це найважливіше.<br />Верифікація через сервіс «Дія».
         </p>
 
         <div className="inc-grid">
@@ -160,17 +160,26 @@ export default function InclusivitySection() {
           max-width: 540px;
           font-family: ${FONT};
         }
+        .inc-price-label {
+          font-size: 15px;
+          letter-spacing: 0.5px;
+          color: #B5D4F4;
+          font-family: ${FONT};
+          margin-bottom: 2px;
+        }
         .inc-price {
-          display: inline-block;
           white-space: nowrap;
-          background: ${GOLD};
-          color: #2A1A05;
+          color: ${GOLD};
+          font-weight: 800;
+          font-size: 44px;
+          line-height: 1.15;
+          font-family: ${FONT};
+          margin-bottom: 10px;
+        }
+        .inc-price-unit {
+          font-size: 20px;
           font-weight: 700;
-          font-size: 18px;
-          line-height: 1.35;
-          padding: 4px 14px;
-          border-radius: 999px;
-          margin: 0 2px;
+          color: #DCE5F0;
         }
         .inc-grid {
           display: grid;
