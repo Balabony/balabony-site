@@ -75,20 +75,20 @@ const USEFUL: Game[] = [
 function GameCard({ game, evidence }: { game: Game; evidence: boolean }) {
   return (
     <a href={game.href} className="bb-game-card" style={{
-      display: 'flex', alignItems: 'center', gap: 15, textDecoration: 'none',
+      display: 'flex', alignItems: 'stretch', textDecoration: 'none',
       background: CARD,
       border: evidence ? `2px solid rgba(239,159,39,0.65)` : `1.5px solid rgba(250,199,117,0.3)`,
-      borderRadius: 18, padding: 16, marginBottom: 14,
+      borderRadius: 18, marginBottom: 14, overflow: 'hidden',
       boxShadow: evidence ? '0 0 26px rgba(239,159,39,0.22)' : '0 0 18px rgba(239,159,39,0.12)',
     }}>
-      <span style={{ flexShrink: 0, width: 62, height: 62, borderRadius: 16, background: 'rgba(239,159,39,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 ${evidence ? 18 : 14}px rgba(239,159,39,${evidence ? 0.4 : 0.28})` }}>
-        <Icon kind={game.kind} />
+      <span aria-hidden="true" style={{ flexShrink: 0, width: 5, background: evidence ? GOLD : 'rgba(239,159,39,0.45)' }} />
+      <span style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flex: 1, minWidth: 0, padding: 16 }}>
+        <span style={{ minWidth: 0, flex: 1 }}>
+          <span style={{ display: 'block', fontFamily: "'Lora', serif", fontSize: 21, fontWeight: 700, color: GOLD_LIGHT, lineHeight: 1.2 }}>{game.title}</span>
+          <span style={{ display: 'block', fontSize: 15, lineHeight: 1.5, color: TEXT_DESC, marginTop: 4 }}>{game.desc}</span>
+        </span>
+        <span aria-hidden="true" style={{ flexShrink: 0, color: GOLD_LIGHT, fontSize: 24, lineHeight: 1.2 }}>→</span>
       </span>
-      <span style={{ minWidth: 0, flex: 1 }}>
-        <span style={{ display: 'block', fontFamily: "'Lora', serif", fontSize: 21, fontWeight: 700, color: GOLD_LIGHT, lineHeight: 1.2 }}>{game.title}</span>
-        <span style={{ display: 'block', fontSize: 15, lineHeight: 1.5, color: TEXT_DESC, marginTop: 4 }}>{game.desc}</span>
-      </span>
-      <span aria-hidden="true" style={{ flexShrink: 0, color: GOLD_LIGHT, fontSize: 24 }}>→</span>
     </a>
   )
 }
