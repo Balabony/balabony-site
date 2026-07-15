@@ -51,12 +51,9 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
 
         {/* Section header */}
         <div style={{ borderLeft: `3px solid ${GOLD}`, paddingLeft: 14, marginBottom: 22 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: GOLD, letterSpacing: 2, textTransform: 'uppercase', fontFamily: FONT, lineHeight: 1 }}>Балабони</div>
-          <div style={{ fontSize: 19, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.2, marginTop: 3 }}>Серіал «Балабони»</div>
-          <div style={{ fontSize: 12.5, lineHeight: 1.35, marginTop: 4, fontFamily: FONT }}>
-            <span style={{ fontWeight: 700, color: GOLD }}>Назар Колодій</span>
-            <span style={{ color: colors.muted, fontStyle: 'italic' }}> · Кумедні сільські історії</span>
-          </div>
+          <div style={{ fontSize: 19, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.2 }}>Серіал «Балабони»</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: GOLD, fontFamily: FONT, lineHeight: 1.35, marginTop: 5 }}>Назар Колодій</div>
+          <div style={{ fontSize: 12.5, color: colors.muted, fontStyle: 'italic', fontFamily: FONT, lineHeight: 1.35, marginTop: 1 }}>Сільські байки</div>
         </div>
 
         {/* Cards */}
