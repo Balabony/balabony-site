@@ -28,16 +28,6 @@ function parseSeriesLabel(id: string): string {
   return m ? `Сезон ${m[1]} · Серія ${m[2]}` : ''
 }
 
-function BookIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-      <rect x="3" y="2" width="13" height="18" rx="2" stroke={GOLD} strokeWidth="1.5"/>
-      <rect x="3" y="2" width="3.5" height="18" rx="1" fill={GOLD} opacity="0.45"/>
-      <path d="M9.5 7h4M9.5 11h4M9.5 15h2.5" stroke={GOLD} strokeWidth="1.4" strokeLinecap="round"/>
-    </svg>
-  )
-}
-
 function ChevronIcon({ open }: { open: boolean }) {
   return (
     <svg
@@ -60,17 +50,12 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
       <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 20px' }}>
 
         {/* Section header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
-          <div style={{ width: 42, height: 42, borderRadius: 11, background: `rgba(239,159,39,0.10)`, border: `1px solid rgba(239,159,39,0.27)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <BookIcon />
-          </div>
-          <div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: GOLD, letterSpacing: 2, textTransform: 'uppercase', fontFamily: FONT, lineHeight: 1 }}>Балабони</div>
-            <div style={{ fontSize: 19, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.2 }}>Серіал «Балабони»</div>
-            <div style={{ fontSize: 12.5, lineHeight: 1.35, marginTop: 3, fontFamily: FONT }}>
-              <span style={{ fontWeight: 700, color: GOLD }}>Назар Колодій</span>
-              <span style={{ color: colors.muted, fontStyle: 'italic' }}> · Кумедні історії з українського села</span>
-            </div>
+        <div style={{ borderLeft: `3px solid ${GOLD}`, paddingLeft: 14, marginBottom: 22 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: GOLD, letterSpacing: 2, textTransform: 'uppercase', fontFamily: FONT, lineHeight: 1 }}>Балабони</div>
+          <div style={{ fontSize: 19, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.2, marginTop: 3 }}>Серіал «Балабони»</div>
+          <div style={{ fontSize: 12.5, lineHeight: 1.35, marginTop: 4, fontFamily: FONT }}>
+            <span style={{ fontWeight: 700, color: GOLD }}>Назар Колодій</span>
+            <span style={{ color: colors.muted, fontStyle: 'italic' }}> · Кумедні сільські історії</span>
           </div>
         </div>
 
