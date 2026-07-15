@@ -71,6 +71,34 @@ interface ValidateBody {
   barcode?: string
 }
 
+/**
+ * РОЗВІДКА (тимчасово): логуємо СТРУКТУРУ відповіді Дії, щоб зрозуміти,
+ * чи повертає вона тип документа. Значення НЕ логуємо — тільки ключі й типи,
+ * бо у відповіді можуть бути персональні дані.
+ * Виняток — ключі, які за природою є enum (type/status/doc/code): їх значення
+ * потрібне для розбору й персональними даними не є.
+ */
+const SAFE_VALUE_KEYS = /(type|status|doc|code|kind|category)/i
+
+function describeShape(v: unknown, key = '', depth = 0): unknown {
+  if (depth > 4) return '…'
+  if (v === null) return 'null'
+  if (Array.isArray(v)) {
+    return v.length === 0 ? '[]' : [describeShape(v[0], key, depth + 1), `…×${v.length}`]
+  }
+  if (typeof v === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
+      out[k] = describeShape(val, k, depth + 1)
+    }
+    return out
+  }
+  if (typeof v === 'string') {
+    return SAFE_VALUE_KEYS.test(key) && v.length <= 64 ? `string:"${v}"` : `string(${v.length})`
+  }
+  return typeof v
+}
+
 export async function POST(req: NextRequest) {
   try {
     // 1. Запит має робити авторизований користувач
@@ -113,7 +141,16 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({ branchId: BRANCH_ID, barcode }),
       },
     )
-    const diiaData = (await diiaRes.json()) as {
+    const diiaRaw: unknown = await diiaRes.json()
+
+    // РОЗВІДКА: чи є в відповіді тип документа?
+    console.log(
+      '[diia/validate] HTTP', diiaRes.status,
+      '| claimed docType:', docType,
+      '| response shape:', JSON.stringify(describeShape(diiaRaw)),
+    )
+
+    const diiaData = (diiaRaw ?? {}) as {
       success?: boolean
       message?: string
     }
