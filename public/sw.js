@@ -1,7 +1,7 @@
 // public/sw.js — Balabony PWA Service Worker
 // Strategy: Network First for pages/assets, Cache First for audio
 // Bump CACHE_VERSION on every meaningful deploy to trigger update flow
-const CACHE_VERSION = 'v7'
+const CACHE_VERSION = 'v8'
 const CACHE_STATIC = `balabony-static-${CACHE_VERSION}`
 const CACHE_AUDIO  = 'balabony-audio-v1'
 
