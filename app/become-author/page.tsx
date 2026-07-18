@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import ProtectedEmail from '@/app/components/ProtectedEmail'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import NarrationOrderForm from '@/app/components/NarrationOrderForm'
 
@@ -46,32 +46,6 @@ function StepItem({ num, children }: { num: number; children: React.ReactNode })
       }}>{num}</span>
       <span style={{ fontSize: 15, color: 'rgba(255,255,255,0.85)', lineHeight: 1.65, paddingTop: 4 }}>{children}</span>
     </li>
-  )
-}
-
-function ProtectedEmail() {
-  const [revealed, setRevealed] = useState(false)
-  const [copied, setCopied] = useState(false)
-  const E_USER = 'nazar', E_HOST = 'balabony', E_TLD = 'com'
-  const full = `${E_USER}@${E_HOST}.${E_TLD}`
-
-  const handle = async () => {
-    if (!revealed) { setRevealed(true); return }
-    try { await navigator.clipboard.writeText(full) } catch { /* ignore */ }
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  return (
-    <button onClick={handle} style={{
-      background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-      fontFamily: FONT, fontSize: 15, color: GOLD, fontWeight: 600,
-      textDecoration: 'underline', textDecorationStyle: 'dotted' as const,
-    }}>
-      {revealed
-        ? (copied ? '✓ Скопійовано!' : full)
-        : `${E_USER} [at] ${E_HOST} [dot] ${E_TLD}`}
-    </button>
   )
 }
 
@@ -177,7 +151,13 @@ export default function BecomeAuthorPage() {
             <SectionTitle>Як подати заявку</SectionTitle>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px' }}>
               <StepItem num={1}>
-                Напиши нам на <ProtectedEmail /> (натисни, щоб побачити адресу)
+                Напиши нам на{' '}
+                <ProtectedEmail
+                  user="nazar"
+                  domain="balabony.com"
+                  subject="Заявка автора"
+                  style={{ color: GOLD, fontWeight: 600, textDecoration: 'underline' }}
+                />
               </StepItem>
               <StepItem num={2}>
                 Вкажи своє реальне ім'я та прізвище, номер телефону і email — актуальні контакти обов'язкові
