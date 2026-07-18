@@ -151,7 +151,7 @@ export default function BecomeAuthorPage() {
             <SectionTitle>Що ми шукаємо</SectionTitle>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               <CheckItem>Короткі історії від 5 до 10 хвилин читання</CheckItem>
-              <CheckItem>Серіали з продовженням — від 14 000 слів кожна серія</CheckItem>
+              <CheckItem>Серіали з продовженням — до 1400 слів кожна серія</CheckItem>
               <CheckItem>Будь-який жанр: драма, гумор, казка, детектив, романтика, трилер, пригоди, фантастика, містика, історична проза, сімейна історія, бойовик</CheckItem>
               <CheckItem>Українська мова</CheckItem>
               <CheckItem>Оригінальний контент — без плагіату і без використання ШІ</CheckItem>
