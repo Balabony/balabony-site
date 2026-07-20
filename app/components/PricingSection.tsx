@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 /**
  * BALABONY — PricingSection v25 (FINAL, продакшн-готовий)
@@ -294,7 +294,7 @@ function PaymentModal({ pkg, onClose }: PaymentModalProps) {
                 fontFamily: "'Montserrat', sans-serif",
               }}
             >
-              {loading ? 'Завантаження...' : 'Підтвердити через Дія'}
+              {loading ? 'Завантаження...' : 'Підтвердити через Дію'}
             </button>
           </>
         ) : (
@@ -743,7 +743,7 @@ export default function PricingSection() {
               borderRadius: 6,
               overflowWrap: 'normal',
               wordBreak: 'keep-all',
-            }}>Валідація через ДІЯ</span>
+            }}>Валідація через Дію</span>
           </span>
           <span style={{ whiteSpace: 'nowrap', textAlign: 'right', flexShrink: 0 }}>
             <span style={{ fontSize: 30, fontWeight: 800, color: '#0f1e3a' }}>1 ₴</span>
@@ -884,7 +884,7 @@ export default function PricingSection() {
       {socialDiiaOpen && (
         <DiiaValidationModal
           title="Соціальний тариф"
-          subtitle="Підтвердьте свій статус через «Дію» — доступ за соціальним тарифом на рік"
+          subtitle="Підтвердьте свій статус через Дію — доступ за соціальним тарифом на рік"
           options={[
             {
               docType: 'reference-internally-displaced-person',
@@ -1061,14 +1061,14 @@ function PensionCard() {
         className="bb-pricing-cta bb-pricing-cta-diia"
         onClick={() => setDiiaOpen(true)}
       >
-        ↻ Підтвердити статус через «Дію»
+        ↻ Підтвердити статус через Дію
       </button>
       <div className="bb-pricing-diia-soon">Підтвердіть пенсійний статус онлайн за 1 хвилину</div>
 
       {diiaOpen && (
         <DiiaValidationModal
           title="Пенсійний тариф"
-          subtitle="Підтвердьте пенсійний статус через «Дію», щоб отримати доступ за 600 ₴/рік"
+          subtitle="Підтвердьте пенсійний статус через Дію, щоб отримати доступ за 600 ₴/рік"
           options={[
             {
               docType: 'pension-card',

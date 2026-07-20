@@ -1,4 +1,4 @@
-import ProtectedEmail from '@/app/components/ProtectedEmail'
+﻿import ProtectedEmail from '@/app/components/ProtectedEmail'
 export const metadata = {
   title: 'Угода користувача — Balabony',
   description: 'Умови використання платформи Balabony.',
@@ -58,7 +58,7 @@ export default function TermsPage() {
         <li><strong>Поштучно</strong> — 9 ₴ за одну історію або серію.</li>
         <li><strong>Місячна підписка</strong> — 129 ₴/місяць (49 ₴ перший місяць).</li>
         <li><strong>Річна підписка</strong> — 890 ₴/рік (економія 658 ₴).</li>
-        <li><strong>Пільгова підписка</strong> — 1 ₴/рік для УБД та осіб з інвалідністю (з верифікацією через «Дію»).</li>
+        <li><strong>Пільгова підписка</strong> — 1 ₴/рік для УБД та осіб з інвалідністю (з верифікацією через Дію).</li>
       </ul>
       <p>
         Детальні умови оплати та повернення коштів — у <a href="/legal/offer">Публічній оферті</a>.

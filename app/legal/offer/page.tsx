@@ -1,4 +1,4 @@
-import ProtectedEmail from '@/app/components/ProtectedEmail'
+﻿import ProtectedEmail from '@/app/components/ProtectedEmail'
 export const metadata = {
   title: 'Публічна оферта — Balabony',
   description: 'Договір про надання послуг доступу до платформи Balabony.',
@@ -38,7 +38,7 @@ export default function OfferPage() {
         <li><strong>Поштучно</strong> — 9 ₴ за одну історію або одну серію (одноразова покупка, безстроковий доступ).</li>
         <li><strong>Місячна підписка</strong> — 129 ₴/місяць. Перший місяць — 49 ₴. Автопродовження.</li>
         <li><strong>Річна підписка</strong> — 890 ₴/рік. Економія 658 ₴ порівняно з місячною.</li>
-        <li><strong>Пільгова підписка</strong> — 1 ₴/рік для УБД та осіб з інвалідністю (верифікація через застосунок «Дія»).</li>
+        <li><strong>Пільгова підписка</strong> — 1 ₴/рік для УБД та осіб з інвалідністю (верифікація через застосунок Дія).</li>
       </ul>
       <p>
         Поточні ціни завжди відображаються на сторінці <a href="/#pricing">balabony.com/#pricing</a>. Виконавець залишає за собою право змінювати ціни; зміни не впливають на вже оплачені періоди.
@@ -50,7 +50,7 @@ export default function OfferPage() {
         <li><strong>LiqPay</strong> — банківські картки Visa / Mastercard, Apple Pay, Google Pay.</li>
         <li><strong>ПриватБанк</strong> — оплата частинами для річної підписки (3–6 місяців без комісій).</li>
         <li><strong>Ощадбанк</strong> — Ощад-Розстрочка для річної підписки.</li>
-        <li><strong>«Дія»</strong> — для пільгової підписки 1 ₴/рік.</li>
+        <li><strong>Дія</strong> — для пільгової підписки 1 ₴/рік.</li>
       </ul>
       <p>
         Доступ активується автоматично після підтвердження платежу провайдером. У разі затримки звертайтеся на <ProtectedEmail user="nazar" domain="balabony.com" />.

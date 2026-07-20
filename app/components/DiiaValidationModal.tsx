@@ -1,7 +1,7 @@
-'use client'
+﻿'use client'
 
 /**
- * DiiaValidationModal — підтвердження пільгового статусу через застосунок «Дія».
+ * DiiaValidationModal — підтвердження пільгового статусу через застосунок Дія.
  *
  * Сценарій «Валідація документа»: сервер отримує від Дії лише «дійсний/недійсний»,
  * ЖОДНИХ персональних даних. У БД (benefit_status) пишеться тільки category.
@@ -191,7 +191,7 @@ export default function DiiaValidationModal({
         {step === 'select' && (
           <>
             <h3 style={h3}>{title}</h3>
-            <p style={sub}>{subtitle ?? 'Оберіть свій статус для підтвердження через «Дію»'}</p>
+            <p style={sub}>{subtitle ?? 'Оберіть свій статус для підтвердження через Дію'}</p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {options.map((opt) => (
@@ -237,7 +237,7 @@ export default function DiiaValidationModal({
         {/* ── КРОК 2: введення штрихкоду ── */}
         {step === 'code' && selected && (
           <>
-            <h3 style={h3}>Підтвердження через «Дію»</h3>
+            <h3 style={h3}>Підтвердження через Дію</h3>
             <p style={sub}>{selected.label}</p>
 
             <div style={{
@@ -247,7 +247,7 @@ export default function DiiaValidationModal({
               textAlign: 'left',
               marginBottom: 12,
             }}>
-              Як отримати код у «Дії»:
+              Як отримати код у Дії:
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>

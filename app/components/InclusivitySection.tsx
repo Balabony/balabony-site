@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 const GOLD = '#EF9F27'
 const FONT = "'Montserrat', Arial, sans-serif"
@@ -76,7 +76,7 @@ export default function InclusivitySection() {
         <div className="inc-price-label">Соціальний тариф</div>
         <div className="inc-price">1&nbsp;₴ <span className="inc-price-unit">на рік</span></div>
         <p className="inc-lead">
-          для тих, кому це найважливіше.<br />Верифікація через сервіс «Дія».
+          для тих, кому це найважливіше.<br />Верифікація через сервіс Дія.
         </p>
 
         <div className="inc-grid">
