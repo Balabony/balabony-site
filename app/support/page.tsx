@@ -1288,7 +1288,9 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
         you can donate directly from your payroll — and many employers match employee donations,
         which doubles the amount that reaches us.</p>
         <p><strong>How to give:</strong> sign in to your employer&rsquo;s own giving portal and search
-        for <strong>{ORG_NAME_TRANS}</strong> (registration code {EDRPOU}, Lviv, Ukraine). Two projects
+        for <strong>{ORG_NAME_TRANS}</strong> (registration code {EDRPOU}, Lviv, Ukraine). If the
+        portal offers a search by identifier, our <strong>Benevity Cause ID is
+        804-5475998620043_6bc1</strong> — that gives an exact match. Two projects
         are currently open for support:</p>
         <ul>
           <li><a href="https://causes.benevity.org/projects/735963" target="_blank" rel="noreferrer">
@@ -1424,6 +1426,8 @@ function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails
         (Matching).</p>
         <p><strong>So geht es:</strong> Melden Sie sich im Spendenportal Ihres Arbeitgebers an und
         suchen Sie nach <strong>{ORG_NAME_TRANS}</strong> (Registriernummer {EDRPOU}, Lwiw, Ukraine).
+        Falls das Portal eine Suche nach Kennung anbietet: unsere <strong>Benevity Cause ID lautet
+        804-5475998620043_6bc1</strong> — damit finden Sie uns eindeutig.
         Zwei Projekte sind derzeit geöffnet:</p>
         <ul>
           <li><a href="https://causes.benevity.org/projects/735963" target="_blank" rel="noreferrer">
