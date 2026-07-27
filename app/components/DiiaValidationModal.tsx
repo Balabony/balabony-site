@@ -11,8 +11,10 @@
  *   УБД (veteran-certificate),
  *   пенсіонер (pension-card).
  *
- * Інвалідність (група з pension-card) читається ТІЛЬКИ шерингом і тут
- * позначається як `soon: true` — кнопка неактивна до запуску Етапу 2.
+ * Цивільна інвалідність Дією НЕ валідується — окремого типу документа
+ * немає (підтверджено підтримкою Дії 24.07.2026). Для неї гілка
+ * `manual: true`: людина заявляє статус, пільга діє ОДРАЗУ, а скан
+ * документа перевіряє редактор. Не підтвердив — пільгу знято.
  *
  * Один компонент, дві точки входу — набір статусів задається через `options`.
  */
@@ -26,10 +28,17 @@ export type DiiaDocType =
   | 'pension-card'
 
 export interface DiiaOption {
-  docType: DiiaDocType
+  /** Тип документа для валідації через Дію. Не вказується для manual-гілки. */
+  docType?: DiiaDocType
   label: string        // "Внутрішньо переміщена особа (ВПО)"
   hint?: string        // назва документа в Дії, напр. "Довідка ВПО"
-  soon?: boolean       // true → кнопка неактивна (інвалідність, чекає шеринг)
+  soon?: boolean       // true → кнопка неактивна
+  /** true → статус підтверджується не Дією, а скан-копією з ручною перевіркою */
+  manual?: boolean
+  /** Категорія пільги для manual-гілки, напр. 'disability' */
+  category?: string
+  /** Які документи підійдуть — показуємо на кроці завантаження */
+  docHint?: string
 }
 
 interface DiiaValidationModalProps {
@@ -40,7 +49,7 @@ interface DiiaValidationModalProps {
   onVerified?: (category: string) => void
 }
 
-type Step = 'select' | 'code' | 'success' | 'fail'
+type Step = 'select' | 'code' | 'upload' | 'success' | 'submitted' | 'fail'
 
 interface ValidateResponse {
   verified?: boolean
@@ -122,9 +131,12 @@ export default function DiiaValidationModal({
   // Якщо доступний лише один статус — крок вибору не потрібен,
   // одразу показуємо інструкцію (інакше самотня кнопка збиває з пантелику).
   const single = options.length === 1
-  const [step, setStep] = useState<Step>(single ? 'code' : 'select')
+  const firstStep: Step = single ? (options[0].manual ? 'upload' : 'code') : 'select'
+  const [step, setStep] = useState<Step>(firstStep)
   const [selected, setSelected] = useState<DiiaOption | null>(single ? options[0] : null)
   const [barcode, setBarcode] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [agreed, setAgreed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
@@ -135,16 +147,51 @@ export default function DiiaValidationModal({
     if (opt.soon) return
     setSelected(opt)
     setBarcode('')
+    setFile(null)
+    setAgreed(false)
     setMessage(null)
-    setStep('code')
+    setStep(opt.manual ? 'upload' : 'code')
   }, [])
+
+  /** Заявка зі скан-копією: пільга вмикається одразу, документ перевіряє редактор. */
+  const submitManual = useCallback(async () => {
+    if (!selected?.category || !file || !agreed) return
+    setLoading(true)
+    setMessage(null)
+    try {
+      const fd = new FormData()
+      fd.append('category', selected.category)
+      fd.append('document', file)
+
+      const res = await fetch('/api/benefit/manual', { method: 'POST', body: fd })
+
+      if (res.status === 401) {
+        setMessage('Спершу увійдіть у свій акаунт, щоб подати заявку.')
+        setLoading(false)
+        return
+      }
+
+      const data = (await res.json()) as { ok?: boolean; error?: string }
+
+      if (data.ok) {
+        setStep('submitted')
+        onVerified?.(selected.category)
+      } else {
+        setMessage(data.error ?? 'Не вдалося надіслати заявку. Спробуйте ще раз.')
+      }
+    } catch {
+      setMessage('Не вдалося зв’язатися з сервером. Спробуйте ще раз.')
+    } finally {
+      setLoading(false)
+    }
+  }, [selected, file, agreed, onVerified])
 
   const onBarcodeChange = useCallback((raw: string) => {
     setBarcode(raw.replace(/\D/g, '').slice(0, 13))
   }, [])
 
   const submit = useCallback(async () => {
-    if (!selected || barcode.length !== 13) return
+    if (!selected?.docType || barcode.length !== 13) return
     setLoading(true)
     setMessage(null)
     try {
@@ -196,7 +243,7 @@ export default function DiiaValidationModal({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {options.map((opt) => (
                 <button
-                  key={opt.docType}
+                  key={opt.docType ?? opt.category ?? opt.label}
                   type="button"
                   onClick={() => pickStatus(opt)}
                   disabled={opt.soon}
@@ -357,6 +404,159 @@ export default function DiiaValidationModal({
               style={linkBtn}
             >
               {single ? 'Скасувати' : '← Обрати інший статус'}
+            </button>
+          </>
+        )}
+
+        {/* ── КРОК 2-Б: скан документа (статуси, яких Дія не валідує) ── */}
+        {step === 'upload' && selected && (
+          <>
+            <h3 style={h3}>Підтвердження статусу</h3>
+            <p style={sub}>{selected.label}</p>
+
+            <div style={{
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: 10,
+              padding: '12px 14px',
+              marginBottom: 18,
+              fontSize: 15,
+              color: '#166534',
+              textAlign: 'left',
+              lineHeight: 1.55,
+            }}>
+              Пільговий тариф вмикається <b>одразу</b>. Документ ми перевіримо
+              протягом кількох днів — чекати не потрібно.
+            </div>
+
+            <div style={{
+              fontSize: 15,
+              color: '#1f2937',
+              textAlign: 'left',
+              marginBottom: 14,
+              lineHeight: 1.55,
+            }}>
+              Додайте фото або скан документа, що підтверджує статус:
+              {selected.docHint && (
+                <div style={{ marginTop: 6, color: '#475569' }}>{selected.docHint}</div>
+              )}
+            </div>
+
+            <label
+              htmlFor="benefit-doc-input"
+              style={{
+                display: 'block',
+                width: '100%',
+                padding: file ? '14px 16px' : '22px 16px',
+                borderRadius: 12,
+                border: `2px dashed ${file ? '#1d9e75' : '#cbd5e1'}`,
+                background: file ? '#f0fdf4' : '#f8fafc',
+                cursor: 'pointer',
+                textAlign: 'center',
+                marginBottom: 16,
+                boxSizing: 'border-box',
+              }}
+            >
+              {file ? (
+                <>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#166534', marginBottom: 2 }}>
+                    ✓ Файл додано
+                  </div>
+                  <div style={{ fontSize: 13, color: '#475569', wordBreak: 'break-all' }}>
+                    {file.name}
+                  </div>
+                  <div style={{ fontSize: 13, color: '#64748b', marginTop: 6, textDecoration: 'underline' }}>
+                    Обрати інший
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#0f1e3a', marginBottom: 4 }}>
+                    Натисніть, щоб додати фото
+                  </div>
+                  <div style={{ fontSize: 13, color: '#64748b' }}>
+                    Можна сфотографувати телефоном. До 15 МБ
+                  </div>
+                </>
+              )}
+            </label>
+            <input
+              id="benefit-doc-input"
+              type="file"
+              accept="image/*,application/pdf"
+              onChange={(e) => {
+                const f = e.target.files?.[0] ?? null
+                setFile(f)
+                setMessage(null)
+              }}
+              style={{ display: 'none' }}
+            />
+
+            <label style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 10,
+              textAlign: 'left',
+              marginBottom: 16,
+              cursor: 'pointer',
+            }}>
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                style={{ width: 20, height: 20, flexShrink: 0, marginTop: 2, cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: 13, color: '#475569', lineHeight: 1.5 }}>
+                Позначаючи статус, ви підтверджуєте достовірність даних. Якщо документ
+                не підтвердить статус, пільговий тариф буде скасовано, а доступ переведено
+                на звичайну передплату. Надсилання завідомо підробленого документа тягне
+                відповідальність згідно з чинним законодавством України.
+              </span>
+            </label>
+
+            {message && (
+              <div style={{ fontSize: 13, color: '#dc2626', marginBottom: 14, lineHeight: 1.4 }}>
+                {message}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={submitManual}
+              disabled={loading || !file || !agreed}
+              style={{
+                ...primaryBtn,
+                opacity: loading || !file || !agreed ? 0.5 : 1,
+                cursor: loading || !file || !agreed ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {loading ? 'Надсилаємо…' : 'Надіслати та отримати пільгу'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (single) { onClose() }
+                else { setStep('select'); setMessage(null); setFile(null); setAgreed(false) }
+              }}
+              style={linkBtn}
+            >
+              {single ? 'Скасувати' : '← Обрати інший статус'}
+            </button>
+          </>
+        )}
+
+        {/* ── КРОК 3-Б: заявку прийнято ── */}
+        {step === 'submitted' && (
+          <>
+            <div style={{ fontSize: 48, marginBottom: 8, color: '#1d9e75' }}>✓</div>
+            <h3 style={h3}>Пільгу активовано</h3>
+            <p style={sub}>
+              Дякуємо! Пільговий тариф уже діє. Документ ми перевіримо протягом
+              кількох днів і повідомимо вас — окремо звертатися не потрібно.
+            </p>
+            <button type="button" onClick={onClose} style={primaryBtn}>
+              Готово
             </button>
           </>
         )}
