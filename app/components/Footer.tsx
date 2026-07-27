@@ -65,6 +65,12 @@ const PARTNERS = [
     logo: '/partners/elevenlabs-white.svg?v=3',
     height: 26,
   },
+  {
+    name: 'Benevity',
+    href: 'https://causes.benevity.org/projects/735963',
+    logo: '/partners/benevity-white.svg?v=1',
+    height: 22,
+  },
   // { name: 'Назва грантодавця', href: 'https://...', logo: '/partners/xxx-white.svg', height: 26 },
 ]
 

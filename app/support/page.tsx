@@ -1282,6 +1282,30 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
           <li><strong>Platform engineering and infrastructure</strong> — programming, server hosting, domain maintenance, third-party SaaS services required for the technical operation of the planned inclusive audio module</li>
         </ul>
 
+        <h3>Workplace Giving &amp; Corporate Matching (Benevity)</h3>
+        <p>Our organisation is registered on <strong>Benevity</strong>, the workplace-giving platform
+        used by 900+ companies worldwide. If your employer runs a giving programme through Benevity,
+        you can donate directly from your payroll — and many employers match employee donations,
+        which doubles the amount that reaches us.</p>
+        <p><strong>How to give:</strong> sign in to your employer&rsquo;s own giving portal and search
+        for <strong>{ORG_NAME_TRANS}</strong> (registration code {EDRPOU}, Lviv, Ukraine). Two projects
+        are currently open for support:</p>
+        <ul>
+          <li><a href="https://causes.benevity.org/projects/735963" target="_blank" rel="noreferrer">
+          <strong>Accessible Ukrainian Stories for Readers Who Are Blind or Have Low Vision</strong></a>
+          &nbsp;— goal $5,000. Funds original stories in accessible formats and keeps the social rate
+          of 1 hryvnia per year available to readers with disabilities, displaced persons and veterans.</li>
+          <li><a href="https://causes.benevity.org/projects/735972" target="_blank" rel="noreferrer">
+          <strong>Reaching Ukrainian Readers with Disabilities: Outreach and Onboarding</strong></a>
+          &nbsp;— goal $4,000. Funds outreach through disability organisations, veterans&rsquo;
+          associations and displacement services, hands-on sessions with assistive technology,
+          and printed announcements in the four Ukrainian newspapers that carry our stories.</li>
+        </ul>
+        <p style={{fontSize: '0.92em', opacity: 0.85}}>Note: inside your employer&rsquo;s portal you can
+        search either for our organisation or for a project by its exact title as written above. The
+        links here open the Benevity Causes Portal and may ask you to sign in — the donation itself is
+        made through your employer&rsquo;s giving portal, not through this website.</p>
+
         <h3>Grant Partnerships</h3>
         <p><strong>We are open to formal grant partnerships.</strong> If your organisation supports inclusion, accessibility, audiobook production, or Ukrainian-language cultural projects, we would be honoured to develop tailored grant applications in alignment with your priorities.</p>
         <p>We are particularly interested in funding for <strong>producing English and German translations of selected Ukrainian-language works, with audio narration</strong>, in order to make them accessible to people with disabilities in English- and German-speaking countries, including the Ukrainian diaspora in the European Union, the United Kingdom, North America, and Australia.</p>
@@ -1391,6 +1415,35 @@ function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails
           <li><strong>Entwicklung von Barrierefreiheitsfunktionen</strong> — Kompatibilität mit Bildschirmlesern, Modi mit hohem Kontrast und für Menschen mit Legasthenie, geplante Audionarration von Textinhalten</li>
           <li><strong>Plattform-Entwicklung und Infrastruktur</strong> — Programmierung, Server-Hosting, Domain-Pflege, Drittanbieter-SaaS-Dienste, die für den technischen Betrieb des geplanten inklusiven Audio-Moduls erforderlich sind</li>
         </ul>
+
+        <h3>Spenden über den Arbeitgeber &amp; Matching (Benevity)</h3>
+        <p>Unsere Organisation ist bei <strong>Benevity</strong> registriert — der Plattform für
+        betriebliches Spenden, die von über 900 Unternehmen weltweit genutzt wird. Wenn Ihr
+        Arbeitgeber ein Spendenprogramm über Benevity betreibt, können Sie direkt über die
+        Gehaltsabrechnung spenden. Viele Arbeitgeber verdoppeln die Spenden ihrer Mitarbeitenden
+        (Matching).</p>
+        <p><strong>So geht es:</strong> Melden Sie sich im Spendenportal Ihres Arbeitgebers an und
+        suchen Sie nach <strong>{ORG_NAME_TRANS}</strong> (Registriernummer {EDRPOU}, Lwiw, Ukraine).
+        Zwei Projekte sind derzeit geöffnet:</p>
+        <ul>
+          <li><a href="https://causes.benevity.org/projects/735963" target="_blank" rel="noreferrer">
+          <strong>Accessible Ukrainian Stories for Readers Who Are Blind or Have Low Vision</strong></a>
+          &nbsp;— Ziel 5.000 $. Barrierefreie ukrainische Geschichten für blinde und sehbehinderte
+          Leserinnen und Leser: finanziert Originalgeschichten in barrierefreien Formaten und hält den
+          Sozialtarif von 1 Hrywnja pro Jahr für Menschen mit Behinderungen, Binnenvertriebene und
+          Veteranen offen.</li>
+          <li><a href="https://causes.benevity.org/projects/735972" target="_blank" rel="noreferrer">
+          <strong>Reaching Ukrainian Readers with Disabilities: Outreach and Onboarding</strong></a>
+          &nbsp;— Ziel 4.000 $. Leserinnen und Leser erreichen, die nichts von barrierefreien Angeboten
+          wissen: finanziert Öffentlichkeitsarbeit über Behindertenorganisationen, Veteranenverbände
+          und Dienste für Vertriebene, Einführungen in die Nutzung mit assistiver Technologie sowie
+          Printbeilagen in den vier ukrainischen Zeitungen, die unsere Geschichten abdrucken.</li>
+        </ul>
+        <p style={{fontSize: '0.92em', opacity: 0.85}}>Hinweis: Im Portal Ihres Arbeitgebers können Sie
+        entweder nach unserer Organisation oder nach einem Projekt anhand des oben angegebenen
+        englischen Titels suchen — die Projekttitel sind im System nur auf Englisch hinterlegt. Die
+        Links hier führen zum Benevity Causes Portal und verlangen unter Umständen eine Anmeldung; die
+        Spende selbst erfolgt über das Spendenportal Ihres Arbeitgebers, nicht über diese Website.</p>
 
         <h3>Förderpartnerschaften</h3>
         <p><strong>Wir sind offen für formelle Förderpartnerschaften.</strong> Wenn Ihre Organisation Inklusion, Barrierefreiheit, Hörbuchproduktion oder ukrainischsprachige Kulturprojekte unterstützt, würden wir uns freuen, maßgeschneiderte Förderanträge in Übereinstimmung mit Ihren Prioritäten zu entwickeln.</p>
