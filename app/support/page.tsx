@@ -1290,7 +1290,7 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
         <p><strong>How to give:</strong> sign in to your employer&rsquo;s own giving portal and search
         for <strong>{ORG_NAME_TRANS}</strong> (registration code {EDRPOU}, Lviv, Ukraine). If the
         portal offers a search by identifier, our <strong>Benevity Cause ID is
-        804-5475998620043_6bc1</strong> — that gives an exact match. Two projects
+        804-5475998620043_6bc1</strong> — that gives an exact match. Four projects
         are currently open for support:</p>
         <ul>
           <li><a href="https://causes.benevity.org/projects/735963" target="_blank" rel="noreferrer">
@@ -1302,6 +1302,18 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
           &nbsp;— goal $4,000. Funds outreach through disability organisations, veterans&rsquo;
           associations and displacement services, hands-on sessions with assistive technology,
           and printed announcements in the four Ukrainian newspapers that carry our stories.</li>
+          <li><a href="https://causes.benevity.org/projects/736621" target="_blank" rel="noreferrer">
+          <strong>Paid Accessibility Work for Blind Readers in Ukraine</strong></a>
+          &nbsp;— goal $3,000. Blind people are usually asked to test things for free. This project
+          pays them a professional fee instead: blind and low-vision readers in Ukraine test the
+          reading platform on their own phones, with their own screen readers, and tell us what
+          breaks.</li>
+          <li><a href="https://causes.benevity.org/projects/736622" target="_blank" rel="noreferrer">
+          <strong>Ukrainian Veterans Write Their Own Stories — Paid Work</strong></a>
+          &nbsp;— goal $4,000. A veteran&rsquo;s story usually gets told by someone else. This project
+          pays veterans to tell their own. Each author works with an editor, approves the final text
+          before publication, and decides how they are named — full name, first name only, or a
+          pseudonym.</li>
         </ul>
         <p style={{fontSize: '0.92em', opacity: 0.85}}>Note: inside your employer&rsquo;s portal you can
         search either for our organisation or for a project by its exact title as written above. The
@@ -1428,7 +1440,7 @@ function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails
         suchen Sie nach <strong>{ORG_NAME_TRANS}</strong> (Registriernummer {EDRPOU}, Lwiw, Ukraine).
         Falls das Portal eine Suche nach Kennung anbietet: unsere <strong>Benevity Cause ID lautet
         804-5475998620043_6bc1</strong> — damit finden Sie uns eindeutig.
-        Zwei Projekte sind derzeit geöffnet:</p>
+        Vier Projekte sind derzeit geöffnet:</p>
         <ul>
           <li><a href="https://causes.benevity.org/projects/735963" target="_blank" rel="noreferrer">
           <strong>Accessible Ukrainian Stories for Readers Who Are Blind or Have Low Vision</strong></a>
@@ -1442,6 +1454,19 @@ function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails
           wissen: finanziert Öffentlichkeitsarbeit über Behindertenorganisationen, Veteranenverbände
           und Dienste für Vertriebene, Einführungen in die Nutzung mit assistiver Technologie sowie
           Printbeilagen in den vier ukrainischen Zeitungen, die unsere Geschichten abdrucken.</li>
+          {/* Titel bleiben englisch — so stehen sie im Benevity-System. */}
+          <li><a href="https://causes.benevity.org/projects/736621" target="_blank" rel="noreferrer">
+          <strong>Paid Accessibility Work for Blind Readers in Ukraine</strong></a>
+          &nbsp;— Ziel 3.000 $. Blinde Menschen sollen Technik meist unentgeltlich testen. Dieses
+          Projekt bezahlt sie stattdessen professionell: blinde und sehbehinderte Leserinnen und Leser
+          in der Ukraine testen die Plattform auf ihren eigenen Telefonen, mit ihren eigenen
+          Bildschirmlesern, und sagen uns, was nicht funktioniert.</li>
+          <li><a href="https://causes.benevity.org/projects/736622" target="_blank" rel="noreferrer">
+          <strong>Ukrainian Veterans Write Their Own Stories — Paid Work</strong></a>
+          &nbsp;— Ziel 4.000 $. Über Veteranen schreiben meist andere. Dieses Projekt bezahlt sie
+          dafür, selbst zu schreiben: Jede Autorin und jeder Autor arbeitet mit einer Redaktion,
+          gibt den fertigen Text vor der Veröffentlichung frei und entscheidet selbst über die
+          Namensnennung — voller Name, nur Vorname oder Pseudonym.</li>
         </ul>
         <p style={{fontSize: '0.92em', opacity: 0.85}}>Hinweis: Im Portal Ihres Arbeitgebers können Sie
         entweder nach unserer Organisation oder nach einem Projekt anhand des oben angegebenen
