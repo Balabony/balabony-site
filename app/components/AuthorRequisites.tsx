@@ -6,25 +6,25 @@ const BRAND = {
   cream: '#f6f1e7',
   amber: '#ef9f27',
   amberDark: '#b45309',
-  ink: '#1c1917',
-  text: '#292524',
-  muted: '#78716c',
+  ink: '#16202e',
+  text: '#2c3a52',
+  muted: '#2c3a52',
   line: '#e7e0d2',
 }
 const SERIF = 'Georgia, "Times New Roman", serif'
 
 const UI = {
-  labelText: '#2b2118',
+  labelText: '#16202e',
   fieldBorder: '#ded4bf',
   chipBg: '#fffdf7',
   chipBorder: '#cfc3aa',
-  chipText: '#332d26',
+  chipText: '#16202e',
   chipOnBg: '#fbe3b4',
   chipOnBorder: '#d98324',
   chipOnText: '#7a4a06',
   solidBg: '#ef9f27',
   solidBorder: '#d98324',
-  solidText: '#3a2708',
+  solidText: '#16202e',
 }
 
 
@@ -132,9 +132,8 @@ export default function AuthorRequisites({ initial }: Props) {
         <span style={{
           flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,
           letterSpacing: '0.02em', whiteSpace: 'nowrap', lineHeight: 1.5,
-          ...(complete
-            ? { background: '#e4ede6', color: '#3f6152', border: '1px solid #c9dbd0' }
-            : { background: '#f0ebe0', color: '#6b5b45', border: '1px solid #ddd2bd' }),
+          fontWeight: 700,
+          ...(complete ? { background: '#dbe7dd', color: '#12351f', border: '1px solid #9dbaa6' } : { background: '#e4e8f0', color: '#16202e', border: '1px solid #a9b6cc' }),
         }}>
           {complete ? 'Заповнено' : 'Треба заповнити'}
         </span>
@@ -179,7 +178,7 @@ export default function AuthorRequisites({ initial }: Props) {
           <Field label="РНОКПП (ідентифікаційний код)" value={form.rnokpp ?? ''} onChange={v => set('rnokpp', v)} placeholder="10 цифр" />
           <Field label="Адреса" value={form.address ?? ''} onChange={v => set('address', v)} placeholder="Місто, вулиця, будинок, квартира" />
           <Field label="Поштовий індекс" value={form.postal_code ?? ''} onChange={v => set('postal_code', v)} placeholder="5 цифр" />
-          <Field label="Відділення Нової пошти" value={form.np_branch ?? ''} onChange={v => set('np_branch', v)} placeholder="Номер відділення — для паперових документів" />
+          <Field label="Відділення Нової пошти" value={form.np_branch ?? ''} onChange={v => set('np_branch', v)} placeholder="Напр.: 12" />
           <Field label="Телефон" value={form.phone ?? ''} onChange={v => set('phone', v)} placeholder="+380…" />
           <Field label="IBAN" value={form.payout_iban ?? ''} onChange={v => set('payout_iban', v)} placeholder="UA…" />
           <div style={{ marginBottom: '0.9rem' }}>
@@ -275,7 +274,7 @@ const bankOff: React.CSSProperties = {
 }
 
 const label: React.CSSProperties = {
-  fontSize: '0.95rem', color: '#1c1917', fontWeight: 700, marginBottom: 6,
+  fontSize: '0.95rem', color: '#16202e', fontWeight: 700, marginBottom: 6,
   letterSpacing: '0.01em', overflowWrap: 'anywhere',
 }
 

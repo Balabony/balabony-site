@@ -10,7 +10,7 @@ function getTheme(variant: Variant) {
   if (variant === 'cream') {
     return {
       card: '#f6f1e7', border: '#ef9f27', title: '#b45309', body: '#292524',
-      label: '#2b2118', inputBg: '#fffdf7', inputBorder: '#ded4bf', inputText: '#1c1917',
+      label: '#16202e', inputBg: '#fffdf7', inputBorder: '#ded4bf', inputText: '#1c1917',
       btnBg: '#ef9f27', btnText: '#1c1917',
     }
   }

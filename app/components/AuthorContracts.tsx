@@ -6,9 +6,9 @@ const BRAND = {
   cream: '#f6f1e7',
   amber: '#ef9f27',
   amberDark: '#b45309',
-  ink: '#1c1917',
-  text: '#292524',
-  muted: '#78716c',
+  ink: '#16202e',
+  text: '#2c3a52',
+  muted: '#2c3a52',
   line: '#e7e0d2',
 }
 const SERIF = 'Georgia, "Times New Roman", serif'
@@ -157,9 +157,8 @@ export default function AuthorContracts({ contracts }: { contracts: ContractRow[
             <span style={{
               flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,
               letterSpacing: '0.02em', whiteSpace: 'nowrap', lineHeight: 1.5,
-              ...(c.status === 'signed'
-                ? { background: '#e4ede6', color: '#3f6152', border: '1px solid #c9dbd0' }
-                : { background: '#f0ebe0', color: '#6b5b45', border: '1px solid #ddd2bd' }),
+              fontWeight: 700,
+              ...(c.status === 'signed' ? { background: '#dbe7dd', color: '#12351f', border: '1px solid #9dbaa6' } : { background: '#e4e8f0', color: '#16202e', border: '1px solid #a9b6cc' }),
             }}>
               {STATUS_LABEL[c.status] || c.status}
             </span>

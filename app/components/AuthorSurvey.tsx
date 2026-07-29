@@ -6,25 +6,25 @@ const BRAND = {
   cream: '#f6f1e7',
   amber: '#ef9f27',
   amberDark: '#b45309',
-  ink: '#1c1917',
-  text: '#292524',
-  muted: '#78716c',
+  ink: '#16202e',
+  text: '#2c3a52',
+  muted: '#2c3a52',
   line: '#e7e0d2',
 }
 const SERIF = 'Georgia, "Times New Roman", serif'
 
 const UI = {
-  labelText: '#2b2118',
+  labelText: '#16202e',
   fieldBorder: '#ded4bf',
   chipBg: '#fffdf7',
   chipBorder: '#cfc3aa',
-  chipText: '#332d26',
+  chipText: '#16202e',
   chipOnBg: '#fbe3b4',
   chipOnBorder: '#d98324',
   chipOnText: '#7a4a06',
   solidBg: '#ef9f27',
   solidBorder: '#d98324',
-  solidText: '#3a2708',
+  solidText: '#16202e',
 }
 
 
@@ -230,7 +230,7 @@ export default function AuthorSurvey({ initial }: { initial: Feedback }) {
 const block: React.CSSProperties = { marginBottom: '1.25rem' }
 
 const label: React.CSSProperties = {
-  fontSize: '0.95rem', color: '#1c1917', fontWeight: 700, marginBottom: 8,
+  fontSize: '0.95rem', color: '#16202e', fontWeight: 700, marginBottom: 8,
   letterSpacing: '0.01em', overflowWrap: 'anywhere',
 }
 
