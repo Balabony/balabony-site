@@ -33,6 +33,24 @@ const GROUPS: SitemapGroup[] = [
       { href: '/tysha',      label: 'Серіал «Тиша»',     note: 'Авторський, 18+' },
       { href: '/fairytales', label: 'Казки',             note: 'Українські казки' },
       { href: '/stories',    label: 'Історії читачів',   note: 'Реальні авторські історії' },
+      { href: '/demo',       label: 'Демо озвучення',    note: 'Тестовий голос' },
+    ],
+  },
+  {
+    title: 'Конкурси',
+    links: [
+      { href: '/konkursy',                     label: 'Літературні конкурси',      note: 'Три конкурси, старт 1 листопада 2026' },
+      { href: '/konkursy#desyat-tyzhniv',      label: '«Десять тижнів»',           note: 'Серіальний, 10 серій' },
+      { href: '/konkursy#odyn-den',            label: '«Один день, який усе змінив»', note: 'Коротка проза до 1500 слів' },
+      { href: '/konkursy#z-viterczem',         label: '«З вітерцем»',              note: 'Гумористична історія' },
+    ],
+  },
+  {
+    title: 'Ігри та мова',
+    links: [
+      { href: '/games',         label: 'Ігри для мозку',      note: 'Пам’ять, увага, мислення' },
+      { href: '/pravopys',      label: 'Правопис',            note: 'Довідник чинного правопису' },
+      { href: '/pravopys/dity', label: 'Правопис для дітей',  note: 'Прості правила з картинками' },
     ],
   },
   {
@@ -56,12 +74,15 @@ const GROUPS: SitemapGroup[] = [
   {
     title: 'Для авторів',
     links: [
-      { href: '/become-author', label: 'Стати автором',  note: '50%/40% умови, через Дію' },
+      { href: '/become-author', label: 'Стати автором',      note: '50%/40% умови, через Дію' },
+      { href: '/konkursy',      label: 'Конкурси для авторів', note: 'Призи, публікація в газетах' },
+      { href: '/legal/author-contract', label: 'Умови договору', note: 'Ставки й порядок виплат' },
     ],
   },
   {
     title: 'Про нас і зв\'язок',
     links: [
+      { href: '/pro-balabony', label: 'Про проєкт', note: 'UA · EN' },
       { href: '/about',    label: 'Про автора' },
       { href: '/contact',  label: 'Зворотний зв\'язок', note: 'Форма звернення' },
       { href: '/contacts', label: 'Контакти',           note: 'Контактні дані' },
@@ -92,7 +113,6 @@ const GROUPS: SitemapGroup[] = [
 export default function SitemapPage() {
   return (
     <main style={{
-      minHeight: '100vh',
       background: NAVY_DEEP,
       color: '#f5f0e8',
       fontFamily: FONT,

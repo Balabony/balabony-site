@@ -230,8 +230,22 @@ export default function Footer() {
           >
             Стати автором →
           </a>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', margin: 0 }}>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', margin: '0 0 10px' }}>
             Запропонувати свою історію
+          </p>
+          <a
+            href="/konkursy"
+            className="footer-link"
+            style={{
+              display: 'block',
+              color: 'var(--accent-gold)', fontSize: 14, fontWeight: 700,
+              textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
+            }}
+          >
+            Літературні конкурси <span className="footer-cta-arrow">→</span>
+          </a>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', margin: '2px 0 0' }}>
+            Призи, публікація в газетах
           </p>
         </div>
 
@@ -351,13 +365,18 @@ export default function Footer() {
           </h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {[
-              { label: 'Серії',    href: '/episodes'   },
-              { label: 'Історії',  href: '/stories'    },
-              { label: 'Казки',    href: '/fairytales' },
-              { label: 'Ігри',     href: '/games'      },
-              { label: 'Рідер',    href: '/#reader'    },
-              { label: 'Правопис', href: '/pravopys'   },
-              { label: 'Тарифи',   href: '/#pricing'   },
+              { label: 'Серіал «Балабони»', href: '/episodes'   },
+              { label: 'Серіал «Тиша» 18+', href: '/tysha'      },
+              { label: 'Історії',           href: '/stories'    },
+              { label: 'Казки',             href: '/fairytales' },
+              { label: 'Конкурси',          href: '/konkursy'   },
+              { label: 'Ігри',              href: '/games'      },
+              { label: 'Рідер',             href: '/#reader'    },
+              { label: 'Правопис',          href: '/pravopys'   },
+              { label: 'Тарифи',            href: '/#pricing'   },
+              { label: 'Безкоштовно',       href: '/free'       },
+              { label: 'Подарунок',         href: '/gift'       },
+              { label: 'Опитування',        href: '/survey'     },
             ].map(item => (
               <li key={item.label} style={{ marginBottom: 4 }}>
                 <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 14 }}>
