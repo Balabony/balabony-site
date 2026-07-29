@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import NarrationOrderForm from '@/app/components/NarrationOrderForm'
 import AuthorContracts, { type ContractRow } from '@/app/components/AuthorContracts'
 import AuthorRequisites, { type Requisites } from '@/app/components/AuthorRequisites'
+import AuthorSurvey, { type Feedback } from '@/app/components/AuthorSurvey'
 import { dbQuery } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
@@ -149,6 +150,23 @@ export default async function AuthorDashboardPage() {
     requisites_updated_at: profile.requisites_updated_at ?? null,
   }
 
+  // Опитування автора
+  let feedback: Feedback = {
+    ease_rating: null, inconvenience: null, topics: null, topics_other: null,
+    helps_write: null, audio_interest: null, wishes: null, updated_at: null,
+  }
+  try {
+    const fr = await dbQuery(
+      `select ease_rating, inconvenience, topics, topics_other,
+              helps_write, audio_interest, wishes, updated_at
+         from author_feedback where author_id = $1 limit 1`,
+      [user.id],
+    )
+    if (fr.rows[0]) feedback = fr.rows[0] as Feedback
+  } catch {
+    // таблиці ще немає — показуємо порожню форму
+  }
+
   // Договори автора + кількість творів у переліку (Додаток № 1)
   let contracts: ContractRow[] = []
   try {
@@ -266,6 +284,8 @@ export default async function AuthorDashboardPage() {
         <AuthorRequisites initial={requisites} />
 
         <AuthorContracts contracts={contracts} />
+
+        <AuthorSurvey initial={feedback} />
 
         <div style={{ marginTop: '1.5rem' }}>
           <NarrationOrderForm variant="cream" />
