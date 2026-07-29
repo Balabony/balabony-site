@@ -131,7 +131,7 @@ export default function AuthorContracts({ contracts }: { contracts: ContractRow[
       </h2>
       <p style={{ color: BRAND.muted, fontSize: '0.85rem', margin: '0 0 1.25rem' }}>
         Умови однакові для всіх авторів і опубліковані на{' '}
-        <a href="/legal/author-terms" style={{ color: BRAND.amberDark }}>сторінці умов</a>.
+        <a href="/legal/author-contract" style={{ color: BRAND.amberDark }}>сторінці умов</a>.
       </p>
 
       {rows.length === 0 && (
@@ -146,7 +146,7 @@ export default function AuthorContracts({ contracts }: { contracts: ContractRow[
             <div style={{ minWidth: 0 }}>
               <div style={{ fontWeight: 700, color: BRAND.ink }}>Авторський договір № {c.number}</div>
               <div style={{ color: BRAND.muted, fontSize: '0.88rem', marginTop: 2 }}>
-                {c.works_count} творів у переліку · ставка {c.rate}%{c.is_fop ? '' : ' на руки'}
+                {c.works_count} творів у переліку · ставка {Math.round(Number(c.rate))}%{c.is_fop ? '' : ' на руки'}
               </div>
               {c.signed_at && (
                 <div style={{ color: BRAND.muted, fontSize: '0.8rem', marginTop: 4 }}>
