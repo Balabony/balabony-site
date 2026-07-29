@@ -82,6 +82,59 @@ export default function AuthorContractPage() {
           </p>
         </section>
 
+        <section className="mt-10">
+          <h2 className="mb-4 text-xl font-semibold text-stone-900">Ставки винагороди</h2>
+          <p className="mb-5">
+            Ставки єдині для всіх авторів платформи й не є предметом окремих домовленостей.
+            Ми публікуємо їх відкрито, щоб кожен автор бачив однакові умови.
+          </p>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-xl border border-[#e3dac6] bg-[#fffdf7] px-5 py-4">
+              <p className="text-2xl font-bold text-[#7a4a06]">50%</p>
+              <p className="mt-1 font-semibold text-stone-900">Автор — ФОП</p>
+              <p className="mt-2 text-sm leading-relaxed text-stone-600">
+                Половина доходу з ваших історій. Податки ви сплачуєте самостійно.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-[#e3dac6] bg-[#fffdf7] px-5 py-4">
+              <p className="text-2xl font-bold text-[#7a4a06]">40%</p>
+              <p className="mt-1 font-semibold text-stone-900">Автор — фізична особа</p>
+              <p className="mt-2 text-sm leading-relaxed text-stone-600">
+                Сорок відсотків на руки. Податок на доходи фізичних осіб і військовий
+                збір платформа сплачує понад цю суму власним коштом.
+              </p>
+            </div>
+          </div>
+
+          <h3 className="mb-2 mt-8 font-semibold text-stone-900">Як рахується сума</h3>
+          <div className="rounded-xl border border-[#e3dac6] bg-[#fffdf7] px-5 py-4 text-sm leading-relaxed text-stone-700">
+            Винагорода за період = (прочитання і прослуховування ваших творів ÷ усі
+            прочитання і прослуховування на платформі) × дохід від передплати × ваша ставка.
+          </div>
+          <p className="mt-3 text-sm leading-relaxed text-stone-600">
+            Дохід від передплати рахується після комісій платіжних систем і магазинів
+            застосунків, тому сума в гривнях щомісяця різна. Внутрішні витрати платформи —
+            утримання сайту, оплата праці, створення аудіо — з бази розрахунку не
+            вираховуються.
+          </p>
+
+          <h3 className="mb-2 mt-8 font-semibold text-stone-900">Що зараховується</h3>
+          <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed text-stone-700">
+            <li>Прочитання — перегляд щонайменше 70% тексту, не частіше разу на добу від одного читача.</li>
+            <li>Прослуховування — відтворення щонайменше 70% тривалості аудіо, за тим самим правилом.</li>
+            <li>Про зміну цих правил ми повідомляємо авторів щонайменше за 30 днів.</li>
+          </ul>
+
+          <h3 className="mb-2 mt-8 font-semibold text-stone-900">Коли виплати</h3>
+          <p className="text-sm leading-relaxed text-stone-700">
+            Раз на місяць, за підсумком календарного місяця, протягом пʼяти днів, на рахунок,
+            зазначений у кабінеті автора. Баланс нарахувань видно в кабінеті постійно.
+            На початковому етапі роботи платформи суми можуть бути незначними.
+          </p>
+        </section>
+
         <section className="mt-8">
           <h2 className="mb-3 text-xl font-semibold text-stone-900">Запити щодо прав</h2>
           <p>

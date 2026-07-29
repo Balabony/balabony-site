@@ -119,9 +119,11 @@ export default function ContractWorksList({ contractId, contractNumber, works }:
               )}
             </div>
             <span style={{
-              flex: 'none', fontSize: '0.78rem', padding: '4px 10px', borderRadius: 999,
-              background: w.confirmed_at ? '#dcfce7' : '#fef3c7',
-              color: w.confirmed_at ? '#166534' : '#92400e',
+              flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,
+              letterSpacing: '0.02em', whiteSpace: 'nowrap', lineHeight: 1.5,
+              ...(w.confirmed_at
+                ? { background: '#e8f1e2', color: '#3f6212', border: '1px solid #d3e3c6' }
+                : { background: '#fbeccd', color: '#8a5a06', border: '1px solid #eed6a6' }),
             }}>
               {w.confirmed_at ? 'Підтверджено' : 'Очікує'}
             </span>

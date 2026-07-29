@@ -155,9 +155,11 @@ export default function AuthorContracts({ contracts }: { contracts: ContractRow[
               )}
             </div>
             <span style={{
-              flex: 'none', fontSize: '0.78rem', padding: '4px 10px', borderRadius: 999,
-              background: c.status === 'signed' ? '#dcfce7' : '#fef3c7',
-              color: c.status === 'signed' ? '#166534' : '#92400e',
+              flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,
+              letterSpacing: '0.02em', whiteSpace: 'nowrap', lineHeight: 1.5,
+              ...(c.status === 'signed'
+                ? { background: '#e8f1e2', color: '#3f6212', border: '1px solid #d3e3c6' }
+                : { background: '#fbeccd', color: '#8a5a06', border: '1px solid #eed6a6' }),
             }}>
               {STATUS_LABEL[c.status] || c.status}
             </span>

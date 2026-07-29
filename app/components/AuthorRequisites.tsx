@@ -13,6 +13,21 @@ const BRAND = {
 }
 const SERIF = 'Georgia, "Times New Roman", serif'
 
+const UI = {
+  labelText: '#2b2118',
+  fieldBorder: '#ded4bf',
+  chipBg: '#fffdf7',
+  chipBorder: '#cfc3aa',
+  chipText: '#4a423a',
+  chipOnBg: '#fbe3b4',
+  chipOnBorder: '#d98324',
+  chipOnText: '#7a4a06',
+  solidBg: '#ef9f27',
+  solidBorder: '#d98324',
+  solidText: '#3a2708',
+}
+
+
 export type Requisites = {
   full_name: string | null
   rnokpp: string | null
@@ -111,9 +126,11 @@ export default function AuthorRequisites({ initial }: Props) {
           </p>
         </div>
         <span style={{
-          flex: 'none', fontSize: '0.78rem', padding: '4px 10px', borderRadius: 999,
-          background: complete ? '#dcfce7' : '#fef3c7',
-          color: complete ? '#166534' : '#92400e',
+          flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,
+          letterSpacing: '0.02em', whiteSpace: 'nowrap', lineHeight: 1.5,
+          ...(complete
+            ? { background: '#e8f1e2', color: '#3f6212', border: '1px solid #d3e3c6' }
+            : { background: '#fbeccd', color: '#8a5a06', border: '1px solid #eed6a6' }),
         }}>
           {complete ? 'Заповнено' : 'Треба заповнити'}
         </span>
@@ -148,14 +165,43 @@ export default function AuthorRequisites({ initial }: Props) {
                 ? 'Ви отримуєте 50% і сплачуєте податки самостійно.'
                 : 'Ви отримуєте 40% на руки. Податок на доходи фізичних осіб і військовий збір платформа сплачує понад цю суму власним коштом.'}
             </p>
+            <p style={{ color: BRAND.muted, fontSize: '0.83rem', lineHeight: 1.6, marginTop: 4 }}>
+              Відсоток рахується від доходу після комісій платіжних систем, тому сума
+              в гривнях щомісяця різна.
+            </p>
           </div>
 
-          <Field label="Прізвище, імʼя, по батькові" value={form.full_name ?? ''} onChange={v => set('full_name', v)} placeholder="Хомин Богдан Іванович" />
+          <Field label="Прізвище, імʼя, по батькові" value={form.full_name ?? ''} onChange={v => set('full_name', v)} placeholder="Прізвище Імʼя По батькові" />
           <Field label="РНОКПП (ідентифікаційний код)" value={form.rnokpp ?? ''} onChange={v => set('rnokpp', v)} placeholder="10 цифр" />
-          <Field label="Адреса" value={form.address ?? ''} onChange={v => set('address', v)} placeholder="місто, вулиця, будинок, квартира" />
+          <Field label="Адреса" value={form.address ?? ''} onChange={v => set('address', v)} placeholder="Місто, вулиця, будинок, квартира" />
           <Field label="Телефон" value={form.phone ?? ''} onChange={v => set('phone', v)} placeholder="+380…" />
           <Field label="IBAN" value={form.payout_iban ?? ''} onChange={v => set('payout_iban', v)} placeholder="UA…" />
-          <Field label="Назва банку" value={form.bank_name ?? ''} onChange={v => set('bank_name', v)} placeholder="АТ КБ «ПриватБанк»" />
+          <div style={{ marginBottom: '0.9rem' }}>
+            <div style={label}>Назва банку</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+              {BANKS.map(b => (
+                <button
+                  key={b}
+                  type="button"
+                  onClick={() => set('bank_name', b)}
+                  style={(form.bank_name ?? '') === b ? bankOn : bankOff}
+                >
+                  {b}
+                </button>
+              ))}
+            </div>
+            <input
+              type="text"
+              value={form.bank_name ?? ''}
+              placeholder="Або впишіть свій банк"
+              onChange={e => set('bank_name', e.target.value)}
+              style={{
+                width: '100%', padding: '0.6rem 0.75rem', border: `1px solid ${UI.fieldBorder}`,
+                borderRadius: 10, background: '#fffdf7', color: BRAND.text, fontSize: '0.95rem',
+                fontFamily: 'inherit', boxSizing: 'border-box',
+              }}
+            />
+          </div>
           <Field label="Одержувач платежу (якщо відрізняється)" value={form.payout_recipient ?? ''} onChange={v => set('payout_recipient', v)} placeholder="необовʼязково" />
           <Field label="Псевдонім для публікації" value={form.pen_name ?? ''} onChange={v => set('pen_name', v)} placeholder="необовʼязково — тоді публікуємо під справжнім імʼям" />
 
@@ -199,8 +245,8 @@ function Field(
         placeholder={placeholder}
         onChange={e => onChange(e.target.value)}
         style={{
-          width: '100%', padding: '0.6rem 0.75rem', border: `1px solid ${BRAND.line}`,
-          borderRadius: 9, background: '#fff', color: BRAND.text, fontSize: '0.95rem',
+          width: '100%', padding: '0.6rem 0.75rem', border: `1px solid ${UI.fieldBorder}`,
+          borderRadius: 10, background: '#fffdf7', color: BRAND.text, fontSize: '0.95rem',
           fontFamily: 'inherit', boxSizing: 'border-box',
         }}
       />
@@ -208,30 +254,45 @@ function Field(
   )
 }
 
+const BANKS = ['ПриватБанк', 'Ощадбанк', 'monobank'] as const
+
+const bankOn: React.CSSProperties = {
+  padding: '0.5rem 0.9rem', borderRadius: 999, border: `1.5px solid ${UI.chipOnBorder}`,
+  background: UI.chipOnBg, color: UI.chipOnText, fontWeight: 700, fontSize: '0.88rem',
+  cursor: 'pointer', fontFamily: 'inherit',
+}
+
+const bankOff: React.CSSProperties = {
+  padding: '0.5rem 0.9rem', borderRadius: 999, border: `1px solid ${UI.chipBorder}`,
+  background: UI.chipBg, color: UI.chipText, fontSize: '0.88rem',
+  cursor: 'pointer', fontFamily: 'inherit',
+}
+
 const label: React.CSSProperties = {
-  fontSize: '0.85rem', color: BRAND.muted, marginBottom: 6,
+  fontSize: '0.88rem', color: UI.labelText, fontWeight: 700, marginBottom: 6,
+  letterSpacing: '0.01em',
 }
 
 const primaryBtn: React.CSSProperties = {
-  padding: '0.6rem 1.1rem', borderRadius: 9, border: 'none',
-  background: BRAND.amber, color: BRAND.ink, fontWeight: 700,
-  fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'inherit',
+  padding: '0.65rem 1.3rem', borderRadius: 10, border: `1.5px solid ${UI.solidBorder}`,
+  background: UI.solidBg, color: UI.solidText, fontWeight: 700,
+  fontSize: '0.92rem', cursor: 'pointer', fontFamily: 'inherit',
 }
 
 const secondaryBtn: React.CSSProperties = {
-  padding: '0.6rem 1.1rem', borderRadius: 9, border: `1px solid ${BRAND.line}`,
-  background: '#fff', color: BRAND.text, fontSize: '0.9rem',
+  padding: '0.6rem 1.1rem', borderRadius: 10, border: `1px solid ${UI.chipBorder}`,
+  background: UI.chipBg, color: UI.chipText, fontSize: '0.9rem',
   cursor: 'pointer', fontFamily: 'inherit', marginTop: 10,
 }
 
 const choiceOn: React.CSSProperties = {
-  padding: '0.6rem 1rem', borderRadius: 9, border: `2px solid ${BRAND.amber}`,
-  background: '#fff', color: BRAND.ink, fontWeight: 700, fontSize: '0.9rem',
-  cursor: 'pointer', fontFamily: 'inherit',
+  padding: '0.7rem 1rem', borderRadius: 10, border: `1.5px solid ${UI.solidBorder}`,
+  background: UI.solidBg, color: UI.solidText, fontWeight: 700, fontSize: '0.95rem',
+  cursor: 'pointer', fontFamily: 'inherit', flex: '1 1 180px',
 }
 
 const choiceOff: React.CSSProperties = {
-  padding: '0.6rem 1rem', borderRadius: 9, border: `1px solid ${BRAND.line}`,
-  background: '#fff', color: BRAND.muted, fontSize: '0.9rem',
-  cursor: 'pointer', fontFamily: 'inherit',
+  padding: '0.7rem 1rem', borderRadius: 10, border: `1px solid ${UI.chipBorder}`,
+  background: UI.chipBg, color: UI.chipText, fontSize: '0.95rem',
+  cursor: 'pointer', fontFamily: 'inherit', flex: '1 1 180px',
 }
