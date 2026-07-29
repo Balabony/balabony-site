@@ -51,7 +51,7 @@ function StepItem({ num, children }: { num: number; children: React.ReactNode })
 
 export default function BecomeAuthorPage() {
   return (
-    <main style={{ minHeight: '100vh', background: '#0a1628', padding: '48px 20px 100px' }}>
+    <main style={{ background: '#0a1628', padding: '48px 20px 100px' }}>
       <div style={{ maxWidth: 680, margin: '0 auto' }}>
 
         {/* Хлібні крихти замість окремого логотипу */}
@@ -69,7 +69,7 @@ export default function BecomeAuthorPage() {
             Пишеш? Ми чекаємо на тебе.
           </p>
           <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.75, maxWidth: 580 }}>
-            Balabony — українська платформа коротких історій для всієї родини. Ми шукаємо авторів, які хочуть ділитись своїми історіями і заробляти на цьому. Писати може будь-хто — головне оригінальність, цікавий сюжет і жива мова без штучного інтелекту.
+            Balabony — українська платформа коротких історій і серіалів для всієї родини. Ми шукаємо авторів, які хочуть ділитись своїми історіями і заробляти на цьому. Писати може будь-хто — головне оригінальність, цікавий сюжет і жива мова без штучного інтелекту.
           </p>
         </div>
 
@@ -80,13 +80,16 @@ export default function BecomeAuthorPage() {
             <SectionTitle>Як це працює</SectionTitle>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               <StepItem num={1}>
-                Ти надсилаєш свою історію — ми перевіряємо її і публікуємо на платформі.
+                Ти надсилаєш історію через кабінет. Ми розглядаємо її і, якщо публікуємо, вона починає працювати.
               </StepItem>
               <StepItem num={2}>
-                Кожного разу, коли читач відкриває твою історію — ти отримуєш гонорар.
+                Винагорода нараховується за прочитання — коли читач прочитав щонайменше 70% тексту. Один читач, один твір, не частіше разу на добу.
               </StepItem>
               <StepItem num={3}>
-                Жодних авансів і ризиків — тільки реальні виплати за реальні прочитання.
+                Дохід від передплати щомісяця розподіляється між усіма авторами пропорційно до прочитань їхніх творів. Твоя частка — 50% або 40%, залежно від статусу.
+              </StepItem>
+              <StepItem num={4}>
+                Жодних авансів: платимо за те, що людей справді читали, а не за факт публікації.
               </StepItem>
             </ul>
           </SectionCard>
@@ -107,8 +110,8 @@ export default function BecomeAuthorPage() {
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase' as const, color: GOLD, fontFamily: FONT, marginBottom: 8 }}>Для інших авторів</div>
                 <div style={{ fontSize: 32, fontWeight: 700, color: GOLD, fontFamily: SERIF, marginBottom: 6 }}>40%</div>
                 <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>
-                  доходу від твоїх історій — твої.<br />
-                  Balabony бере на себе всі податки за тебе.
+                  доходу від твоїх історій — твої, на руки.<br />
+                  ПДФО і військовий збір платформа сплачує понад цю суму.
                 </div>
               </div>
             </div>
@@ -116,15 +119,35 @@ export default function BecomeAuthorPage() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.8" strokeLinecap="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
-              Угода підписується через Дію — швидко і юридично чисто.
+              Угоду підписуємо електронно — через Дію або кваліфікованим електронним підписом (файловий ключ чи токен). Обидва способи запускаємо; поки що підписуємо паперово.
             </div>
+          </SectionCard>
+
+          {/* Кабінет автора */}
+          <SectionCard>
+            <SectionTitle>Кабінет автора</SectionTitle>
+            <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.85)', lineHeight: 1.65, marginTop: 0, marginBottom: 16 }}>
+              Кабінет відкривається одразу після реєстрації — у ньому ти заповнюєш реквізити й
+              підписуєш угоду. Після підписання там з&apos;являється усе про твої історії:
+            </p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              <CheckItem>Історії та їхній статус: на розгляді, опубліковано, не опубліковано</CheckItem>
+              <CheckItem>Прочитання по кожній історії окремо — скільки людей дочитало текст до кінця, а не просто відкрило</CheckItem>
+              <CheckItem>Баланс: нараховано, виплачено, до виплати — цифри оновлюються постійно, не раз на місяць</CheckItem>
+              <CheckItem>Перелік творів, охоплених угодою — це Додаток № 1, його можна будь-коли завантажити у PDF</CheckItem>
+              <CheckItem>Реквізити й ставка: статус ФОП або фізособи, IBAN, псевдонім; ставка перераховується автоматично, коли змінюєш статус</CheckItem>
+              <CheckItem>Підписані угоди з датою підпису</CheckItem>
+            </ul>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.65, marginTop: 16, marginBottom: 0 }}>
+              Там же — коротке опитування: що незручно, чого не хватає, що додати. Ми його читаємо.
+            </p>
           </SectionCard>
 
           {/* Що ми шукаємо */}
           <SectionCard>
             <SectionTitle>Що ми шукаємо</SectionTitle>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              <CheckItem>Короткі історії від 5 до 10 хвилин читання</CheckItem>
+              <CheckItem>Короткі історії до 10 хвилин читання</CheckItem>
               <CheckItem>Серіали з продовженням — до 1400 слів кожна серія</CheckItem>
               <CheckItem>Будь-який жанр: драма, гумор, казка, детектив, романтика, трилер, пригоди, фантастика, містика, історична проза, сімейна історія, бойовик</CheckItem>
               <CheckItem>Українська мова</CheckItem>

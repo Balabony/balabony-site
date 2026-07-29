@@ -3,6 +3,7 @@
 // Серверний компонент, темна тема сайту, без клієнтського стану.
 
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 
 const GOLD      = '#ef9f27'
@@ -107,13 +108,13 @@ const CONTESTS: Contest[] = [
         items: [
           'Одна історія до 1500 слів, дія вміщається переважно в один день.',
           'Не мемуари й не роздуми — саме історія: герой, подія, зміна.',
-          'Тон вільний: може бути світло, може боляче. Головне, щоб читач упізнав себе.',
+          'Тон вільний — від світлого до важкого. Головне, щоб читач упізнав себе.',
         ],
       },
       {
         title: 'Що шукаємо',
         items: [
-          'живого героя, а не функцію',
+          'живого героя — у якого є щось своє, крім ролі в сюжеті',
           'конкретність: місце, час, деталь, яку видно',
           'зміну, що справді сталася, а не була пояснена автором',
           'фінал, якого не було видно з середини тексту',
@@ -244,9 +245,9 @@ export default function KonkursyPage() {
           </ul>
           <p style={{ fontSize: 15, lineHeight: 1.7, margin: '12px 0 0' }}>
             Ще не автор?{' '}
-            <a href="/become-author" style={{ color: GOLD, fontWeight: 700, textDecoration: 'none' }}>
+            <Link href="/become-author" style={{ color: GOLD, fontWeight: 700, textDecoration: 'none' }}>
               Стати автором →
-            </a>
+            </Link>
           </p>
         </Card>
 
@@ -423,9 +424,9 @@ export default function KonkursyPage() {
           </p>
           <p style={{ fontSize: 14, lineHeight: 1.7, margin: '10px 0 0' }}>
             Умови авторського договору —{' '}
-            <a href="/legal/author-contract" style={{ color: GOLD, fontWeight: 700, textDecoration: 'none' }}>
+            <Link href="/legal/author-contract" style={{ color: GOLD, fontWeight: 700, textDecoration: 'none' }}>
               на окремій сторінці
-            </a>
+            </Link>
             .
           </p>
         </Card>
@@ -445,7 +446,7 @@ export default function KonkursyPage() {
             Прийом робіт відкриється 1 листопада 2026 року. Договір і реквізити можна оформити вже зараз —
             щоб у листопаді одразу подавати твори.
           </p>
-          <a
+          <Link
             href="/become-author"
             style={{
               display: 'inline-block',
@@ -459,7 +460,7 @@ export default function KonkursyPage() {
             }}
           >
             Стати автором →
-          </a>
+          </Link>
         </div>
 
       </div>

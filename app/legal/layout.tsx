@@ -48,7 +48,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
         </div>
 
         <p className="legal-footer-note">
-          Усі документи редаговано: травень 2026. © 2026 Balabony™. Питання — <ProtectedEmail user="nazar" domain="balabony.com" />
+          © 2026 Balabony™. Питання — <ProtectedEmail user="nazar" domain="balabony.com" />
         </p>
       </div>
 
