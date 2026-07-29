@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import NarrationOrderForm from '@/app/components/NarrationOrderForm'
+import AuthorContracts, { type ContractRow } from '@/app/components/AuthorContracts'
+import { dbQuery } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 
@@ -125,6 +127,23 @@ export default async function AuthorDashboardPage() {
 
   const balance: Balance = bal || { total_accrued: 0, total_paid: 0, balance: 0 }
 
+  // Договори автора + кількість творів у переліку (Додаток № 1)
+  let contracts: ContractRow[] = []
+  try {
+    const cr = await dbQuery(
+      `select c.id, c.number, c.status, c.rate, c.is_fop,
+              c.doc_url, c.signed_pdf_url, c.signature_url, c.signed_at,
+              (select count(*) from contract_works w where w.contract_id = c.id)::int as works_count
+         from author_contracts c
+        where c.author_id = $1
+        order by c.created_at desc`,
+      [user.id],
+    )
+    contracts = cr.rows as ContractRow[]
+  } catch {
+    contracts = []
+  }
+
   const totalViews = stories.reduce((s, x) => s + (x.views_count || 0), 0)
   const totalReads = stories.reduce((s, x) => s + (x.reads_total || 0), 0)
   const published = stories.filter(s => s.status === 'published').length
@@ -221,6 +240,8 @@ export default async function AuthorDashboardPage() {
             </div>
           )}
         </div>
+
+        <AuthorContracts contracts={contracts} />
 
         <div style={{ marginTop: '1.5rem' }}>
           <NarrationOrderForm variant="cream" />
