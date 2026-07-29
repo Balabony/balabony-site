@@ -63,7 +63,7 @@ const BRAND = {
   amberDark: '#b45309',   // посилання
   ink: '#1c1917',         // заголовки
   text: '#292524',        // основний текст
-  muted: '#78716c',       // приглушений текст
+  muted: '#57534e',       // приглушений текст
   line: '#e7e0d2',        // розділювачі на кремовому
 }
 const SERIF = 'Georgia, "Times New Roman", serif'
@@ -197,7 +197,7 @@ export default async function AuthorDashboardPage() {
     boxShadow: '0 10px 30px rgba(0,0,0,0.25)', flex: '1 1 160px',
   }
   const statNum: React.CSSProperties = { fontSize: '2rem', fontWeight: 700, color: BRAND.ink, lineHeight: 1 }
-  const statLabel: React.CSSProperties = { fontSize: '0.85rem', color: BRAND.muted, marginTop: 6 }
+  const statLabel: React.CSSProperties = { fontSize: '0.88rem', color: '#3f3a34', fontWeight: 500, marginTop: 6 }
 
   return (
     <main style={{ minHeight: '100vh', padding: '2rem 1rem', background: BRAND.navy }}>

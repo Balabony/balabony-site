@@ -10,7 +10,7 @@ function getTheme(variant: Variant) {
   if (variant === 'cream') {
     return {
       card: '#f6f1e7', border: '#ef9f27', title: '#b45309', body: '#292524',
-      label: '#78716c', inputBg: '#ffffff', inputBorder: '#e7e0d2', inputText: '#1c1917',
+      label: '#2b2118', inputBg: '#fffdf7', inputBorder: '#ded4bf', inputText: '#1c1917',
       btnBg: '#ef9f27', btnText: '#1c1917',
     }
   }
@@ -30,7 +30,7 @@ export default function NarrationOrderForm({ variant = 'dark' }: { variant?: Var
     fontFamily: FONT, fontSize: 15, marginBottom: 14, boxSizing: 'border-box',
   }
   const labelStyle: React.CSSProperties = {
-    display: 'block', fontSize: 13, color: t.label, marginBottom: 6, fontFamily: FONT,
+    display: 'block', fontSize: 14, fontWeight: 700, color: t.label, marginBottom: 6, fontFamily: FONT, overflowWrap: 'anywhere',
   }
 
   const [name, setName] = useState('')

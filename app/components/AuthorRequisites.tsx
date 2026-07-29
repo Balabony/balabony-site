@@ -18,7 +18,7 @@ const UI = {
   fieldBorder: '#ded4bf',
   chipBg: '#fffdf7',
   chipBorder: '#cfc3aa',
-  chipText: '#4a423a',
+  chipText: '#332d26',
   chipOnBg: '#fbe3b4',
   chipOnBorder: '#d98324',
   chipOnText: '#7a4a06',
@@ -275,8 +275,8 @@ const bankOff: React.CSSProperties = {
 }
 
 const label: React.CSSProperties = {
-  fontSize: '0.88rem', color: UI.labelText, fontWeight: 700, marginBottom: 6,
-  letterSpacing: '0.01em',
+  fontSize: '0.95rem', color: '#1c1917', fontWeight: 700, marginBottom: 6,
+  letterSpacing: '0.01em', overflowWrap: 'anywhere',
 }
 
 const primaryBtn: React.CSSProperties = {

@@ -18,7 +18,7 @@ const UI = {
   fieldBorder: '#ded4bf',
   chipBg: '#fffdf7',
   chipBorder: '#cfc3aa',
-  chipText: '#4a423a',
+  chipText: '#332d26',
   chipOnBg: '#fbe3b4',
   chipOnBorder: '#d98324',
   chipOnText: '#7a4a06',
@@ -60,6 +60,7 @@ const HELPS = [
   'Аудіоверсії моїх творів',
   'Конкурси з гонорарами',
   'Спілкування з іншими авторами',
+  'Спілкування з читачами',
 ]
 
 const AUDIO = ['Так, цікавить', 'Можливо, пізніше', 'Ні, тільки текст']
@@ -229,8 +230,8 @@ export default function AuthorSurvey({ initial }: { initial: Feedback }) {
 const block: React.CSSProperties = { marginBottom: '1.25rem' }
 
 const label: React.CSSProperties = {
-  fontSize: '0.88rem', color: UI.labelText, fontWeight: 700, marginBottom: 8,
-  letterSpacing: '0.01em',
+  fontSize: '0.95rem', color: '#1c1917', fontWeight: 700, marginBottom: 8,
+  letterSpacing: '0.01em', overflowWrap: 'anywhere',
 }
 
 const input: React.CSSProperties = {
@@ -244,7 +245,7 @@ const area: React.CSSProperties = { ...input, resize: 'vertical' }
 const pickOn: React.CSSProperties = {
   padding: '0.5rem 0.95rem', borderRadius: 999, border: `1.5px solid ${UI.chipOnBorder}`,
   background: UI.chipOnBg, color: UI.chipOnText, fontWeight: 700, fontSize: '0.88rem',
-  cursor: 'pointer', fontFamily: 'inherit',
+  cursor: 'pointer', fontFamily: 'inherit', overflowWrap: 'anywhere', textAlign: 'left',
 }
 
 const pickOff: React.CSSProperties = {

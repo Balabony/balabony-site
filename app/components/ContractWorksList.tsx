@@ -77,7 +77,7 @@ export default function ContractWorksList({ contractId, contractNumber, works }:
   return (
     <div>
       <div style={{ marginBottom: '1.25rem' }}>
-        <div style={{ fontSize: '0.95rem', color: BRAND.text, lineHeight: 1.7 }}>
+        <div style={{ fontSize: '0.95rem', color: '#1c1917', lineHeight: 1.7 }}>
           Це перелік творів до договору № {contractNumber} — Додаток № 1. Підтвердження твору
           означає, що ви погоджуєтесь на його розміщення та озвучення на умовах договору.
         </div>
