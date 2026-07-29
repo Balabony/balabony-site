@@ -81,10 +81,11 @@ export default function Footer() {
       {/* ════════ ОСНОВНІ 4 КОЛОНКИ ════════ */}
       <div className="footer-grid" style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: 32,
+        gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
+        gap: 28,
         maxWidth: 1200,
-        margin: '0 auto 20px'
+        margin: '0 auto 20px',
+        alignItems: 'start'
       }}>
 
         {/* ───── КОЛОНКА 1: БРЕНД + КОНТАКТИ + ПІДТРИМАТИ ───── */}
@@ -314,7 +315,7 @@ export default function Footer() {
         </div>
 
         {/* ───── КОЛОНКА 4: ДОКУМЕНТИ + ПРО НАС + НАВІГАЦІЯ ───── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '4px 32px', alignContent: 'start' }}>
+        <div style={{ alignContent: 'start' }}>
           <div>
           <h4 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Документи
@@ -332,6 +333,18 @@ export default function Footer() {
               </li>
             ))}
           </ul>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event('balabony:cookie-settings'))}
+            className="footer-link"
+            style={{
+              background: 'none', border: 'none', padding: 0, marginBottom: 8,
+              color: 'rgba(255,255,255,0.8)', fontSize: 14, cursor: 'pointer',
+              fontFamily: "'Montserrat', sans-serif", textAlign: 'left',
+            }}
+          >
+            Налаштування cookie
+          </button>
           </div>
 
           <div>
@@ -347,19 +360,16 @@ export default function Footer() {
               </a>
             </li>
             <li style={{ marginBottom: 4 }}>
-              <a href="/about" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
-                Про автора
-              </a>
-            </li>
-            <li style={{ marginBottom: 4 }}>
               <a href="/sitemap" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
                 Навігація сайту
               </a>
             </li>
           </ul>
           </div>
+        </div>
 
-          <div>
+        {/* ───── КОЛОНКА 5: РОЗДІЛИ ───── */}
+        <div>
           <h4 style={{ marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             <a href="/sitemap" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none' }}>Розділи</a>
           </h4>
@@ -385,7 +395,6 @@ export default function Footer() {
               </li>
             ))}
           </ul>
-          </div>
         </div>
       </div>
 

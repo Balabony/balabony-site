@@ -16,6 +16,15 @@ export default function GoogleAnalytics() {
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
+          window.gtag = gtag;
+          // Consent Mode: до згоди користувача аналітика й реклама нічого не зберігають
+          gtag('consent', 'default', {
+            ad_storage: 'denied',
+            ad_user_data: 'denied',
+            ad_personalization: 'denied',
+            analytics_storage: 'denied',
+            wait_for_update: 500
+          });
           gtag('js', new Date());
           gtag('config', '${GA_ID}');
           gtag('config', '${ADS_ID}');
