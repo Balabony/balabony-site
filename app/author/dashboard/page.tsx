@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import NarrationOrderForm from '@/app/components/NarrationOrderForm'
 import AuthorContracts, { type ContractRow } from '@/app/components/AuthorContracts'
+import AuthorRequisites, { type Requisites } from '@/app/components/AuthorRequisites'
 import { dbQuery } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
@@ -14,6 +15,14 @@ type AuthorProfile = {
   revenue_share: number
   payout_iban: string | null
   is_active: boolean
+  full_name?: string | null
+  rnokpp?: string | null
+  address?: string | null
+  phone?: string | null
+  bank_name?: string | null
+  payout_recipient?: string | null
+  pen_name?: string | null
+  requisites_updated_at?: string | null
 }
 
 type StoryStat = {
@@ -126,6 +135,19 @@ export default async function AuthorDashboardPage() {
     .single() as { data: Balance | null }
 
   const balance: Balance = bal || { total_accrued: 0, total_paid: 0, balance: 0 }
+
+  const requisites: Requisites = {
+    full_name: profile.full_name ?? null,
+    rnokpp: profile.rnokpp ?? null,
+    address: profile.address ?? null,
+    phone: profile.phone ?? null,
+    payout_iban: profile.payout_iban ?? null,
+    bank_name: profile.bank_name ?? null,
+    payout_recipient: profile.payout_recipient ?? null,
+    pen_name: profile.pen_name ?? null,
+    is_fop: profile.is_fop,
+    requisites_updated_at: profile.requisites_updated_at ?? null,
+  }
 
   // Договори автора + кількість творів у переліку (Додаток № 1)
   let contracts: ContractRow[] = []
@@ -240,6 +262,8 @@ export default async function AuthorDashboardPage() {
             </div>
           )}
         </div>
+
+        <AuthorRequisites initial={requisites} />
 
         <AuthorContracts contracts={contracts} />
 
