@@ -18,6 +18,8 @@ type Body = {
   bankName?: string
   payoutRecipient?: string | null
   penName?: string | null
+  postalCode?: string | null
+  npBranch?: string | null
   isFop?: boolean
 }
 
@@ -66,14 +68,18 @@ export async function POST(req: NextRequest) {
             bank_name = $6,
             payout_recipient = $7,
             pen_name = $8,
-            is_fop = $9,
-            revenue_share = $10,
+            postal_code = $9,
+            np_branch = $10,
+            is_fop = $11,
+            revenue_share = $12,
             requisites_updated_at = now()
-      where user_id = $11`,
+      where user_id = $13`,
     [
       fullName, rnokpp, address, phone, iban, bankName,
       (b.payoutRecipient ?? '')?.trim() || null,
       (b.penName ?? '')?.trim() || null,
+      (b.postalCode ?? '')?.trim() || null,
+      (b.npBranch ?? '')?.trim() || null,
       isFop, share, user.id,
     ],
   )

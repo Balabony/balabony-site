@@ -23,6 +23,8 @@ type AuthorProfile = {
   bank_name?: string | null
   payout_recipient?: string | null
   pen_name?: string | null
+  postal_code?: string | null
+  np_branch?: string | null
   requisites_updated_at?: string | null
 }
 
@@ -146,6 +148,8 @@ export default async function AuthorDashboardPage() {
     bank_name: profile.bank_name ?? null,
     payout_recipient: profile.payout_recipient ?? null,
     pen_name: profile.pen_name ?? null,
+    postal_code: profile.postal_code ?? null,
+    np_branch: profile.np_branch ?? null,
     is_fop: profile.is_fop,
     requisites_updated_at: profile.requisites_updated_at ?? null,
   }
@@ -251,32 +255,33 @@ export default async function AuthorDashboardPage() {
               Поки що до вашого профілю не прив&apos;язано жодної історії.
             </div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-                <thead>
-                  <tr style={{ textAlign: 'left', color: BRAND.muted, fontSize: '0.8rem', textTransform: 'uppercase' }}>
-                    <th style={{ padding: '0.75rem 1.5rem' }}>Історія</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Статус</th>
-                    <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Перегляди</th>
-                    <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Прочитань</th>
-                    <th style={{ padding: '0.75rem 1.5rem', textAlign: 'right' }}>Дочитування</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stories.map((s) => (
-                    <tr key={s.content_id} style={{ borderTop: `1px solid ${BRAND.line}` }}>
-                      <td style={{ padding: '0.75rem 1.5rem', color: BRAND.ink, fontWeight: 500 }}>
-                        {s.title}
-                        {s.is_free && <span style={{ marginLeft: 8, fontSize: '0.7rem', color: BRAND.ink, background: BRAND.amber, padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}>безкоштовна</span>}
-                      </td>
-                      <td style={{ padding: '0.75rem 1rem', color: BRAND.muted }}>{STATUS_LABEL[s.status] || s.status}</td>
-                      <td style={{ padding: '0.75rem 1rem', textAlign: 'right', color: BRAND.ink }}>{s.views_count}</td>
-                      <td style={{ padding: '0.75rem 1rem', textAlign: 'right', color: BRAND.ink }}>{s.reads_total}</td>
-                      <td style={{ padding: '0.75rem 1.5rem', textAlign: 'right', color: BRAND.muted }}>{s.avg_read_percentage}%</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div>
+              {stories.map((s) => (
+                <div key={s.content_id} style={{ borderTop: `1px solid ${BRAND.line}`, padding: '0.9rem 1.5rem' }}>
+                  <div style={{ display: 'flex', gap: 10, justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                    <div style={{ color: BRAND.ink, fontWeight: 700, fontSize: '1rem', lineHeight: 1.35, minWidth: 0, flex: '1 1 200px' }}>
+                      {s.title}
+                      {s.is_free && (
+                        <span style={{ marginLeft: 8, fontSize: '0.7rem', color: '#7a4a06', background: '#fbe3b4', border: '1px solid #e2c489', padding: '2px 8px', borderRadius: 999, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                          безкоштовна
+                        </span>
+                      )}
+                    </div>
+                    <span style={{
+                      flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,
+                      background: '#eef1f5', border: '1px solid #d5dbe4', color: '#33415c',
+                      whiteSpace: 'nowrap', lineHeight: 1.5,
+                    }}>
+                      {STATUS_LABEL[s.status] || s.status}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '1.1rem', flexWrap: 'wrap', marginTop: 8, fontSize: '0.88rem', color: '#3f3a34' }}>
+                    <span>Перегляди: <strong style={{ color: BRAND.ink }}>{s.views_count}</strong></span>
+                    <span>Прочитань: <strong style={{ color: BRAND.ink }}>{s.reads_total}</strong></span>
+                    <span>Дочитування: <strong style={{ color: BRAND.ink }}>{s.avg_read_percentage}%</strong></span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

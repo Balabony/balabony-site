@@ -37,6 +37,8 @@ export type Requisites = {
   bank_name: string | null
   payout_recipient: string | null
   pen_name: string | null
+  postal_code: string | null
+  np_branch: string | null
   is_fop: boolean
   requisites_updated_at: string | null
 }
@@ -94,6 +96,8 @@ export default function AuthorRequisites({ initial }: Props) {
           bankName: (form.bank_name ?? '').trim(),
           payoutRecipient: (form.payout_recipient ?? '').trim() || null,
           penName: (form.pen_name ?? '').trim() || null,
+          postalCode: (form.postal_code ?? '').trim() || null,
+          npBranch: (form.np_branch ?? '').trim() || null,
           isFop: form.is_fop,
         }),
       })
@@ -129,8 +133,8 @@ export default function AuthorRequisites({ initial }: Props) {
           flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,
           letterSpacing: '0.02em', whiteSpace: 'nowrap', lineHeight: 1.5,
           ...(complete
-            ? { background: '#e8f1e2', color: '#3f6212', border: '1px solid #d3e3c6' }
-            : { background: '#fbeccd', color: '#8a5a06', border: '1px solid #eed6a6' }),
+            ? { background: '#e4ede6', color: '#3f6152', border: '1px solid #c9dbd0' }
+            : { background: '#f0ebe0', color: '#6b5b45', border: '1px solid #ddd2bd' }),
         }}>
           {complete ? 'Заповнено' : 'Треба заповнити'}
         </span>
@@ -154,7 +158,7 @@ export default function AuthorRequisites({ initial }: Props) {
             <div style={label}>Ваш статус</div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <button type="button" onClick={() => set('is_fop', false)} style={form.is_fop ? choiceOff : choiceOn}>
-                Фізична особа · 40% на руки
+                Фізособа · 40%
               </button>
               <button type="button" onClick={() => set('is_fop', true)} style={form.is_fop ? choiceOn : choiceOff}>
                 ФОП · 50%
@@ -174,6 +178,8 @@ export default function AuthorRequisites({ initial }: Props) {
           <Field label="Прізвище, імʼя, по батькові" value={form.full_name ?? ''} onChange={v => set('full_name', v)} placeholder="Прізвище Імʼя По батькові" />
           <Field label="РНОКПП (ідентифікаційний код)" value={form.rnokpp ?? ''} onChange={v => set('rnokpp', v)} placeholder="10 цифр" />
           <Field label="Адреса" value={form.address ?? ''} onChange={v => set('address', v)} placeholder="Місто, вулиця, будинок, квартира" />
+          <Field label="Поштовий індекс" value={form.postal_code ?? ''} onChange={v => set('postal_code', v)} placeholder="5 цифр" />
+          <Field label="Відділення Нової пошти" value={form.np_branch ?? ''} onChange={v => set('np_branch', v)} placeholder="Номер відділення — для паперових документів" />
           <Field label="Телефон" value={form.phone ?? ''} onChange={v => set('phone', v)} placeholder="+380…" />
           <Field label="IBAN" value={form.payout_iban ?? ''} onChange={v => set('payout_iban', v)} placeholder="UA…" />
           <div style={{ marginBottom: '0.9rem' }}>
@@ -202,8 +208,8 @@ export default function AuthorRequisites({ initial }: Props) {
               }}
             />
           </div>
-          <Field label="Одержувач платежу (якщо відрізняється)" value={form.payout_recipient ?? ''} onChange={v => set('payout_recipient', v)} placeholder="необовʼязково" />
-          <Field label="Псевдонім для публікації" value={form.pen_name ?? ''} onChange={v => set('pen_name', v)} placeholder="необовʼязково — тоді публікуємо під справжнім імʼям" />
+          <Field label="Одержувач платежу (якщо відрізняється)" value={form.payout_recipient ?? ''} onChange={v => set('payout_recipient', v)} placeholder="Необовʼязково" />
+          <Field label="Псевдонім для публікації" value={form.pen_name ?? ''} onChange={v => set('pen_name', v)} placeholder="Необовʼязково" />
 
           {err && <p style={{ color: '#b91c1c', fontSize: '0.88rem', margin: '0 0 10px' }}>{err}</p>}
 
@@ -286,13 +292,13 @@ const secondaryBtn: React.CSSProperties = {
 }
 
 const choiceOn: React.CSSProperties = {
-  padding: '0.7rem 1rem', borderRadius: 10, border: `1.5px solid ${UI.solidBorder}`,
-  background: UI.solidBg, color: UI.solidText, fontWeight: 700, fontSize: '0.95rem',
-  cursor: 'pointer', fontFamily: 'inherit', flex: '1 1 180px',
+  padding: '0.55rem 1rem', borderRadius: 999, border: `1.5px solid ${UI.solidBorder}`,
+  background: UI.solidBg, color: UI.solidText, fontWeight: 700, fontSize: '0.9rem',
+  cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
 }
 
 const choiceOff: React.CSSProperties = {
-  padding: '0.7rem 1rem', borderRadius: 10, border: `1px solid ${UI.chipBorder}`,
-  background: UI.chipBg, color: UI.chipText, fontSize: '0.95rem',
-  cursor: 'pointer', fontFamily: 'inherit', flex: '1 1 180px',
+  padding: '0.55rem 1rem', borderRadius: 999, border: `1px solid ${UI.chipBorder}`,
+  background: UI.chipBg, color: UI.chipText, fontSize: '0.9rem',
+  cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
 }
