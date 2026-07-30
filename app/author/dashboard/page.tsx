@@ -361,7 +361,7 @@ export default async function AuthorDashboardPage() {
 
         <AuthorRequisites initial={requisites} />
 
-        <AuthorContracts contracts={contracts} />
+        <AuthorContracts contracts={contracts} diiaEnabled={Boolean((process.env.SIGN_SERVICE_URL ?? '').trim())} />
 
         <AuthorSurvey initial={feedback} />
 

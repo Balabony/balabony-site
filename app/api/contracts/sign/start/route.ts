@@ -54,11 +54,8 @@ export async function POST(req: NextRequest) {
   )
   const session = created.rows[0] as { id: string; expires_at: string }
 
-  await dbQuery(
-    `update author_contracts set status = 'awaiting' where id = $1 and status = 'draft'`,
-    [contract.id],
-  )
-
+  // У демонстраційному режимі статус не чіпаємо: підпису не буде,
+  // а договір лишався б висіти як «на підписанні».
   if (!SIGN_SERVICE_URL) {
     return NextResponse.json({
       ok: true,
@@ -67,6 +64,11 @@ export async function POST(req: NextRequest) {
       expiresAt: session.expires_at,
     })
   }
+
+  await dbQuery(
+    `update author_contracts set status = 'awaiting' where id = $1 and status = 'draft'`,
+    [contract.id],
+  )
 
   try {
     const res = await fetch(`${SIGN_SERVICE_URL.replace(/\/+$/, '')}/sign/start`, {

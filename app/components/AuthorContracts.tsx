@@ -48,7 +48,9 @@ function pad(n: number) {
   return n < 10 ? `0${n}` : String(n)
 }
 
-export default function AuthorContracts({ contracts }: { contracts: ContractRow[] }) {
+export default function AuthorContracts(
+  { contracts, diiaEnabled = false }: { contracts: ContractRow[]; diiaEnabled?: boolean },
+) {
   const [rows, setRows] = useState<ContractRow[]>(contracts)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [session, setSession] = useState<StartResult | null>(null)
@@ -198,7 +200,7 @@ export default function AuthorContracts({ contracts }: { contracts: ContractRow[
               <a href={c.doc_url} target="_blank" rel="noreferrer" style={linkBtn}>Прочитати договір</a>
             )}
             <a href={`/author/dashboard/works?contract=${c.id}`} style={linkBtn}>Перелік творів</a>
-            {c.status !== 'signed' && (
+            {c.status !== 'signed' && diiaEnabled && (
               <button type="button" onClick={() => start(c.id)} disabled={busy} style={primaryBtn}>
                 Підписати через Дію
               </button>
