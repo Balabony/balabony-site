@@ -7,8 +7,8 @@ const BRAND = {
   amber: '#ef9f27',
   amberDark: '#FFB347',
   ink: '#f5f0e8',
-  text: '#dbe4f0',
-  muted: '#8fa3c4',
+  text: '#e8eef7',
+  muted: '#b9c6db',
   line: 'rgba(143,163,196,0.22)',
 }
 const SERIF = 'Georgia, "Times New Roman", serif'
@@ -126,7 +126,7 @@ export default function AuthorContracts({ contracts }: { contracts: ContractRow[
 
   return (
     <section style={{ ...box, marginTop: '1.5rem' }}>
-      <h2 style={{ fontFamily: SERIF, fontSize: '1.3rem', color: BRAND.ink, margin: '0 0 0.25rem' }}>
+      <h2 style={{ fontFamily: SERIF, fontSize: '1.35rem', color: BRAND.amber, margin: '0 0 0.25rem' }}>
         Мої договори
       </h2>
       <p style={{ color: BRAND.muted, fontSize: '0.85rem', margin: '0 0 1.25rem' }}>
@@ -158,7 +158,7 @@ export default function AuthorContracts({ contracts }: { contracts: ContractRow[
               flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,
               letterSpacing: '0.02em', whiteSpace: 'nowrap', lineHeight: 1.5,
               fontWeight: 700,
-              ...(c.status === 'signed' ? { background: 'rgba(151,196,89,0.16)', color: '#C0DD97', border: '1px solid rgba(151,196,89,0.4)' } : { background: 'rgba(143,163,196,0.15)', color: '#dbe4f0', border: '1px solid rgba(143,163,196,0.35)' }),
+              ...(c.status === 'signed' ? { background: 'rgba(151,196,89,0.16)', color: '#C0DD97', border: '1px solid rgba(151,196,89,0.4)' } : { background: 'rgba(143,163,196,0.15)', color: '#e8eef7', border: '1px solid rgba(143,163,196,0.35)' }),
             }}>
               {STATUS_LABEL[c.status] || c.status}
             </span>

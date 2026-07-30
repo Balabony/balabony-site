@@ -7,8 +7,8 @@ const BRAND = {
   amber: '#ef9f27',
   amberDark: '#FFB347',
   ink: '#f5f0e8',
-  text: '#dbe4f0',
-  muted: '#8fa3c4',
+  text: '#e8eef7',
+  muted: '#b9c6db',
   line: 'rgba(143,163,196,0.22)',
 }
 const SERIF = 'Georgia, "Times New Roman", serif'
@@ -117,7 +117,7 @@ export default function AuthorSurvey({ initial }: { initial: Feedback }) {
     }}>
       <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <div>
-          <h2 style={{ fontFamily: SERIF, fontSize: '1.3rem', color: BRAND.ink, margin: '0 0 0.25rem' }}>
+          <h2 style={{ fontFamily: SERIF, fontSize: '1.35rem', color: BRAND.amber, margin: '0 0 0.25rem' }}>
             Ваша думка про платформу
           </h2>
           <p style={{ color: BRAND.muted, fontSize: '0.85rem', margin: 0 }}>

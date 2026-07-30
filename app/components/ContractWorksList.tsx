@@ -7,8 +7,8 @@ const BRAND = {
   amber: '#ef9f27',
   amberDark: '#FFB347',
   ink: '#f5f0e8',
-  text: '#dbe4f0',
-  muted: '#8fa3c4',
+  text: '#e8eef7',
+  muted: '#b9c6db',
   line: 'rgba(143,163,196,0.22)',
 }
 
@@ -122,7 +122,7 @@ export default function ContractWorksList({ contractId, contractNumber, works }:
               flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,
               letterSpacing: '0.02em', whiteSpace: 'nowrap', lineHeight: 1.5,
               fontWeight: 700,
-              ...(w.confirmed_at ? { background: 'rgba(151,196,89,0.16)', color: '#C0DD97', border: '1px solid rgba(151,196,89,0.4)' } : { background: 'rgba(143,163,196,0.15)', color: '#dbe4f0', border: '1px solid rgba(143,163,196,0.35)' }),
+              ...(w.confirmed_at ? { background: 'rgba(151,196,89,0.16)', color: '#C0DD97', border: '1px solid rgba(151,196,89,0.4)' } : { background: 'rgba(143,163,196,0.15)', color: '#e8eef7', border: '1px solid rgba(143,163,196,0.35)' }),
             }}>
               {w.confirmed_at ? 'Підтверджено' : 'Очікує'}
             </span>

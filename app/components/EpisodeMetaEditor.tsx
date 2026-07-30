@@ -6,8 +6,9 @@ const GOLD = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
 const NAVY = '#0f1e3a'
 const CREAM = '#f5f0e8'
-const MUTED = '#8fa3c4'
+const MUTED = '#b9c6db'
 const FONT = "'Montserrat', Arial, sans-serif"
+const SERIF = "'Lora', Georgia, serif"
 
 const LIMITS = { description: 160, recap: 600, next_teaser: 200, social_post: 600 } as const
 type Field = keyof typeof LIMITS
@@ -30,11 +31,20 @@ const FIELDS: { key: Field; label: string; hint: string; rows: number }[] = [
   { key: 'social_post', label: 'Пост для соцмереж', hint: 'Публікуєте у себе в день виходу', rows: 4 },
 ]
 
+const STATUS_LABEL: Record<string, string> = {
+  draft: 'Чернетка',
+  review: 'На редактурі',
+  humanizing: 'Обробка',
+  human_review: 'Перевірка',
+  approved: 'Схвалено',
+  published: 'Опубліковано',
+}
+
 function dayLabel(iso: string | null): string {
-  if (!iso) return 'дата ще не призначена'
+  if (!iso) return 'Дата виходу ще не призначена'
   const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return 'дата ще не призначена'
-  return d.toLocaleDateString('uk-UA', { weekday: 'long', day: 'numeric', month: 'long' })
+  if (Number.isNaN(d.getTime())) return 'Дата виходу ще не призначена'
+  return 'Виходить у ' + d.toLocaleDateString('uk-UA', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
 export default function EpisodeMetaEditor({ id }: { id: string }) {
@@ -117,11 +127,11 @@ export default function EpisodeMetaEditor({ id }: { id: string }) {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', paddingBottom: 14, borderBottom: '1px solid rgba(143,163,196,0.2)' }}>
         <div>
-          <div style={{ fontSize: 18, color: CREAM }}>{ep.title}</div>
-          <div style={{ fontSize: 13, color: MUTED, marginTop: 3 }}>Виходить у {dayLabel(ep.publish_at)}</div>
+          <div style={{ fontFamily: SERIF, fontSize: 21, color: CREAM }}>{ep.title}</div>
+          <div style={{ fontSize: 13.5, color: MUTED, marginTop: 4 }}>{dayLabel(ep.publish_at)}</div>
         </div>
         <span style={{ fontSize: 12, color: locked ? MUTED : GOLD, border: `1px solid ${locked ? 'rgba(143,163,196,0.4)' : 'rgba(239,159,39,0.5)'}`, background: locked ? 'transparent' : 'rgba(239,159,39,0.12)', borderRadius: 20, padding: '5px 12px' }}>
-          {locked ? 'На редактурі' : 'Редагування відкрите'}
+          {locked ? (STATUS_LABEL[ep.status] ?? ep.status) : 'Редагування відкрите'}
         </span>
       </div>
 
@@ -130,12 +140,12 @@ export default function EpisodeMetaEditor({ id }: { id: string }) {
         const lim = LIMITS[f.key]
         const near = len > lim - 20
         return (
-          <div key={f.key} style={{ marginTop: 18 }}>
+          <div key={f.key} style={{ marginTop: 20, paddingLeft: 14, borderLeft: `3px solid ${GOLD}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-              <label htmlFor={`f-${f.key}`} style={{ fontSize: 15, color: CREAM }}>{f.label}</label>
+              <label htmlFor={`f-${f.key}`} style={{ fontSize: 16, fontWeight: 700, color: CREAM }}>{f.label}</label>
               <span style={{ fontSize: 13, color: near ? '#FFB347' : MUTED }}>{len} / {lim}</span>
             </div>
-            <div style={{ fontSize: 13, color: MUTED, margin: '3px 0 6px' }}>{f.hint}</div>
+            <div style={{ fontSize: 13.5, color: MUTED, margin: '4px 0 8px', lineHeight: 1.5 }}>{f.hint}</div>
             <textarea
               id={`f-${f.key}`}
               value={vals[f.key]}
@@ -164,7 +174,7 @@ export default function EpisodeMetaEditor({ id }: { id: string }) {
       })}
 
       <div style={{ marginTop: 22, paddingTop: 16, borderTop: '1px solid rgba(143,163,196,0.2)' }}>
-        <div style={{ fontSize: 13, color: MUTED, marginBottom: 10 }}>Як це виглядатиме</div>
+        <div style={{ fontSize: 12, color: GOLD, letterSpacing: 1.4, textTransform: 'uppercase', fontWeight: 700, marginBottom: 12 }}>Як це виглядатиме</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 }}>
           <div style={{ background: NAVY_DEEP, border: '1px solid rgba(143,163,196,0.18)', borderRadius: 8, padding: '11px 12px' }}>
             <div style={{ fontSize: 11, color: MUTED, letterSpacing: 1, textTransform: 'uppercase' }}>Картка в стрічці</div>

@@ -63,8 +63,8 @@ const BRAND = {
   amber: '#ef9f27',
   amberDark: '#FFB347',
   ink: '#f5f0e8',
-  text: '#dbe4f0',
-  muted: '#8fa3c4',
+  text: '#e8eef7',
+  muted: '#b9c6db',
   line: 'rgba(143,163,196,0.22)',
 }
 const SERIF = 'Georgia, "Times New Roman", serif'
@@ -198,7 +198,7 @@ export default async function AuthorDashboardPage() {
     boxShadow: '0 10px 30px rgba(0,0,0,0.25)', flex: '1 1 160px',
   }
   const statNum: React.CSSProperties = { fontSize: '2rem', fontWeight: 700, color: BRAND.ink, lineHeight: 1 }
-  const statLabel: React.CSSProperties = { fontSize: '0.88rem', color: '#8fa3c4', fontWeight: 600, marginTop: 6 }
+  const statLabel: React.CSSProperties = { fontSize: '0.88rem', color: '#b9c6db', fontWeight: 600, marginTop: 6 }
 
   return (
     <main style={{ padding: '2rem 1rem', background: BRAND.navy }}>
@@ -247,7 +247,7 @@ export default async function AuthorDashboardPage() {
 
         {/* Список історій */}
         <div style={{ background: BRAND.cream, borderRadius: 14, overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.25)' }}>
-          <div style={{ padding: '1rem 1.5rem', borderBottom: `1px solid ${BRAND.line}`, fontFamily: SERIF, fontWeight: 700, fontSize: '1.15rem', color: BRAND.ink }}>
+          <div style={{ padding: '1rem 1.5rem', borderBottom: `1px solid ${BRAND.line}`, fontFamily: SERIF, fontWeight: 700, fontSize: '1.2rem', color: BRAND.amber }}>
             Мої історії ({stories.length})
           </div>
 
@@ -270,13 +270,13 @@ export default async function AuthorDashboardPage() {
                     </div>
                     <span style={{
                       flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,
-                      background: 'rgba(143,163,196,0.15)', border: '1px solid rgba(143,163,196,0.35)', color: '#dbe4f0', fontWeight: 700,
+                      background: 'rgba(143,163,196,0.15)', border: '1px solid rgba(143,163,196,0.35)', color: '#e8eef7', fontWeight: 700,
                       whiteSpace: 'nowrap', lineHeight: 1.5,
                     }}>
                       {STATUS_LABEL[s.status] || s.status}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', gap: '1.1rem', flexWrap: 'wrap', marginTop: 8, fontSize: '0.88rem', color: '#8fa3c4' }}>
+                  <div style={{ display: 'flex', gap: '1.1rem', flexWrap: 'wrap', marginTop: 8, fontSize: '0.88rem', color: '#b9c6db' }}>
                     <span>Перегляди: <strong style={{ color: BRAND.ink }}>{s.views_count}</strong></span>
                     <span>Прочитань: <strong style={{ color: BRAND.ink }}>{s.reads_total}</strong></span>
                     <span>Дочитування: <strong style={{ color: BRAND.ink }}>{s.avg_read_percentage}%</strong></span>
