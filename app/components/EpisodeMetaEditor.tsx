@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import DescriptionSuggest from './DescriptionSuggest'
 
 const GOLD = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
@@ -155,6 +156,9 @@ export default function EpisodeMetaEditor({ id }: { id: string }) {
               onChange={e => onChange(f.key, e.target.value)}
               style={{ ...box, opacity: locked ? 0.65 : 1 }}
             />
+            {f.key === 'description' && !locked && ep && (
+              <DescriptionSuggest contentId={ep.id} onPick={v => onChange('description', v)} />
+            )}
             {f.key === 'social_post' && vals.social_post.trim() && (
               <button
                 type="button"
