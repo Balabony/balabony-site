@@ -38,10 +38,21 @@ export default async function ContractWorksPage(
         found = true
         number = row.number
         const w = await dbQuery(
-          `select id, title, prior_publication, confirmed_at
-             from contract_works
-            where contract_id = $1
-            order by added_at asc`,
+          `select w.id,
+                  w.title,
+                  w.prior_publication,
+                  w.confirmed_at,
+                  w.added_at,
+                  t.status        as content_status,
+                  t.published_at  as published_at,
+                  t.type          as content_type,
+                  t.episode_number as episode_number
+             from contract_works w
+             left join content t on t.id = w.content_id
+            where w.contract_id = $1
+            order by coalesce(t.type, 'zzz') asc,
+                     t.episode_number asc nulls last,
+                     w.title asc`,
           [contractId],
         )
         works = w.rows as WorkRow[]
@@ -74,7 +85,12 @@ export default async function ContractWorksPage(
               відкрийте перелік із картки договору.
             </p>
           ) : (
-            <ContractWorksList contractId={contractId ?? ''} contractNumber={number} works={works} />
+            <ContractWorksList
+              contractId={contractId ?? ''}
+              contractNumber={number}
+              works={works}
+              generatedAt={new Date().toISOString()}
+            />
           )}
         </div>
       </div>

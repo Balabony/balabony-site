@@ -17,15 +17,38 @@ export type WorkRow = {
   title: string
   prior_publication: string | null
   confirmed_at: string | null
+  added_at: string | null
+  content_status: string | null
+  published_at: string | null
+  content_type: string | null
+  episode_number: number | null
 }
 
 type Props = {
   contractId: string
   contractNumber: string
   works: WorkRow[]
+  generatedAt: string
 }
 
-export default function ContractWorksList({ contractId, contractNumber, works }: Props) {
+// Статуси твору — як їх бачить автор (Додаток № 1)
+const WORK_STATUS: Record<string, string> = {
+  draft: 'не опубліковано',
+  humanizing: 'на розгляді',
+  human_review: 'на розгляді',
+  review: 'на розгляді',
+  approved: 'на розгляді',
+  scheduled: 'на розгляді',
+  published: 'опубліковано',
+}
+
+function d(v: string | null): string {
+  if (!v) return '—'
+  const t = new Date(v)
+  return Number.isNaN(t.getTime()) ? '—' : t.toLocaleDateString('uk-UA')
+}
+
+export default function ContractWorksList({ contractId, contractNumber, works, generatedAt }: Props) {
   const [rows, setRows] = useState<WorkRow[]>(works)
   const [prior, setPrior] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
@@ -95,25 +118,39 @@ export default function ContractWorksList({ contractId, contractNumber, works }:
         <div style={{ fontSize: '0.9rem', color: BRAND.text }}>
           Підтверджено <strong>{confirmed.length}</strong> із {rows.length}
         </div>
+        <div style={{ fontSize: '0.82rem', color: BRAND.muted }}>
+          Редакція від {d(generatedAt)}
+        </div>
         {pending.length > 0 && (
           <button type="button" onClick={confirmAllClean} disabled={busy} style={primaryBtn}>
             Підтвердити всі, що не публікувалися
           </button>
         )}
+        <button type="button" onClick={() => window.print()} style={secondaryBtn}>
+          Зберегти як PDF
+        </button>
       </div>
 
       {rows.length === 0 && (
         <p style={{ color: BRAND.text }}>У переліку поки немає творів.</p>
       )}
 
-      {rows.map(w => (
+      {rows.map((w, i) => (
         <div key={w.id} style={{ borderTop: `1px solid ${BRAND.line}`, padding: '0.9rem 0' }}>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
             <div style={{ minWidth: 0, flex: '1 1 240px' }}>
-              <div style={{ fontWeight: 700, color: BRAND.ink }}>{w.title}</div>
+              <div style={{ fontWeight: 700, color: BRAND.ink }}>
+                <span style={{ color: BRAND.muted, marginRight: 8 }}>{i + 1}.</span>
+                {w.title}
+              </div>
+              <div style={{ fontSize: '0.82rem', color: BRAND.muted, marginTop: 4, lineHeight: 1.6 }}>
+                Статус: {WORK_STATUS[w.content_status ?? ''] ?? 'не опубліковано'}
+                {' · '}Опубліковано: {d(w.published_at)}
+                {' · '}Долучено: {d(w.added_at)}
+              </div>
               {w.confirmed_at && (
                 <div style={{ fontSize: '0.82rem', color: BRAND.muted, marginTop: 3 }}>
-                  Підтверджено {new Date(w.confirmed_at).toLocaleDateString('uk-UA')}
+                  Підтверджено {d(w.confirmed_at)}
                   {w.prior_publication ? ` · раніше: ${w.prior_publication}` : ''}
                 </div>
               )}
