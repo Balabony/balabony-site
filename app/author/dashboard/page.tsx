@@ -38,6 +38,8 @@ type StoryStat = {
   reads_total: number
   reads_completed: number
   avg_read_percentage: number
+  type: string | null
+  episode_number: number | null
 }
 
 type Balance = {
@@ -68,6 +70,47 @@ const BRAND = {
   line: 'rgba(143,163,196,0.22)',
 }
 const SERIF = 'Georgia, "Times New Roman", serif'
+
+// Групування кабінету: спершу серіали (за номером серії), потім окремі історії
+const GROUP_LABEL: Record<string, string> = {
+  balabony: 'Серіал «Балабони»',
+  tysha: 'Серіал «Тиша»',
+  story: 'Окремі історії',
+}
+const GROUP_ORDER = ['balabony', 'tysha', 'story']
+
+type StoryGroup = { key: string; label: string; items: StoryStat[] }
+
+function groupStories(list: StoryStat[]): StoryGroup[] {
+  const map = new Map<string, StoryStat[]>()
+  for (const s of list) {
+    const key = s.type || 'story'
+    const arr = map.get(key)
+    if (arr) arr.push(s)
+    else map.set(key, [s])
+  }
+
+  const keys = Array.from(map.keys()).sort((a, b) => {
+    const ia = GROUP_ORDER.indexOf(a)
+    const ib = GROUP_ORDER.indexOf(b)
+    const wa = ia < 0 ? 99 : ia
+    const wb = ib < 0 ? 99 : ib
+    return wa - wb || a.localeCompare(b, 'uk')
+  })
+
+  return keys.map((key) => ({
+    key,
+    label: GROUP_LABEL[key] || key,
+    items: (map.get(key) || []).slice().sort((a, b) => {
+      const na = a.episode_number
+      const nb = b.episode_number
+      if (na != null && nb != null) return na - nb
+      if (na != null) return -1
+      if (nb != null) return 1
+      return (a.title || '').localeCompare(b.title || '', 'uk')
+    }),
+  }))
+}
 
 function uah(n: number) {
   return new Intl.NumberFormat('uk-UA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0)
@@ -126,10 +169,10 @@ export default async function AuthorDashboardPage() {
   const { data: stats } = await supabase
     .from('author_story_stats')
     .select('*')
-    .eq('author_id', user.id)
-    .order('views_count', { ascending: false }) as { data: StoryStat[] | null }
+    .eq('author_id', user.id) as { data: StoryStat[] | null }
 
   const stories = stats || []
+  const groups = groupStories(stories)
 
   // Баланс
   const { data: bal } = await supabase
@@ -257,10 +300,27 @@ export default async function AuthorDashboardPage() {
             </div>
           ) : (
             <div>
-              {stories.map((s) => (
+              {groups.map((g) => (
+                <div key={g.key}>
+                  <div style={{
+                    borderTop: `1px solid ${BRAND.line}`,
+                    background: 'rgba(143,163,196,0.08)',
+                    padding: '0.6rem 1.5rem',
+                    fontSize: '0.82rem', fontWeight: 700, letterSpacing: '0.4px',
+                    textTransform: 'uppercase', color: BRAND.muted,
+                  }}>
+                    {g.label} · {g.items.length}
+                  </div>
+
+              {g.items.map((s) => (
                 <div key={s.content_id} style={{ borderTop: `1px solid ${BRAND.line}`, padding: '0.9rem 1.5rem' }}>
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
                     <div style={{ color: BRAND.ink, fontWeight: 700, fontSize: '1rem', lineHeight: 1.35, minWidth: 0, flex: '1 1 200px' }}>
+                      {s.episode_number != null && (
+                        <span style={{ color: BRAND.muted, fontWeight: 700, marginRight: 8 }}>
+                          №{s.episode_number}
+                        </span>
+                      )}
                       {s.title}
                       {s.is_free && (
                         <span style={{ marginLeft: 8, fontSize: '0.7rem', color: '#ef9f27', background: 'rgba(239,159,39,0.18)', border: '1px solid rgba(239,159,39,0.5)', padding: '2px 8px', borderRadius: 999, fontWeight: 700, whiteSpace: 'nowrap' }}>
@@ -291,6 +351,8 @@ export default async function AuthorDashboardPage() {
                   >
                     Супровідні тексти →
                   </a>
+                </div>
+              ))}
                 </div>
               ))}
             </div>
