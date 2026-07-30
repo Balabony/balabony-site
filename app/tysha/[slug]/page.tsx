@@ -6,6 +6,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import ReadTracker from '@/app/components/ReadTracker'
 import TyshaProgressTracker from '@/app/components/TyshaProgressTracker'
+import TyshaAgeGate from '@/app/components/TyshaAgeGate'
 
 const GOLD = '#ef9f27'
 const AMBER = '#FFB347'
@@ -178,6 +179,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
 
   return (
     <div style={{ minHeight: '100dvh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT }}>
+      <TyshaAgeGate />
       <ReadTracker slug={ep.slug} />
       <TyshaProgressTracker storyId={ep.id} storyTitle={ep.title} locked={locked} />
 

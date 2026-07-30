@@ -4,6 +4,7 @@ import Footer from '../components/Footer'
 import AudioPlayer from '../components/AudioPlayer'
 import { ThemeProvider } from '../context/ThemeContext'
 import TyshaSection from '../components/TyshaSection'
+import TyshaAgeGate from '../components/TyshaAgeGate'
 
 export const metadata: Metadata = {
   title: 'ТИША — авторський серіал Назара Колодія · Балабони',
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
 export default function TyshaIndexPage() {
   return (
     <ThemeProvider>
+      <TyshaAgeGate />
       <Header />
       <main style={{ minHeight: '40vh', paddingTop: 8 }}>
         <TyshaSection />
