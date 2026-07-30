@@ -2,6 +2,14 @@
 
 import { useEffect, useState } from 'react'
 
+const GOLD = '#ef9f27'
+const NAVY_DEEP = '#0a1628'
+const NAVY = '#0f1e3a'
+const CREAM = '#f5f0e8'
+const MUTED = '#b9c6db'
+const FONT = "'Montserrat', Arial, sans-serif"
+const LINE = 'rgba(143,163,196,0.22)'
+
 type NameRow = { author_name: string; stories: string }
 type ProfileRow = {
   user_id: string
@@ -15,27 +23,28 @@ export default function LinkAuthorsPage() {
   const [profiles, setProfiles] = useState<ProfileRow[]>([])
   const [chosen, setChosen] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState<string | null>(null)
-  const [note, setNote] = useState<string>('')
+  const [note, setNote] = useState('')
+  const [err, setErr] = useState('')
   const [loading, setLoading] = useState(true)
 
-  async function load() {
+  const load = async () => {
     setLoading(true)
     try {
       const res = await fetch('/api/admin/link-authors', { cache: 'no-store' })
-      const data = (await res.json()) as {
+      const d = (await res.json()) as {
         ok: boolean
         error?: string
         names?: NameRow[]
         profiles?: ProfileRow[]
       }
-      if (!data.ok) {
-        setNote(data.error ?? 'Не вдалося завантажити список')
+      if (!d.ok) {
+        setErr(d.error ?? 'Не вдалося завантажити список')
         return
       }
-      setNames(data.names ?? [])
-      setProfiles(data.profiles ?? [])
+      setNames(d.names ?? [])
+      setProfiles(d.profiles ?? [])
     } catch {
-      setNote('Немає зв’язку з сервером')
+      setErr('Немає звʼязку з сервером')
     } finally {
       setLoading(false)
     }
@@ -45,122 +54,173 @@ export default function LinkAuthorsPage() {
     void load()
   }, [])
 
-  function label(p: ProfileRow): string {
+  const label = (p: ProfileRow): string => {
     const main = p.display_name ?? p.email ?? p.user_id.slice(0, 8)
     return p.pen_name ? `${main} (${p.pen_name})` : main
   }
 
-  async function link(authorName: string) {
+  const link = async (authorName: string) => {
     const userId = chosen[authorName]
+    setErr('')
+    setNote('')
     if (!userId) {
-      setNote(`Оберіть профіль для «${authorName}»`)
+      setErr(`Оберіть профіль для «${authorName}»`)
       return
     }
     const prof = profiles.find((p) => p.user_id === userId)
     const count = names.find((n) => n.author_name === authorName)?.stories ?? '?'
-    const ok = window.confirm(
-      `Прив’язати ${count} історій імені «${authorName}» до профілю ${prof ? label(prof) : userId}?`
-    )
-    if (!ok) return
+    if (
+      !window.confirm(
+        `Привʼязати ${count} історій імені «${authorName}» до профілю ${
+          prof ? label(prof) : userId
+        }?`
+      )
+    ) {
+      return
+    }
 
     setBusy(authorName)
-    setNote('')
     try {
       const res = await fetch('/api/admin/link-authors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ author_name: authorName, user_id: userId }),
       })
-      const data = (await res.json()) as { ok: boolean; error?: string; linked?: number }
-      if (!data.ok) {
-        setNote(data.error ?? 'Прив’язати не вдалося')
+      const d = (await res.json()) as { ok: boolean; error?: string; linked?: number }
+      if (!d.ok) {
+        setErr(d.error ?? 'Привʼязати не вдалося')
         return
       }
-      setNote(`Прив’язано історій: ${data.linked ?? 0} — «${authorName}»`)
+      setNote(`«${authorName}» — привʼязано історій: ${d.linked ?? 0}`)
       await load()
     } catch {
-      setNote('Немає зв’язку з сервером')
+      setErr('Немає звʼязку з сервером')
     } finally {
       setBusy(null)
     }
   }
 
+  const card = {
+    background: NAVY,
+    border: `1px solid ${LINE}`,
+    borderRadius: 12,
+    padding: 20,
+  } as const
+
   return (
-    <main className="min-h-screen bg-[#0b1524] px-4 py-10 text-slate-200">
-      <div className="mx-auto max-w-3xl">
-        <h1 className="text-3xl font-semibold tracking-wide text-amber-400">
-          Прив’язка авторів
+    <main
+      style={{
+        background: NAVY_DEEP,
+        padding: '36px 20px 72px',
+        fontFamily: FONT,
+        color: CREAM,
+        minHeight: '100vh',
+      }}
+    >
+      <div style={{ maxWidth: 760, margin: '0 auto' }}>
+        <h1 style={{ fontSize: 26, fontWeight: 800, margin: '0 0 6px' }}>
+          Привʼязка авторів
         </h1>
-        <p className="mt-3 text-sm leading-relaxed text-slate-400">
-          Історії з архіву мають ім’я автора, але не прив’язані до акаунта — тому автор
-          не бачить їх у кабінеті. Оберіть профіль і прив’яжіть. Один профіль можна
-          прив’язати до кількох імен, якщо автор писав під псевдонімами.
+        <p style={{ fontSize: 15, color: MUTED, lineHeight: 1.6, margin: '0 0 24px' }}>
+          Історії з архіву мають імʼя автора, але не привʼязані до акаунта — тому автор
+          не бачить їх у кабінеті. Оберіть профіль і привʼяжіть. Один профіль можна
+          привʼязати до кількох імен, якщо автор писав під псевдонімами.
         </p>
 
+        {err && (
+          <p
+            style={{
+              color: GOLD,
+              fontWeight: 700,
+              fontSize: 14.5,
+              margin: '0 0 16px',
+            }}
+          >
+            {err}
+          </p>
+        )}
         {note && (
-          <div className="mt-6 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-            {note}
-          </div>
+          <p style={{ color: CREAM, fontSize: 14.5, margin: '0 0 16px' }}>{note}</p>
         )}
 
-        {loading && <p className="mt-8 text-slate-400">Завантажую…</p>}
+        {loading && <p style={{ color: MUTED, fontSize: 15 }}>Завантажую…</p>}
 
         {!loading && profiles.length === 0 && (
-          <div className="mt-8 rounded-xl border border-white/10 bg-[#132238] p-6 text-slate-300">
-            Авторських профілів ще немає. Прив’язувати можна буде після того, як автори
-            зареєструють кабінети.
+          <div style={card}>
+            <p style={{ fontSize: 15, color: CREAM, margin: 0 }}>
+              Авторських профілів ще немає. Привʼязувати можна буде після того, як
+              автори зареєструють кабінети.
+            </p>
           </div>
         )}
 
         {!loading && names.length === 0 && (
-          <div className="mt-8 rounded-xl border border-white/10 bg-[#132238] p-6 text-slate-300">
-            Непов’язаних історій немає — усі мають автора.
+          <div style={card}>
+            <p style={{ fontSize: 15, color: CREAM, margin: 0 }}>
+              Непривʼязаних історій немає — усі мають автора.
+            </p>
           </div>
         )}
 
-        {!loading && names.length > 0 && profiles.length > 0 && (
-          <ul className="mt-8 space-y-3">
-            {names.map((n) => (
-              <li
-                key={n.author_name}
-                className="rounded-xl border border-white/10 bg-[#132238] p-4 sm:flex sm:items-center sm:gap-4"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-lg text-slate-100">{n.author_name}</div>
-                  <div className="text-sm text-slate-400">
-                    історій: <span className="text-amber-400">{n.stories}</span>
-                  </div>
-                </div>
+        {!loading &&
+          names.length > 0 &&
+          profiles.length > 0 &&
+          names.map((n) => (
+            <div key={n.author_name} style={{ ...card, marginBottom: 12 }}>
+              <div style={{ fontSize: 17, fontWeight: 700, color: CREAM }}>
+                {n.author_name}
+              </div>
+              <div style={{ fontSize: 14, color: MUTED, margin: '4px 0 14px' }}>
+                історій: <strong style={{ color: GOLD }}>{n.stories}</strong>
+              </div>
 
-                <div className="mt-3 flex items-center gap-3 sm:mt-0">
-                  <select
-                    value={chosen[n.author_name] ?? ''}
-                    onChange={(e) =>
-                      setChosen((prev) => ({ ...prev, [n.author_name]: e.target.value }))
-                    }
-                    className="max-w-[15rem] flex-1 rounded-lg border border-white/15 bg-[#0b1524] px-3 py-2 text-sm text-slate-200 focus:border-amber-500 focus:outline-none"
-                  >
-                    <option value="">— профіль —</option>
-                    {profiles.map((p) => (
-                      <option key={p.user_id} value={p.user_id}>
-                        {label(p)}
-                      </option>
-                    ))}
-                  </select>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <select
+                  value={chosen[n.author_name] ?? ''}
+                  onChange={(e) =>
+                    setChosen((prev) => ({ ...prev, [n.author_name]: e.target.value }))
+                  }
+                  style={{
+                    flex: '1 1 240px',
+                    background: NAVY_DEEP,
+                    color: CREAM,
+                    border: `1px solid ${LINE}`,
+                    borderRadius: 8,
+                    padding: '9px 12px',
+                    fontSize: 14.5,
+                    fontFamily: FONT,
+                  }}
+                >
+                  <option value="">— профіль —</option>
+                  {profiles.map((p) => (
+                    <option key={p.user_id} value={p.user_id}>
+                      {label(p)}
+                    </option>
+                  ))}
+                </select>
 
-                  <button
-                    type="button"
-                    onClick={() => void link(n.author_name)}
-                    disabled={busy === n.author_name}
-                    className="shrink-0 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-[#0b1524] transition hover:bg-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 disabled:opacity-50"
-                  >
-                    {busy === n.author_name ? 'Прив’язую…' : 'Прив’язати'}
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+                <button
+                  type="button"
+                  onClick={() => void link(n.author_name)}
+                  disabled={busy === n.author_name}
+                  style={{
+                    background: GOLD,
+                    color: NAVY_DEEP,
+                    border: 'none',
+                    borderRadius: 8,
+                    padding: '9px 20px',
+                    fontSize: 14.5,
+                    fontWeight: 700,
+                    fontFamily: FONT,
+                    cursor: busy === n.author_name ? 'default' : 'pointer',
+                    opacity: busy === n.author_name ? 0.5 : 1,
+                  }}
+                >
+                  {busy === n.author_name ? 'Привʼязую…' : 'Привʼязати'}
+                </button>
+              </div>
+            </div>
+          ))}
       </div>
     </main>
   )
