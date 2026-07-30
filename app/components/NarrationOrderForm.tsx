@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 
 const FONT = "'Montserrat', Arial, sans-serif"
 
@@ -9,9 +10,9 @@ type Variant = 'dark' | 'cream'
 function getTheme(variant: Variant) {
   if (variant === 'cream') {
     return {
-      card: '#f6f1e7', border: '#ef9f27', title: '#b45309', body: '#292524',
-      label: '#16202e', inputBg: '#fffdf7', inputBorder: '#ded4bf', inputText: '#1c1917',
-      btnBg: '#ef9f27', btnText: '#1c1917',
+      card: '#f6f1e7', border: '#ef9f27', title: '#b45309', body: '#2c3a52',
+      label: '#16202e', inputBg: '#fffdf7', inputBorder: '#ded4bf', inputText: '#16202e',
+      btnBg: '#ef9f27', btnText: '#16202e',
     }
   }
   return {
@@ -38,14 +39,16 @@ export default function NarrationOrderForm({ variant = 'dark' }: { variant?: Var
   const [workTitle, setWorkTitle] = useState('')
   const [workType, setWorkType] = useState('Книга')
   const [volume, setVolume] = useState('')
+  const [voiceGender, setVoiceGender] = useState('Не має значення')
+  const [voiceAge, setVoiceAge] = useState('Не має значення')
   const [comment, setComment] = useState('')
   const [website, setWebsite] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
   async function handleSubmit() {
-    if (!name.trim() || !email.trim() || !workTitle.trim()) {
-      setErrorMsg("Заповніть ім'я, email і назву твору")
+    if (!name.trim() || !email.trim() || !workTitle.trim() || !comment.trim()) {
+      setErrorMsg("Заповніть ім'я, email, назву твору й побажання до озвучення")
       setStatus('error')
       return
     }
@@ -55,7 +58,7 @@ export default function NarrationOrderForm({ variant = 'dark' }: { variant?: Var
       const res = await fetch('/api/narration-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, workTitle, workType, volume, comment, website }),
+        body: JSON.stringify({ name, email, workTitle, workType, volume, voiceGender, voiceAge, comment, website }),
       })
       if (res.ok) {
         setStatus('sent')
@@ -89,7 +92,7 @@ export default function NarrationOrderForm({ variant = 'dark' }: { variant?: Var
         Замовити озвучення
       </div>
       <p style={{ fontSize: 15, color: t.body, lineHeight: 1.7, marginBottom: 20 }}>
-        Хочете аудіоверсію своєї книги чи серіалу? Озвучуємо голосами наших редакторів і письменників, які дали згоду на створення своїх синтезованих голосів. Залиште заявку — порахуємо вартість під ваш текст.
+        Хочете аудіоверсію своєї книги чи серіалу? Запис із дикторами стартує у вересні 2026 — читатимуть наші редактори й письменники, які дали на це згоду. Заявки збираємо вже зараз: залиште свою, і ми порахуємо вартість під ваш текст.
       </p>
 
       <input type="text" value={website} onChange={e => setWebsite(e.target.value)} style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
@@ -112,8 +115,36 @@ export default function NarrationOrderForm({ variant = 'dark' }: { variant?: Var
       <label style={labelStyle}>Орієнтовний обсяг (слів або сторінок)</label>
       <input style={inputStyle} value={volume} onChange={e => setVolume(e.target.value)} placeholder="Напр.: 20 000 слів або 80 сторінок" />
 
-      <label style={labelStyle}>Коментар (необовʼязково)</label>
-      <textarea style={{ ...inputStyle, minHeight: 90, resize: 'vertical' }} value={comment} onChange={e => setComment(e.target.value)} placeholder="Бажаний термін, побажання до голосу тощо" />
+      <label style={labelStyle}>Голос</label>
+      <select style={inputStyle} value={voiceGender} onChange={e => setVoiceGender(e.target.value)}>
+        <option>Не має значення</option>
+        <option>Чоловічий</option>
+        <option>Жіночий</option>
+        <option>Кілька голосів (аудіодрама)</option>
+      </select>
+
+      <label style={labelStyle}>Вік голосу</label>
+      <select style={inputStyle} value={voiceAge} onChange={e => setVoiceAge(e.target.value)}>
+        <option>Не має значення</option>
+        <option>Молодий (20–35)</option>
+        <option>Середній (35–50)</option>
+        <option>Зрілий (50+)</option>
+      </select>
+
+      <Link
+        href="/holosy"
+        style={{
+          display: 'inline-block', marginBottom: 18,
+          fontSize: 14, fontWeight: 700, color: t.label,
+          border: `1px solid ${t.inputBorder}`, borderRadius: 10,
+          padding: '10px 16px', textDecoration: 'none', fontFamily: FONT,
+        }}
+      >
+        Послухати наявні голоси →
+      </Link>
+
+      <label style={labelStyle}>Побажання до озвучення *</label>
+      <textarea style={{ ...inputStyle, minHeight: 110, resize: 'vertical' }} value={comment} onChange={e => setComment(e.target.value)} placeholder="Темп і настрій читання, наголоси у власних назвах, діалекти, бажаний термін. Якщо особливих вимог немає — так і напишіть." />
 
       {status === 'error' && (
         <p style={{ color: '#d92d20', fontSize: 14, marginBottom: 12 }}>{errorMsg}</p>
