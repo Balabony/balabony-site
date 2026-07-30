@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import KepUpload from '@/app/components/KepUpload'
 
 const BRAND = {
   cream: '#0f1e3a',
@@ -182,6 +183,8 @@ export default function AuthorContracts({ contracts }: { contracts: ContractRow[
             )}
           </div>
 
+          {c.status !== 'signed' && <KepUpload contractId={c.id} docUrl={c.doc_url} />}
+
           {activeId === c.id && session && (
             <div style={{ marginTop: 16, padding: '1rem', border: `1px solid ${BRAND.line}`, borderRadius: 12, background: '#fffdf8' }}>
               <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start' }}>
@@ -233,7 +236,8 @@ export default function AuthorContracts({ contracts }: { contracts: ContractRow[
       )}
 
       <p style={{ color: BRAND.muted, fontSize: '0.82rem', marginTop: 16, lineHeight: 1.6 }}>
-        Немає Дія.Підпису? Підпишіть кваліфікованим електронним підписом банку або{' '}
+        Немає Дія.Підпису? Підпишіть договір кваліфікованим електронним підписом і додайте файл нижче,
+        або{' '}
         <a href="/contact" style={{ color: BRAND.amberDark }}>замовте паперовий примірник</a>.
       </p>
     </section>
