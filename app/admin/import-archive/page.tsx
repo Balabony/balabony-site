@@ -19,6 +19,7 @@ export default function ImportArchivePage() {
   const [done, setDone] = useState(0)
   const [added, setAdded] = useState(0)
   const [skipped, setSkipped] = useState(0)
+  const [failed, setFailed] = useState(0)
   const [log, setLog] = useState<string[]>([])
   const [err, setErr] = useState('')
 
@@ -36,7 +37,7 @@ export default function ImportArchivePage() {
 
   const run = async () => {
     if (!items) return
-    setBusy(true); setLog([]); setDone(0); setAdded(0); setSkipped(0)
+    setBusy(true); setLog([]); setDone(0); setAdded(0); setSkipped(0); setFailed(0)
     try {
       for (let i = 0; i < items.length; i += CHUNK) {
         const part = items.slice(i, i + CHUNK)
@@ -45,10 +46,15 @@ export default function ImportArchivePage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ items: part }),
         })
-        const d = (await res.json()) as { ok: boolean; error?: string; added?: number; skipped?: number; problems?: string[] }
+        const d = (await res.json()) as {
+          ok: boolean; error?: string
+          added?: number; duplicates?: number; failed?: number; skipped?: number
+          problems?: string[]
+        }
         if (!d.ok) { setErr(d.error ?? 'Помилка партії'); break }
         setAdded(p => p + (d.added ?? 0))
-        setSkipped(p => p + (d.skipped ?? 0))
+        setSkipped(p => p + (d.duplicates ?? d.skipped ?? 0))
+        setFailed(p => p + (d.failed ?? 0))
         setDone(Math.min(i + CHUNK, items.length))
         if (d.problems?.length) setLog(p => [...p, ...(d.problems ?? [])].slice(0, 40))
       }
@@ -112,7 +118,8 @@ export default function ImportArchivePage() {
               </div>
               <p style={{ fontSize: 14.5, color: MUTED, margin: '10px 0 0' }}>
                 Оброблено {done} з {total} · додано <strong style={{ color: '#C0DD97' }}>{added}</strong> ·
-                пропущено <strong style={{ color: MUTED }}>{skipped}</strong>
+                вже були <strong style={{ color: MUTED }}>{skipped}</strong> ·
+                не вдалося <strong style={{ color: GOLD }}>{failed}</strong>
               </p>
             </div>
           )}

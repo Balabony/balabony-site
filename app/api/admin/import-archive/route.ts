@@ -7,8 +7,16 @@ import { dbQuery } from '@/lib/db'
  * Кожна історія лягає чернеткою з іменем автора в author_name; author_id
  * лишається порожнім, доки автор не зареєструється — тоді прив’язуємо окремо.
  *
- * Повторний запуск нічого не дублює: у writer_note записано мітку
- * storriss:<id>, і рядки з такою міткою пропускаються.
+ * Повторний запуск нічого не дублює: у writer_note першим сегментом
+ * записано мітку storriss:<id>, і рядки з такою міткою пропускаються.
+ *
+ * Мітка звіряється ТОЧНО (split_part по ' · '), а не через like '%…%':
+ * пошук за шаблоном збігався з будь-яким довшим числом — storriss:12
+ * ловило storriss:120, storriss:125, і нові історії мовчки зникали.
+ *
+ * Лічильники роздільні: added — вставлено, duplicates — уже були,
+ * failed — не вдалося. Інакше «пропущено» змішує дублі з помилками
+ * і виглядає так, ніби імпорт нічого не зробив.
  */
 
 function isAdmin(req: NextRequest): boolean {
@@ -65,7 +73,8 @@ export async function POST(req: NextRequest) {
   if (items.length > 30) return NextResponse.json({ ok: false, error: 'Не більше 30 за раз' }, { status: 400 })
 
   let added = 0
-  let skipped = 0
+  let duplicates = 0
+  let failed = 0
   const problems: string[] = []
 
   for (const it of items) {
@@ -73,12 +82,18 @@ export async function POST(req: NextRequest) {
     const text = (it.text ?? '').trim()
     const author = (it.author ?? '').trim()
 
-    if (!title || !text || !author) { skipped++; problems.push(`без назви або тексту: ${title || it.source_id}`); continue }
+    if (!title || !text || !author) { failed++; problems.push(`без назви або тексту: ${title || it.source_id}`); continue }
 
-    const mark = `storriss:${it.source_id ?? ''}`
+    const sourceId = String(it.source_id ?? '').trim()
+    if (!sourceId) { failed++; problems.push(`без source_id: ${title.slice(0, 40)}`); continue }
 
-    const dup = await dbQuery(`select id from content where writer_note like $1 limit 1`, [`%${mark}%`])
-    if (dup.rowCount && dup.rowCount > 0) { skipped++; continue }
+    const mark = `storriss:${sourceId}`
+
+    const dup = await dbQuery(
+      `select id from content where split_part(writer_note, ' · ', 1) = $1 limit 1`,
+      [mark],
+    )
+    if (dup.rowCount && dup.rowCount > 0) { duplicates++; continue }
 
     let slug = slugFromUrl(it.source_url, title)
     for (let i = 0; i < 12; i++) {
@@ -105,10 +120,17 @@ export async function POST(req: NextRequest) {
       )
       added++
     } catch (e) {
-      skipped++
+      failed++
       problems.push(`${title.slice(0, 40)}: ${(e as Error).message.slice(0, 90)}`)
     }
   }
 
-  return NextResponse.json({ ok: true, added, skipped, problems: problems.slice(0, 10) })
+  return NextResponse.json({
+    ok: true,
+    added,
+    duplicates,
+    failed,
+    skipped: duplicates + failed,
+    problems: problems.slice(0, 10),
+  })
 }
