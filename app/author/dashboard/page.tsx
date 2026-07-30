@@ -51,20 +51,21 @@ const STATUS_LABEL: Record<string, string> = {
   humanizing: 'Обробка',
   human_review: 'Перевірка',
   approved: 'Схвалено',
+  review: 'На редактурі',
   published: 'Опубліковано',
 }
 
 // --- Бренд-токени Balabony (зі сайту: theme-color #ef9f27, темно-синя героїка, кремові поверхні, сериф) ---
 const BRAND = {
-  navy: '#16202e',        // фон сторінки (героїка сайту)
-  navyCard: '#1f2937',    // темна картка (умови)
-  cream: '#f6f1e7',       // світлі картки
-  amber: '#ef9f27',       // фірмовий бурштин (акцент, баланс, кнопка)
-  amberDark: '#b45309',   // посилання
-  ink: '#16202e',         // заголовки
-  text: '#2c3a52',        // основний текст
-  muted: '#2c3a52',       // приглушений текст
-  line: '#e7e0d2',        // розділювачі на кремовому
+  navy: '#0a1628',
+  navyCard: '#122445',
+  cream: '#0f1e3a',
+  amber: '#ef9f27',
+  amberDark: '#FFB347',
+  ink: '#f5f0e8',
+  text: '#dbe4f0',
+  muted: '#8fa3c4',
+  line: 'rgba(143,163,196,0.22)',
 }
 const SERIF = 'Georgia, "Times New Roman", serif'
 
@@ -103,7 +104,7 @@ export default async function AuthorDashboardPage() {
 
   if (!profile) {
     return (
-      <main style={{ minHeight: '100vh', padding: '2rem 1rem', background: BRAND.navy }}>
+      <main style={{ padding: '2rem 1rem', background: BRAND.navy }}>
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
           <BrandBar />
           <div style={{ background: BRAND.cream, padding: '2.5rem', borderRadius: 16, boxShadow: '0 20px 50px rgba(0,0,0,0.35)' }}>
@@ -197,10 +198,10 @@ export default async function AuthorDashboardPage() {
     boxShadow: '0 10px 30px rgba(0,0,0,0.25)', flex: '1 1 160px',
   }
   const statNum: React.CSSProperties = { fontSize: '2rem', fontWeight: 700, color: BRAND.ink, lineHeight: 1 }
-  const statLabel: React.CSSProperties = { fontSize: '0.88rem', color: '#2c3a52', fontWeight: 600, marginTop: 6 }
+  const statLabel: React.CSSProperties = { fontSize: '0.88rem', color: '#8fa3c4', fontWeight: 600, marginTop: 6 }
 
   return (
-    <main style={{ minHeight: '100vh', padding: '2rem 1rem', background: BRAND.navy }}>
+    <main style={{ padding: '2rem 1rem', background: BRAND.navy }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
         <BrandBar />
@@ -262,24 +263,34 @@ export default async function AuthorDashboardPage() {
                     <div style={{ color: BRAND.ink, fontWeight: 700, fontSize: '1rem', lineHeight: 1.35, minWidth: 0, flex: '1 1 200px' }}>
                       {s.title}
                       {s.is_free && (
-                        <span style={{ marginLeft: 8, fontSize: '0.7rem', color: '#16202e', background: '#fbe3b4', border: '1px solid #d9a94f', padding: '2px 8px', borderRadius: 999, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                        <span style={{ marginLeft: 8, fontSize: '0.7rem', color: '#ef9f27', background: 'rgba(239,159,39,0.18)', border: '1px solid rgba(239,159,39,0.5)', padding: '2px 8px', borderRadius: 999, fontWeight: 700, whiteSpace: 'nowrap' }}>
                           безкоштовна
                         </span>
                       )}
                     </div>
                     <span style={{
                       flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,
-                      background: '#e4e8f0', border: '1px solid #a9b6cc', color: '#16202e', fontWeight: 700,
+                      background: 'rgba(143,163,196,0.15)', border: '1px solid rgba(143,163,196,0.35)', color: '#dbe4f0', fontWeight: 700,
                       whiteSpace: 'nowrap', lineHeight: 1.5,
                     }}>
                       {STATUS_LABEL[s.status] || s.status}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', gap: '1.1rem', flexWrap: 'wrap', marginTop: 8, fontSize: '0.88rem', color: '#2c3a52' }}>
+                  <div style={{ display: 'flex', gap: '1.1rem', flexWrap: 'wrap', marginTop: 8, fontSize: '0.88rem', color: '#8fa3c4' }}>
                     <span>Перегляди: <strong style={{ color: BRAND.ink }}>{s.views_count}</strong></span>
                     <span>Прочитань: <strong style={{ color: BRAND.ink }}>{s.reads_total}</strong></span>
                     <span>Дочитування: <strong style={{ color: BRAND.ink }}>{s.avg_read_percentage}%</strong></span>
                   </div>
+                  <a
+                    href={`/author/series/${s.content_id}`}
+                    style={{
+                      display: 'inline-block', marginTop: 10, fontSize: '0.85rem', fontWeight: 700,
+                      color: BRAND.amber, textDecoration: 'none',
+                      border: '1px solid rgba(239,159,39,0.45)', borderRadius: 8, padding: '7px 13px',
+                    }}
+                  >
+                    Супровідні тексти →
+                  </a>
                 </div>
               ))}
             </div>
@@ -293,7 +304,7 @@ export default async function AuthorDashboardPage() {
         <AuthorSurvey initial={feedback} />
 
         <div style={{ marginTop: '1.5rem' }}>
-          <NarrationOrderForm variant="cream" />
+          <NarrationOrderForm />
         </div>
 
         <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.8rem', marginTop: '1rem', lineHeight: 1.5 }}>

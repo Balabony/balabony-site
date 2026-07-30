@@ -3,13 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 const BRAND = {
-  cream: '#f6f1e7',
+  cream: '#0f1e3a',
   amber: '#ef9f27',
-  amberDark: '#b45309',
-  ink: '#16202e',
-  text: '#2c3a52',
-  muted: '#2c3a52',
-  line: '#e7e0d2',
+  amberDark: '#FFB347',
+  ink: '#f5f0e8',
+  text: '#dbe4f0',
+  muted: '#8fa3c4',
+  line: 'rgba(143,163,196,0.22)',
 }
 const SERIF = 'Georgia, "Times New Roman", serif'
 
@@ -158,7 +158,7 @@ export default function AuthorContracts({ contracts }: { contracts: ContractRow[
               flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,
               letterSpacing: '0.02em', whiteSpace: 'nowrap', lineHeight: 1.5,
               fontWeight: 700,
-              ...(c.status === 'signed' ? { background: '#dbe7dd', color: '#12351f', border: '1px solid #9dbaa6' } : { background: '#e4e8f0', color: '#16202e', border: '1px solid #a9b6cc' }),
+              ...(c.status === 'signed' ? { background: 'rgba(151,196,89,0.16)', color: '#C0DD97', border: '1px solid rgba(151,196,89,0.4)' } : { background: 'rgba(143,163,196,0.15)', color: '#dbe4f0', border: '1px solid rgba(143,163,196,0.35)' }),
             }}>
               {STATUS_LABEL[c.status] || c.status}
             </span>
@@ -186,7 +186,7 @@ export default function AuthorContracts({ contracts }: { contracts: ContractRow[
             <div style={{ marginTop: 16, padding: '1rem', border: `1px solid ${BRAND.line}`, borderRadius: 12, background: '#fffdf8' }}>
               <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start' }}>
                 <div style={{
-                  width: 150, height: 150, flex: 'none', borderRadius: 10, background: '#fff',
+                  width: 150, height: 150, flex: 'none', borderRadius: 10, background: '#ffffff' /* QR: лишається білим */,
                   border: `1px solid ${BRAND.line}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
                   overflow: 'hidden',
                 }}>
@@ -242,7 +242,7 @@ export default function AuthorContracts({ contracts }: { contracts: ContractRow[
 
 const linkBtn: React.CSSProperties = {
   display: 'inline-block', padding: '0.5rem 0.9rem', borderRadius: 9,
-  border: `1px solid ${BRAND.line}`, background: '#fff', color: BRAND.text,
+  border: `1px solid ${BRAND.line}`, background: 'transparent', color: BRAND.text,
   textDecoration: 'none', fontSize: '0.85rem',
 }
 

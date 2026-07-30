@@ -3,28 +3,28 @@
 import { useState } from 'react'
 
 const BRAND = {
-  cream: '#f6f1e7',
+  cream: '#0f1e3a',
   amber: '#ef9f27',
-  amberDark: '#b45309',
-  ink: '#16202e',
-  text: '#2c3a52',
-  muted: '#2c3a52',
-  line: '#e7e0d2',
+  amberDark: '#FFB347',
+  ink: '#f5f0e8',
+  text: '#dbe4f0',
+  muted: '#8fa3c4',
+  line: 'rgba(143,163,196,0.22)',
 }
 const SERIF = 'Georgia, "Times New Roman", serif'
 
 const UI = {
-  labelText: '#16202e',
-  fieldBorder: '#ded4bf',
-  chipBg: '#fffdf7',
-  chipBorder: '#cfc3aa',
-  chipText: '#16202e',
-  chipOnBg: '#fbe3b4',
-  chipOnBorder: '#d98324',
-  chipOnText: '#7a4a06',
+  labelText: '#f5f0e8',
+  fieldBorder: 'rgba(143,163,196,0.28)',
+  chipBg: 'rgba(255,255,255,0.05)',
+  chipBorder: 'rgba(143,163,196,0.32)',
+  chipText: '#f5f0e8',
+  chipOnBg: 'rgba(239,159,39,0.18)',
+  chipOnBorder: '#ef9f27',
+  chipOnText: '#ef9f27',
   solidBg: '#ef9f27',
   solidBorder: '#d98324',
-  solidText: '#16202e',
+  solidText: '#0a1628',
 }
 
 
@@ -133,7 +133,7 @@ export default function AuthorRequisites({ initial }: Props) {
           flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,
           letterSpacing: '0.02em', whiteSpace: 'nowrap', lineHeight: 1.5,
           fontWeight: 700,
-          ...(complete ? { background: '#dbe7dd', color: '#12351f', border: '1px solid #9dbaa6' } : { background: '#e4e8f0', color: '#16202e', border: '1px solid #a9b6cc' }),
+          ...(complete ? { background: 'rgba(151,196,89,0.16)', color: '#C0DD97', border: '1px solid rgba(151,196,89,0.4)' } : { background: 'rgba(143,163,196,0.15)', color: '#dbe4f0', border: '1px solid rgba(143,163,196,0.35)' }),
         }}>
           {complete ? 'Заповнено' : 'Треба заповнити'}
         </span>
@@ -202,7 +202,7 @@ export default function AuthorRequisites({ initial }: Props) {
               onChange={e => set('bank_name', e.target.value)}
               style={{
                 width: '100%', padding: '0.6rem 0.75rem', border: `1px solid ${UI.fieldBorder}`,
-                borderRadius: 10, background: '#fffdf7', color: BRAND.text, fontSize: '0.95rem',
+                borderRadius: 10, background: 'rgba(255,255,255,0.05)', color: BRAND.text, fontSize: '0.95rem',
                 fontFamily: 'inherit', boxSizing: 'border-box',
               }}
             />
@@ -251,7 +251,7 @@ function Field(
         onChange={e => onChange(e.target.value)}
         style={{
           width: '100%', padding: '0.6rem 0.75rem', border: `1px solid ${UI.fieldBorder}`,
-          borderRadius: 10, background: '#fffdf7', color: BRAND.text, fontSize: '0.95rem',
+          borderRadius: 10, background: 'rgba(255,255,255,0.05)', color: BRAND.text, fontSize: '0.95rem',
           fontFamily: 'inherit', boxSizing: 'border-box',
         }}
       />
@@ -274,7 +274,7 @@ const bankOff: React.CSSProperties = {
 }
 
 const label: React.CSSProperties = {
-  fontSize: '0.95rem', color: '#16202e', fontWeight: 700, marginBottom: 6,
+  fontSize: '0.95rem', color: '#f5f0e8', fontWeight: 700, marginBottom: 6,
   letterSpacing: '0.01em', overflowWrap: 'anywhere',
 }
 

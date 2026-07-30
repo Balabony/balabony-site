@@ -3,13 +3,13 @@
 import { useMemo, useState } from 'react'
 
 const BRAND = {
-  cream: '#f6f1e7',
+  cream: '#0f1e3a',
   amber: '#ef9f27',
-  amberDark: '#b45309',
-  ink: '#16202e',
-  text: '#2c3a52',
-  muted: '#2c3a52',
-  line: '#e7e0d2',
+  amberDark: '#FFB347',
+  ink: '#f5f0e8',
+  text: '#dbe4f0',
+  muted: '#8fa3c4',
+  line: 'rgba(143,163,196,0.22)',
 }
 
 export type WorkRow = {
@@ -77,7 +77,7 @@ export default function ContractWorksList({ contractId, contractNumber, works }:
   return (
     <div>
       <div style={{ marginBottom: '1.25rem' }}>
-        <div style={{ fontSize: '0.95rem', color: '#16202e', lineHeight: 1.7 }}>
+        <div style={{ fontSize: '0.95rem', color: '#f5f0e8', lineHeight: 1.7 }}>
           Це перелік творів до договору № {contractNumber} — Додаток № 1. Підтвердження твору
           означає, що ви погоджуєтесь на його розміщення та озвучення на умовах договору.
         </div>
@@ -122,7 +122,7 @@ export default function ContractWorksList({ contractId, contractNumber, works }:
               flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,
               letterSpacing: '0.02em', whiteSpace: 'nowrap', lineHeight: 1.5,
               fontWeight: 700,
-              ...(w.confirmed_at ? { background: '#dbe7dd', color: '#12351f', border: '1px solid #9dbaa6' } : { background: '#e4e8f0', color: '#16202e', border: '1px solid #a9b6cc' }),
+              ...(w.confirmed_at ? { background: 'rgba(151,196,89,0.16)', color: '#C0DD97', border: '1px solid rgba(151,196,89,0.4)' } : { background: 'rgba(143,163,196,0.15)', color: '#dbe4f0', border: '1px solid rgba(143,163,196,0.35)' }),
             }}>
               {w.confirmed_at ? 'Підтверджено' : 'Очікує'}
             </span>
@@ -137,7 +137,7 @@ export default function ContractWorksList({ contractId, contractNumber, works }:
                 placeholder="Раніше публікувався в… (якщо ні — лишіть порожнім)"
                 style={{
                   flex: '1 1 260px', minWidth: 200, padding: '0.5rem 0.7rem',
-                  border: `1px solid ${BRAND.line}`, borderRadius: 8, background: '#fff',
+                  border: `1px solid ${BRAND.line}`, borderRadius: 8, background: 'transparent',
                   color: BRAND.text, fontSize: '0.88rem', fontFamily: 'inherit',
                 }}
               />
@@ -169,6 +169,6 @@ const primaryBtn: React.CSSProperties = {
 
 const secondaryBtn: React.CSSProperties = {
   padding: '0.5rem 0.9rem', borderRadius: 9, border: `1px solid ${BRAND.line}`,
-  background: '#fff', color: BRAND.text, fontSize: '0.85rem',
+  background: 'transparent', color: BRAND.text, fontSize: '0.85rem',
   cursor: 'pointer', fontFamily: 'inherit',
 }
