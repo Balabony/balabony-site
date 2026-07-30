@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
   if (!own.ok) return NextResponse.json({ ok: false, error: own.error }, { status: own.status })
 
   const r = await dbQuery(
-    `select id, title, status, publish_at, description, recap, next_teaser, social_post
+    `select id, title, status, publish_at, description, recap, next_teaser, social_post, type
        from content where id = $1`,
     [id],
   )

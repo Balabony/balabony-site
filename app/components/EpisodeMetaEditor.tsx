@@ -23,7 +23,13 @@ type Episode = {
   recap: string | null
   next_teaser: string | null
   social_post: string | null
+  type: string | null
 }
+
+// «Що було раніше» і «Анонс наступної» мають сенс лише в серіалі:
+// для окремого оповідання немає ні попередньої, ні наступної серії.
+const SERIAL_ONLY: Field[] = ['recap', 'next_teaser']
+const SERIAL_TYPES = ['balabony', 'tysha']
 
 const FIELDS: { key: Field; label: string; hint: string; rows: number }[] = [
   { key: 'description', label: 'Опис серії', hint: 'Картка в стрічці, прев’ю при поширенні, пошук', rows: 3 },
@@ -136,7 +142,9 @@ export default function EpisodeMetaEditor({ id }: { id: string }) {
         </span>
       </div>
 
-      {FIELDS.map(f => {
+      {FIELDS.filter(f => (
+        SERIAL_TYPES.includes(ep.type ?? '') || !SERIAL_ONLY.includes(f.key)
+      )).map(f => {
         const len = vals[f.key].length
         const lim = LIMITS[f.key]
         const near = len > lim - 20
