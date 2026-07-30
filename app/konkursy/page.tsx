@@ -135,6 +135,88 @@ const COMMON_RULES: string[] = [
   'Зміна умов — з повідомленням усіх учасників не пізніш як за 14 днів.',
 ]
 
+// ─── Два конкурси коротких історій ───
+type ShortContest = {
+  id: string
+  title: string
+  lead: string
+  about: string
+  looking: string[]
+  prize: string
+  bonus: string
+  dates: [string, string][]
+  rules: string[]
+}
+
+const SHORT_CONTESTS: ShortContest[] = [
+  {
+    id: 'odyn-den',
+    title: '«Один день, який усе змінив»',
+    lead: 'Коротка проза до 1500 слів',
+    about:
+      'Історія про день, після якого життя героя пішло інакше. Дія вміщається переважно в один день. ' +
+      'Не мемуари й не роздуми — саме історія: герой, подія, зміна. Тон вільний: може бути світло, ' +
+      'може боляче. Головне, щоб читач упізнав себе.',
+    looking: [
+      'живого героя, а не функцію',
+      'конкретність: місце, час, деталь, яку видно',
+      'зміну, що справді сталася, а не була пояснена автором',
+      'фінал, якого не було видно з середини тексту',
+    ],
+    prize: 'Перше місце — 3 000 ₴, друге — 2 000 ₴, третє — 1 000 ₴',
+    bonus:
+      'Історії трьох переможців виходять у газеті «Життя» — з QR-кодом на сторінку автора. ' +
+      'Газетні читачі знаходять вас і приходять читати далі на платформу.',
+    dates: [
+      ['Прийом робіт', '1 листопада — 15 грудня 2026'],
+      ['Публікація історій', '15 грудня 2026 — 15 січня 2027'],
+      ['Результати', 'до 31 січня 2027'],
+      ['Виплата призів', 'до 15 лютого 2027'],
+    ],
+    rules: [
+      'Один автор — одна історія на конкурс.',
+      'Історія нова, повністю не публікувалася до 1 листопада 2026 року.',
+      'Обсяг до 1500 слів. Довші тексти знімаються.',
+      'Текст написаний автором; згенеровані ШІ твори не приймаються.',
+      'Оцінює редакція; доходимість враховується як додатковий показник.',
+      'Підписаний авторський договір і заповнені реквізити в кабінеті.',
+    ],
+  },
+  {
+    id: 'z-viterczem',
+    title: '«З вітерцем»',
+    lead: 'Гумористична історія до 1500 слів',
+    about:
+      'Смішна історія з життя: непорозуміння, безглузда ситуація, сільська чи міська пригода, ' +
+      'родинний випадок, який досі згадують за столом. Гумор добрий, не злий: сміємося разом ' +
+      'із героєм, а не з нього. Без принижень за ознакою статі, віку, походження чи стану здоровʼя.',
+    looking: [
+      'ситуацію, яку смішно переказувати вголос',
+      'живі діалоги — у гуморі вони роблять половину роботи',
+      'темп: короткі речення, швидку розвʼязку',
+      'фінал-несподіванку, а не пояснення жарту',
+    ],
+    prize: 'Перше місце — 3 000 ₴, друге — 2 000 ₴, третє — 1 000 ₴',
+    bonus:
+      'Історії трьох переможців виходять у газеті «Життя» — з QR-кодом на сторінку автора. ' +
+      'Газетні читачі знаходять вас і приходять читати далі на платформу.',
+    dates: [
+      ['Прийом робіт', '1 листопада — 15 грудня 2026'],
+      ['Публікація історій', '15 грудня 2026 — 15 січня 2027'],
+      ['Результати', 'до 31 січня 2027'],
+      ['Виплата призів', 'до 15 лютого 2027'],
+    ],
+    rules: [
+      'Один автор — одна історія на конкурс.',
+      'Історія нова, повністю не публікувалася до 1 листопада 2026 року.',
+      'Обсяг до 1500 слів.',
+      'Без позначки 18+.',
+      'Текст написаний автором; згенеровані ШІ твори не приймаються.',
+      'Підписаний авторський договір і заповнені реквізити в кабінеті.',
+    ],
+  },
+]
+
 const P: React.CSSProperties = { fontSize: 15.5, lineHeight: 1.75, margin: '0 0 12px', color: SOFT }
 
 function Section({
@@ -182,6 +264,70 @@ function Section({
         </h2>
       </div>
       {children}
+    </section>
+  )
+}
+
+function ShortContestCard({ c }: { c: ShortContest }) {
+  return (
+    <section
+      id={c.id}
+      style={{
+        background: NAVY,
+        border: '1px solid rgba(143,163,196,0.18)',
+        borderRadius: 16,
+        padding: '26px 24px',
+        marginBottom: 18,
+        scrollMarginTop: 90,
+      }}
+    >
+      <h2 style={{ fontFamily: SERIF, fontSize: 25, margin: '0 0 4px', color: CREAM, lineHeight: 1.25, fontWeight: 700 }}>
+        {c.title}
+      </h2>
+      <div style={{ fontSize: 14, color: GOLD_SOFT, fontWeight: 700, marginBottom: 16 }}>{c.lead}</div>
+
+      <p style={P}>{c.about}</p>
+
+      <h3 style={{ fontFamily: SERIF, fontSize: 18, color: CREAM, margin: '20px 0 10px', fontWeight: 700 }}>
+        Що шукаємо
+      </h3>
+      <ul style={{ margin: 0, paddingLeft: 20, fontSize: 15, lineHeight: 1.8, color: SOFT }}>
+        {c.looking.map(x => <li key={x} style={{ marginBottom: 6 }}>{x}</li>)}
+      </ul>
+
+      <h3 style={{ fontFamily: SERIF, fontSize: 18, color: CREAM, margin: '20px 0 10px', fontWeight: 700 }}>
+        Призи
+      </h3>
+      <p style={{ ...P, color: GOLD_SOFT, fontWeight: 700, margin: '0 0 8px' }}>{c.prize}</p>
+      <p style={{ ...P, color: MUTED }}>{c.bonus}</p>
+
+      <h3 style={{ fontFamily: SERIF, fontSize: 18, color: CREAM, margin: '20px 0 10px', fontWeight: 700 }}>
+        Строки
+      </h3>
+      {c.dates.map(([k, v], i) => (
+        <div
+          key={k}
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            gap: 14,
+            flexWrap: 'wrap',
+            padding: '11px 14px',
+            borderRadius: 9,
+            background: i % 2 === 0 ? NAVY_DEEP : 'transparent',
+          }}
+        >
+          <span style={{ fontSize: 15, color: SOFT }}>{k}</span>
+          <span style={{ fontSize: 15, color: GOLD_SOFT, fontWeight: 700 }}>{v}</span>
+        </div>
+      ))}
+
+      <h3 style={{ fontFamily: SERIF, fontSize: 18, color: CREAM, margin: '20px 0 10px', fontWeight: 700 }}>
+        Умови участі
+      </h3>
+      <ul style={{ margin: 0, paddingLeft: 20, fontSize: 15, lineHeight: 1.8, color: SOFT }}>
+        {c.rules.map(r => <li key={r} style={{ marginBottom: 6 }}>{r}</li>)}
+      </ul>
     </section>
   )
 }
@@ -572,6 +718,19 @@ export default function KonkursyPage() {
             договорі. Серіал лишається на платформі й далі приносить винагороду за прочитання.
           </p>
         </Section>
+
+        {/* ─── Ще два конкурси коротких історій ─── */}
+        <div style={{ margin: '40px 0 18px' }}>
+          <h2 style={{ fontFamily: SERIF, fontSize: 28, color: CREAM, margin: '0 0 8px', fontWeight: 700 }}>
+            Ще два конкурси
+          </h2>
+          <p style={{ ...P, color: MUTED, margin: 0 }}>
+            Якщо серіал на десять тижнів — це забагато, є два конкурси на одну коротку історію.
+            Умови авторського договору для них ті самі; правила конкурсу з розділу 11 діють і тут.
+          </p>
+        </div>
+
+        {SHORT_CONTESTS.map(c => <ShortContestCard key={c.id} c={c} />)}
 
       </div>
     </main>
