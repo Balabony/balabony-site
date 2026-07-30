@@ -7,6 +7,7 @@ import Breadcrumbs from '@/app/components/Breadcrumbs'
 // джерела переходів у кабінеті (ще не зроблено).
 
 const GOLD = '#ef9f27'
+const GOLD_SOFT = '#FAC775'
 const NAVY_DEEP = '#0a1628'
 const NAVY = '#0f1e3a'
 const CREAM = '#f5f0e8'
@@ -31,13 +32,19 @@ export const metadata: Metadata = {
   },
 }
 
+const HERO_NUMBERS: { value: string; label: string }[] = [
+  { value: '20 000 ₴', label: 'головна нагорода' },
+  { value: '10', label: 'тижнів і серій' },
+  { value: '3', label: 'серіали озвучимо' },
+]
+
 const FACTS: { label: string; value: string }[] = [
   { label: 'Обсяг', value: '10 серій по 1500–1800 слів' },
   { label: 'Ритм', value: 'одна серія на тиждень, у свій день' },
-  { label: 'Головна нагорода', value: '20 000 грн, озвучення, газета' },
   { label: 'Реєстрація кабінетів', value: 'з 20 серпня 2026' },
   { label: 'Заявки', value: '1–15 листопада 2026' },
   { label: 'Перші серії', value: '19–25 листопада 2026' },
+  { label: 'Підсумки', value: 'до 20 лютого 2027' },
 ]
 
 const RULES: { title: string; text: string }[] = [
@@ -62,15 +69,16 @@ const AVOID: string[] = [
   'розв’язка через випадковість або героя, що з’явився в останній серії',
 ]
 
-const AWARDS: { name: string; prize: string; text: string }[] = [
+const AWARDS: { name: string; prize: string; text: string; main?: boolean }[] = [
   {
     name: 'Історія сезону',
-    prize: '20 000 грн',
+    prize: '20 000 ₴',
+    main: true,
     text: 'Багатоголосе озвучення всього серіалу — кілька дикторів, ближче до аудіовистави, ніж до начитки. І місяць у газеті «Життя»: чотири номери з QR-кодом на вашу сторінку автора.',
   },
   {
     name: 'Вибір читачів',
-    prize: '10 000 грн',
+    prize: '10 000 ₴',
     text: 'Багатоголосе озвучення серіалу. Визначається голосуванням читачів.',
   },
   {
@@ -81,9 +89,9 @@ const AWARDS: { name: string; prize: string; text: string }[] = [
 ]
 
 const SCORING: { weight: string; title: string; text: string }[] = [
-  { weight: '55%', title: 'Доходимість', text: 'середній відсоток читачів, які дочитали серію до кінця' },
-  { weight: '25%', title: 'Утримання', text: 'скільки з тих, хто прочитав першу серію, дійшли до десятої' },
-  { weight: '20%', title: 'Оцінка редакції', text: 'мова, композиція, характери, сила гачків і фіналу' },
+  { weight: '55', title: 'Доходимість', text: 'середній відсоток читачів, які дочитали серію до кінця' },
+  { weight: '25', title: 'Утримання', text: 'скільки з тих, хто прочитав першу серію, дійшли до десятої' },
+  { weight: '20', title: 'Оцінка редакції', text: 'мова, композиція, характери, сила гачків і фіналу' },
 ]
 
 const PROMO: { title: string; text: string }[] = [
@@ -127,68 +135,196 @@ const COMMON_RULES: string[] = [
   'Зміна умов — з повідомленням усіх учасників не пізніш як за 14 днів.',
 ]
 
-function Card({ children }: { children: React.ReactNode }) {
+const P: React.CSSProperties = { fontSize: 15.5, lineHeight: 1.75, margin: '0 0 12px', color: SOFT }
+
+function Section({
+  num,
+  title,
+  gold = false,
+  children,
+}: {
+  num: string
+  title: string
+  gold?: boolean
+  children: React.ReactNode
+}) {
   return (
     <section
       style={{
-        background: NAVY,
-        border: '1px solid rgba(239,159,39,0.22)',
-        borderRadius: 14,
-        padding: '24px 22px',
-        marginBottom: 20,
+        background: gold ? 'rgba(239,159,39,0.07)' : NAVY,
+        border: gold ? '1px solid rgba(239,159,39,0.45)' : '1px solid rgba(143,163,196,0.18)',
+        borderRadius: 16,
+        padding: '26px 24px',
+        marginBottom: 18,
       }}
     >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+        <span
+          style={{
+            flex: 'none',
+            width: 34,
+            height: 34,
+            borderRadius: 9,
+            background: GOLD,
+            color: NAVY_DEEP,
+            fontSize: 15,
+            fontWeight: 800,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: FONT,
+          }}
+        >
+          {num}
+        </span>
+        <h2 style={{ fontFamily: SERIF, fontSize: 25, margin: 0, color: CREAM, lineHeight: 1.25, fontWeight: 700 }}>
+          {title}
+        </h2>
+      </div>
       {children}
     </section>
   )
 }
 
-function H2({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 style={{ fontFamily: SERIF, fontSize: 22, margin: '0 0 12px', color: GOLD, lineHeight: 1.3 }}>
-      {children}
-    </h2>
-  )
-}
-
-const P: React.CSSProperties = { fontSize: 15, lineHeight: 1.75, margin: '0 0 12px' }
-
 export default function KonkursyPage() {
   return (
     <main style={{ background: NAVY_DEEP, color: CREAM, fontFamily: FONT }}>
-      <div style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 20px 96px' }}>
+      <div style={{ maxWidth: 1000, margin: '0 auto', padding: '36px 20px 96px' }}>
 
         <Breadcrumbs items={[{ label: 'Конкурси' }]} />
 
-        <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(28px, 5vw, 40px)', fontWeight: 700, margin: '0 0 10px', lineHeight: 1.2 }}>
-          Далі буде
-        </h1>
+        {/* ─── Перший екран ─── */}
+        <div
+          style={{
+            background: NAVY,
+            border: `1px solid rgba(239,159,39,0.4)`,
+            borderRadius: 18,
+            padding: '34px 26px 28px',
+            marginTop: 18,
+            marginBottom: 26,
+          }}
+        >
+          <span
+            style={{
+              display: 'inline-block',
+              fontSize: 11,
+              fontWeight: 800,
+              letterSpacing: 2,
+              textTransform: 'uppercase',
+              color: GOLD,
+              background: 'rgba(239,159,39,0.14)',
+              border: `1px solid rgba(239,159,39,0.5)`,
+              borderRadius: 6,
+              padding: '6px 12px',
+            }}
+          >
+            Конкурс серіалів · Сезон 1
+          </span>
 
-        <p style={{ fontSize: 18, color: MUTED, lineHeight: 1.6, margin: '0 0 26px', maxWidth: 680 }}>
-          Конкурс серіалів. Десять тижнів, десять серій, одна історія, яку читач чекає щотижня.
-          Перший сезон стартує в листопаді 2026 року.
-        </p>
+          <h1
+            style={{
+              fontFamily: SERIF,
+              fontSize: 'clamp(34px, 6.5vw, 54px)',
+              fontWeight: 700,
+              margin: '18px 0 0',
+              lineHeight: 1.08,
+              color: CREAM,
+            }}
+          >
+            Далі <span style={{ color: GOLD }}>буде</span>
+          </h1>
 
-        <Card>
-          <p style={{ fontFamily: SERIF, fontSize: 19, lineHeight: 1.55, margin: '0 0 14px', color: CREAM }}>
-            Ми не шукаємо роман. Ми шукаємо серіал — історію, яку читач чекатиме щотижня.
+          <div style={{ width: 82, height: 4, background: GOLD, borderRadius: 2, margin: '16px 0 18px' }} />
+
+          <p style={{ fontSize: 18, color: SOFT, lineHeight: 1.65, margin: 0, maxWidth: 640 }}>
+            Десять тижнів. Десять серій. Одна історія, яку читач чекає щотижня.
+            Переможця обирає не журі — його обирають ті, хто дочитав.
           </p>
-          <p style={P}>
-            Ви пишете на очах у людей і бачите, скільки їх лишилося з вами до фіналу.
-            Переможця обирає не журі. Його обирають ті, хто дочитав.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginTop: 18 }}>
-            {FACTS.map(f => (
-              <div key={f.label} style={{ background: NAVY_DEEP, borderRadius: 10, padding: '12px 14px' }}>
-                <div style={{ fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: MUTED }}>{f.label}</div>
-                <div style={{ fontSize: 15, color: CREAM, marginTop: 5, lineHeight: 1.45 }}>{f.value}</div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: 12,
+              marginTop: 24,
+            }}
+          >
+            {HERO_NUMBERS.map(n => (
+              <div
+                key={n.label}
+                style={{
+                  background: NAVY_DEEP,
+                  borderLeft: `3px solid ${GOLD}`,
+                  borderRadius: 10,
+                  padding: '14px 16px',
+                }}
+              >
+                <div style={{ fontFamily: SERIF, fontSize: 27, color: GOLD_SOFT, lineHeight: 1.1 }}>{n.value}</div>
+                <div style={{ fontSize: 12.5, color: MUTED, marginTop: 5 }}>{n.label}</div>
               </div>
             ))}
           </div>
-        </Card>
 
-        <Card>
-          <H2>Що пишемо</H2>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 24 }}>
+            <Link
+              href="/become-author"
+              style={{
+                background: GOLD,
+                color: NAVY_DEEP,
+                fontSize: 15,
+                fontWeight: 700,
+                borderRadius: 11,
+                padding: '13px 26px',
+                textDecoration: 'none',
+              }}
+            >
+              Стати автором →
+            </Link>
+            <Link
+              href="/author/dashboard"
+              style={{
+                color: CREAM,
+                fontSize: 15,
+                fontWeight: 700,
+                border: '1px solid rgba(143,163,196,0.4)',
+                borderRadius: 11,
+                padding: '13px 26px',
+                textDecoration: 'none',
+              }}
+            >
+              Мій кабінет
+            </Link>
+          </div>
+        </div>
+
+        {/* ─── Коротко ─── */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+            gap: 12,
+            marginBottom: 26,
+          }}
+        >
+          {FACTS.map(f => (
+            <div
+              key={f.label}
+              style={{
+                background: NAVY,
+                border: '1px solid rgba(143,163,196,0.18)',
+                borderRadius: 12,
+                padding: '14px 16px',
+              }}
+            >
+              <div style={{ fontSize: 10.5, letterSpacing: 1.4, textTransform: 'uppercase', color: GOLD }}>
+                {f.label}
+              </div>
+              <div style={{ fontSize: 15, color: CREAM, marginTop: 6, lineHeight: 1.45 }}>{f.value}</div>
+            </div>
+          ))}
+        </div>
+
+        <Section num="1" title="Що пишемо">
           <p style={P}>
             Серіал із десяти серій. Кожна — 1500–1800 слів, самостійна за подією, але пов’язана
             наскрізним сюжетом і героями.
@@ -197,63 +333,110 @@ export default function KonkursyPage() {
             Жанр вільний. Мова українська, оригінал, не переклад. Текст написаний автором — твори,
             згенеровані штучним інтелектом, не приймаються.
           </p>
-        </Card>
+        </Section>
 
-        <Card>
-          <H2>Три правила серіалу</H2>
+        <Section num="2" title="Три правила серіалу">
           {RULES.map((r, i) => (
-            <div key={r.title} style={{ marginBottom: i === RULES.length - 1 ? 0 : 18 }}>
-              <div style={{ fontSize: 16, color: CREAM, fontWeight: 700, marginBottom: 6 }}>
-                {i + 1}. {r.title}
-              </div>
-              <p style={{ ...P, margin: 0, color: SOFT }}>{r.text}</p>
+            <div
+              key={r.title}
+              style={{
+                marginBottom: i === RULES.length - 1 ? 0 : 18,
+                paddingLeft: 16,
+                borderLeft: `3px solid ${GOLD}`,
+              }}
+            >
+              <div style={{ fontSize: 17, color: GOLD_SOFT, fontWeight: 700, marginBottom: 7 }}>{r.title}</div>
+              <p style={{ ...P, margin: 0 }}>{r.text}</p>
             </div>
           ))}
-        </Card>
+        </Section>
 
-        <Card>
-          <H2>Чого уникати у фіналі</H2>
-          <ul style={{ margin: 0, paddingLeft: 20, fontSize: 15, lineHeight: 1.85, color: SOFT }}>
-            {AVOID.map(a => <li key={a}>{a}</li>)}
-          </ul>
-        </Card>
-
-        <Card>
-          <H2>Нагороди</H2>
-          {AWARDS.map((a, i) => {
-            const last = i === AWARDS.length - 1
-            return (
-              <div
-                key={a.name}
+        <Section num="3" title="Чого уникати у фіналі">
+          <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
+            {AVOID.map(a => (
+              <li
+                key={a}
                 style={{
-                  marginBottom: last ? 0 : 16,
-                  paddingBottom: last ? 0 : 16,
-                  borderBottom: last ? 'none' : '1px solid rgba(143,163,196,0.18)',
+                  fontSize: 15.5,
+                  lineHeight: 1.7,
+                  color: SOFT,
+                  marginBottom: 10,
+                  paddingLeft: 22,
+                  position: 'relative',
                 }}
               >
-                <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 17, color: CREAM, fontWeight: 700 }}>{a.name}</span>
-                  <span style={{ fontSize: 13, color: GOLD, border: '1px solid rgba(239,159,39,0.5)', background: 'rgba(239,159,39,0.12)', borderRadius: 20, padding: '3px 11px' }}>
-                    {a.prize}
-                  </span>
-                </div>
-                <p style={{ ...P, margin: '8px 0 0', color: SOFT }}>{a.text}</p>
+                <span style={{ position: 'absolute', left: 0, top: 0, color: GOLD, fontWeight: 800 }}>×</span>
+                {a}
+              </li>
+            ))}
+          </ul>
+        </Section>
+
+        <Section num="4" title="Нагороди" gold>
+          {AWARDS.map(a => (
+            <div
+              key={a.name}
+              style={{
+                background: a.main ? 'rgba(239,159,39,0.13)' : NAVY,
+                border: a.main ? `2px solid ${GOLD}` : '1px solid rgba(143,163,196,0.2)',
+                borderRadius: 13,
+                padding: '18px 20px',
+                marginBottom: 12,
+              }}
+            >
+              <div style={{ display: 'flex', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                <span style={{ fontFamily: SERIF, fontSize: 21, color: CREAM, fontWeight: 700 }}>{a.name}</span>
+                <span
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 800,
+                    color: a.main ? NAVY_DEEP : GOLD,
+                    background: a.main ? GOLD : 'rgba(239,159,39,0.14)',
+                    border: `1px solid ${GOLD}`,
+                    borderRadius: 20,
+                    padding: '4px 14px',
+                  }}
+                >
+                  {a.prize}
+                </span>
               </div>
-            )
-          })}
-          <p style={{ ...P, margin: '16px 0 0', color: MUTED }}>
+              <p style={{ ...P, margin: '10px 0 0' }}>{a.text}</p>
+            </div>
+          ))}
+          <p style={{ ...P, margin: '4px 0 0', color: MUTED }}>
             Кожна нагорода лишається біля вашого імені назавжди — у профілі, на картках усіх ваших
             творів і в газеті, з роком: «Історія сезону · 2026». Один автор може взяти дві нагороди.
           </p>
-        </Card>
+        </Section>
 
-        <Card>
-          <H2>Як визначаємо переможця</H2>
+        <Section num="5" title="Як визначаємо переможця">
           <p style={P}>Не за лайками й не за кліками.</p>
           {SCORING.map(s => (
-            <div key={s.title} style={{ display: 'flex', gap: 14, alignItems: 'baseline', marginBottom: 10 }}>
-              <span style={{ fontSize: 18, color: GOLD, minWidth: 46 }}>{s.weight}</span>
-              <span style={{ fontSize: 15, lineHeight: 1.6, color: SOFT }}>
+            <div
+              key={s.title}
+              style={{
+                display: 'flex',
+                gap: 16,
+                alignItems: 'center',
+                background: NAVY_DEEP,
+                borderRadius: 12,
+                padding: '14px 16px',
+                marginBottom: 10,
+              }}
+            >
+              <span
+                style={{
+                  flex: 'none',
+                  fontFamily: SERIF,
+                  fontSize: 28,
+                  color: GOLD,
+                  minWidth: 62,
+                  lineHeight: 1,
+                }}
+              >
+                {s.weight}<span style={{ fontSize: 15 }}>%</span>
+              </span>
+              <span style={{ fontSize: 15.5, lineHeight: 1.6, color: SOFT }}>
                 <strong style={{ color: CREAM }}>{s.title}</strong> — {s.text}
               </span>
             </div>
@@ -263,10 +446,9 @@ export default function KonkursyPage() {
             розділяє менше двох балів. Голосування відкривається з шостого тижня. Перша п’ятірка видно
             на головній сторінці весь конкурс, місця рухаються щодня.
           </p>
-        </Card>
+        </Section>
 
-        <Card>
-          <H2>Як привести читача</H2>
+        <Section num="6" title="Як привести читача">
           <p style={P}>
             Платформа показує ваш серіал усім, хто заходить: перша п’ятірка на головній, анонси в
             розсилці, місце в рубриці. Це робиться без вашої участі. Але найкращі результати будуть у
@@ -274,23 +456,31 @@ export default function KonkursyPage() {
             що працює.
           </p>
           {PROMO.map(x => (
-            <div key={x.title} style={{ marginTop: 14 }}>
-              <div style={{ fontSize: 16, color: CREAM, fontWeight: 700, marginBottom: 5 }}>{x.title}</div>
-              <p style={{ ...P, margin: 0, color: SOFT }}>{x.text}</p>
+            <div key={x.title} style={{ marginTop: 16, paddingLeft: 16, borderLeft: `3px solid ${GOLD}` }}>
+              <div style={{ fontSize: 17, color: GOLD_SOFT, fontWeight: 700, marginBottom: 6 }}>{x.title}</div>
+              <p style={{ ...P, margin: 0 }}>{x.text}</p>
             </div>
           ))}
-          <div style={{ marginTop: 18, padding: '14px 16px', background: 'rgba(239,159,39,0.08)', borderLeft: '3px solid ' + GOLD }}>
-            <p style={{ ...P, margin: 0, color: SOFT }}>
+          <div
+            style={{
+              marginTop: 20,
+              padding: '16px 18px',
+              background: 'rgba(239,159,39,0.12)',
+              border: `1px solid rgba(239,159,39,0.4)`,
+              borderRadius: 12,
+            }}
+          >
+            <p style={{ ...P, margin: 0 }}>
               Нас цікавить не кількість відкриттів, а частка дочитувань. Якщо покликати сто знайомих,
               які відкриють сторінку з ввічливості й закриють на другому абзаці, ваш показник{' '}
-              <strong style={{ color: CREAM }}>упаде</strong>, а не зросте. Кличте не всіх, а тих, хто
-              справді читає: десять уважних читачів корисніші за сотню тих, хто зайшов вас підтримати.
+              <strong style={{ color: GOLD_SOFT }}>упаде</strong>, а не зросте. Кличте не всіх, а тих,
+              хто справді читає: десять уважних читачів корисніші за сотню тих, хто зайшов вас
+              підтримати.
             </p>
           </div>
-        </Card>
+        </Section>
 
-        <Card>
-          <H2>Що таке сезон</H2>
+        <Section num="7" title="Що таке сезон">
           <p style={P}>
             Конкурс не одноразовий. «Далі буде» проходить двічі на рік — узимку й навесні. Кожен раунд
             і є сезон: десять тижнів публікацій, далі підсумки, виплати, озвучення переможців і
@@ -304,64 +494,84 @@ export default function KonkursyPage() {
             Нагороди підписуються сезоном і роком. Вони не знецінюються з часом і не зникають, коли
             приходять нові переможці. Автор, який виграв, може подаватись і далі.
           </p>
-        </Card>
+        </Section>
 
-        <Card>
-          <H2>Хто може брати участь</H2>
-          <ul style={{ margin: 0, paddingLeft: 20, fontSize: 15, lineHeight: 1.85, color: SOFT }}>
+        <Section num="8" title="Хто може брати участь">
+          <ul style={{ margin: 0, paddingLeft: 20, fontSize: 15.5, lineHeight: 1.85, color: SOFT }}>
             <li>будь-який автор із підписаним авторським договором і заповненими реквізитами в кабінеті;</li>
             <li>твір має бути ваш і ніде раніше не публікований;</li>
             <li>заявки подаються лише через Особистий кабінет.</li>
           </ul>
-          <p style={{ ...P, margin: '12px 0 0', color: SOFT }}>
+          <p style={{ ...P, margin: '12px 0 0' }}>
             Редактори платформи мають право подаватись нарівні з усіма — вони такі самі автори. Але
             оцінку редакції виставляють лише ті, хто в конкурсі не бере участі: учасник не оцінює ні
             власний твір, ні чужі.
           </p>
-          <p style={{ ...P, margin: '12px 0 0' }}>
-            Ще не автор?{' '}
-            <Link href="/become-author" style={{ color: GOLD, fontWeight: 700, textDecoration: 'none' }}>
-              Стати автором →
-            </Link>
-          </p>
-        </Card>
+        </Section>
 
-        <Card>
-          <H2>Як подати</H2>
+        <Section num="9" title="Як подати" gold>
           <p style={P}>
-            <strong style={{ color: CREAM }}>З 20 серпня</strong> відкрито реєстрацію кабінетів.
+            <strong style={{ color: GOLD_SOFT }}>З 20 серпня</strong> відкрито реєстрацію кабінетів.
             Заходьте, підписуйте договір, заповнюйте реквізити — щоб у листопаді не робити це поспіхом.
           </p>
           <p style={P}>
-            <strong style={{ color: CREAM }}>З 1 до 15 листопада</strong> подача заявки через Особистий
-            кабінет: синопсис на одну сторінку і повний текст першої серії.
+            <strong style={{ color: GOLD_SOFT }}>З 1 до 15 листопада</strong> подача заявки через
+            Особистий кабінет: синопсис на одну сторінку і повний текст першої серії.
           </p>
-          <p style={{ ...P, margin: 0 }}>Учасників оголошуємо 18 листопада, кожного повідомляємо особисто.</p>
-        </Card>
+          <p style={{ ...P, margin: '0 0 18px' }}>
+            Учасників оголошуємо 18 листопада, кожного повідомляємо особисто.
+          </p>
+          <Link
+            href="/become-author"
+            style={{
+              display: 'inline-block',
+              background: GOLD,
+              color: NAVY_DEEP,
+              fontSize: 15,
+              fontWeight: 700,
+              borderRadius: 11,
+              padding: '13px 26px',
+              textDecoration: 'none',
+            }}
+          >
+            Стати автором →
+          </Link>
+        </Section>
 
-        <Card>
-          <H2>Дати першого сезону</H2>
-          {DATES.map(([k, v]) => (
-            <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', padding: '9px 0', borderBottom: '1px solid rgba(143,163,196,0.14)' }}>
+        <Section num="10" title="Дати першого сезону">
+          {DATES.map(([k, v], i) => (
+            <div
+              key={k}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: 14,
+                flexWrap: 'wrap',
+                padding: '11px 14px',
+                borderRadius: 9,
+                background: i % 2 === 0 ? NAVY_DEEP : 'transparent',
+              }}
+            >
               <span style={{ fontSize: 15, color: SOFT }}>{k}</span>
-              <span style={{ fontSize: 15, color: CREAM }}>{v}</span>
+              <span style={{ fontSize: 15, color: GOLD_SOFT, fontWeight: 700 }}>{v}</span>
             </div>
           ))}
           <p style={{ ...P, margin: '14px 0 0', color: MUTED }}>
             П’ять серій до паузи, п’ять після. Наступний сезон — заявки з 1 квітня 2027.
           </p>
-        </Card>
+        </Section>
 
-        <Card>
-          <H2>Правила конкурсу</H2>
-          <ul style={{ margin: 0, paddingLeft: 20, fontSize: 15, lineHeight: 1.85, color: SOFT }}>
-            {COMMON_RULES.map(r => <li key={r} style={{ marginBottom: 8 }}>{r}</li>)}
+        <Section num="11" title="Правила конкурсу">
+          <ul style={{ margin: 0, paddingLeft: 20, fontSize: 15, lineHeight: 1.8, color: SOFT }}>
+            {COMMON_RULES.map(r => (
+              <li key={r} style={{ marginBottom: 9 }}>{r}</li>
+            ))}
           </ul>
           <p style={{ ...P, margin: '14px 0 0', color: MUTED }}>
             Права на твір переходять платформі з моменту публікації, на три роки, як в авторському
             договорі. Серіал лишається на платформі й далі приносить винагороду за прочитання.
           </p>
-        </Card>
+        </Section>
 
       </div>
     </main>
