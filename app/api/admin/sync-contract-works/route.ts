@@ -16,6 +16,10 @@ import { dbQuery } from '@/lib/db'
  * content_id спершу зшиваються з content за назвою — інакше повторний
  * запуск наплодив би дублі.
  *
+ * Чернетки (status = 'draft') у перелік НЕ потрапляють: твору фактично ще
+ * немає, назва може змінитися, а Додаток № 1 фіксує конкретні назви.
+ * Щойно чернетка виходить із draft — синхронізацію можна запустити знову.
+ *
  * Нічого не видаляє: твір, знятий із публікації, лишається в переліку,
  * бо права за ним уже передані.
  */
@@ -49,9 +53,11 @@ const LIST_SQL = `
          (select count(*) from contract_works w
            where w.contract_id = c.id)::int as in_list,
          (select count(*) from content t
-           where t.author_id = c.author_id)::int as author_works,
+           where t.author_id = c.author_id
+             and t.status <> 'draft')::int as author_works,
          (select count(*) from content t
            where t.author_id = c.author_id
+             and t.status <> 'draft'
              and not exists (
                select 1 from contract_works w
                 where w.contract_id = c.id
@@ -122,6 +128,7 @@ export async function POST(req: NextRequest) {
      select $1::uuid, t.id, t.title
        from content t
       where t.author_id = $2::uuid
+        and t.status <> 'draft'
         and not exists (
           select 1 from contract_works w
            where w.contract_id = $1::uuid

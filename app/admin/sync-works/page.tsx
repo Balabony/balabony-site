@@ -107,7 +107,7 @@ export default function SyncWorksPage() {
 
         <p style={{ color: MUTED, fontSize: 14, lineHeight: 1.7, marginBottom: 20, maxWidth: 720 }}>
           Синхронізація додає в Додаток № 1 усі твори, прив&apos;язані до автора, яких у переліку ще немає.
-          Рядки лягають непідтвердженими — акцепт автор дає сам у кабінеті. Нічого не видаляється.
+          Рядки лягають непідтвердженими — акцепт автор дає сам у кабінеті. Чернетки не беруться: вийде з draft — запустите ще раз. Нічого не видаляється.
           Перед синхронізацією переконайтесь, що прив&apos;язка авторів на{' '}
           <a href="/admin/link-authors" style={{ color: GOLD }}>/admin/link-authors</a> зроблена правильно:
           у перелік потрапить усе, що зараз висить на цьому author_id.
@@ -136,7 +136,7 @@ export default function SyncWorksPage() {
                   <th style={th}>Договір</th>
                   <th style={th}>Автор</th>
                   <th style={th}>У переліку</th>
-                  <th style={th}>Творів автора</th>
+                  <th style={th}>Готових творів</th>
                   <th style={th}>Бракує</th>
                   <th style={th}></th>
                 </tr>
