@@ -54,6 +54,22 @@ export default function AuthorContracts({ contracts }: { contracts: ContractRow[
   const [session, setSession] = useState<StartResult | null>(null)
   const [left, setLeft] = useState(0)
   const [busy, setBusy] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [createErr, setCreateErr] = useState('')
+
+  const createContract = async () => {
+    setCreating(true); setCreateErr('')
+    try {
+      const res = await fetch('/api/contracts/create', { method: 'POST' })
+      const d = (await res.json()) as { ok: boolean; error?: string }
+      if (!d.ok) { setCreateErr(d.error ?? 'Не вдалося створити договір'); return }
+      window.location.reload()
+    } catch {
+      setCreateErr('Немає звʼязку — спробуйте ще раз')
+    } finally {
+      setCreating(false)
+    }
+  }
   const [note, setNote] = useState<string | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -136,9 +152,21 @@ export default function AuthorContracts({ contracts }: { contracts: ContractRow[
       </p>
 
       {rows.length === 0 && (
-        <p style={{ color: BRAND.text, lineHeight: 1.6, margin: 0 }}>
-          Договорів поки немає. Редакція підготує договір після додавання ваших творів.
-        </p>
+        <div>
+          <p style={{ color: BRAND.text, lineHeight: 1.6, margin: '0 0 12px' }}>
+            Договору ще немає. Заповніть реквізити вище — і сформуйте договір, він одразу підставить
+            ваші дані.
+          </p>
+          <button
+            type="button"
+            disabled={creating}
+            onClick={() => { void createContract() }}
+            style={{ ...primaryBtn, opacity: creating ? 0.6 : 1 }}
+          >
+            {creating ? 'Формуємо…' : 'Сформувати договір'}
+          </button>
+          {createErr && <p style={{ color: '#F09595', fontSize: '0.88rem', marginTop: 10 }}>{createErr}</p>}
+        </div>
       )}
 
       {rows.map(c => (
