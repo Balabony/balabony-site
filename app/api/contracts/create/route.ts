@@ -54,7 +54,9 @@ export async function POST() {
   const number = `${year}/${String(n).padStart(3, '0')}`
 
   const isFop = prof.is_fop === true
-  const rate = Number(prof.revenue_share ?? (isFop ? 50 : 40))
+  // У профілі ставка лежить часткою (0.5 / 0.4), у договорі друкується відсотком.
+  const shareFrac = prof.revenue_share == null ? (isFop ? 0.5 : 0.4) : Number(prof.revenue_share)
+  const rate = Math.round(shareFrac * 100)
 
   const created = await dbQuery(
     `insert into author_contracts (author_id, number, status, rate, is_fop, created_at)

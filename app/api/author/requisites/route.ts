@@ -56,7 +56,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Заповніть усі обовʼязкові поля' }, { status: 400 })
   }
 
-  const share = isFop ? 50 : 40
+  // Ставка зберігається у двох виглядах:
+  //   author_profiles.revenue_share — частка (обмеження бази: 0…1);
+  //   author_contracts.rate         — відсоток, бо в договорі друкується як «50%».
+  const share = isFop ? 0.5 : 0.4
+  const ratePct = isFop ? 50 : 40
 
   await dbQuery(
     `update author_profiles
@@ -89,7 +93,7 @@ export async function POST(req: NextRequest) {
     `update author_contracts
         set rate = $1, is_fop = $2
       where author_id = $3 and status <> 'signed'`,
-    [share, isFop, user.id],
+    [ratePct, isFop, user.id],
   )
 
   return NextResponse.json({ ok: true })
