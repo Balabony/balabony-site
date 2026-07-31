@@ -76,24 +76,30 @@ export default function AdminHeader({ icon, title }: AdminHeaderProps) {
       borderBottom: '0.5px solid rgba(255,255,255,0.07)',
       padding: '20px 0', fontFamily: FONT,
     }}>
-      <div style={{
-        width: 38, height: 38, borderRadius: 10, background: GOLD,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-      }}>
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
-          stroke={NAVY_DEEP} strokeWidth="1.6" strokeLinecap="round">
-          {icon}
-        </svg>
-      </div>
+      <Link
+        href="/admin"
+        title="Усі розділи адмінки"
+        style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}
+      >
+        <div style={{
+          width: 38, height: 38, borderRadius: 10, background: GOLD,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        }}>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
+            stroke={NAVY_DEEP} strokeWidth="1.6" strokeLinecap="round">
+            {icon}
+          </svg>
+        </div>
 
-      <div>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: GOLD, textTransform: 'uppercase', marginBottom: 2, fontFamily: FONT }}>
-          Адмін панель
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: GOLD, textTransform: 'uppercase', marginBottom: 2, fontFamily: FONT }}>
+            Адмін панель
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT }}>
+            {title}
+          </div>
         </div>
-        <div style={{ fontSize: 20, fontWeight: 700, color: '#f5f0e8', fontFamily: FONT }}>
-          {title}
-        </div>
-      </div>
+      </Link>
 
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <Link href={switcher.href} style={switcherBtnStyle}>
