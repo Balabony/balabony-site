@@ -68,6 +68,16 @@ export default function AdminAuthorsPage() {
     }
   }
 
+  // Автор входить тим самим шляхом, що й читачі: пошта -> лист із посиланням.
+  // Це надійніше за одноразовий magic link, який згорає до того, як автор його відкриє.
+  const msgFor = (d: Result): string =>
+    `Вітаємо! Ваш кабінет автора на Балабонах створено.\n\n` +
+    `Щоб увійти:\n` +
+    `1. Відкрийте balabony.com/login\n` +
+    `2. Введіть цю адресу: ${d.email}\n` +
+    `3. Натисніть «Отримати посилання» — на пошту прийде лист із входом.\n\n` +
+    `У кабінеті ви побачите свої твори, умови договору й нарахування.`
+
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '11px 13px', borderRadius: 10,
     border: `1px solid ${LINE}`, background: NAVY_DEEP, color: CREAM,
@@ -150,33 +160,57 @@ export default function AdminAuthorsPage() {
               <div key={i} style={{ background: NAVY, border: `1px solid ${LINE}`, borderRadius: 14, padding: 18, marginBottom: 12 }}>
                 <div style={{ fontWeight: 700, fontSize: 16 }}>{d.fullName}</div>
                 <div style={{ color: MUTED, fontSize: 14, marginTop: 4 }}>
-                  {d.email}{d.reused ? ' · акаунт уже існував, використано наявний' : ''}
+                  {d.email}{d.reused ? ' \u00b7 акаунт уже існував, використано наявний' : ''}
                 </div>
+
+                <div style={{
+                  marginTop: 14, padding: '13px 15px', borderRadius: 10,
+                  background: NAVY_DEEP, border: `1px solid ${LINE}`,
+                  fontSize: 14, color: CREAM, lineHeight: 1.7, whiteSpace: 'pre-wrap',
+                }}>
+                  {msgFor(d)}
+                </div>
+
+                <button
+                  onClick={() => { void navigator.clipboard.writeText(msgFor(d)); setCopied(d.email) }}
+                  style={{
+                    marginTop: 12, padding: '11px 22px', borderRadius: 10,
+                    border: 'none', background: GOLD, color: '#10151f',
+                    fontSize: 14, fontWeight: 700, fontFamily: FONT, cursor: 'pointer',
+                  }}
+                >
+                  {copied === d.email ? 'Скопійовано' : 'Копіювати повідомлення авторові'}
+                </button>
+
                 {d.link ? (
-                  <>
+                  <details style={{ marginTop: 14 }}>
+                    <summary style={{ color: MUTED, fontSize: 13, cursor: 'pointer' }}>
+                      Швидкий вхід одним посиланням
+                    </summary>
+                    <p style={{ color: '#ffcc80', fontSize: 12.5, lineHeight: 1.55, margin: '8px 0 0' }}>
+                      Одноразове й короткоживуче. Кожне нове заведення скасовує попереднє.
+                      Годиться, щоб перевірити кабінет самому, але не для пересилання — поки
+                      автор відкриє, воно, найпевніше, вже не спрацює.
+                    </p>
                     <div style={{
-                      marginTop: 12, padding: '10px 12px', borderRadius: 8,
+                      marginTop: 8, padding: '9px 11px', borderRadius: 8,
                       background: NAVY_DEEP, border: `1px solid ${LINE}`,
-                      fontSize: 12, wordBreak: 'break-all', color: MUTED, lineHeight: 1.5,
+                      fontSize: 11.5, wordBreak: 'break-all', color: MUTED, lineHeight: 1.5,
                     }}>
                       {d.link}
                     </div>
                     <button
-                      onClick={() => { void navigator.clipboard.writeText(d.link); setCopied(d.email) }}
+                      onClick={() => { void navigator.clipboard.writeText(d.link); setCopied(`link:${d.email}`) }}
                       style={{
-                        marginTop: 10, padding: '9px 18px', borderRadius: 10,
-                        border: `1px solid ${GOLD}`, background: 'transparent', color: GOLD,
-                        fontSize: 14, fontWeight: 600, fontFamily: FONT, cursor: 'pointer',
+                        marginTop: 8, padding: '7px 15px', borderRadius: 9,
+                        border: `1px solid ${LINE}`, background: 'transparent', color: MUTED,
+                        fontSize: 13, fontFamily: FONT, cursor: 'pointer',
                       }}
                     >
-                      {copied === d.email ? 'Скопійовано' : 'Копіювати посилання для входу'}
+                      {copied === `link:${d.email}` ? 'Скопійовано' : 'Копіювати посилання'}
                     </button>
-                  </>
-                ) : (
-                  <p style={{ color: '#ffcc80', fontSize: 13, marginTop: 10, lineHeight: 1.5 }}>
-                    Посилання не сформувалося. Автор може увійти сам: balabony.com/login, ввести цю пошту.
-                  </p>
-                )}
+                  </details>
+                ) : null}
               </div>
             ))}
           </div>
