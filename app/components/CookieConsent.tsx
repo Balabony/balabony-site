@@ -8,10 +8,16 @@
 //   window.dispatchEvent(new Event('balabony:cookie-settings'))
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 
 const KEY = 'balabony_cookie_consent'
 const GOLD = '#ef9f27'
 const NAVY = '#0f1e3a'
+
+// Службові розділи: банер там не потрібен і заважає — на сторінці входу
+// в адмінку він перекривав поле пароля. Аналітику читачів ці розділи
+// не стосуються, а вибір усе одно збережеться при першому візиті на сайт.
+const SILENT_PREFIXES = ['/admin', '/editor', '/author']
 
 type Choice = 'granted' | 'denied'
 
@@ -29,6 +35,8 @@ function applyConsent(choice: Choice) {
 
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false)
+  const pathname = usePathname() ?? ''
+  const silent = SILENT_PREFIXES.some((p) => pathname.startsWith(p))
 
   useEffect(() => {
     let stored: string | null = null
@@ -56,7 +64,7 @@ export default function CookieConsent() {
     setVisible(false)
   }
 
-  if (!visible) return null
+  if (!visible || silent) return null
 
   return (
     <div
