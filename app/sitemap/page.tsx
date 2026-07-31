@@ -34,13 +34,14 @@ const GROUPS: SitemapGroup[] = [
       { href: '/fairytales', label: 'Казки',             note: 'Українські казки' },
       { href: '/stories',    label: 'Історії читачів',   note: 'Реальні авторські історії' },
       { href: '/demo',       label: 'Демо озвучення',    note: 'Тестовий голос' },
+      { href: '/holosy',     label: 'Голоси платформи',  note: 'Озвучення на замовлення' },
     ],
   },
   {
     title: 'Конкурси',
     links: [
       { href: '/konkursy',                     label: 'Літературні конкурси',      note: 'Три конкурси, старт 1 листопада 2026' },
-      { href: '/konkursy#desyat-tyzhniv',      label: '«Десять тижнів»',           note: 'Серіальний, 10 серій' },
+      { href: '/konkursy#dali-bude',           label: '«Далі буде»',               note: 'Серіальний, 10 серій за 10 тижнів' },
       { href: '/konkursy#odyn-den',            label: '«Один день, який усе змінив»', note: 'Коротка проза до 1500 слів' },
       { href: '/konkursy#z-viterczem',         label: '«З вітерцем»',              note: 'Гумористична історія' },
     ],
@@ -84,8 +85,7 @@ const GROUPS: SitemapGroup[] = [
     links: [
       { href: '/pro-balabony', label: 'Про проєкт', note: 'UA · EN' },
       { href: '/about',    label: 'Про автора' },
-      { href: '/contact',  label: 'Зворотний зв\'язок', note: 'Форма звернення' },
-      { href: '/contacts', label: 'Контакти',           note: 'Контактні дані' },
+      { href: '/contacts', label: 'Контакти',           note: 'Контактні дані та звернення' },
       { href: '/survey',   label: 'Опитування',         note: 'Поділіться думкою' },
     ],
   },

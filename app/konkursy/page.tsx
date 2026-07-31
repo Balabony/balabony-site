@@ -341,6 +341,7 @@ export default function KonkursyPage() {
 
         {/* ─── Перший екран ─── */}
         <div
+          id="dali-bude"
           style={{
             background: NAVY,
             border: `1px solid rgba(239,159,39,0.4)`,
@@ -348,6 +349,7 @@ export default function KonkursyPage() {
             padding: '34px 26px 28px',
             marginTop: 18,
             marginBottom: 26,
+            scrollMarginTop: 90,
           }}
         >
           <span
