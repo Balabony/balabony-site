@@ -394,6 +394,50 @@ export default function ReaderSection() {
           outline: 2px solid var(--accent-gold);
           outline-offset: 2px;
         }
+        /* Пара кнопок під тизером: або поруч, або одна під одною — але ніколи рваним текстом */
+        .teaser-cta-row {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          align-items: stretch;
+        }
+        .teaser-cta {
+          flex: 1 1 150px;
+          min-width: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          min-height: 52px;
+          padding: 0 18px;
+          border-radius: 12px;
+          font-family: 'Montserrat', sans-serif;
+          font-size: 15px;
+          font-weight: 700;
+          line-height: 1.2;
+          white-space: nowrap;
+          text-decoration: none;
+          cursor: pointer;
+          border: 1.5px solid transparent;
+          transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+        }
+        .teaser-cta__arrow { flex-shrink: 0; font-weight: 400; }
+        .teaser-cta--primary {
+          background: var(--accent-gold);
+          color: var(--on-gold);
+          box-shadow: 0 4px 16px rgba(239,159,39,0.32);
+        }
+        .teaser-cta--ghost {
+          background: transparent;
+          color: var(--text);
+          border-color: var(--border);
+          font-weight: 600;
+        }
+        @media (hover: hover) {
+          .teaser-cta--primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(239,159,39,0.42); }
+          .teaser-cta--ghost:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+        }
+        .teaser-cta:active { transform: translateY(0); }
         .balabony-quote-fab {
           position: absolute;
           transform: translate(-50%, -100%);
@@ -663,52 +707,17 @@ export default function ReaderSection() {
                   background: 'linear-gradient(to bottom, transparent, var(--white))',
                   pointerEvents: 'none'
                 }} />
-                <div style={{ display: 'flex', gap: 10, alignItems: 'stretch', flexWrap: 'wrap' }}>
+                <div className="teaser-cta-row">
                   {episodeData?.url ? (
-                    <a
-                      href={episodeData.url}
-                      style={{
-                        flex: '1 1 130px',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 6,
-                        padding: '13px 16px',
-                        background: 'var(--accent-gold)',
-                        color: 'var(--on-gold)',
-                        border: 'none',
-                        borderRadius: 10,
-                        fontSize: 14,
-                        fontWeight: 700,
-                        textDecoration: 'none',
-                        cursor: 'pointer',
-                        fontFamily: "'Montserrat', sans-serif"
-                      }}
-                    >
-                      Читати далі →
+                    <a href={episodeData.url} className="teaser-cta teaser-cta--primary">
+                      <span>Читати далі</span>
+                      <span className="teaser-cta__arrow" aria-hidden="true">→</span>
                     </a>
                   ) : null}
                   {globalCurrentEp < TOTAL_EPISODES && (
-                    <button
-                      onClick={goToNextEpisode}
-                      style={{
-                        flex: '1 1 130px',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 6,
-                        padding: '13px 16px',
-                        background: '#0f1e3a',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: 10,
-                        fontSize: 14,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontFamily: "'Montserrat', sans-serif"
-                      }}
-                    >
-                      Серія {globalCurrentEp + 1} →
+                    <button onClick={goToNextEpisode} className="teaser-cta teaser-cta--ghost">
+                      <span>Серія {globalCurrentEp + 1}</span>
+                      <span className="teaser-cta__arrow" aria-hidden="true">→</span>
                     </button>
                   )}
                 </div>
@@ -720,19 +729,11 @@ export default function ReaderSection() {
               <div style={{ marginTop: 28, textAlign: 'center' }}>
                 <button
                   onClick={goToNextEpisode}
-                  style={{
-                    padding: '12px 24px',
-                    background: '#0f1e3a',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 8,
-                    fontSize: 15,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    fontFamily: "'Montserrat', sans-serif"
-                  }}
+                  className="teaser-cta teaser-cta--ghost"
+                  style={{ flex: '0 1 auto', padding: '0 26px' }}
                 >
-                  Далі: Серія {globalCurrentEp + 1} →
+                  <span>Далі: Серія {globalCurrentEp + 1}</span>
+                  <span className="teaser-cta__arrow" aria-hidden="true">→</span>
                 </button>
               </div>
             )}
