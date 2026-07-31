@@ -8,9 +8,12 @@
 // Тут — повний перелік. Доступ уже перекритий у proxy.ts: неавторизованого
 // на /admin не пустить, тому сторінку видно тільки після входу.
 //
-// Додаючи новий розділ, вписуйте його сюди, а не тільки в AdminHeader:
-// у шапці місця обмаль, а тут воно є.
+// Сам перелік розділів переїхав у lib/admin-sections.ts, бо його читає ще й
+// шапка (AdminHeader). Новий розділ вписуйте туди — і він зʼявиться в обох
+// місцях одразу.
 // =============================================================================
+
+import { ADMIN_GROUPS } from '@/lib/admin-sections'
 
 const GOLD = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
@@ -19,66 +22,6 @@ const CREAM = '#f5f0e8'
 const MUTED = '#b9c6db'
 const FONT = "'Montserrat', Arial, sans-serif"
 const LINE = 'rgba(143,163,196,0.22)'
-
-type Item = { href: string; label: string; note: string }
-type Group = { title: string; items: Item[] }
-
-const GROUPS: Group[] = [
-  {
-    title: 'Контент',
-    items: [
-      { href: '/admin/content/stories', label: 'Історії',        note: 'Усі тексти: пошук, редагування, статуси' },
-      { href: '/admin/stories',         label: 'Редактор серій', note: 'Написання й правка серій «Балабонів»' },
-      { href: '/admin/series-list',     label: 'Список серій',   note: 'Перелік із перевіркою канону' },
-      { href: '/admin/stories1',        label: 'Авторські',      note: 'Твори авторів' },
-      { href: '/admin/na-redakturi',    label: 'На редактурі',   note: 'Черга текстів у роботі' },
-      { href: '/admin/editorial',       label: 'Редакція',       note: 'Редакційний розділ' },
-    ],
-  },
-  {
-    title: 'Тиша',
-    items: [
-      { href: '/admin/tysha',        label: 'Серії «Тиші»',      note: 'Майстерня серіалу' },
-      { href: '/admin/tysha-covers', label: 'Обкладинки «Тиші»', note: 'Генерація обкладинок' },
-    ],
-  },
-  {
-    title: 'Автори й договори',
-    items: [
-      { href: '/admin/authors',      label: 'Заведення авторів',            note: 'Кабінет автора і запис згоди' },
-      { href: '/admin/link-authors', label: 'Привʼязка авторів',            note: 'Архівні твори → профіль автора' },
-      { href: '/admin/sync-works',   label: 'Перелік творів за договорами', note: 'Додаток № 1. Чернетки не бере' },
-      { href: '/admin/editors',      label: 'Редактори',                    note: 'Доступи редакційної команди' },
-    ],
-  },
-  {
-    title: 'Перевірка й аналітика',
-    items: [
-      { href: '/admin/review',             label: 'AI-Перегляд',        note: 'Розбір тексту по одному' },
-      { href: '/admin/batch-review',       label: 'Пакетний перегляд',  note: 'Те саме гуртом' },
-      { href: '/admin/protagonist-report', label: 'Хто головний герой', note: 'Класифікація серій для обкладинок' },
-      { href: '/admin/reviews',            label: 'Відгуки',            note: 'Відгуки читачів' },
-      { href: '/admin/analytics',          label: 'Аналітика',          note: 'Перегляди, сесії, доходимість' },
-    ],
-  },
-  {
-    title: 'Читачі',
-    items: [
-      { href: '/admin/benefits', label: 'Пільгові статуси', note: 'Ручні заявки на пільгу — те, що Дія не валідує' },
-    ],
-  },
-  {
-    title: 'Довідники та інструменти',
-    items: [
-      { href: '/admin/spelling',        label: 'Довідник правопису',   note: 'Статті правопису, чернетка → звірено' },
-      { href: '/admin/import-archive',  label: 'Імпорт архіву',        note: 'Завантаження текстів зі Сторріса' },
-      { href: '/admin/import-balabony', label: 'Імпорт Балабонів',     note: 'Завантаження серій' },
-      { href: '/admin/panas-poses',     label: 'Пози Панаса',          note: 'Генератор ілюстрацій' },
-      { href: '/admin/ganya-poses',     label: 'Пози баби Гані',       note: 'Генератор ілюстрацій' },
-      { href: '/admin/stt-test',        label: 'Розпізнавання голосу', note: 'Перевірка Deepgram' },
-    ],
-  },
-]
 
 const cardStyle: React.CSSProperties = {
   display: 'block',
@@ -96,10 +39,10 @@ export default function AdminHomePage() {
 
         <h1 style={{ color: GOLD, fontSize: 26, margin: 0 }}>Адмінка</h1>
         <p style={{ color: MUTED, fontSize: 14, lineHeight: 1.6, marginTop: 10, marginBottom: 4 }}>
-          Усі розділи. У верхньому меню вміщається лише частина.
+          Усі розділи. Той самий перелік доступний з будь-якої сторінки — кнопка «Ще» у шапці.
         </p>
 
-        {GROUPS.map((g) => (
+        {ADMIN_GROUPS.map((g) => (
           <section key={g.title} style={{ marginTop: 30 }}>
             <div style={{
               fontSize: 12, fontWeight: 700, letterSpacing: 1.4,
