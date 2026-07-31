@@ -43,7 +43,10 @@ export async function proxy(request: NextRequest) {
     const isAuthed = !!session && session === process.env.ADMIN_PASSWORD
 
     if (!isAuthed) {
-      return NextResponse.redirect(new URL('/admin/login', request.url))
+      // Запамʼятовуємо, куди йшли, щоб після входу повернути саме туди.
+      const to = new URL('/admin/login', request.url)
+      to.searchParams.set('next', pathname + request.nextUrl.search)
+      return NextResponse.redirect(to)
     }
 
     return NextResponse.next()
