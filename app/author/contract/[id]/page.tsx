@@ -12,9 +12,13 @@ export const metadata: Metadata = {
 
 const DASH = '_______________'
 
+// «29» липня — родовий відмінок; toLocaleDateString дає називний («липень»).
+const MONTHS = ['січня', 'лютого', 'березня', 'квітня', 'травня', 'червня',
+                'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня']
+
 function fmtDate(iso: string | null): string {
   const d = iso ? new Date(iso) : new Date()
-  return `«${String(d.getDate()).padStart(2, '0')}» ${d.toLocaleDateString('uk-UA', { month: 'long' })} ${d.getFullYear()} р.`
+  return `«${String(d.getDate()).padStart(2, '0')}» ${MONTHS[d.getMonth()]} ${d.getFullYear()} р.`
 }
 
 export default async function ContractPage({ params }: { params: Promise<{ id: string }> }) {
@@ -75,7 +79,22 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
         {CONTRACT_BLOCKS.map((b, i) => {
           const t = fill(b.t)
           if (b.k === 'h1') {
-            return <h1 key={i} style={{ fontSize: 22, textAlign: 'center', margin: '0 0 4px', fontWeight: 700 }}>{t}</h1>
+            return <h1 key={i} style={{ fontSize: 23, textAlign: 'center', margin: '0 0 6px', fontWeight: 700, letterSpacing: 0.5 }}>{t}</h1>
+          }
+          // Підзаголовок під назвою договору
+          if (i === 1) {
+            return <p key={i} style={{ fontSize: 16, textAlign: 'center', margin: '0 0 26px', fontWeight: 700 }}>{t}</p>
+          }
+          // Рядок «№ … від …» і місто — по краях одного рядка
+          if (t.startsWith('№') && t.includes('м. Львів')) {
+            const city = 'м. Львів'
+            const left = t.replace(city, '').trim()
+            return (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap', fontSize: 14.5, fontWeight: 700, margin: '0 0 20px' }}>
+                <span>{left}</span>
+                <span>{city}</span>
+              </div>
+            )
           }
           if (b.k === 'h2') {
             return <h2 key={i} style={{ fontSize: 16, margin: '20px 0 8px', fontWeight: 700 }}>{t}</h2>
