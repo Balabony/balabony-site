@@ -14,6 +14,15 @@ export default function AdminLoginPage() {
   const [loading,  setLoading]  = useState(false)
   const router = useRouter()
 
+  // Куди повертати після входу: middleware кладе адресу сторінки в ?next=.
+  // Читаємо з window, а не через useSearchParams — той вимагає Suspense
+  // і валить збірку статичної сторінки.
+  const nextPath = (): string => {
+    if (typeof window === 'undefined') return '/admin/stories'
+    const v = new URLSearchParams(window.location.search).get('next')
+    return v && v.startsWith('/admin') ? v : '/admin/stories'
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!password) return
@@ -25,7 +34,7 @@ export default function AdminLoginPage() {
         body: JSON.stringify({ password }),
       })
       if (res.ok) {
-        router.push('/admin/stories')
+        router.push(nextPath())
         router.refresh()
       } else {
         const data = await res.json() as { error?: string }
