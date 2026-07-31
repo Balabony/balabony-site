@@ -16,17 +16,51 @@ const SOFT = '#dbe4f0'
 const FONT = "'Montserrat', Arial, sans-serif"
 const SERIF = "'Lora', Georgia, serif"
 
-// Кожен конкурс має власний колір і власний знак — щоб читач розрізняв їх до
-// того, як прочитає заголовок. Колір виведено зі змісту, а не з палітри:
-// серіал на десять тижнів — золото довгої дистанції; «Один день» — холодне
-// світло зламу; «З вітерцем» — свіжа зелень легкої історії.
-const ACCENTS = {
-  serial:  { line: '#ef9f27', soft: '#FAC775', glow: 'rgba(239,159,39,0.16)', edge: 'rgba(239,159,39,0.45)' },
-  oneDay:  { line: '#8B9DFF', soft: '#B9C4FF', glow: 'rgba(139,157,255,0.16)', edge: 'rgba(139,157,255,0.45)' },
-  humour:  { line: '#57C98C', soft: '#8FE0B4', glow: 'rgba(87,201,140,0.16)',  edge: 'rgba(87,201,140,0.45)' },
-} as const
+// Три фірмові кольори — золотий, темно-синій, білий — і жодного стороннього.
+// Конкурси розрізняються не чужим кольором, а тим, який із трьох у кожного
+// головний: серіал тримає золото на синьому, «Один день» — глибокий синій з
+// сильною золотою підсвіткою, «З вітерцем» — світлий, на кремовому тлі.
+// Знак конкурсу (десять тижнів / злам / порив) довершує розрізнення.
+const GOLD_DEEP = '#8a5a10'   // золото, читабельне як текст на світлому
 
-type Accent = typeof ACCENTS[keyof typeof ACCENTS]
+type Scheme = {
+  /** Світла картка на кремовому чи темна на синьому. */
+  tone: 'dark' | 'light'
+  /** Колір смуги, рамки й знака. */
+  line: string
+  /** Акцентний текст: суми, дати, підзаголовок. */
+  soft: string
+  glow: string
+  edge: string
+  bg: string
+  title: string
+  body: string
+  quiet: string
+  stripe: string
+}
+
+const SCHEMES = {
+  serial: {
+    tone: 'dark', line: '#ef9f27', soft: '#FAC775',
+    glow: 'rgba(239,159,39,0.20)', edge: 'rgba(239,159,39,0.55)',
+    bg: '#0f1e3a', title: '#f5f0e8', body: '#dbe4f0', quiet: '#8899bb',
+    stripe: 'rgba(239,159,39,0.10)',
+  },
+  oneDay: {
+    tone: 'dark', line: '#ef9f27', soft: '#FAC775',
+    glow: 'rgba(239,159,39,0.26)', edge: 'rgba(239,159,39,0.5)',
+    bg: '#0a1628', title: '#ffffff', body: '#dbe4f0', quiet: '#8899bb',
+    stripe: 'rgba(239,159,39,0.09)',
+  },
+  humour: {
+    tone: 'light', line: '#ef9f27', soft: GOLD_DEEP,
+    glow: 'rgba(239,159,39,0.30)', edge: 'rgba(239,159,39,0.75)',
+    bg: '#f5f0e8', title: '#0a1628', body: '#2b3a52', quiet: '#5c6b84',
+    stripe: 'rgba(10,22,40,0.05)',
+  },
+} as const satisfies Record<string, Scheme>
+
+type Accent = Scheme
 
 export const metadata: Metadata = {
   title: 'Це довга історія — конкурс серіалів · Балабони',
@@ -169,7 +203,7 @@ type ShortContest = {
 const SHORT_CONTESTS: ShortContest[] = [
   {
     id: 'odyn-den',
-    accent: ACCENTS.oneDay,
+    accent: SCHEMES.oneDay,
     mark: 'break',
     badge: 'Коротка проза · один день',
     title: '«Один день, який усе змінив»',
@@ -206,7 +240,7 @@ const SHORT_CONTESTS: ShortContest[] = [
   },
   {
     id: 'z-viterczem',
-    accent: ACCENTS.humour,
+    accent: SCHEMES.humour,
     mark: 'gust',
     badge: 'Гумористична історія',
     title: '«З вітерцем»',
@@ -330,26 +364,34 @@ function Mark({ kind, color }: { kind: 'break' | 'gust' | 'weeks'; color: string
 
 function ShortContestCard({ c }: { c: ShortContest }) {
   const A = c.accent
+  const light = A.tone === 'light'
+
+  const para: React.CSSProperties = { fontSize: 15.5, lineHeight: 1.75, color: A.body, margin: '0 0 12px' }
+  const head: React.CSSProperties = { fontFamily: SERIF, fontSize: 18, color: A.title, margin: '22px 0 10px', fontWeight: 700 }
+
   return (
     <section
       id={c.id}
       style={{
         position: 'relative',
-        background: `radial-gradient(120% 90% at 88% -10%, ${A.glow} 0%, rgba(0,0,0,0) 62%), ${NAVY}`,
+        background: `radial-gradient(130% 95% at 88% -12%, ${A.glow} 0%, rgba(0,0,0,0) 60%), ${A.bg}`,
         border: `1px solid ${A.edge}`,
         borderRadius: 16,
-        padding: '30px 24px 26px',
+        padding: '32px 24px 26px',
         marginBottom: 18,
         scrollMarginTop: 90,
         overflow: 'hidden',
+        boxShadow: light
+          ? '0 16px 40px rgba(0,0,0,0.35)'
+          : `0 0 0 1px rgba(239,159,39,0.08), 0 16px 40px rgba(0,0,0,0.3)`,
       }}
     >
-      {/* Кольорова смуга — головний розрізнювач між конкурсами. */}
+      {/* Золота смуга — спільний знак усіх конкурсів. */}
       <div
         aria-hidden
         style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: 4,
-          background: `linear-gradient(90deg, ${A.line} 0%, ${A.line} 55%, rgba(0,0,0,0) 100%)`,
+          position: 'absolute', top: 0, left: 0, right: 0, height: 5,
+          background: `linear-gradient(90deg, ${A.line} 0%, ${A.line} 58%, rgba(0,0,0,0) 100%)`,
         }}
       />
 
@@ -357,7 +399,9 @@ function ShortContestCard({ c }: { c: ShortContest }) {
         <span
           style={{
             fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: 'uppercase',
-            color: A.line, background: A.glow, border: `1px solid ${A.edge}`,
+            color: light ? '#ffffff' : A.line,
+            background: light ? A.line : A.glow,
+            border: `1px solid ${A.edge}`,
             borderRadius: 6, padding: '5px 11px',
           }}
         >
@@ -366,29 +410,38 @@ function ShortContestCard({ c }: { c: ShortContest }) {
         <Mark kind={c.mark} color={A.line} />
       </div>
 
-      <h2 style={{ fontFamily: SERIF, fontSize: 25, margin: '0 0 4px', color: CREAM, lineHeight: 1.25, fontWeight: 700 }}>
+      <h2 style={{ fontFamily: SERIF, fontSize: 27, margin: '0 0 4px', color: A.title, lineHeight: 1.22, fontWeight: 700 }}>
         {c.title}
       </h2>
-      <div style={{ fontSize: 14, color: A.soft, fontWeight: 700, marginBottom: 16 }}>{c.lead}</div>
+      <div style={{ fontSize: 14.5, color: A.soft, fontWeight: 700, marginBottom: 16 }}>{c.lead}</div>
 
-      <p style={P}>{c.about}</p>
+      <p style={para}>{c.about}</p>
 
-      <h3 style={{ fontFamily: SERIF, fontSize: 18, color: CREAM, margin: '20px 0 10px', fontWeight: 700 }}>
-        Що шукаємо
-      </h3>
-      <ul style={{ margin: 0, paddingLeft: 20, fontSize: 15, lineHeight: 1.8, color: SOFT }}>
+      <h3 style={head}>Що шукаємо</h3>
+      <ul style={{ margin: 0, paddingLeft: 20, fontSize: 15, lineHeight: 1.8, color: A.body }}>
         {c.looking.map(x => <li key={x} style={{ marginBottom: 6 }}>{x}</li>)}
       </ul>
 
-      <h3 style={{ fontFamily: SERIF, fontSize: 18, color: CREAM, margin: '20px 0 10px', fontWeight: 700 }}>
-        Призи
-      </h3>
-      <p style={{ ...P, color: A.soft, fontWeight: 700, margin: '0 0 8px' }}>{c.prize}</p>
-      <p style={{ ...P, color: MUTED }}>{c.bonus}</p>
+      {/* Призи — головне в картці, тому винесені в окрему плашку. */}
+      <div
+        style={{
+          marginTop: 22,
+          padding: '16px 18px',
+          borderRadius: 12,
+          background: light ? 'rgba(10,22,40,0.06)' : 'rgba(239,159,39,0.10)',
+          border: `1px solid ${A.edge}`,
+        }}
+      >
+        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: A.soft, marginBottom: 7 }}>
+          Призи
+        </div>
+        <div style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: A.title, lineHeight: 1.4 }}>
+          {c.prize}
+        </div>
+        <p style={{ ...para, color: A.quiet, margin: '9px 0 0', fontSize: 14.5 }}>{c.bonus}</p>
+      </div>
 
-      <h3 style={{ fontFamily: SERIF, fontSize: 18, color: CREAM, margin: '20px 0 10px', fontWeight: 700 }}>
-        Строки
-      </h3>
+      <h3 style={head}>Строки</h3>
       {c.dates.map(([k, v], i) => (
         <div
           key={k}
@@ -399,31 +452,29 @@ function ShortContestCard({ c }: { c: ShortContest }) {
             flexWrap: 'wrap',
             padding: '11px 14px',
             borderRadius: 9,
-            background: i % 2 === 0 ? NAVY_DEEP : 'transparent',
+            background: i % 2 === 0 ? A.stripe : 'transparent',
             borderLeft: i % 2 === 0 ? `2px solid ${A.edge}` : '2px solid transparent',
           }}
         >
-          <span style={{ fontSize: 15, color: SOFT }}>{k}</span>
+          <span style={{ fontSize: 15, color: A.body }}>{k}</span>
           <span style={{ fontSize: 15, color: A.soft, fontWeight: 700 }}>{v}</span>
         </div>
       ))}
 
-      <h3 style={{ fontFamily: SERIF, fontSize: 18, color: CREAM, margin: '20px 0 10px', fontWeight: 700 }}>
-        Умови участі
-      </h3>
-      <ul style={{ margin: 0, paddingLeft: 20, fontSize: 15, lineHeight: 1.8, color: SOFT }}>
+      <h3 style={head}>Умови участі</h3>
+      <ul style={{ margin: 0, paddingLeft: 20, fontSize: 15, lineHeight: 1.8, color: A.body }}>
         {c.rules.map(r => <li key={r} style={{ marginBottom: 6 }}>{r}</li>)}
       </ul>
     </section>
   )
 }
 
-/** Три плитки вгорі: конкурси видно поруч і одразу видно, чим різняться. */
+/** Три плитки вгорі: одразу видно, який конкурс про що і скільки коштує. */
 function ContestPicker() {
   const tiles = [
-    { href: '#dovha-istoriya', accent: ACCENTS.serial, mark: 'weeks' as const, name: 'Це довга історія',        what: 'Серіал, 10 серій',   when: 'Заявки 1–15 листопада', prize: '20 000 ₴' },
-    { href: '#odyn-den',     accent: ACCENTS.oneDay, mark: 'break' as const, name: 'Один день, який усе змінив', what: 'Одна історія',       when: 'Прийом до 15 грудня',   prize: '3 000 ₴' },
-    { href: '#z-viterczem',  accent: ACCENTS.humour, mark: 'gust' as const,  name: 'З вітерцем',                what: 'Одна історія, гумор', when: 'Прийом до 15 грудня',   prize: '3 000 ₴' },
+    { href: '#dovha-istoriya', accent: SCHEMES.serial, mark: 'weeks' as const, name: 'Це довга історія',        what: 'Серіал · 10 серій',  when: 'Заявки 1–15 листопада', prize: '20 000 ₴', main: true  },
+    { href: '#odyn-den',       accent: SCHEMES.oneDay, mark: 'break' as const, name: 'Один день, який усе змінив', what: 'Одна історія',    when: 'Прийом до 15 грудня',   prize: '3 000 ₴',  main: false },
+    { href: '#z-viterczem',    accent: SCHEMES.humour, mark: 'gust'  as const, name: 'З вітерцем',              what: 'Одна історія · гумор', when: 'Прийом до 15 грудня', prize: '3 000 ₴',  main: false },
   ]
 
   return (
@@ -435,39 +486,45 @@ function ContestPicker() {
         margin: '0 0 26px',
       }}
     >
-      {tiles.map(t => (
-        <a
-          key={t.href}
-          href={t.href}
-          style={{
-            display: 'block',
-            textDecoration: 'none',
-            position: 'relative',
-            background: `radial-gradient(130% 100% at 90% -20%, ${t.accent.glow} 0%, rgba(0,0,0,0) 65%), ${NAVY}`,
-            border: `1px solid ${t.accent.edge}`,
-            borderRadius: 13,
-            padding: '15px 16px 14px',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            aria-hidden
+      {tiles.map(t => {
+        const light = t.accent.tone === 'light'
+        return (
+          <a
+            key={t.href}
+            href={t.href}
             style={{
-              position: 'absolute', top: 0, left: 0, right: 0, height: 3,
-              background: `linear-gradient(90deg, ${t.accent.line} 0%, rgba(0,0,0,0) 100%)`,
+              display: 'block',
+              textDecoration: 'none',
+              position: 'relative',
+              background: `radial-gradient(140% 110% at 88% -20%, ${t.accent.glow} 0%, rgba(0,0,0,0) 62%), ${t.accent.bg}`,
+              border: `1px solid ${t.accent.edge}`,
+              borderRadius: 13,
+              padding: '16px 16px 15px',
+              overflow: 'hidden',
+              boxShadow: t.main
+                ? '0 12px 30px rgba(239,159,39,0.14)'
+                : '0 10px 26px rgba(0,0,0,0.28)',
             }}
-          />
-          <Mark kind={t.mark} color={t.accent.line} />
-          <div style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 700, color: CREAM, margin: '9px 0 3px', lineHeight: 1.25 }}>
-            {t.name}
-          </div>
-          <div style={{ fontSize: 13, color: MUTED }}>{t.what}</div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 10, alignItems: 'baseline', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 12.5, color: SOFT }}>{t.when}</span>
-            <span style={{ fontSize: 14, fontWeight: 800, color: t.accent.line }}>{t.prize}</span>
-          </div>
-        </a>
-      ))}
+          >
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute', top: 0, left: 0, right: 0, height: t.main ? 4 : 3,
+                background: `linear-gradient(90deg, ${t.accent.line} 0%, rgba(0,0,0,0) 100%)`,
+              }}
+            />
+            <Mark kind={t.mark} color={t.accent.line} />
+            <div style={{ fontFamily: SERIF, fontSize: 17.5, fontWeight: 700, color: t.accent.title, margin: '10px 0 3px', lineHeight: 1.25 }}>
+              {t.name}
+            </div>
+            <div style={{ fontSize: 13, color: t.accent.quiet }}>{t.what}</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 12.5, color: t.accent.body }}>{t.when}</span>
+              <span style={{ fontSize: 15, fontWeight: 800, color: light ? t.accent.soft : t.accent.line }}>{t.prize}</span>
+            </div>
+          </a>
+        )
+      })}
     </div>
   )
 }
@@ -489,8 +546,8 @@ export default function KonkursyPage() {
           id="dovha-istoriya"
           style={{
             position: 'relative',
-            background: `radial-gradient(120% 90% at 85% -15%, ${ACCENTS.serial.glow} 0%, rgba(0,0,0,0) 60%), ${NAVY}`,
-            border: `1px solid ${ACCENTS.serial.edge}`,
+            background: `radial-gradient(120% 90% at 85% -15%, ${SCHEMES.serial.glow} 0%, rgba(0,0,0,0) 60%), ${NAVY}`,
+            border: `1px solid ${SCHEMES.serial.edge}`,
             borderRadius: 18,
             padding: '34px 26px 28px',
             marginBottom: 26,
