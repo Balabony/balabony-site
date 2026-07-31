@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { dbQuery } from '@/lib/db'
+import { buildVars } from '@/lib/contract/vars'
+import { computeDocHash } from '@/lib/contract/hash'
 
 /**
  * Відкриває сесію підпису договору через Дію.
@@ -31,14 +33,15 @@ export async function POST(req: NextRequest) {
   if (!contractId) return NextResponse.json({ ok: false, error: 'Не вказано договір' }, { status: 400 })
 
   const own = await dbQuery(
-    `select id, number, status, doc_url, doc_hash
+    `select id, number, status, doc_url, doc_hash, created_at, signed_at
        from author_contracts
       where id = $1 and author_id = $2
       limit 1`,
     [contractId, user.id],
   )
   const contract = own.rows[0] as
-    | { id: string; number: string; status: string; doc_url: string | null; doc_hash: string | null }
+    | { id: string; number: string; status: string; doc_url: string | null
+        doc_hash: string | null; created_at: string | null; signed_at: string | null }
     | undefined
 
   if (!contract) return NextResponse.json({ ok: false, error: 'Договір не знайдено' }, { status: 404 })
@@ -46,11 +49,37 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Договір уже підписано' }, { status: 409 })
   }
 
+  // Фіксуємо редакцію (п. 2.5-1): текст умов, реквізити і склад переліку.
+  // Робиться саме тут, у момент підпису — далі перелік може змінитися,
+  // але підписаною лишається та редакція, суму якої записано.
+  const p = await dbQuery(
+    `select full_name, rnokpp, address, phone, payout_iban, bank_name, payout_recipient, pen_name
+       from author_profiles where user_id = $1 limit 1`,
+    [user.id],
+  )
+  const prof = (p.rows[0] ?? {}) as Record<string, string | null>
+
+  const w = await dbQuery(
+    `select content_id, title from contract_works where contract_id = $1`,
+    [contract.id],
+  )
+  const works = w.rows as { content_id: string | null; title: string | null }[]
+
+  const vars = buildVars(contract, prof, user.email ?? null, works.length)
+  const docHash = computeDocHash(vars, works)
+
+  await dbQuery(
+    `update author_contracts
+        set doc_hash = $1, doc_hash_at = now()
+      where id = $2 and status <> 'signed'`,
+    [docHash, contract.id],
+  )
+
   const created = await dbQuery(
     `insert into signing_sessions (contract_id, author_id, doc_hash, expires_at)
      values ($1, $2, $3, now() + interval '3 minutes')
      returning id, expires_at`,
-    [contract.id, user.id, contract.doc_hash],
+    [contract.id, user.id, docHash],
   )
   const session = created.rows[0] as { id: string; expires_at: string }
 

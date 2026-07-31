@@ -3,6 +3,8 @@ import type { Metadata } from 'next'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { dbQuery } from '@/lib/db'
 import { CONTRACT_BLOCKS } from '@/lib/contract/template'
+import { buildVars, fmtDate, DASH } from '@/lib/contract/vars'
+import { computeDocHash, shortHash } from '@/lib/contract/hash'
 import PrintButton from '@/app/components/PrintButton'
 
 export const metadata: Metadata = {
@@ -10,16 +12,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-const DASH = '_______________'
-
-// «29» липня — родовий відмінок; toLocaleDateString дає називний («липень»).
-const MONTHS = ['січня', 'лютого', 'березня', 'квітня', 'травня', 'червня',
-                'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня']
-
-function fmtDate(iso: string | null): string {
-  const d = iso ? new Date(iso) : new Date()
-  return `«${String(d.getDate()).padStart(2, '0')}» ${MONTHS[d.getMonth()]} ${d.getFullYear()} р.`
-}
 
 export default async function ContractPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -28,7 +20,7 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
   if (!user) redirect('/login')
 
   const c = await dbQuery(
-    `select id, number, status, rate, is_fop, created_at, signed_at
+    `select id, number, status, rate, is_fop, created_at, signed_at, doc_hash
        from author_contracts where id = $1 and author_id = $2 limit 1`,
     [id, user.id],
   )
@@ -36,6 +28,7 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
   const contract = c.rows[0] as {
     id: string; number: string; status: string; rate: number | null
     is_fop: boolean | null; created_at: string | null; signed_at: string | null
+    doc_hash: string | null
   }
 
   const p = await dbQuery(
@@ -45,23 +38,17 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
   )
   const prof = (p.rows[0] ?? {}) as Record<string, string | null>
 
-  const w = await dbQuery(`select count(*)::int as n from contract_works where contract_id = $1`, [contract.id])
-  const worksCount = (w.rows[0]?.n as number | undefined) ?? 0
+  const w = await dbQuery(
+    `select content_id, title from contract_works where contract_id = $1`,
+    [contract.id],
+  )
+  const works = w.rows as { content_id: string | null; title: string | null }[]
+  const worksCount = works.length
 
-  const V: Record<string, string> = {
-    NUMBER: contract.number || DASH,
-    DATE: fmtDate(contract.signed_at ?? contract.created_at),
-    AUTHOR_NAME: prof.full_name || DASH,
-    AUTHOR_RNOKPP: prof.rnokpp || DASH,
-    AUTHOR_ADDRESS: prof.address || DASH,
-    AUTHOR_PHONE: prof.phone || DASH,
-    AUTHOR_EMAIL: user.email || DASH,
-    AUTHOR_IBAN: prof.payout_iban || DASH,
-    AUTHOR_BANK: prof.bank_name || DASH,
-    AUTHOR_RECIPIENT: prof.payout_recipient || prof.full_name || DASH,
-    PEN_NAME: prof.pen_name || '—',
-    WORKS_COUNT: String(worksCount),
-  }
+  const V = buildVars(contract, prof, user.email ?? null, worksCount)
+
+  // Контрольна сума поточної редакції: те саме обчислення, що й при підписанні.
+  const currentHash = computeDocHash(V, works)
 
   const fill = (t: string) => t.replace(/\{\{(\w+)\}\}/g, (_, k: string) => V[k] ?? DASH)
 
@@ -104,6 +91,20 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
           }
           return <p key={i} style={{ fontSize: 14.5, lineHeight: 1.6, margin: '0 0 8px', textAlign: 'justify' }}>{t}</p>
         })}
+
+        <div style={{
+          marginTop: 30, paddingTop: 14, borderTop: '1px solid #d8dee8',
+          fontSize: 12, color: '#5a6b85', fontFamily: 'Arial, sans-serif', lineHeight: 1.7,
+        }}>
+          <div>Редакція від {fmtDate(null)} · творів у Додатку № 1: {worksCount}</div>
+          <div>Контрольна сума редакції: {shortHash(currentHash)}</div>
+          {contract.doc_hash && contract.doc_hash !== currentHash ? (
+            <div style={{ marginTop: 4, color: '#8a5a00' }}>
+              Підписано редакцію з сумою {shortHash(contract.doc_hash)} — відтоді перелік творів
+              поповнився. Підписана редакція лишається чинною в тому вигляді, в якому її підписано.
+            </div>
+          ) : null}
+        </div>
 
         <p className="no-print" style={{ fontSize: 13, color: '#5a6b85', marginTop: 28, fontFamily: 'Arial, sans-serif', lineHeight: 1.6 }}>
           Щоб підписати договір кваліфікованим підписом, збережіть цю сторінку як PDF
