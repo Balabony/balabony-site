@@ -255,6 +255,29 @@ export default async function AuthorDashboardPage() {
           <p style={{ color: 'rgba(255,255,255,0.7)', margin: '0.35rem 0 0' }}>{profile.display_name}</p>
         </div>
 
+        {/* Конкурси. Автори дізнавались про них лише з газети або від редакції —
+            тепер запрошення стоїть там, куди вони й так заходять. */}
+        <a
+          href="/konkursy"
+          style={{
+            display: 'block', textDecoration: 'none',
+            background: BRAND.navyCard, borderRadius: 14,
+            padding: '1.1rem 1.5rem', marginBottom: '1.5rem',
+            border: `2px solid ${BRAND.amber}`,
+          }}
+        >
+          <div style={{ fontSize: '0.85rem', color: BRAND.amber, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>
+            Конкурси для авторів
+          </div>
+          <div style={{ fontFamily: SERIF, fontSize: '1.3rem', fontWeight: 700, color: 'white', marginTop: 6 }}>
+            «Далі буде» — конкурс серіалів →
+          </div>
+          <div style={{ color: 'rgba(255,255,255,0.82)', fontSize: '0.95rem', marginTop: 6, lineHeight: 1.55 }}>
+            Десять серій за десять тижнів. Головна нагорода — 20 000 ₴, багатоголосе
+            озвучення та місяць у газеті «Життя». Заявки: 1–15 листопада 2026.
+          </div>
+        </a>
+
         {/* Умови співпраці */}
         <div style={{ background: BRAND.navyCard, color: 'white', borderRadius: 14, padding: '1.1rem 1.5rem', marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', border: '1px solid rgba(239,159,39,0.25)' }}>
           <div>
