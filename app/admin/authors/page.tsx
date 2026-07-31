@@ -51,13 +51,13 @@ export default function AdminAuthorsPage() {
           consentNote: note.trim(),
         }),
       })
-      const d = (await res.json()) as { ok: boolean; error?: string; setPasswordLink?: string; reused?: boolean }
+      const d = (await res.json()) as { ok: boolean; error?: string; loginLink?: string; reused?: boolean }
       if (!d.ok) {
         setErr(d.error ?? 'Не вдалося завести автора')
         return
       }
       setDone((prev) => [
-        { fullName: fullName.trim(), email: email.trim(), link: d.setPasswordLink ?? '', reused: d.reused === true },
+        { fullName: fullName.trim(), email: email.trim(), link: d.loginLink ?? '', reused: d.reused === true },
         ...prev,
       ])
       setFullName(''); setEmail(''); setPenName(''); setNote(''); setIsFop(false)
@@ -88,9 +88,10 @@ export default function AdminAuthorsPage() {
 
         <p style={{ color: MUTED, fontSize: 14, lineHeight: 1.65, marginTop: 14 }}>
           Створює кабінет автора і одразу записує згоду на публікацію в Балабонах.
-          Пароль не задається: система віддає одноразове посилання, за яким автор
-          ставить свій. Посилання показується один раз — скопіюйте й передайте автору.
-          Якщо акаунт із такою поштою вже є, він використовується повторно.
+          Паролів на сайті немає: система віддає одноразове посилання, яке одразу
+          відкриває автору його кабінет. Скопіюйте й передайте будь-яким каналом.
+          Якщо посилання застаріє, автор завжди може зайти на сторінку входу і
+          ввести свою пошту. Наявний акаунт із такою адресою використовується повторно.
         </p>
 
         <div style={{ background: NAVY, border: `1px solid ${LINE}`, borderRadius: 16, padding: 22, marginTop: 20 }}>
@@ -168,12 +169,12 @@ export default function AdminAuthorsPage() {
                         fontSize: 14, fontWeight: 600, fontFamily: FONT, cursor: 'pointer',
                       }}
                     >
-                      {copied === d.email ? 'Скопійовано' : 'Копіювати посилання'}
+                      {copied === d.email ? 'Скопійовано' : 'Копіювати посилання для входу'}
                     </button>
                   </>
                 ) : (
                   <p style={{ color: '#ffcc80', fontSize: 13, marginTop: 10, lineHeight: 1.5 }}>
-                    Посилання не сформувалося. Автор може увійти через «Забули пароль» на сторінці входу.
+                    Посилання не сформувалося. Автор може увійти сам: balabony.com/login, ввести цю пошту.
                   </p>
                 )}
               </div>

@@ -35,6 +35,8 @@ type Body = {
 
 const CHANNELS = ['email', 'phone', 'viber', 'telegram', 'paper', 'form', 'other']
 
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://balabony.com').replace(/\/+$/, '')
+
 export async function POST(req: NextRequest) {
   if (!isAdmin(req)) {
     return NextResponse.json({ ok: false, error: 'Немає доступу' }, { status: 403 })
@@ -112,17 +114,23 @@ export async function POST(req: NextRequest) {
     [fullName, userId, channel, note],
   )
 
-  // 4. Посилання на встановлення пароля. Діє за налаштуваннями проєкту.
-  let setPasswordLink = ''
-  const link = await admin.auth.admin.generateLink({ type: 'recovery', email })
+  // 4. Посилання для першого входу. Паролів на сайті немає — вхід через
+  //    одноразове посилання, тому генеруємо magiclink і ведемо одразу в кабінет.
+  //    Запасний шлях у автора завжди є: /login і власна пошта.
+  let loginLink = ''
+  const link = await admin.auth.admin.generateLink({
+    type: 'magiclink',
+    email,
+    options: { redirectTo: `${SITE_URL}/auth/callback?next=/author/dashboard` },
+  })
   if (!link.error) {
-    setPasswordLink = link.data?.properties?.action_link ?? ''
+    loginLink = link.data?.properties?.action_link ?? ''
   }
 
   return NextResponse.json({
     ok: true,
     userId,
     reused: Boolean(created.error),
-    setPasswordLink,
+    loginLink,
   })
 }
