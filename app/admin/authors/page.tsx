@@ -1,0 +1,186 @@
+'use client'
+
+import { useState } from 'react'
+
+const GOLD = '#ef9f27'
+const NAVY_DEEP = '#0a1628'
+const NAVY = '#0f1e3a'
+const CREAM = '#f5f0e8'
+const MUTED = '#b9c6db'
+const FONT = "'Montserrat', Arial, sans-serif"
+const LINE = 'rgba(143,163,196,0.22)'
+
+const CHANNELS: [string, string][] = [
+  ['email', 'Електронна пошта'],
+  ['viber', 'Вайбер'],
+  ['telegram', 'Телеграм'],
+  ['phone', 'Телефонна розмова'],
+  ['paper', 'Паперова заява'],
+  ['form', 'Форма на сайті'],
+  ['other', 'Інше'],
+]
+
+type Result = { fullName: string; email: string; link: string; reused: boolean }
+
+export default function AdminAuthorsPage() {
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [penName, setPenName] = useState('')
+  const [isFop, setIsFop] = useState(false)
+  const [channel, setChannel] = useState('email')
+  const [note, setNote] = useState('')
+
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  const [done, setDone] = useState<Result[]>([])
+  const [copied, setCopied] = useState('')
+
+  const submit = async () => {
+    setErr('')
+    setBusy(true)
+    try {
+      const res = await fetch('/api/admin/create-author', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          email: email.trim(),
+          penName: penName.trim(),
+          isFop,
+          consentChannel: channel,
+          consentNote: note.trim(),
+        }),
+      })
+      const d = (await res.json()) as { ok: boolean; error?: string; setPasswordLink?: string; reused?: boolean }
+      if (!d.ok) {
+        setErr(d.error ?? 'Не вдалося завести автора')
+        return
+      }
+      setDone((prev) => [
+        { fullName: fullName.trim(), email: email.trim(), link: d.setPasswordLink ?? '', reused: d.reused === true },
+        ...prev,
+      ])
+      setFullName(''); setEmail(''); setPenName(''); setNote(''); setIsFop(false)
+    } catch {
+      setErr('Немає звʼязку з сервером')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '11px 13px', borderRadius: 10,
+    border: `1px solid ${LINE}`, background: NAVY_DEEP, color: CREAM,
+    fontSize: 15, fontFamily: FONT, outline: 'none',
+  }
+  const labelStyle: React.CSSProperties = {
+    display: 'block', fontSize: 13, color: MUTED, marginBottom: 6, fontWeight: 600,
+  }
+
+  return (
+    <main style={{ background: NAVY_DEEP, minHeight: '100vh', color: CREAM, fontFamily: FONT }}>
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '32px 20px 90px' }}>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
+          <h1 style={{ color: GOLD, fontSize: 26, margin: 0 }}>Заведення авторів</h1>
+          <a href="/admin" style={{ color: MUTED, fontSize: 14, textDecoration: 'none' }}>← В адмінку</a>
+        </div>
+
+        <p style={{ color: MUTED, fontSize: 14, lineHeight: 1.65, marginTop: 14 }}>
+          Створює кабінет автора і одразу записує згоду на публікацію в Балабонах.
+          Пароль не задається: система віддає одноразове посилання, за яким автор
+          ставить свій. Посилання показується один раз — скопіюйте й передайте автору.
+          Якщо акаунт із такою поштою вже є, він використовується повторно.
+        </p>
+
+        <div style={{ background: NAVY, border: `1px solid ${LINE}`, borderRadius: 16, padding: 22, marginTop: 20 }}>
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>Прізвище, імʼя, по батькові</label>
+            <input style={inputStyle} value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Василів Наталія Петрівна" />
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>Електронна пошта</label>
+            <input style={inputStyle} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="avtor@example.com" inputMode="email" />
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>Псевдонім для публікації (необовʼязково)</label>
+            <input style={inputStyle} value={penName} onChange={(e) => setPenName(e.target.value)} />
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>Чим підтверджена згода</label>
+            <select style={inputStyle} value={channel} onChange={(e) => setChannel(e.target.value)}>
+              {CHANNELS.map(([v, l]) => <option key={v} value={v} style={{ background: NAVY_DEEP }}>{l}</option>)}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>Примітка до згоди (дата листа, хто розмовляв)</label>
+            <input style={inputStyle} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Лист від 28.07.2026" />
+          </div>
+
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, cursor: 'pointer', fontSize: 15 }}>
+            <input type="checkbox" checked={isFop} onChange={(e) => setIsFop(e.target.checked)} style={{ width: 18, height: 18, accentColor: GOLD }} />
+            <span>Автор — ФОП <span style={{ color: MUTED, fontSize: 13 }}>(ставка 50% замість 40%)</span></span>
+          </label>
+
+          {err ? <p style={{ color: '#ff8a80', fontSize: 14, marginBottom: 14 }}>{err}</p> : null}
+
+          <button
+            onClick={() => void submit()}
+            disabled={busy}
+            style={{
+              padding: '13px 26px', borderRadius: 12, border: 'none',
+              background: busy ? 'rgba(239,159,39,0.45)' : GOLD, color: '#10151f',
+              fontSize: 15, fontWeight: 700, fontFamily: FONT,
+              cursor: busy ? 'default' : 'pointer',
+            }}
+          >
+            {busy ? 'Заводимо…' : 'Завести автора'}
+          </button>
+        </div>
+
+        {done.length > 0 && (
+          <div style={{ marginTop: 26 }}>
+            <h2 style={{ color: GOLD, fontSize: 18, marginBottom: 12 }}>Заведено в цій сесії</h2>
+            {done.map((d, i) => (
+              <div key={i} style={{ background: NAVY, border: `1px solid ${LINE}`, borderRadius: 14, padding: 18, marginBottom: 12 }}>
+                <div style={{ fontWeight: 700, fontSize: 16 }}>{d.fullName}</div>
+                <div style={{ color: MUTED, fontSize: 14, marginTop: 4 }}>
+                  {d.email}{d.reused ? ' · акаунт уже існував, використано наявний' : ''}
+                </div>
+                {d.link ? (
+                  <>
+                    <div style={{
+                      marginTop: 12, padding: '10px 12px', borderRadius: 8,
+                      background: NAVY_DEEP, border: `1px solid ${LINE}`,
+                      fontSize: 12, wordBreak: 'break-all', color: MUTED, lineHeight: 1.5,
+                    }}>
+                      {d.link}
+                    </div>
+                    <button
+                      onClick={() => { void navigator.clipboard.writeText(d.link); setCopied(d.email) }}
+                      style={{
+                        marginTop: 10, padding: '9px 18px', borderRadius: 10,
+                        border: `1px solid ${GOLD}`, background: 'transparent', color: GOLD,
+                        fontSize: 14, fontWeight: 600, fontFamily: FONT, cursor: 'pointer',
+                      }}
+                    >
+                      {copied === d.email ? 'Скопійовано' : 'Копіювати посилання'}
+                    </button>
+                  </>
+                ) : (
+                  <p style={{ color: '#ffcc80', fontSize: 13, marginTop: 10, lineHeight: 1.5 }}>
+                    Посилання не сформувалося. Автор може увійти через «Забули пароль» на сторінці входу.
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </main>
+  )
+}
