@@ -436,7 +436,7 @@ function ShortContestCard({ c }: { c: ShortContest }) {
       >
         <div style={{
           fontSize: 11, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase',
-          color: A.prizeCream ? GOLD_DEEP : A.soft, marginBottom: 7,
+          color: A.prizeCream ? GOLD_DEEP : A.soft, marginBottom: 8,
         }}>
           Призи
         </div>
@@ -447,8 +447,9 @@ function ShortContestCard({ c }: { c: ShortContest }) {
           {c.prize}
         </div>
         <p style={{
-          ...para, margin: '9px 0 0', fontSize: 14.5,
-          color: A.prizeCream ? '#4a5a72' : A.quiet,
+          fontSize: 14.5, lineHeight: 1.7, margin: '9px 0 0',
+          color: A.prizeCream ? '#1c2a42' : A.quiet,
+          fontWeight: A.prizeCream ? 500 : 400,
         }}>
           {c.bonus}
         </p>
