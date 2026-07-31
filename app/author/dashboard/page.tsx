@@ -270,7 +270,7 @@ export default async function AuthorDashboardPage() {
             Конкурси для авторів
           </div>
           <div style={{ fontFamily: SERIF, fontSize: '1.3rem', fontWeight: 700, color: 'white', marginTop: 6 }}>
-            «Далі буде» — конкурс серіалів →
+            «Це довга історія» — конкурс серіалів →
           </div>
           <div style={{ color: 'rgba(255,255,255,0.82)', fontSize: '0.95rem', marginTop: 6, lineHeight: 1.55 }}>
             Десять серій за десять тижнів. Головна нагорода — 20 000 ₴, багатоголосе

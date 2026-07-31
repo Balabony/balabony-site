@@ -41,7 +41,7 @@ const GROUPS: SitemapGroup[] = [
     title: 'Конкурси',
     links: [
       { href: '/konkursy',                     label: 'Літературні конкурси',      note: 'Три конкурси, старт 1 листопада 2026' },
-      { href: '/konkursy#dali-bude',           label: '«Далі буде»',               note: 'Серіальний, 10 серій за 10 тижнів' },
+      { href: '/konkursy#dovha-istoriya',      label: '«Це довга історія»',        note: 'Серіальний, 10 серій за 10 тижнів' },
       { href: '/konkursy#odyn-den',            label: '«Один день, який усе змінив»', note: 'Коротка проза до 1500 слів' },
       { href: '/konkursy#z-viterczem',         label: '«З вітерцем»',              note: 'Гумористична історія' },
     ],

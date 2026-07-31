@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 
-// Перший сезон — один конкурс: серіальний «Далі буде».
+// Перший сезон — один конкурс: серіальний «Це довга історія».
 // Свідомо НЕ згадуємо: наклад газет як приз, гонорар за газетну публікацію,
 // джерела переходів у кабінеті (ще не зроблено).
 
@@ -16,13 +16,25 @@ const SOFT = '#dbe4f0'
 const FONT = "'Montserrat', Arial, sans-serif"
 const SERIF = "'Lora', Georgia, serif"
 
+// Кожен конкурс має власний колір і власний знак — щоб читач розрізняв їх до
+// того, як прочитає заголовок. Колір виведено зі змісту, а не з палітри:
+// серіал на десять тижнів — золото довгої дистанції; «Один день» — холодне
+// світло зламу; «З вітерцем» — свіжа зелень легкої історії.
+const ACCENTS = {
+  serial:  { line: '#ef9f27', soft: '#FAC775', glow: 'rgba(239,159,39,0.16)', edge: 'rgba(239,159,39,0.45)' },
+  oneDay:  { line: '#8B9DFF', soft: '#B9C4FF', glow: 'rgba(139,157,255,0.16)', edge: 'rgba(139,157,255,0.45)' },
+  humour:  { line: '#57C98C', soft: '#8FE0B4', glow: 'rgba(87,201,140,0.16)',  edge: 'rgba(87,201,140,0.45)' },
+} as const
+
+type Accent = typeof ACCENTS[keyof typeof ACCENTS]
+
 export const metadata: Metadata = {
-  title: 'Далі буде — конкурс серіалів · Балабони',
+  title: 'Це довга історія — конкурс серіалів · Балабони',
   description:
-    'Конкурс серіалів «Далі буде» на Балабонах: десять серій за десять тижнів. Головна нагорода — 20 000 грн, багатоголосе озвучення та місяць у газеті «Життя».',
+    'Конкурс серіалів «Це довга історія» на Балабонах: десять серій за десять тижнів. Головна нагорода — 20 000 грн і багатоголосе озвучення.',
   alternates: { canonical: '/konkursy' },
   openGraph: {
-    title: 'Далі буде — конкурс серіалів · Балабони',
+    title: 'Це довга історія — конкурс серіалів · Балабони',
     description:
       'Десять тижнів, десять серій. Переможця обирають ті, хто дочитав. Нагороди — гроші, багатоголосе озвучення й газета.',
     url: 'https://balabony.com/konkursy',
@@ -123,6 +135,8 @@ const DATES: [string, string][] = [
 
 const COMMON_RULES: string[] = [
   'Серія має вийти у свій день. Кожна серія проходить редактуру перед публікацією.',
+  'Текст серіалу пише автор. Штучний інтелект для написання серій не використовується — ані повністю, ані частково; виявлення означає зняття з конкурсу. Перевірка правопису, друкарських помилок і добір синонімів порушенням не є.',
+  'Обкладинку та ілюстрації до серіалу створювати за допомогою штучного інтелекту можна — на оцінювання це не впливає, просимо лише повідомити редакцію. Якщо зображення немає, його зробить редакція: надішліть текст.',
   'Накрутка прочитань, голосів чи реєстрацій — зняття з конкурсу без пояснень. Ми бачимо час на сторінці, швидкість гортання і звідки прийшов читач.',
   'Прочитанням вважається перегляд не менш як 70% тексту зареєстрованим читачем, не частіше разу на добу з одного акаунта. Перегляди з акаунта автора не враховуються.',
   'Участь у конкурсі не змінює умов авторського договору: додаткових прав ми не набуваємо, додаткової ексклюзивності не встановлюємо.',
@@ -138,6 +152,10 @@ const COMMON_RULES: string[] = [
 // ─── Два конкурси коротких історій ───
 type ShortContest = {
   id: string
+  accent: Accent
+  /** Знак конкурсу: одна поділка зі зламом або три штрихи руху. */
+  mark: 'break' | 'gust'
+  badge: string
   title: string
   lead: string
   about: string
@@ -151,6 +169,9 @@ type ShortContest = {
 const SHORT_CONTESTS: ShortContest[] = [
   {
     id: 'odyn-den',
+    accent: ACCENTS.oneDay,
+    mark: 'break',
+    badge: 'Коротка проза · один день',
     title: '«Один день, який усе змінив»',
     lead: 'Коротка проза до 1500 слів',
     about:
@@ -178,12 +199,16 @@ const SHORT_CONTESTS: ShortContest[] = [
       'Історія нова, повністю не публікувалася до 1 листопада 2026 року.',
       'Обсяг до 1500 слів. Довші тексти знімаються.',
       'Текст написаний автором; згенеровані ШІ твори не приймаються.',
+      'Обкладинку та ілюстрації можна створити за допомогою ШІ — повідомте про це редакцію. Якщо зображення немає, його зробить редакція.',
       'Оцінює редакція; доходимість враховується як додатковий показник.',
       'Підписаний авторський договір і заповнені реквізити в кабінеті.',
     ],
   },
   {
     id: 'z-viterczem',
+    accent: ACCENTS.humour,
+    mark: 'gust',
+    badge: 'Гумористична історія',
     title: '«З вітерцем»',
     lead: 'Гумористична історія до 1500 слів',
     about:
@@ -212,6 +237,7 @@ const SHORT_CONTESTS: ShortContest[] = [
       'Обсяг до 1500 слів.',
       'Без позначки 18+.',
       'Текст написаний автором; згенеровані ШІ твори не приймаються.',
+      'Обкладинку та ілюстрації можна створити за допомогою ШІ — повідомте про це редакцію. Якщо зображення немає, його зробить редакція.',
       'Підписаний авторський договір і заповнені реквізити в кабінеті.',
     ],
   },
@@ -268,23 +294,82 @@ function Section({
   )
 }
 
+/** Знак конкурсу. Малий, поруч із ярликом — не ілюстрація, а мітка. */
+function Mark({ kind, color }: { kind: 'break' | 'gust' | 'weeks'; color: string }) {
+  if (kind === 'weeks') {
+    // Десять поділок — рівно стільки, скільки тижнів у дистанції.
+    return (
+      <span aria-hidden style={{ display: 'inline-flex', gap: 3, alignItems: 'flex-end', height: 14 }}>
+        {Array.from({ length: 10 }).map((_, i) => (
+          <span key={i} style={{ width: 2, height: 6 + (i % 3) * 4, background: color, borderRadius: 1, opacity: 0.55 + i * 0.045 }} />
+        ))}
+      </span>
+    )
+  }
+
+  if (kind === 'break') {
+    // Один день: те, що було, обрив, і те, що стало.
+    return (
+      <span aria-hidden style={{ display: 'inline-flex', gap: 4, alignItems: 'center', height: 14 }}>
+        <span style={{ width: 16, height: 2, background: color, borderRadius: 1, opacity: 0.5 }} />
+        <span style={{ width: 2, height: 12, background: color, borderRadius: 1 }} />
+        <span style={{ width: 16, height: 2, background: color, borderRadius: 1, opacity: 0.5 }} />
+      </span>
+    )
+  }
+
+  // Порив вітру — три похилі штрихи.
+  return (
+    <span aria-hidden style={{ display: 'inline-flex', gap: 4, alignItems: 'center', height: 14 }}>
+      {[14, 20, 11].map((w, i) => (
+        <span key={i} style={{ width: w, height: 2, background: color, borderRadius: 1, transform: 'skewX(-28deg)', opacity: 0.9 - i * 0.2 }} />
+      ))}
+    </span>
+  )
+}
+
 function ShortContestCard({ c }: { c: ShortContest }) {
+  const A = c.accent
   return (
     <section
       id={c.id}
       style={{
-        background: NAVY,
-        border: '1px solid rgba(143,163,196,0.18)',
+        position: 'relative',
+        background: `radial-gradient(120% 90% at 88% -10%, ${A.glow} 0%, rgba(0,0,0,0) 62%), ${NAVY}`,
+        border: `1px solid ${A.edge}`,
         borderRadius: 16,
-        padding: '26px 24px',
+        padding: '30px 24px 26px',
         marginBottom: 18,
         scrollMarginTop: 90,
+        overflow: 'hidden',
       }}
     >
+      {/* Кольорова смуга — головний розрізнювач між конкурсами. */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 4,
+          background: `linear-gradient(90deg, ${A.line} 0%, ${A.line} 55%, rgba(0,0,0,0) 100%)`,
+        }}
+      />
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
+        <span
+          style={{
+            fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: 'uppercase',
+            color: A.line, background: A.glow, border: `1px solid ${A.edge}`,
+            borderRadius: 6, padding: '5px 11px',
+          }}
+        >
+          {c.badge}
+        </span>
+        <Mark kind={c.mark} color={A.line} />
+      </div>
+
       <h2 style={{ fontFamily: SERIF, fontSize: 25, margin: '0 0 4px', color: CREAM, lineHeight: 1.25, fontWeight: 700 }}>
         {c.title}
       </h2>
-      <div style={{ fontSize: 14, color: GOLD_SOFT, fontWeight: 700, marginBottom: 16 }}>{c.lead}</div>
+      <div style={{ fontSize: 14, color: A.soft, fontWeight: 700, marginBottom: 16 }}>{c.lead}</div>
 
       <p style={P}>{c.about}</p>
 
@@ -298,7 +383,7 @@ function ShortContestCard({ c }: { c: ShortContest }) {
       <h3 style={{ fontFamily: SERIF, fontSize: 18, color: CREAM, margin: '20px 0 10px', fontWeight: 700 }}>
         Призи
       </h3>
-      <p style={{ ...P, color: GOLD_SOFT, fontWeight: 700, margin: '0 0 8px' }}>{c.prize}</p>
+      <p style={{ ...P, color: A.soft, fontWeight: 700, margin: '0 0 8px' }}>{c.prize}</p>
       <p style={{ ...P, color: MUTED }}>{c.bonus}</p>
 
       <h3 style={{ fontFamily: SERIF, fontSize: 18, color: CREAM, margin: '20px 0 10px', fontWeight: 700 }}>
@@ -315,10 +400,11 @@ function ShortContestCard({ c }: { c: ShortContest }) {
             padding: '11px 14px',
             borderRadius: 9,
             background: i % 2 === 0 ? NAVY_DEEP : 'transparent',
+            borderLeft: i % 2 === 0 ? `2px solid ${A.edge}` : '2px solid transparent',
           }}
         >
           <span style={{ fontSize: 15, color: SOFT }}>{k}</span>
-          <span style={{ fontSize: 15, color: GOLD_SOFT, fontWeight: 700 }}>{v}</span>
+          <span style={{ fontSize: 15, color: A.soft, fontWeight: 700 }}>{v}</span>
         </div>
       ))}
 
@@ -332,6 +418,60 @@ function ShortContestCard({ c }: { c: ShortContest }) {
   )
 }
 
+/** Три плитки вгорі: конкурси видно поруч і одразу видно, чим різняться. */
+function ContestPicker() {
+  const tiles = [
+    { href: '#dovha-istoriya', accent: ACCENTS.serial, mark: 'weeks' as const, name: 'Це довга історія',        what: 'Серіал, 10 серій',   when: 'Заявки 1–15 листопада', prize: '20 000 ₴' },
+    { href: '#odyn-den',     accent: ACCENTS.oneDay, mark: 'break' as const, name: 'Один день, який усе змінив', what: 'Одна історія',       when: 'Прийом до 15 грудня',   prize: '3 000 ₴' },
+    { href: '#z-viterczem',  accent: ACCENTS.humour, mark: 'gust' as const,  name: 'З вітерцем',                what: 'Одна історія, гумор', when: 'Прийом до 15 грудня',   prize: '3 000 ₴' },
+  ]
+
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+        gap: 12,
+        margin: '0 0 26px',
+      }}
+    >
+      {tiles.map(t => (
+        <a
+          key={t.href}
+          href={t.href}
+          style={{
+            display: 'block',
+            textDecoration: 'none',
+            position: 'relative',
+            background: `radial-gradient(130% 100% at 90% -20%, ${t.accent.glow} 0%, rgba(0,0,0,0) 65%), ${NAVY}`,
+            border: `1px solid ${t.accent.edge}`,
+            borderRadius: 13,
+            padding: '15px 16px 14px',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute', top: 0, left: 0, right: 0, height: 3,
+              background: `linear-gradient(90deg, ${t.accent.line} 0%, rgba(0,0,0,0) 100%)`,
+            }}
+          />
+          <Mark kind={t.mark} color={t.accent.line} />
+          <div style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 700, color: CREAM, margin: '9px 0 3px', lineHeight: 1.25 }}>
+            {t.name}
+          </div>
+          <div style={{ fontSize: 13, color: MUTED }}>{t.what}</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 10, alignItems: 'baseline', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 12.5, color: SOFT }}>{t.when}</span>
+            <span style={{ fontSize: 14, fontWeight: 800, color: t.accent.line }}>{t.prize}</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  )
+}
+
 export default function KonkursyPage() {
   return (
     <main style={{ background: NAVY_DEEP, color: CREAM, fontFamily: FONT }}>
@@ -339,19 +479,32 @@ export default function KonkursyPage() {
 
         <Breadcrumbs items={[{ label: 'Конкурси' }]} />
 
+        {/* Три конкурси поруч: видно різницю до того, як читати умови. */}
+        <div style={{ marginTop: 18 }}>
+          <ContestPicker />
+        </div>
+
         {/* ─── Перший екран ─── */}
         <div
-          id="dali-bude"
+          id="dovha-istoriya"
           style={{
-            background: NAVY,
-            border: `1px solid rgba(239,159,39,0.4)`,
+            position: 'relative',
+            background: `radial-gradient(120% 90% at 85% -15%, ${ACCENTS.serial.glow} 0%, rgba(0,0,0,0) 60%), ${NAVY}`,
+            border: `1px solid ${ACCENTS.serial.edge}`,
             borderRadius: 18,
             padding: '34px 26px 28px',
-            marginTop: 18,
             marginBottom: 26,
+            overflow: 'hidden',
             scrollMarginTop: 90,
           }}
         >
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute', top: 0, left: 0, right: 0, height: 5,
+              background: `linear-gradient(90deg, ${GOLD} 0%, ${GOLD} 60%, rgba(0,0,0,0) 100%)`,
+            }}
+          />
           <span
             style={{
               display: 'inline-block',
@@ -368,6 +521,9 @@ export default function KonkursyPage() {
           >
             Конкурс серіалів · Сезон 1
           </span>
+          <span style={{ display: 'inline-flex', marginLeft: 12, verticalAlign: 'middle' }}>
+            <Mark kind="weeks" color={GOLD} />
+          </span>
 
           <h1
             style={{
@@ -379,14 +535,14 @@ export default function KonkursyPage() {
               color: CREAM,
             }}
           >
-            Далі <span style={{ color: GOLD }}>буде</span>
+            Це довга <span style={{ color: GOLD }}>історія</span>
           </h1>
 
           <div style={{ width: 82, height: 4, background: GOLD, borderRadius: 2, margin: '16px 0 18px' }} />
 
           <p style={{ fontSize: 18, color: SOFT, lineHeight: 1.65, margin: 0, maxWidth: 640 }}>
-            Десять тижнів. Десять серій. Одна історія, яку читач чекає щотижня.
-            Переможця обирає не журі — його обирають ті, хто дочитав.
+            Розкажіть її за десять тижнів. Десять серій, одна історія, яку читач
+            чекає щотижня. Переможця обирає не журі — його обирають ті, хто дочитав.
           </p>
 
           <div
@@ -479,7 +635,8 @@ export default function KonkursyPage() {
           </p>
           <p style={{ ...P, margin: 0 }}>
             Жанр вільний. Мова українська, оригінал, не переклад. Текст написаний автором — твори,
-            згенеровані штучним інтелектом, не приймаються.
+            згенеровані штучним інтелектом, не приймаються. Обкладинку та ілюстрації створювати
+            за допомогою штучного інтелекту можна: заборона стосується лише тексту.
           </p>
         </Section>
 
@@ -630,7 +787,7 @@ export default function KonkursyPage() {
 
         <Section num="7" title="Що таке сезон">
           <p style={P}>
-            Конкурс не одноразовий. «Далі буде» проходить двічі на рік — узимку й навесні. Кожен раунд
+            Конкурс не одноразовий. «Це довга історія» проходить двічі на рік — узимку й навесні. Кожен раунд
             і є сезон: десять тижнів публікацій, далі підсумки, виплати, озвучення переможців і
             газетний місяць. Поки триває ця робота, готується наступний набір.
           </p>
