@@ -10,7 +10,19 @@ const MUTED = '#b9c6db'
 const FONT = "'Montserrat', Arial, sans-serif"
 const LINE = 'rgba(143,163,196,0.22)'
 
-type NameRow = { author_name: string; stories: string }
+type NameRow = { author_name: string; stories: string; consent: string | null }
+
+/** Підпис і колір для стану згоди на публікацію в Балабонах. */
+function consentBadge(status: string | null): { text: string; color: string; bg: string } {
+  if (status === 'given')    return { text: 'згода є',            color: '#7ddba0', bg: 'rgba(125,219,160,0.12)' }
+  if (status === 'refused')  return { text: 'згоду не надано',    color: '#ff8b8b', bg: 'rgba(255,139,139,0.14)' }
+  if (status === 'revoked')  return { text: 'згоду відкликано',   color: '#ff8b8b', bg: 'rgba(255,139,139,0.14)' }
+  if (status === 'pending')  return { text: 'згода очікується',   color: '#f0c674', bg: 'rgba(240,198,116,0.12)' }
+  return { text: 'згоди не зафіксовано', color: '#b9c6db', bg: 'rgba(185,198,219,0.10)' }
+}
+
+const isBlocked = (status: string | null): boolean =>
+  status === 'refused' || status === 'revoked'
 type ProfileRow = {
   user_id: string
   display_name: string | null
@@ -68,7 +80,14 @@ export default function LinkAuthorsPage() {
       return
     }
     const prof = profiles.find((p) => p.user_id === userId)
-    const count = names.find((n) => n.author_name === authorName)?.stories ?? '?'
+    const row = names.find((n) => n.author_name === authorName)
+    const count = row?.stories ?? '?'
+    if (isBlocked(row?.consent ?? null)) {
+      setErr(
+        `«${authorName}» — згоди на публікацію в Балабонах немає. Привʼязка заблокована.`
+      )
+      return
+    }
     if (
       !window.confirm(
         `Привʼязати ${count} історій імені «${authorName}» до профілю ${
@@ -170,8 +189,20 @@ export default function LinkAuthorsPage() {
               <div style={{ fontSize: 17, fontWeight: 700, color: CREAM }}>
                 {n.author_name}
               </div>
-              <div style={{ fontSize: 14, color: MUTED, margin: '4px 0 14px' }}>
-                історій: <strong style={{ color: GOLD }}>{n.stories}</strong>
+              <div style={{ fontSize: 14, color: MUTED, margin: '4px 0 14px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <span>
+                  історій: <strong style={{ color: GOLD }}>{n.stories}</strong>
+                </span>
+                <span
+                  style={{
+                    fontSize: 12, fontWeight: 700, borderRadius: 999,
+                    padding: '3px 10px',
+                    color: consentBadge(n.consent).color,
+                    background: consentBadge(n.consent).bg,
+                  }}
+                >
+                  {consentBadge(n.consent).text}
+                </span>
               </div>
 
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -202,21 +233,26 @@ export default function LinkAuthorsPage() {
                 <button
                   type="button"
                   onClick={() => void link(n.author_name)}
-                  disabled={busy === n.author_name}
+                  disabled={busy === n.author_name || isBlocked(n.consent)}
+                  title={isBlocked(n.consent) ? 'Згоди на публікацію в Балабонах немає' : undefined}
                   style={{
-                    background: GOLD,
-                    color: NAVY_DEEP,
-                    border: 'none',
+                    background: isBlocked(n.consent) ? 'rgba(255,139,139,0.15)' : GOLD,
+                    color: isBlocked(n.consent) ? '#ff8b8b' : NAVY_DEEP,
+                    border: isBlocked(n.consent) ? '1px solid rgba(255,139,139,0.4)' : 'none',
                     borderRadius: 8,
                     padding: '9px 20px',
                     fontSize: 14.5,
                     fontWeight: 700,
                     fontFamily: FONT,
-                    cursor: busy === n.author_name ? 'default' : 'pointer',
+                    cursor: busy === n.author_name || isBlocked(n.consent) ? 'not-allowed' : 'pointer',
                     opacity: busy === n.author_name ? 0.5 : 1,
                   }}
                 >
-                  {busy === n.author_name ? 'Привʼязую…' : 'Привʼязати'}
+                  {isBlocked(n.consent)
+                    ? 'Заблоковано'
+                    : busy === n.author_name
+                      ? 'Привʼязую…'
+                      : 'Привʼязати'}
                 </button>
               </div>
             </div>

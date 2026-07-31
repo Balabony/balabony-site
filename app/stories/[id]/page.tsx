@@ -149,7 +149,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
         {/* Поширення */}
         <div style={{ marginTop: 40 }}>
-          <ShareButtons url={`https://balabony.com/stories/${id}`} title={story.title} storyId={id} />
+          <ShareButtons url={`https://balabony.com/stories/${id}`} title={story.title} storyId={story.id} />
         </div>
 
         {/* Footer */}
@@ -168,7 +168,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
       </div>
 
       {/* Аудіоплеєр: показує плеєр, якщо audio_status='ready', інакше «у розробці» */}
-      <AudioPlayer audioUrl={story.audio_url} audioStatus={story.audio_status} title={story.title} />
+      <AudioPlayer audioUrl={story.audio_url} audioStatus={story.audio_status} title={story.title} contentId={story.id} />
     </div>
   )
 }

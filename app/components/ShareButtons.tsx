@@ -72,7 +72,7 @@ export default function ShareButtons({ url, title, storyId, season }: Props) {
           target="_blank"
           rel="noopener noreferrer"
           title={label}
-          onClick={() => { trackStoryEvent(url, title, 'share'); recordReferral(label) }}
+          onClick={() => { trackStoryEvent(storyId ?? url, title, 'share'); recordReferral(label) }}
           className="share-btn"
         >
           <Icon />

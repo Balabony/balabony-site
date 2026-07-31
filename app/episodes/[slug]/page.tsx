@@ -241,7 +241,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         <EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={seasonPosition} bypass={isAdmin} isPremium={episode.is_premium} />
 
         <div style={{ marginTop: 40 }}>
-          <ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} storyId={`episodes/${slug}`} season={episode.season_number} />
+          <ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} storyId={episode.id} season={episode.season_number} />
         </div>
 
         {(episode.hook || episode.next_teaser || nextEp) && (
@@ -271,7 +271,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
       </div>
 
       {/* Аудіоплеєр: показує плеєр, якщо audio_status='ready', інакше «у розробці» */}
-      <AudioPlayer audioUrl={episode.audio_url} audioStatus={episode.audio_status} title={episode.title} />
+      <AudioPlayer audioUrl={episode.audio_url} audioStatus={episode.audio_status} title={episode.title} contentId={episode.id} />
     </div>
   )
 }

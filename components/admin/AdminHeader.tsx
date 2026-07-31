@@ -59,6 +59,7 @@ export default function AdminHeader({ icon, title }: AdminHeaderProps) {
     { href: '/admin/analytics',    label: 'Аналітика' },
     { href: '/admin/stories1',     label: 'Авторські' },
     { href: '/admin/editorial',    label: 'Редакція' },
+    { href: '/admin/authors',      label: 'Автори' },
   ]
 
   // На Тиші показуємо перемикач «Балабони», на Балабонах — «Тиша».

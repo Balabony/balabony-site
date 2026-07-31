@@ -19,6 +19,13 @@ interface AudioPlayerProps {
   audioUrl?: string | null
   audioStatus?: 'pending' | 'processing' | 'ready' | 'failed' | string | null
   title?: string
+  /**
+   * uuid запису в `content`. Потрібен, щоб події слухання лягали привʼязаними
+   * одразу, а не шукалися заднім числом за назвою. Якщо не передано —
+   * лишається старий шлях через назву (менш надійний: назви бувають однакові
+   * й змінюються).
+   */
+  contentId?: string | null
 }
 
 const SPEEDS = [0.75, 1.0, 1.25, 1.5, 2.0]
@@ -44,7 +51,7 @@ function fmt(s: number): string {
   return m + ':' + (sec < 10 ? '0' : '') + sec
 }
 
-export default function AudioPlayer({ audioUrl, audioStatus, title }: AudioPlayerProps) {
+export default function AudioPlayer({ audioUrl, audioStatus, title, contentId }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [playing, setPlaying] = useState(false)
   const [current, setCurrent] = useState(0)
@@ -131,7 +138,7 @@ export default function AudioPlayer({ audioUrl, audioStatus, title }: AudioPlaye
       void a.play()
       if (!openTracked.current && title) {
         openTracked.current = true
-        trackStoryEvent(title, title, 'open')
+        trackStoryEvent(contentId ?? title, title, 'open')
       }
     } else {
       a.pause()
@@ -188,7 +195,7 @@ export default function AudioPlayer({ audioUrl, audioStatus, title }: AudioPlaye
           setSleepIdx(SLEEP_OPTIONS.length - 1) // епізод завершився — таймер сну скинути
           if (!readTracked.current && title) {
             readTracked.current = true
-            trackStoryEvent(title, title, 'read', Math.round(duration))
+            trackStoryEvent(contentId ?? title, title, 'read', Math.round(duration))
           }
         }}
       />

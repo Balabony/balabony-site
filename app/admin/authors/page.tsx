@@ -104,6 +104,39 @@ export default function AdminAuthorsPage() {
           ввести свою пошту. Наявний акаунт із такою адресою використовується повторно.
         </p>
 
+        {/* Сусідні кроки. Прив'язка й перелік творів не мають своїх вкладок
+            у меню, тому шлях до них тримаємо тут — поруч із заведенням. */}
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
+          <a
+            href="/admin/link-authors"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              background: 'rgba(239,159,39,0.10)', border: `1px solid ${GOLD}55`,
+              borderRadius: 10, padding: '9px 15px', fontSize: 13, fontWeight: 700,
+              color: GOLD, textDecoration: 'none', fontFamily: FONT,
+            }}
+          >
+            Прив&apos;язка архівних творів →
+          </a>
+          <a
+            href="/admin/sync-works"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              background: 'transparent', border: `1px solid ${LINE}`,
+              borderRadius: 10, padding: '9px 15px', fontSize: 13, fontWeight: 700,
+              color: MUTED, textDecoration: 'none', fontFamily: FONT,
+            }}
+          >
+            Перелік творів договору →
+          </a>
+        </div>
+
+        <p style={{ color: MUTED, fontSize: 13, lineHeight: 1.6, marginTop: 12 }}>
+          Порядок: завести кабінет → прив&apos;язати наявні твори → вивести з
+          чернеток → синхронізувати перелік → аж тоді підписання. Чернетки
+          в перелік договору не потрапляють.
+        </p>
+
         <div style={{ background: NAVY, border: `1px solid ${LINE}`, borderRadius: 16, padding: 22, marginTop: 20 }}>
           <div style={{ marginBottom: 16 }}>
             <label style={labelStyle}>Прізвище, імʼя, по батькові</label>
