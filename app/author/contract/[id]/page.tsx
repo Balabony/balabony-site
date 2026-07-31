@@ -112,7 +112,18 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
           завантажте його в кабінеті.
         </p>
 
-        <style>{`@media print { .no-print { display: none !important } body { background: #fff } }`}</style>
+        <style>{`
+          @media print {
+            .no-print { display: none !important }
+            /* Нижня навігація сайту, банери й спливні елементи друкувалися
+               на кожній сторінці договору — у документі, який автор підписує
+               й подає, їм не місце. */
+            .bb-root, nav, header, footer,
+            [role="dialog"], [data-nosnippet] { display: none !important }
+            body { background: #fff }
+            @page { margin: 14mm 12mm }
+          }
+        `}</style>
       </div>
     </main>
   )
