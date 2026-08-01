@@ -5,6 +5,7 @@ import AuthorContracts, { type ContractRow } from '@/app/components/AuthorContra
 import AuthorRequisites, { type Requisites } from '@/app/components/AuthorRequisites'
 import AuthorSurvey, { type Feedback } from '@/app/components/AuthorSurvey'
 import AuthorMessageForm from '@/app/components/AuthorMessageForm'
+import ContestCountdown from '@/app/components/ContestCountdown'
 import { dbQuery } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
@@ -382,6 +383,8 @@ export default async function AuthorDashboardPage() {
             </div>
           )}
         </div>
+
+        <ContestCountdown />
 
         <AuthorRequisites initial={requisites} />
 
