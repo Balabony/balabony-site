@@ -233,6 +233,33 @@ export function renderAuthorEmail(template: AuthorEmailTemplate, v: Vars) {
 }
 
 /**
+ * Підстановки для редагування тексту вручну.
+ * У редакторі листа замість імені й пошти стоять ці позначки — при відправленні
+ * кожному авторові підставляються його дані.
+ */
+export const VAR_NAME = '{{ІМЯ}}'
+export const VAR_EMAIL = '{{ПОШТА}}'
+
+/** Заготовка з позначками замість імені й пошти — для ручного редагування. */
+export function draftAuthorEmail(template: AuthorEmailTemplate) {
+  const text = BUILDERS[template]({ name: VAR_NAME, email: VAR_EMAIL })
+  return { subject: SUBJECTS[template], text }
+}
+
+/** Підставляє дані автора у відредагований текст. */
+export function fillVars(text: string, v: Vars) {
+  return text
+    .split(VAR_NAME).join(v.name)
+    .split(VAR_EMAIL).join(v.email)
+}
+
+/** Верстка листа з довільного тексту — для листів, написаних вручну. */
+export function renderCustomEmail(subject: string, text: string, v: Vars) {
+  const filled = fillVars(text, v)
+  return { subject: fillVars(subject, v), text: filled, html: toHtml(filled) }
+}
+
+/**
  * Кому доречно надіслати лист.
  * Поки договір не затверджено, лист однаковий для всіх, хто ще не підписав.
  */

@@ -1,7 +1,7 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { dbQuery } from '@/lib/db'
-import { renderAuthorEmail, type AuthorEmailTemplate } from '@/lib/author-emails'
+import { renderAuthorEmail, renderCustomEmail, type AuthorEmailTemplate } from '@/lib/author-emails'
 
 /**
  * Надсилання листа одному авторові з адмінки.
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  let body: { userId?: string; template?: string }
+  let body: { userId?: string; template?: string; subject?: string; text?: string }
   try {
     body = (await req.json()) as typeof body
   } catch {
@@ -47,9 +47,16 @@ export async function POST(req: NextRequest) {
   const userId = String(body.userId ?? '').trim()
   const template = String(body.template ?? '') as AuthorEmailTemplate
 
+  // Текст, відредагований вручну. Якщо його немає — беремо шаблон.
+  const customText = String(body.text ?? '').trim()
+  const customSubject = String(body.subject ?? '').trim()
+
   if (!userId) return NextResponse.json({ ok: false, error: 'Не вказано автора' }, { status: 400 })
-  if (!TEMPLATES.includes(template)) {
+  if (!customText && !TEMPLATES.includes(template)) {
     return NextResponse.json({ ok: false, error: 'Невідомий шаблон листа' }, { status: 400 })
+  }
+  if (customText && !customSubject) {
+    return NextResponse.json({ ok: false, error: 'Порожня тема листа' }, { status: 400 })
   }
 
   // --- Профіль -----------------------------------------------------------
@@ -102,7 +109,9 @@ export async function POST(req: NextRequest) {
     // Таблиці згод може не бути — це не привід блокувати відправлення.
   }
 
-  const { subject, html, text } = renderAuthorEmail(template, { name, email })
+  const { subject, html, text } = customText
+    ? renderCustomEmail(customSubject, customText, { name, email })
+    : renderAuthorEmail(template, { name, email })
 
   // --- Відправлення -------------------------------------------------------
   const from = process.env.RESEND_FROM_EMAIL ?? 'editorial@balabony.com'
@@ -122,7 +131,7 @@ export async function POST(req: NextRequest) {
     await dbQuery(
       `insert into author_emails (author_id, email, template, subject, status, error)
        values ($1, $2, $3, $4, $5, $6)`,
-      [userId, email, template, subject, sendError ? 'failed' : 'sent', sendError],
+      [userId, email, customText ? 'custom' : template, subject, sendError ? 'failed' : 'sent', sendError],
     )
   } catch {
     // Таблиці журналу ще немає — саме відправлення від цього не залежить.

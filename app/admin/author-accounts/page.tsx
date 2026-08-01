@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  TEMPLATE_LABEL, suggestTemplate, type AuthorEmailTemplate,
+  TEMPLATE_LABEL, suggestTemplate, draftAuthorEmail, fillVars,
+  VAR_NAME, VAR_EMAIL, type AuthorEmailTemplate,
 } from '@/lib/author-emails'
 
 /**
@@ -109,13 +110,21 @@ export default function AdminAuthorAccountsPage() {
   const [copied, setCopied] = useState('')
   const [sendingId, setSendingId] = useState('')
   const [sendNote, setSendNote] = useState<Record<string, string>>({})
-  const [pickTemplate, setPickTemplate] = useState<Record<string, AuthorEmailTemplate>>({})
+  const [pickTemplate] = useState<Record<string, AuthorEmailTemplate>>({})
   const [bulkArmed, setBulkArmed] = useState(false)
   const [bulkRunning, setBulkRunning] = useState(false)
   const [bulkDone, setBulkDone] = useState(0)
   const [bulkSent, setBulkSent] = useState(0)
   const [bulkFailed, setBulkFailed] = useState(0)
   const bulkStopRef = useRef(false)
+
+  // Текст листа, який Богдан бачить і може правити.
+  // Позначки {{ІМЯ}} та {{ПОШТА}} підставляються під кожного автора при відправленні.
+  const draft = draftAuthorEmail('intro')
+  const [mailSubject, setMailSubject] = useState(draft.subject)
+  const [mailText, setMailText] = useState(draft.text)
+  const [editorOpen, setEditorOpen] = useState(false)
+  const [previewFor, setPreviewFor] = useState<Row | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -165,12 +174,7 @@ export default function AdminAuthorAccountsPage() {
   }), [rows])
 
   const loginMessage = (r: Row): string =>
-    `Вітаємо! Ваш кабінет автора на Балабонах створено.\n\n` +
-    `Щоб увійти:\n` +
-    `1. Відкрийте balabony.com/login\n` +
-    `2. Введіть цю адресу: ${r.email ?? ''}\n` +
-    `3. Натисніть «Отримати посилання» — на пошту прийде лист із входом.\n\n` +
-    `У кабінеті ви побачите свої твори, умови договору й нарахування.`
+    fillVars(mailText, { name: r.display_name, email: r.email ?? '' })
 
   const copy = async (r: Row) => {
     try {
@@ -189,7 +193,7 @@ export default function AdminAuthorAccountsPage() {
       const res = await fetch('/api/admin/send-author-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: r.user_id, template }),
+        body: JSON.stringify({ userId: r.user_id, template, subject: mailSubject, text: mailText }),
       })
       const raw = await res.text()
       type Payload = { ok?: boolean; error?: string }
@@ -243,7 +247,7 @@ export default function AdminAuthorAccountsPage() {
         const res = await fetch('/api/admin/send-author-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: r.user_id, template }),
+          body: JSON.stringify({ userId: r.user_id, template, subject: mailSubject, text: mailText }),
         })
         const raw = await res.text()
         type Payload = { ok?: boolean; error?: string }
@@ -340,6 +344,84 @@ export default function AdminAuthorAccountsPage() {
             <ul style={{ margin: '6px 0 0', paddingLeft: 20 }}>
               {warnings.map(w => <li key={w}>{w}</li>)}
             </ul>
+          </div>
+        )}
+
+        {/* Текст листа */}
+        {!loading && !err && (
+          <div style={{
+            marginTop: 20, padding: '14px 16px', borderRadius: 12,
+            background: NAVY, border: `1px solid ${LINE}`,
+          }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+              <strong style={{ color: CREAM, fontSize: 14 }}>Текст листа</strong>
+              <button
+                type="button"
+                onClick={() => setEditorOpen(v => !v)}
+                style={{
+                  padding: '7px 13px', borderRadius: 9, cursor: 'pointer',
+                  border: `1px solid ${GOLD}`, background: 'transparent',
+                  color: GOLD, fontSize: 13, fontFamily: FONT, fontWeight: 700,
+                }}
+              >
+                {editorOpen ? 'Згорнути' : 'Показати й редагувати'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const d = draftAuthorEmail('intro')
+                  setMailSubject(d.subject); setMailText(d.text)
+                }}
+                style={{
+                  padding: '7px 12px', borderRadius: 9, cursor: 'pointer',
+                  border: `1px solid ${LINE}`, background: 'transparent',
+                  color: MUTED, fontSize: 13, fontFamily: FONT,
+                }}
+              >
+                Повернути початковий
+              </button>
+              <span style={{ fontSize: 12.5, color: MUTED }}>
+                {mailText.length.toLocaleString('uk-UA')} знаків
+              </span>
+            </div>
+
+            {editorOpen && (
+              <div style={{ marginTop: 14 }}>
+                <label style={{ display: 'block', fontSize: 12.5, color: MUTED, marginBottom: 5 }}>
+                  Тема
+                </label>
+                <input
+                  value={mailSubject}
+                  onChange={e => setMailSubject(e.target.value)}
+                  style={{
+                    width: '100%', padding: '9px 12px', borderRadius: 9, marginBottom: 14,
+                    border: `1px solid ${LINE}`, background: NAVY_DEEP, color: CREAM,
+                    fontSize: 14, fontFamily: FONT, outline: 'none',
+                  }}
+                />
+
+                <label style={{ display: 'block', fontSize: 12.5, color: MUTED, marginBottom: 5 }}>
+                  Текст. {VAR_NAME} — імʼя автора, {VAR_EMAIL} — його пошта.
+                  Рядок ВЕЛИКИМИ ЛІТЕРАМИ стає заголовком розділу.
+                </label>
+                <textarea
+                  value={mailText}
+                  onChange={e => setMailText(e.target.value)}
+                  rows={22}
+                  style={{
+                    width: '100%', padding: '12px 14px', borderRadius: 9,
+                    border: `1px solid ${LINE}`, background: NAVY_DEEP, color: CREAM,
+                    fontSize: 13.5, lineHeight: 1.65, fontFamily: 'Consolas, monospace',
+                    outline: 'none', resize: 'vertical',
+                  }}
+                />
+                <p style={{ fontSize: 12.5, color: MUTED, marginTop: 8, lineHeight: 1.6 }}>
+                  Зміни діють одразу — і для кнопки «Надіслати» в рядку автора, і для масової
+                  розсилки. Вони живуть, доки відкрита ця сторінка: після перезавантаження
+                  текст повернеться до початкового.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -551,7 +633,7 @@ export default function AdminAuthorAccountsPage() {
                       <td style={{ ...td, minWidth: 210 }}>
                         {r.email ? (() => {
                           const suggested = suggestTemplate(r)
-                          const chosen = pickTemplate[r.user_id] ?? suggested ?? 'login'
+                          const chosen = pickTemplate[r.user_id] ?? suggested ?? 'intro'
                           const note = sendNote[r.user_id] ?? ''
                           const blocked = r.consent === 'refused' || r.consent === 'revoked'
                           return (
@@ -580,6 +662,17 @@ export default function AdminAuthorAccountsPage() {
                                       }}
                                     >
                                       {sendingId === r.user_id ? 'Шлемо…' : 'Надіслати'}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setPreviewFor(r)}
+                                      style={{
+                                        padding: '6px 9px', borderRadius: 8, cursor: 'pointer',
+                                        border: `1px solid ${LINE}`, background: 'transparent',
+                                        color: MUTED, fontSize: 12.5, fontFamily: FONT,
+                                      }}
+                                    >
+                                      Переглянути
                                     </button>
                                     <button
                                       type="button"
@@ -613,6 +706,91 @@ export default function AdminAuthorAccountsPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {previewFor && (
+          <div
+            onClick={() => setPreviewFor(null)}
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(4,10,22,0.78)',
+              display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+              padding: '40px 16px', zIndex: 90, overflowY: 'auto',
+            }}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: NAVY, border: `1px solid ${LINE}`, borderRadius: 14,
+                maxWidth: 720, width: '100%', padding: '22px 24px',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ color: GOLD, fontSize: 17, fontWeight: 700 }}>
+                    Лист для: {previewFor.display_name || '(без імені)'}
+                  </div>
+                  <div style={{ color: MUTED, fontSize: 13, marginTop: 3 }}>{previewFor.email}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPreviewFor(null)}
+                  style={{
+                    padding: '7px 13px', borderRadius: 9, cursor: 'pointer',
+                    border: `1px solid ${LINE}`, background: 'transparent',
+                    color: MUTED, fontSize: 13, fontFamily: FONT,
+                  }}
+                >
+                  Закрити
+                </button>
+              </div>
+
+              <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${LINE}` }}>
+                <div style={{ color: MUTED, fontSize: 12.5 }}>Тема</div>
+                <div style={{ color: CREAM, fontSize: 14.5, fontWeight: 600, marginTop: 3 }}>
+                  {fillVars(mailSubject, { name: previewFor.display_name, email: previewFor.email ?? '' })}
+                </div>
+              </div>
+
+              <pre style={{
+                marginTop: 16, padding: '16px 18px', borderRadius: 10,
+                background: NAVY_DEEP, border: `1px solid ${LINE}`, color: CREAM,
+                fontSize: 13.5, lineHeight: 1.7, whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word', fontFamily: FONT, margin: '16px 0 0',
+              }}>
+                {fillVars(mailText, { name: previewFor.display_name, email: previewFor.email ?? '' })}
+              </pre>
+
+              <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  disabled={sendingId === previewFor.user_id}
+                  onClick={() => {
+                    const r = previewFor
+                    setPreviewFor(null)
+                    void send(r, 'intro')
+                  }}
+                  style={{
+                    padding: '9px 16px', borderRadius: 9, cursor: 'pointer',
+                    border: 'none', background: GOLD, color: NAVY_DEEP,
+                    fontSize: 13.5, fontFamily: FONT, fontWeight: 700,
+                  }}
+                >
+                  Надіслати цей лист
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setPreviewFor(null); setEditorOpen(true); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                  style={{
+                    padding: '9px 14px', borderRadius: 9, cursor: 'pointer',
+                    border: `1px solid ${LINE}`, background: 'transparent',
+                    color: MUTED, fontSize: 13.5, fontFamily: FONT,
+                  }}
+                >
+                  Редагувати текст
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
