@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ShareButtons from '@/app/components/ShareButtons'
+import ReaderPulse from '@/app/components/ReaderPulse'
 import AgeGate from '@/app/components/AgeGate'
 import AudioPlayer from '@/app/components/AudioPlayer'
 
@@ -146,6 +147,9 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
             dangerouslySetInnerHTML={{ __html: toStoryHtml(body, story.images ?? []) }}
           />
         )}
+
+        {/* Три питання тому, хто дочитав */}
+        <ReaderPulse contentId={story.id} />
 
         {/* Поширення */}
         <div style={{ marginTop: 40 }}>

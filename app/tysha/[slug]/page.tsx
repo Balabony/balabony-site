@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import ReadTracker from '@/app/components/ReadTracker'
+import ReaderPulse from '@/app/components/ReaderPulse'
 import TyshaProgressTracker from '@/app/components/TyshaProgressTracker'
 import TyshaAgeGate from '@/app/components/TyshaAgeGate'
 
@@ -253,6 +254,13 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
         <article style={{ maxWidth: 720, margin: '0 auto', padding: '22px 20px 40px' }}>
           <div dangerouslySetInnerHTML={{ __html: formatTyshaText(body) }} />
         </article>
+      )}
+
+      {/* Три питання тому, хто дочитав серію цілком */}
+      {!locked && (
+        <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px' }}>
+          <ReaderPulse contentId={ep.id} />
+        </div>
       )}
 
       {/* Наступна серія */}

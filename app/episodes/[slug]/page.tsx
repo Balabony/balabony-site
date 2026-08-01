@@ -7,6 +7,7 @@ import EpisodePaywall from './EpisodePaywall'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ShareButtons from '@/app/components/ShareButtons'
 import EpisodeCliffhanger from '@/app/components/EpisodeCliffhanger'
+import ReaderPulse from '@/app/components/ReaderPulse'
 import StreakTracker from '@/app/components/StreakTracker'
 import ReadTracker from '@/app/components/ReadTracker'
 import AudioPlayer from '@/app/components/AudioPlayer'
@@ -239,6 +240,12 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         )}
 
         <EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={seasonPosition} bypass={isAdmin} isPremium={episode.is_premium} />
+
+        {/* Три питання — лише тому, хто побачив серію цілком.
+            Умова замка повторює EpisodePaywall: перші дві серії сезону вільні. */}
+        {(isAdmin || (!episode.is_premium && seasonPosition <= 2)) && (
+          <ReaderPulse contentId={episode.id} />
+        )}
 
         <div style={{ marginTop: 40 }}>
           <ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} storyId={episode.id} season={episode.season_number} />
