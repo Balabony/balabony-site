@@ -567,21 +567,6 @@ export default function AdminAuthorAccountsPage() {
                                 <span style={{ color: BAD, fontSize: 12.5 }}>Згоди немає</span>
                               ) : (
                                 <>
-                                  <select
-                                    value={chosen}
-                                    onChange={e => setPickTemplate(prev => ({
-                                      ...prev, [r.user_id]: e.target.value as AuthorEmailTemplate,
-                                    }))}
-                                    style={{
-                                      width: '100%', padding: '6px 8px', borderRadius: 8,
-                                      border: `1px solid ${LINE}`, background: NAVY, color: CREAM,
-                                      fontSize: 12.5, fontFamily: FONT, marginBottom: 6,
-                                    }}
-                                  >
-                                    <option value="login">{TEMPLATE_LABEL.login}</option>
-                                    <option value="requisites">{TEMPLATE_LABEL.requisites}</option>
-                                    <option value="contract">{TEMPLATE_LABEL.contract}</option>
-                                  </select>
                                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                                     <button
                                       type="button"
