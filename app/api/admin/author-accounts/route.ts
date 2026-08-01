@@ -40,6 +40,9 @@ export type AccountRow = {
   contract_status: string | null
   contract_works: number
   consent: string | null
+  last_email_template: string | null
+  last_email_at: string | null
+  last_email_status: string | null
 }
 
 export async function GET(req: NextRequest) {
@@ -137,6 +140,30 @@ export async function GET(req: NextRequest) {
     warnings.push('Не вдалося прочитати згоди (author_consents)')
   }
 
+  // --- 4b. Останній надісланий лист --------------------------------------
+  const lastMail = new Map<string, { template: string; sent_at: string; status: string }>()
+  if (ids.length > 0) {
+    try {
+      const r = await dbQuery(
+        `select distinct on (author_id)
+                author_id::text as id, template, status, sent_at
+           from author_emails
+          where author_id = any($1::uuid[])
+          order by author_id, sent_at desc`,
+        [ids],
+      )
+      for (const row of r.rows as { id: string; template: string; status: string; sent_at: string }[]) {
+        lastMail.set(row.id, {
+          template: row.template,
+          status: row.status,
+          sent_at: new Date(row.sent_at).toISOString(),
+        })
+      }
+    } catch {
+      warnings.push('Журнал листів ще не створено (author_emails)')
+    }
+  }
+
   // --- 5. Зшивання --------------------------------------------------------
   const rows: AccountRow[] = base.map(b => {
     const id = String(b.user_id)
@@ -168,6 +195,9 @@ export async function GET(req: NextRequest) {
       contract_status: c?.status ?? null,
       contract_works: c?.works ?? 0,
       consent,
+      last_email_template: lastMail.get(id)?.template ?? null,
+      last_email_at: lastMail.get(id)?.sent_at ?? null,
+      last_email_status: lastMail.get(id)?.status ?? null,
     }
   })
 

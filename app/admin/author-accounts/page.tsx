@@ -1,6 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import {
+  TEMPLATE_LABEL, suggestTemplate, type AuthorEmailTemplate,
+} from '@/lib/author-emails'
 
 /**
  * Усі кабінети авторів на одній сторінці.
@@ -40,6 +43,9 @@ type Row = {
   contract_status: string | null
   contract_works: number
   consent: string | null
+  last_email_template: string | null
+  last_email_at: string | null
+  last_email_status: string | null
 }
 
 const CONTRACT_LABEL: Record<string, string> = {
@@ -101,6 +107,9 @@ export default function AdminAuthorAccountsPage() {
   const [q, setQ] = useState('')
   const [onlyTodo, setOnlyTodo] = useState(false)
   const [copied, setCopied] = useState('')
+  const [sendingId, setSendingId] = useState('')
+  const [sendNote, setSendNote] = useState<Record<string, string>>({})
+  const [pickTemplate, setPickTemplate] = useState<Record<string, AuthorEmailTemplate>>({})
 
   useEffect(() => {
     let alive = true
@@ -164,6 +173,39 @@ export default function AdminAuthorAccountsPage() {
       setTimeout(() => setCopied(''), 1800)
     } catch {
       setCopied('')
+    }
+  }
+
+  const send = async (r: Row, template: AuthorEmailTemplate) => {
+    setSendingId(r.user_id)
+    setSendNote(prev => ({ ...prev, [r.user_id]: '' }))
+    try {
+      const res = await fetch('/api/admin/send-author-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: r.user_id, template }),
+      })
+      const raw = await res.text()
+      type Payload = { ok?: boolean; error?: string }
+      let d: Payload | null = null
+      try { d = JSON.parse(raw) as Payload } catch { d = null }
+
+      if (!d) {
+        setSendNote(prev => ({ ...prev, [r.user_id]: `Помилка сервера (код ${res.status})` }))
+        return
+      }
+      if (!d.ok) {
+        setSendNote(prev => ({ ...prev, [r.user_id]: d?.error ?? 'Не надіслано' }))
+        return
+      }
+      setSendNote(prev => ({ ...prev, [r.user_id]: 'Надіслано' }))
+      setRows(prev => prev.map(x => x.user_id === r.user_id
+        ? { ...x, last_email_template: template, last_email_at: new Date().toISOString(), last_email_status: 'sent' }
+        : x))
+    } catch {
+      setSendNote(prev => ({ ...prev, [r.user_id]: 'Немає звʼязку з сервером' }))
+    } finally {
+      setSendingId('')
     }
   }
 
@@ -257,7 +299,7 @@ export default function AdminAuthorAccountsPage() {
 
         {!loading && !err && shown.length > 0 && (
           <div style={{ overflowX: 'auto', marginTop: 14 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 940 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 1080 }}>
               <thead>
                 <tr>
                   <th style={th}>Автор</th>
@@ -267,7 +309,7 @@ export default function AdminAuthorAccountsPage() {
                   <th style={th}>Договір</th>
                   <th style={th}>Згода</th>
                   <th style={th}>Ставка</th>
-                  <th style={th}></th>
+                  <th style={th}>Лист</th>
                 </tr>
               </thead>
               <tbody>
@@ -348,21 +390,80 @@ export default function AdminAuthorAccountsPage() {
                         </div>
                       </td>
 
-                      <td style={{ ...td, whiteSpace: 'nowrap' }}>
-                        {r.email && (
-                          <button
-                            type="button"
-                            onClick={() => { void copy(r) }}
-                            style={{
-                              padding: '7px 11px', borderRadius: 9, cursor: 'pointer',
-                              border: `1px solid ${LINE}`, background: 'transparent',
-                              color: copied === r.user_id ? OK : MUTED,
-                              fontSize: 12.5, fontFamily: FONT, fontWeight: 600,
-                            }}
-                          >
-                            {copied === r.user_id ? 'Скопійовано' : 'Лист про вхід'}
-                          </button>
-                        )}
+                      <td style={{ ...td, minWidth: 210 }}>
+                        {r.email ? (() => {
+                          const suggested = suggestTemplate(r)
+                          const chosen = pickTemplate[r.user_id] ?? suggested ?? 'login'
+                          const note = sendNote[r.user_id] ?? ''
+                          const blocked = r.consent === 'refused' || r.consent === 'revoked'
+                          return (
+                            <>
+                              {r.last_email_at && (
+                                <div style={{ color: MUTED, fontSize: 12, marginBottom: 6 }}>
+                                  {r.last_email_status === 'failed' ? '⚠ не дійшов · ' : 'надіслано '}
+                                  {dateShort(r.last_email_at)}
+                                  {r.last_email_template && ` · ${TEMPLATE_LABEL[r.last_email_template as AuthorEmailTemplate] ?? r.last_email_template}`}
+                                </div>
+                              )}
+                              {blocked ? (
+                                <span style={{ color: BAD, fontSize: 12.5 }}>Згоди немає</span>
+                              ) : (
+                                <>
+                                  <select
+                                    value={chosen}
+                                    onChange={e => setPickTemplate(prev => ({
+                                      ...prev, [r.user_id]: e.target.value as AuthorEmailTemplate,
+                                    }))}
+                                    style={{
+                                      width: '100%', padding: '6px 8px', borderRadius: 8,
+                                      border: `1px solid ${LINE}`, background: NAVY, color: CREAM,
+                                      fontSize: 12.5, fontFamily: FONT, marginBottom: 6,
+                                    }}
+                                  >
+                                    <option value="login">{TEMPLATE_LABEL.login}</option>
+                                    <option value="requisites">{TEMPLATE_LABEL.requisites}</option>
+                                    <option value="contract">{TEMPLATE_LABEL.contract}</option>
+                                  </select>
+                                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                    <button
+                                      type="button"
+                                      disabled={sendingId === r.user_id}
+                                      onClick={() => { void send(r, chosen) }}
+                                      style={{
+                                        padding: '6px 11px', borderRadius: 8, cursor: 'pointer',
+                                        border: 'none', background: GOLD, color: NAVY_DEEP,
+                                        fontSize: 12.5, fontFamily: FONT, fontWeight: 700,
+                                        opacity: sendingId === r.user_id ? 0.6 : 1,
+                                      }}
+                                    >
+                                      {sendingId === r.user_id ? 'Шлемо…' : 'Надіслати'}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => { void copy(r) }}
+                                      style={{
+                                        padding: '6px 9px', borderRadius: 8, cursor: 'pointer',
+                                        border: `1px solid ${LINE}`, background: 'transparent',
+                                        color: copied === r.user_id ? OK : MUTED,
+                                        fontSize: 12.5, fontFamily: FONT,
+                                      }}
+                                    >
+                                      {copied === r.user_id ? '✓' : 'Копія'}
+                                    </button>
+                                  </div>
+                                </>
+                              )}
+                              {note && (
+                                <div style={{
+                                  fontSize: 12, marginTop: 6, lineHeight: 1.5,
+                                  color: note === 'Надіслано' ? OK : BAD,
+                                }}>
+                                  {note}
+                                </div>
+                              )}
+                            </>
+                          )
+                        })() : <span style={{ color: MUTED, fontSize: 12.5 }}>немає пошти</span>}
                       </td>
                     </tr>
                   )
