@@ -98,8 +98,25 @@ function avgDuration(events: StoryEvent[]): number {
   return Math.round(reads.reduce((s, e) => s + (e.duration_seconds ?? 0), 0) / reads.length)
 }
 
+/**
+ * Службові сторінки — адмінка й кабінет автора. Заходи туди робить команда,
+ * а не аудиторія. Доки вони лічилися нарівні з рештою, статистика показувала
+ * тим кращі числа, чим більше ми самі працювали в адмінці, — і ШІ-аналіз
+ * робив з цього висновки на кшталт «авторів більше, ніж читачів».
+ */
+function isInternalPath(url: unknown): boolean {
+  const u = String(url ?? '')
+  return u.includes('/admin') || u.includes('/author/')
+}
+
 function buildSummary(d: AnalyticsData) {
+  const publicViews = d.page_views.filter(v =>
+    !isInternalPath((v as unknown as Record<string, unknown>).url))
+  const internalCount = d.page_views.length - publicViews.length
+
   return {
+    // Службові заходи команди виключено з підрахунку — див. isInternalPath.
+    внутрішніх_переглядів_виключено: internalCount,
     total_surveys:            d.surveys.length,
     age_distribution:         countBy(d.surveys as Record<string, unknown>[], 'age').slice(0, 6),
     gender_distribution:      countBy(d.surveys as Record<string, unknown>[], 'gender'),
@@ -108,9 +125,9 @@ function buildSummary(d: AnalyticsData) {
     top_genres:               countGenres(d.surveys).slice(0, 10),
     budget_distribution:      countBy(d.surveys as Record<string, unknown>[], 'budget'),
     recommend_distribution:   countBy(d.surveys as Record<string, unknown>[], 'recommend'),
-    total_page_views:         d.page_views.length,
-    unique_sessions:          new Set(d.page_views.map(v => v.session_id)).size,
-    top_pages:                countBy(d.page_views as unknown as Record<string, unknown>[], 'url').slice(0, 5),
+    total_page_views:         publicViews.length,
+    unique_sessions:          new Set(publicViews.map(v => v.session_id)).size,
+    top_pages:                countBy(publicViews as unknown as Record<string, unknown>[], 'url').slice(0, 8),
     total_story_opens:        d.story_events.filter(e => e.event_type === 'open').length,
     total_story_reads:        d.story_events.filter(e => e.event_type === 'read').length,
     total_shares:             d.story_events.filter(e => e.event_type === 'share').length,
