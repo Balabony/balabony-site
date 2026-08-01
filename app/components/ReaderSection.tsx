@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { countWords } from '@/lib/readingTime'
+import ReaderPulse from '@/app/components/ReaderPulse'
 
 const SEASONS = [1, 2, 3, 4, 5]
 const EPISODES_PER_SEASON = 20
@@ -736,6 +737,11 @@ export default function ReaderSection() {
                   <span className="teaser-cta__arrow" aria-hidden="true">→</span>
                 </button>
               </div>
+            )}
+
+            {/* Три питання тому, хто дочитав до кінця. */}
+            {!loading && !error && !isLocked && !isTeaser && (
+              <ReaderPulse contentId={String(globalCurrentEp)} />
             )}
 
             {isLocked && !loading && (
