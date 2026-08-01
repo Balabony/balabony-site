@@ -48,10 +48,11 @@ export const ADMIN_GROUPS: AdminGroup[] = [
   {
     title: 'Автори й договори',
     items: [
-      { href: '/admin/authors',      label: 'Заведення авторів',            note: 'Кабінет автора і запис згоди',   quick: true, short: 'Автори' },
-      { href: '/admin/link-authors', label: 'Привʼязка авторів',            note: 'Архівні твори → профіль автора', quick: true, short: 'Привʼязка' },
-      { href: '/admin/sync-works',   label: 'Перелік творів за договорами', note: 'Додаток № 1. Чернетки не бере',  quick: true, short: 'Перелік творів' },
-      { href: '/admin/editors',      label: 'Редактори',                    note: 'Доступи редакційної команди' },
+      { href: '/admin/authors',         label: 'Заведення авторів',            note: 'Кабінет автора і запис згоди',   quick: true, short: 'Автори' },
+      { href: '/admin/author-accounts', label: 'Кабінети авторів',             note: 'Хто заходив, реквізити, договори', quick: true, short: 'Кабінети' },
+      { href: '/admin/link-authors',    label: 'Привʼязка авторів',            note: 'Архівні твори → профіль автора', quick: true, short: 'Привʼязка' },
+      { href: '/admin/sync-works',      label: 'Перелік творів за договорами', note: 'Додаток № 1. Чернетки не бере',  quick: true, short: 'Перелік творів' },
+      { href: '/admin/editors',         label: 'Редактори',                    note: 'Доступи редакційної команди' },
     ],
   },
   {
