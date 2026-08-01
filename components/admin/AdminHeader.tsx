@@ -8,17 +8,17 @@
 // творів за договорами доводилось тримати в закладках.
 //
 // Стало: перелік береться з lib/admin-sections.ts (спільний з головною /admin).
-// Найчастіші розділи — окремими кнопками, решта — під кнопкою «Ще», згруповані
-// так само, як на головній. Тобто дістатись можна куди завгодно, не виходячи
-// зі сторінки.
+// ВСІ розділи показані одразу, без випадного меню: очима знайти потрібне швидше,
+// ніж розкривати список і шукати в ньому. Кнопки переносяться на кілька рядків
+// і згруповані так само, як на головній — заголовок групи, під ним її розділи.
 //
 // Новий розділ додається у lib/admin-sections.ts, сюди лізти не треба.
 // =============================================================================
 
-import { ReactNode, useEffect, useRef, useState } from 'react'
+import { ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { ADMIN_GROUPS, ADMIN_QUICK } from '@/lib/admin-sections'
+import { ADMIN_GROUPS } from '@/lib/admin-sections'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
 const GOLD      = '#d0a355'
@@ -55,46 +55,11 @@ const switcherBtnStyle: React.CSSProperties = {
   textTransform: 'uppercase', whiteSpace: 'nowrap',
 }
 
-const moreBtnStyle: React.CSSProperties = {
-  ...navBtnStyle,
-  border: '1px solid rgba(208, 163, 85,0.45)',
-  color: GOLD,
-  gap: 6,
-}
-
 export interface AdminHeaderProps { icon: ReactNode; title: string }
 
 export default function AdminHeader({ icon, title }: AdminHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
-
-  const [open, setOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement | null>(null)
-
-  // Закриваємо список кліком поза ним і клавішею Esc.
-  useEffect(() => {
-    if (!open) return
-
-    function onPointerDown(e: MouseEvent | TouchEvent) {
-      const node = menuRef.current
-      if (node && e.target instanceof Node && !node.contains(e.target)) setOpen(false)
-    }
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false)
-    }
-
-    document.addEventListener('mousedown', onPointerDown)
-    document.addEventListener('touchstart', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown)
-      document.removeEventListener('touchstart', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [open])
-
-  // Перехід на іншу сторінку має згортати список.
-  useEffect(() => { setOpen(false) }, [pathname])
 
   async function handleLogout() {
     await fetch('/api/admin/logout', { method: 'POST' })
@@ -107,8 +72,8 @@ export default function AdminHeader({ icon, title }: AdminHeaderProps) {
     ? { href: '/admin/content/stories', label: 'Балабони' }
     : { href: '/admin/tysha',           label: 'Тиша' }
 
-  // На Тиші не дублюємо вкладки Балабонів — лише перемикач назад і «Ще».
-  const quickItems = isTysha ? [] : ADMIN_QUICK
+  // Розділ «Тиша» має власний перемикач у шапці, тому в переліку його не дублюємо.
+  const groups = ADMIN_GROUPS.filter(g => g.title !== 'Тиша' || !isTysha)
 
   return (
     <div style={{
@@ -141,95 +106,45 @@ export default function AdminHeader({ icon, title }: AdminHeaderProps) {
         </div>
       </Link>
 
-      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+      <div style={{
+        marginLeft: 'auto', display: 'flex', alignItems: 'flex-start',
+        gap: 14, flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '78%',
+      }}>
         <Link href={switcher.href} style={switcherBtnStyle}>
           {switcher.label}
         </Link>
 
-        {quickItems.map(item => (
-          <Link
-            key={item.href}
-            href={item.href}
-            style={pathname === item.href ? activeNavBtnStyle : navBtnStyle}
-          >
-            {item.short ?? item.label}
-          </Link>
+        {/* Усі розділи одразу, згруповані. На Тиші показуємо теж — щоб
+            повернутися до будь-чого можна було одним кліком. */}
+        {groups.map(group => (
+          <div key={group.title} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{
+              fontSize: 9, fontWeight: 700, letterSpacing: 1.2,
+              textTransform: 'uppercase', color: 'rgba(208,163,85,0.75)',
+              paddingLeft: 2,
+            }}>
+              {group.title}
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {group.items.map(item => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  title={item.note}
+                  style={pathname === item.href ? activeNavBtnStyle : navBtnStyle}
+                >
+                  {item.short ?? item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
         ))}
 
-        {/* Повний перелік розділів — щоб не тримати адреси в закладках. */}
-        <div ref={menuRef} style={{ position: 'relative' }}>
-          <button
-            type="button"
-            onClick={() => setOpen(v => !v)}
-            aria-expanded={open}
-            aria-haspopup="true"
-            style={moreBtnStyle}
-          >
-            Ще
-            <span style={{ fontSize: 9, lineHeight: 1 }}>{open ? '▲' : '▼'}</span>
-          </button>
-
-          {open && (
-            <div
-              style={{
-                position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-                width: 300, maxHeight: '70vh', overflowY: 'auto',
-                background: NAVY, border: '1px solid rgba(143,163,196,0.28)',
-                borderRadius: 12, padding: '10px 0',
-                boxShadow: '0 18px 40px rgba(0,0,0,0.45)',
-                zIndex: 1000,
-              }}
-            >
-              {ADMIN_GROUPS.map(group => (
-                <div key={group.title} style={{ padding: '4px 0' }}>
-                  <div style={{
-                    fontSize: 10, fontWeight: 700, letterSpacing: 1.3,
-                    textTransform: 'uppercase', color: GOLD,
-                    padding: '8px 14px 6px',
-                  }}>
-                    {group.title}
-                  </div>
-
-                  {group.items.map(item => {
-                    const active = pathname === item.href
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        style={{
-                          display: 'block', padding: '7px 14px',
-                          fontSize: 13, fontWeight: active ? 700 : 500,
-                          color: active ? GOLD : '#dbe4f2',
-                          textDecoration: 'none', lineHeight: 1.35,
-                        }}
-                      >
-                        {item.label}
-                        <div style={{ fontSize: 11, color: 'rgba(185,198,219,0.62)', marginTop: 2 }}>
-                          {item.note}
-                        </div>
-                      </Link>
-                    )
-                  })}
-                </div>
-              ))}
-
-              <div style={{ borderTop: '1px solid rgba(143,163,196,0.2)', marginTop: 6, paddingTop: 6 }}>
-                <Link
-                  href="/admin"
-                  style={{
-                    display: 'block', padding: '7px 14px', fontSize: 12.5,
-                    fontWeight: 600, color: '#b9c6db', textDecoration: 'none',
-                  }}
-                >
-                  ← Головна адмінки
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <button onClick={handleLogout} style={logoutBtnStyle}>Вийти</button>
+        <button type="button" onClick={handleLogout} style={{ ...logoutBtnStyle, alignSelf: 'flex-end' }}>
+          Вийти
+        </button>
       </div>
+
     </div>
   )
 }
