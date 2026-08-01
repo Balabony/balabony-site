@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { dbQuery } from '@/lib/db'
 import { renderAuthorEmail, type AuthorEmailTemplate } from '@/lib/author-emails'
@@ -20,7 +20,7 @@ function isAdmin(req: NextRequest): boolean {
   return req.cookies.get('admin_session')?.value === pass
 }
 
-const TEMPLATES: AuthorEmailTemplate[] = ['login', 'requisites', 'contract']
+const TEMPLATES: AuthorEmailTemplate[] = ['intro']
 
 /** Стани згоди, за яких писати не можна. */
 const BLOCKED_CONSENT = ['refused', 'revoked']
