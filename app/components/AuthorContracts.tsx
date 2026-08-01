@@ -63,11 +63,20 @@ export default function AuthorContracts(
     setCreating(true); setCreateErr('')
     try {
       const res = await fetch('/api/contracts/create', { method: 'POST' })
-      const d = (await res.json()) as { ok: boolean; error?: string }
-      if (!d.ok) { setCreateErr(d.error ?? 'Не вдалося створити договір'); return }
+      // Сервер може віддати не-JSON (сторінку помилки). Раніше це падало в catch
+      // і автор бачив «Немає звʼязку», хоча звʼязок був. Тепер розрізняємо.
+      const raw = await res.text()
+      let d: { ok?: boolean; error?: string } | null = null
+      try { d = JSON.parse(raw) as { ok?: boolean; error?: string } } catch { d = null }
+
+      if (!d) {
+        setCreateErr(`Сервер відповів помилкою (код ${res.status}). Напишіть у редакцію — ми полагодимо.`)
+        return
+      }
+      if (!d.ok) { setCreateErr(d.error ?? `Не вдалося створити договір (код ${res.status})`); return }
       window.location.reload()
     } catch {
-      setCreateErr('Немає звʼязку — спробуйте ще раз')
+      setCreateErr('Не вдалося звʼязатися з сайтом. Перевірте інтернет і спробуйте ще раз.')
     } finally {
       setCreating(false)
     }
