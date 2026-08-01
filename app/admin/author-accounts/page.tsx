@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   TEMPLATE_LABEL, suggestTemplate, type AuthorEmailTemplate,
 } from '@/lib/author-emails'
@@ -110,6 +110,12 @@ export default function AdminAuthorAccountsPage() {
   const [sendingId, setSendingId] = useState('')
   const [sendNote, setSendNote] = useState<Record<string, string>>({})
   const [pickTemplate, setPickTemplate] = useState<Record<string, AuthorEmailTemplate>>({})
+  const [bulkArmed, setBulkArmed] = useState(false)
+  const [bulkRunning, setBulkRunning] = useState(false)
+  const [bulkDone, setBulkDone] = useState(0)
+  const [bulkSent, setBulkSent] = useState(0)
+  const [bulkFailed, setBulkFailed] = useState(0)
+  const bulkStopRef = useRef(false)
 
   useEffect(() => {
     let alive = true
@@ -209,6 +215,72 @@ export default function AdminAuthorAccountsPage() {
     }
   }
 
+  /**
+   * Масова розсилка.
+   *
+   * Свідомо йде з браузера по одному листу, а не одним запитом на сервер:
+   * так видно прогрес, розсилку можна спинити посеред процесу, і вона не
+   * впирається в обмеження часу виконання серверної функції.
+   *
+   * Кожен лист — окреме відправлення на одну адресу. Автори не бачать
+   * пошт одне одного.
+   */
+  const sendBulk = async (list: Row[]) => {
+    setBulkRunning(true)
+    setBulkArmed(false)
+    bulkStopRef.current = false
+    setBulkDone(0); setBulkSent(0); setBulkFailed(0)
+
+    let failStreak = 0
+
+    for (const r of list) {
+      if (bulkStopRef.current) break
+
+      const template = pickTemplate[r.user_id] ?? suggestTemplate(r)
+      if (!template) { setBulkDone(n => n + 1); continue }
+
+      try {
+        const res = await fetch('/api/admin/send-author-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: r.user_id, template }),
+        })
+        const raw = await res.text()
+        type Payload = { ok?: boolean; error?: string }
+        let d: Payload | null = null
+        try { d = JSON.parse(raw) as Payload } catch { d = null }
+
+        if (d?.ok) {
+          failStreak = 0
+          setBulkSent(n => n + 1)
+          setSendNote(prev => ({ ...prev, [r.user_id]: 'Надіслано' }))
+          setRows(prev => prev.map(x => x.user_id === r.user_id
+            ? { ...x, last_email_template: template, last_email_at: new Date().toISOString(), last_email_status: 'sent' }
+            : x))
+        } else {
+          failStreak += 1
+          setBulkFailed(n => n + 1)
+          setSendNote(prev => ({ ...prev, [r.user_id]: d?.error ?? `Помилка (код ${res.status})` }))
+        }
+      } catch {
+        failStreak += 1
+        setBulkFailed(n => n + 1)
+        setSendNote(prev => ({ ...prev, [r.user_id]: 'Немає звʼязку' }))
+      }
+
+      setBulkDone(n => n + 1)
+
+      // Три помилки поспіль — зупиняємось. Якщо відправлення зламане,
+      // немає сенсу гнати решту списку в стіну.
+      if (failStreak >= 3) break
+
+      // Пауза між листами: поштові сервіси не люблять сплесків.
+      await new Promise(res2 => setTimeout(res2, 900))
+    }
+
+    setBulkRunning(false)
+  }
+
   const th: React.CSSProperties = {
     textAlign: 'left', padding: '10px 12px', fontSize: 12, fontWeight: 700,
     color: MUTED, borderBottom: `1px solid ${LINE}`, whiteSpace: 'nowrap',
@@ -270,6 +342,92 @@ export default function AdminAuthorAccountsPage() {
             </ul>
           </div>
         )}
+
+        {/* Масова розсилка */}
+        {!loading && !err && (() => {
+          const targets = shown.filter(r =>
+            r.email
+            && r.consent !== 'refused' && r.consent !== 'revoked'
+            && (pickTemplate[r.user_id] ?? suggestTemplate(r)) !== null
+          )
+          if (targets.length === 0 && !bulkRunning) return null
+          return (
+            <div style={{
+              marginTop: 20, padding: '14px 16px', borderRadius: 12,
+              background: NAVY, border: `1px solid ${LINE}`,
+            }}>
+              {bulkRunning ? (
+                <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 14, color: CREAM }}>
+                    Надсилаємо: {bulkDone} з {targets.length} · надіслано {bulkSent}
+                    {bulkFailed > 0 && <span style={{ color: BAD }}> · помилок {bulkFailed}</span>}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => { bulkStopRef.current = true }}
+                    style={{
+                      padding: '7px 13px', borderRadius: 9, cursor: 'pointer',
+                      border: `1px solid ${LINE}`, background: 'transparent',
+                      color: BAD, fontSize: 13, fontFamily: FONT, fontWeight: 600,
+                    }}
+                  >
+                    Спинити
+                  </button>
+                </div>
+              ) : bulkArmed ? (
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 14, color: CREAM, lineHeight: 1.6 }}>
+                    Надіслати <strong>{targets.length}</strong> листів? Кожен автор отримає окремий лист
+                    на свою адресу і не побачить чужих пошт. Шаблон для кожного — той, що обрано
+                    в його рядку.
+                  </span>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => { void sendBulk(targets) }}
+                      style={{
+                        padding: '8px 15px', borderRadius: 9, cursor: 'pointer',
+                        border: 'none', background: GOLD, color: NAVY_DEEP,
+                        fontSize: 13.5, fontFamily: FONT, fontWeight: 700,
+                      }}
+                    >
+                      Так, надіслати
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBulkArmed(false)}
+                      style={{
+                        padding: '8px 13px', borderRadius: 9, cursor: 'pointer',
+                        border: `1px solid ${LINE}`, background: 'transparent',
+                        color: MUTED, fontSize: 13.5, fontFamily: FONT,
+                      }}
+                    >
+                      Скасувати
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => setBulkArmed(true)}
+                    style={{
+                      padding: '8px 15px', borderRadius: 9, cursor: 'pointer',
+                      border: `1px solid ${GOLD}`, background: 'transparent',
+                      color: GOLD, fontSize: 13.5, fontFamily: FONT, fontWeight: 700,
+                    }}
+                  >
+                    Надіслати всім показаним ({targets.length})
+                  </button>
+                  <span style={{ fontSize: 12.5, color: MUTED, lineHeight: 1.6 }}>
+                    Окремий лист кожному, з паузою між відправленнями.
+                    {bulkSent > 0 && ` Минулого разу надіслано ${bulkSent}.`}
+                  </span>
+                </div>
+              )}
+            </div>
+          )
+        })()}
 
         {/* Пошук і фільтр */}
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', margin: '22px 0 6px' }}>
