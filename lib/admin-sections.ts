@@ -52,6 +52,7 @@ export const ADMIN_GROUPS: AdminGroup[] = [
       { href: '/admin/author-accounts', label: 'Кабінети авторів',             note: 'Хто заходив, реквізити, договори', quick: true, short: 'Кабінети' },
       { href: '/admin/link-authors',    label: 'Привʼязка авторів',            note: 'Архівні твори → профіль автора', quick: true, short: 'Привʼязка' },
       { href: '/admin/sync-works',      label: 'Перелік творів за договорами', note: 'Додаток № 1. Чернетки не бере',  quick: true, short: 'Перелік творів' },
+      { href: '/admin/author-messages', label: 'Звернення авторів',            note: 'Листи з кабінетів авторів', quick: true, short: 'Звернення' },
       { href: '/admin/editors',         label: 'Редактори',                    note: 'Доступи редакційної команди' },
     ],
   },

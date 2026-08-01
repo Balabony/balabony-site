@@ -4,6 +4,7 @@ import NarrationOrderForm from '@/app/components/NarrationOrderForm'
 import AuthorContracts, { type ContractRow } from '@/app/components/AuthorContracts'
 import AuthorRequisites, { type Requisites } from '@/app/components/AuthorRequisites'
 import AuthorSurvey, { type Feedback } from '@/app/components/AuthorSurvey'
+import AuthorMessageForm from '@/app/components/AuthorMessageForm'
 import { dbQuery } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
@@ -387,6 +388,8 @@ export default async function AuthorDashboardPage() {
         <AuthorContracts contracts={contracts} diiaEnabled={Boolean((process.env.SIGN_SERVICE_URL ?? '').trim())} />
 
         <AuthorSurvey initial={feedback} />
+
+        <AuthorMessageForm />
 
         <div style={{ marginTop: '1.5rem' }}>
           <NarrationOrderForm />
