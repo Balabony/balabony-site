@@ -239,9 +239,16 @@ function toStoryHtml(raw: string, images: string[] = []): string {
   const imgTag = (url: string) =>
     `<img src="${url}" alt="" loading="lazy" style="display:block;width:100%;max-width:560px;margin:28px auto;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,0.35)" />`
 
+  // Перший абзац — лід: трохи більший і світліший за решту. Це журнальний
+  // прийом, за який чіпляється око на початку тексту. Кольором не виділяємо
+  // навмисно: золото на сайті означає керування (кнопки, меню, посилання),
+  // і золотий абзац читався б як щось клікабельне.
+  const LEAD = 'margin:0 0 18px 0;font-size:1.09em;line-height:1.65;color:#fff'
+
   let html = ''
   paras.forEach((p, i) => {
-    html += `<p style="margin:0 0 14px 0">${renderParaInner(p)}</p>`
+    const style = i === 0 ? LEAD : 'margin:0 0 14px 0'
+    html += `<p style="${style}">${renderParaInner(p)}</p>`
     const here = insertAfter.get(i)
     if (here) here.forEach(u => { html += imgTag(u) })
   })
