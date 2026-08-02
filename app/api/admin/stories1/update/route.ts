@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { toPlainText } from '@/lib/plain-text'
 
 function checkAuth(req: NextRequest): boolean {
   return req.cookies.get('admin_session')?.value === process.env.ADMIN_PASSWORD
@@ -79,8 +80,9 @@ export async function POST(req: NextRequest) {
     if (body.genre          !== undefined) update.genre          = body.genre
     if (body.category       !== undefined) update.category       = body.category
     if (body.text           !== undefined) {
-      update.text = body.text
-      const wc = body.text.trim().split(/\s+/).length
+      const clean = toPlainText(body.text)
+      update.text = clean
+      const wc = clean.trim().split(/\s+/).length
       update.duration_minutes = Math.max(1, Math.round(wc / 200))
     }
     if (body.cover_url      !== undefined) update.cover_url      = body.cover_url

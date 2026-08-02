@@ -7,6 +7,7 @@ import ReaderPulse from '@/app/components/ReaderPulse'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
 import AgeGate from '@/app/components/AgeGate'
 import AudioPlayer from '@/app/components/AudioPlayer'
+import { looksLikeHtml, htmlToPlain } from '@/lib/plain-text'
 
 const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
@@ -180,56 +181,6 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
       <AudioPlayer audioUrl={story.audio_url} audioStatus={story.audio_status} title={story.title} contentId={story.id} />
     </div>
   )
-}
-
-// Частина творів лежить у базі як HTML: автори пишуть у Word і вставляють
-// разом із розміткою. Далі текст іде через escapeChars і читач бачить літерами
-// «<p>» та «&laquo;». Розмітку тут розгортаємо назад у звичайний текст, а не
-// віддаємо браузеру: у творі не має бути ні чужих скриптів, ні довільних
-// стилів, а абзаци сайт малює сам.
-//
-// Ціна рішення: жирний і курсив із Word зникають. У художньому тексті це майже
-// завжди випадковий слід форматування, а не задум автора.
-
-const HTML_RE = /<\/?(?:p|br|div|strong|em|b|i|span|h[1-6]|ul|ol|li|blockquote|a)\b[^>]*>/i
-
-function looksLikeHtml(raw: string): boolean {
-  return HTML_RE.test(raw)
-}
-
-function decodeEntities(str: string): string {
-  return str
-    .replace(/&nbsp;/gi,  ' ')
-    .replace(/&laquo;/gi, '«')
-    .replace(/&raquo;/gi, '»')
-    .replace(/&lsquo;/gi, '\u2018')
-    .replace(/&rsquo;/gi, '\u2019')
-    .replace(/&ldquo;/gi, '\u201C')
-    .replace(/&rdquo;/gi, '\u201D')
-    .replace(/&ndash;/gi, '–')
-    .replace(/&mdash;/gi, '—')
-    .replace(/&hellip;/gi, '…')
-    .replace(/&quot;/gi,  '"')
-    .replace(/&#39;/g,    "'")
-    .replace(/&lt;/gi,    '<')
-    .replace(/&gt;/gi,    '>')
-    // &amp; — ОСТАННІМ, інакше «&amp;lt;» перетвориться на справжній тег
-    .replace(/&amp;/gi,   '&')
-}
-
-function htmlToPlain(raw: string): string {
-  return decodeEntities(
-    raw
-      .replace(/<script[\s\S]*?<\/script>/gi, '')
-      .replace(/<style[\s\S]*?<\/style>/gi, '')
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/(?:p|div|li|h[1-6]|blockquote|tr)>/gi, '\n\n')
-      .replace(/<[^>]+>/g, ''),
-  )
-    .replace(/\r/g, '')
-    .replace(/[ \t]+\n/g, '\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim()
 }
 
 function escapeChars(str: string): string {

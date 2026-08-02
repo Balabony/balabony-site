@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { toPlainText } from '@/lib/plain-text'
 
 // ── Auth helper (той самий патерн, що в stories1/update) ─────────────────────
 function checkAuth(req: NextRequest): boolean {
@@ -84,7 +85,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
     if (body.cover_url      !== undefined) update.cover_url      = body.cover_url
     if (body.cover_position !== undefined) update.cover_position = body.cover_position
     if (body.description    !== undefined) update.description    = body.description
-    if (body.text           !== undefined) update.text           = body.text
+    if (body.text           !== undefined) update.text           = toPlainText(body.text)
     if (body.is_premium     !== undefined) update.is_premium     = body.is_premium === true
     if (body.recap          !== undefined) update.recap          = body.recap
     if (body.hook           !== undefined) update.hook           = body.hook

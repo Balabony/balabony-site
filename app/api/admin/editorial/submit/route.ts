@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
 import { dbQuery, initEditorialTables } from '@/lib/db'
 import { sendEditorEmail } from '@/lib/email'
+import { toPlainText } from '@/lib/plain-text'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
@@ -37,9 +38,13 @@ export async function POST(request: NextRequest) {
     }
 
     for (const entry of entries) {
+      // Розмітку з Word зрізаємо тут, на вході: далі текст іде і редакторам
+      // на пошту, і в базу — обидва мають бачити те саме чисте.
+      const text = toPlainText(entry.text)
+
       const subResult = await dbQuery(
         'INSERT INTO editorial_submissions (filename, text) VALUES ($1, $2) RETURNING id',
-        [entry.filename, entry.text]
+        [entry.filename, text]
       )
       const submissionId: number = subResult.rows[0].id
 
@@ -59,7 +64,7 @@ export async function POST(request: NextRequest) {
           to: editor.email,
           editorName: editor.name,
           filename: entry.filename,
-          text: entry.text,
+          text,
           approveUrl,
           reviseUrl,
         })

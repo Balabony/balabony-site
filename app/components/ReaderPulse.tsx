@@ -41,6 +41,10 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
   const [liked, setLiked] = useState<string | null>(null)
   const [genre, setGenre] = useState<string | null>(null)
 
+  const remember = () => {
+    try { window.localStorage.setItem(STORE_KEY, String(Date.now())) } catch { /* нічого */ }
+  }
+
   // Чи не питали нещодавно. localStorage тут доречний: це не дані, а вимикач
   // настирливості; якщо він загубиться, людину спитають ще раз, і тільки.
   useEffect(() => {
@@ -53,12 +57,12 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
     } catch {
       // приватний режим — просто показуємо
     }
+    // Позначку ставимо в момент ПОКАЗУ, а не відповіді. Раніше вона писалась
+    // лише тому, хто дійшов до кінця опитування; більшість читачів просто
+    // йшли зі сторінки — і бачили ті самі три питання під кожним твором.
+    remember()
     setStep('liked')
   }, [])
-
-  const remember = () => {
-    try { window.localStorage.setItem(STORE_KEY, String(Date.now())) } catch { /* нічого */ }
-  }
 
   const send = async (payload: Record<string, string | null>) => {
     try {
