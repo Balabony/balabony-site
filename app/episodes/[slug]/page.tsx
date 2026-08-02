@@ -11,10 +11,13 @@ import ReaderPulse from '@/app/components/ReaderPulse'
 import StreakTracker from '@/app/components/StreakTracker'
 import ReadTracker from '@/app/components/ReadTracker'
 import AudioPlayer from '@/app/components/AudioPlayer'
+import { leadCssDeclarations } from '@/lib/reader-typography'
 
 const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
 const FONT      = "'Montserrat', Arial, sans-serif"
+// Базовий кегль тексту серії — має збігатися з <article> в EpisodeBody.
+const BODY_FONT_SIZE = 16
 
 interface EpisodeRow {
   id:                string
@@ -327,6 +330,6 @@ function formatEpisodeText(raw: string): string {
   // Лід: перший абзац нарації трохи більший і світліший — око чіпляється за
   // початок. На репліки («Панас: …») не поширюється: там уже є золоте імʼя,
   // другий акцент поруч перевантажив би рядок.
-  const styles = `<style>.scene{margin-top:28px}.scene-first{margin-top:0}.scene p{margin:0 0 14px 0}.scene p:last-child{margin-bottom:0}.speaker{padding-left:0}.narrative{}.scene-first p.narrative:first-child{font-size:1.09em;line-height:1.65;color:#fff;margin-bottom:18px}</style>`
+  const styles = `<style>.scene{margin-top:28px}.scene-first{margin-top:0}.scene p{margin:0 0 14px 0}.scene p:last-child{margin-bottom:0}.speaker{padding-left:0}.narrative{}.scene-first p.narrative:first-child{${leadCssDeclarations(BODY_FONT_SIZE)}}</style>`
   return styles + renderedScenes
 }

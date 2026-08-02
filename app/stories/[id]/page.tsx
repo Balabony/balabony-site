@@ -8,7 +8,10 @@ import StoryReadTracker from '@/app/components/StoryReadTracker'
 import AgeGate from '@/app/components/AgeGate'
 import AudioPlayer from '@/app/components/AudioPlayer'
 import { looksLikeHtml, htmlToPlain } from '@/lib/plain-text'
+import { leadInlineStyle } from '@/lib/reader-typography'
 
+// Базовий кегль тексту історії — має збігатися зі стилем <article> нижче.
+const BODY_FONT_SIZE = 18
 const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
 const NAVY      = '#0f1e3a'
@@ -243,7 +246,7 @@ function toStoryHtml(raw: string, images: string[] = []): string {
   // прийом, за який чіпляється око на початку тексту. Кольором не виділяємо
   // навмисно: золото на сайті означає керування (кнопки, меню, посилання),
   // і золотий абзац читався б як щось клікабельне.
-  const LEAD = 'margin:0 0 18px 0;font-size:1.09em;line-height:1.65;color:#fff'
+  const LEAD = leadInlineStyle(BODY_FONT_SIZE)
 
   let html = ''
   paras.forEach((p, i) => {

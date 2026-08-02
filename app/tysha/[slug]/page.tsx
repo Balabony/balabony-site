@@ -8,11 +8,14 @@ import ReadTracker from '@/app/components/ReadTracker'
 import ReaderPulse from '@/app/components/ReaderPulse'
 import TyshaProgressTracker from '@/app/components/TyshaProgressTracker'
 import TyshaAgeGate from '@/app/components/TyshaAgeGate'
+import { leadCssDeclarations } from '@/lib/reader-typography'
 
 const GOLD = '#ef9f27'
 const AMBER = '#FFB347'
 const NAVY_DEEP = '#0a1628'
 const FONT = "'Montserrat', Arial, sans-serif"
+// Базовий кегль тексту серії «Тиші» (сериф Georgia).
+const BODY_FONT_SIZE = 17
 
 function escHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -50,7 +53,7 @@ function formatTyshaText(raw: string): string {
   // Лід: перший абзац нарації більший і світліший. Розмір задано в px, бо
   // .scene p тут уже має свій 17px — відносна одиниця рахувалась би від
   // батька, не від цього значення.
-  const styles = `<style>.scene{margin-top:28px}.scene-first{margin-top:0}.scene p{margin:0 0 16px 0;font-size:17px;line-height:1.75;font-family:'Georgia',serif}.scene p:last-child{margin-bottom:0}.scene-first p.narrative:first-child{font-size:18.5px;line-height:1.65;color:#fff;margin-bottom:20px}</style>`
+  const styles = `<style>.scene{margin-top:28px}.scene-first{margin-top:0}.scene p{margin:0 0 16px 0;font-size:${BODY_FONT_SIZE}px;line-height:1.75;font-family:'Georgia',serif}.scene p:last-child{margin-bottom:0}.scene-first p.narrative:first-child{${leadCssDeclarations(BODY_FONT_SIZE)}}</style>`
   return styles + rendered
 }
 
