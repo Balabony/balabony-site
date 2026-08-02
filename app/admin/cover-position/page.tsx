@@ -38,16 +38,43 @@ type Frame = { scale: number; x: number; y: number }
 
 const DEFAULT_FRAME: Frame = { scale: 100, x: 0, y: 0 }
 
+/**
+ * Скільки відсотків можна зсунути кадр, не оголивши краю.
+ *
+ * Фото заповнює рамку рівно при масштабі 100%. Кожні зайві 2% масштабу дають
+ * 1% запасу з кожного боку — саме на стільки й можна рухати. Інакше з-під фото
+ * вилазить чорна смуга.
+ */
+function maxOffset(scale: number): number {
+  return Math.max(0, (scale - 100) / 2)
+}
+
+/** Масштаб, за якого такий зсув стає можливим. */
+function scaleFor(x: number, y: number): number {
+  return 100 + 2 * Math.max(Math.abs(x), Math.abs(y))
+}
+
+/** Не даємо кадру виїхати за межі фото. */
+function clampFrame(f: Frame): Frame {
+  const scale = Math.max(100, Math.min(300, Math.round(f.scale)))
+  const m = maxOffset(scale)
+  return {
+    scale,
+    x: Math.round(Math.max(-m, Math.min(m, f.x))),
+    y: Math.round(Math.max(-m, Math.min(m, f.y))),
+  }
+}
+
 /** «scale:120 x:-10 y:-25» → об’єкт. Старі значення («center», «50% 20%») — до замовчування. */
 function parseFrame(value: string | null): Frame {
   if (!value) return DEFAULT_FRAME
   const m = value.match(/scale:(-?\d+)\s+x:(-?\d+)\s+y:(-?\d+)/)
   if (!m) return DEFAULT_FRAME
-  return {
-    scale: Math.max(100, Math.min(400, parseInt(m[1], 10))),
-    x:     Math.max(-200, Math.min(200, parseInt(m[2], 10))),
-    y:     Math.max(-200, Math.min(200, parseInt(m[3], 10))),
-  }
+  return clampFrame({
+    scale: parseInt(m[1], 10),
+    x:     parseInt(m[2], 10),
+    y:     parseInt(m[3], 10),
+  })
 }
 
 function frameToValue(f: Frame): string {
@@ -118,11 +145,16 @@ export default function CoverPositionPage() {
     if (!d) return
     const dx = ((e.clientX - d.startX) / FRAME_W) * 100
     const dy = ((e.clientY - d.startY) / FRAME_H) * 100
-    setFrame({
-      scale: d.base.scale,
-      x: Math.max(-200, Math.min(200, Math.round(d.base.x + dx))),
-      y: Math.max(-200, Math.min(200, Math.round(d.base.y + dy))),
-    })
+    const wantX = d.base.x + dx
+    const wantY = d.base.y + dy
+    // Якщо запасу бракує — збільшуємо фото рівно настільки, щоб зсув став
+    // можливим. Так кадр іде за курсором, а порожнеча не зʼявляється.
+    const needed = scaleFor(wantX, wantY)
+    setFrame(clampFrame({
+      scale: Math.max(d.base.scale, needed),
+      x: wantX,
+      y: wantY,
+    }))
   }
   function onPointerUp() { dragRef.current = null }
 
@@ -275,26 +307,41 @@ export default function CoverPositionPage() {
 
             <div style={{ marginTop: 18, display: 'grid', gap: 14 }}>
               <label style={{ display: 'grid', gap: 6 }}>
-                <span style={{ fontSize: 12.5, color: MUTED }}>Масштаб — {frame.scale}%</span>
+                <span style={{ fontSize: 12.5, color: MUTED }}>Наближення — {frame.scale}%</span>
                 <input
                   type="range" min={100} max={300} step={1} value={frame.scale}
-                  onChange={e => setFrame({ ...frame, scale: Number(e.target.value) })}
+                  onChange={e => setFrame(clampFrame({ ...frame, scale: Number(e.target.value) }))}
                   style={{ width: '100%', accentColor: GOLD }}
                 />
+                {frame.scale === 100 && (
+                  <span style={{ fontSize: 11.5, color: MUTED }}>
+                    Щоб рухати кадр, спершу трохи наблизьте фото — інакше рухати нема куди.
+                  </span>
+                )}
               </label>
-              <label style={{ display: 'grid', gap: 6 }}>
+              <label style={{ display: 'grid', gap: 6, opacity: maxOffset(frame.scale) === 0 ? 0.45 : 1 }}>
                 <span style={{ fontSize: 12.5, color: MUTED }}>Ліворуч / праворуч — {frame.x}%</span>
                 <input
-                  type="range" min={-100} max={100} step={1} value={frame.x}
-                  onChange={e => setFrame({ ...frame, x: Number(e.target.value) })}
+                  type="range"
+                  min={-Math.round(maxOffset(frame.scale))}
+                  max={Math.round(maxOffset(frame.scale))}
+                  step={1}
+                  value={frame.x}
+                  disabled={maxOffset(frame.scale) === 0}
+                  onChange={e => setFrame(clampFrame({ ...frame, x: Number(e.target.value) }))}
                   style={{ width: '100%', accentColor: GOLD }}
                 />
               </label>
-              <label style={{ display: 'grid', gap: 6 }}>
+              <label style={{ display: 'grid', gap: 6, opacity: maxOffset(frame.scale) === 0 ? 0.45 : 1 }}>
                 <span style={{ fontSize: 12.5, color: MUTED }}>Вгору / вниз — {frame.y}%</span>
                 <input
-                  type="range" min={-100} max={100} step={1} value={frame.y}
-                  onChange={e => setFrame({ ...frame, y: Number(e.target.value) })}
+                  type="range"
+                  min={-Math.round(maxOffset(frame.scale))}
+                  max={Math.round(maxOffset(frame.scale))}
+                  step={1}
+                  value={frame.y}
+                  disabled={maxOffset(frame.scale) === 0}
+                  onChange={e => setFrame(clampFrame({ ...frame, y: Number(e.target.value) }))}
                   style={{ width: '100%', accentColor: GOLD }}
                 />
               </label>

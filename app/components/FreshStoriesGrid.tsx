@@ -113,8 +113,12 @@ function getCoverStyle(coverPosition: string | undefined): React.CSSProperties {
   const transformM = coverPosition.match(/scale:(-?\d+)\s+x:(-?\d+)\s+y:(-?\d+)/)
   if (transformM) {
     const scale = Math.max(100, Math.min(400, parseInt(transformM[1], 10)))
-    const tx    = Math.max(-200, Math.min(200, parseInt(transformM[2], 10)))
-    const ty    = Math.max(-200, Math.min(200, parseInt(transformM[3], 10)))
+    // Зсувати можна лише на те, наскільки фото більше за рамку: кожні зайві
+    // 2% масштабу дають 1% запасу з боку. Інакше з-під фото вилазить чорна
+    // смуга — саме це й ловимо тут, щоб криве значення не псувало картку.
+    const limit = Math.max(0, (scale - 100) / 2)
+    const tx    = Math.max(-limit, Math.min(limit, parseInt(transformM[2], 10)))
+    const ty    = Math.max(-limit, Math.min(limit, parseInt(transformM[3], 10)))
     return {
       transform: `translate(${tx}%, ${ty}%) scale(${scale / 100})`,
       transformOrigin: 'center center',
