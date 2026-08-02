@@ -9,7 +9,7 @@ import ReaderPulse from '@/app/components/ReaderPulse'
 import TyshaProgressTracker from '@/app/components/TyshaProgressTracker'
 import TyshaAgeGate from '@/app/components/TyshaAgeGate'
 import { leadCssDeclarations } from '@/lib/reader-typography'
-import { toExcerpt } from '@/lib/plain-text'
+import { toExcerpt, toPlainText } from '@/lib/plain-text'
 
 const GOLD = '#ef9f27'
 const AMBER = '#FFB347'
@@ -177,7 +177,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
   if (!ep) notFound()
 
   const next = await getNextEpisode(ep.episode_number, isAdmin)
-  const body = (ep.corrected_text?.trim() ? ep.corrected_text : ep.text) ?? ''
+  const body = toPlainText((ep.corrected_text?.trim() ? ep.corrected_text : ep.text) ?? '')
 
   // Пейвол: перші FREE_EPISODES серій вільні; далі — лише адмін бачить повністю.
   const epNum = ep.episode_number ?? 0

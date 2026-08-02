@@ -22,22 +22,51 @@ export function looksLikeHtml(raw: string): boolean {
 
 export function decodeEntities(str: string): string {
   return str
-    .replace(/&nbsp;/gi,  ' ')
+    // Пробільні сутності з Word: у художньому тексті вони не несуть змісту,
+    // тому зводимо їх до звичайного пробілу, а мʼякий перенос прибираємо.
+    .replace(/&nbsp;/gi,   ' ')
+    .replace(/&ensp;/gi,   ' ')
+    .replace(/&emsp;/gi,   ' ')
+    .replace(/&thinsp;/gi, ' ')
+    .replace(/&shy;/gi,    '')
+    .replace(/&zwnj;/gi,   '')
+    .replace(/&zwj;/gi,    '')
     .replace(/&laquo;/gi, '«')
     .replace(/&raquo;/gi, '»')
     .replace(/&lsquo;/gi, '\u2018')
     .replace(/&rsquo;/gi, '\u2019')
     .replace(/&ldquo;/gi, '\u201C')
     .replace(/&rdquo;/gi, '\u201D')
+    .replace(/&sbquo;/gi, '\u201A')
+    .replace(/&bdquo;/gi, '\u201E')
     .replace(/&ndash;/gi, '–')
     .replace(/&mdash;/gi, '—')
     .replace(/&hellip;/gi, '…')
+    .replace(/&middot;/gi, '·')
     .replace(/&quot;/gi,  '"')
+    .replace(/&apos;/gi,  "'")
     .replace(/&#39;/g,    "'")
     .replace(/&lt;/gi,    '<')
     .replace(/&gt;/gi,    '>')
+    // Числові сутності (&#8194; &#x2003;) — Word сипле і такими.
+    // Виносимо в один прохід, інакше довелося б перелічувати їх поіменно.
+    .replace(/&#(\d+);/g, (_, code) => safeFromCode(parseInt(code, 10)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => safeFromCode(parseInt(code, 16)))
     // &amp; — ОСТАННІМ, інакше «&amp;lt;» перетвориться на справжній тег
     .replace(/&amp;/gi,   '&')
+}
+
+/**
+ * Числовий код → символ. Невидимі пробіли зводимо до звичайного, щоб у тексті
+ * не лишалось «порожніх» знаків, які виглядають як пробіл, але ним не є.
+ */
+function safeFromCode(code: number): string {
+  if (!Number.isFinite(code) || code < 9) return ''
+  // U+2000…U+200A — типографські пробіли, U+00A0 — нерозривний, U+202F — вузький
+  if (code === 0xa0 || code === 0x202f || (code >= 0x2000 && code <= 0x200a)) return ' '
+  // U+200B…U+200D, U+00AD, U+FEFF — невидимі службові
+  if (code === 0xad || code === 0xfeff || (code >= 0x200b && code <= 0x200d)) return ''
+  try { return String.fromCodePoint(code) } catch { return '' }
 }
 
 export function htmlToPlain(raw: string): string {
@@ -63,7 +92,9 @@ export function htmlToPlain(raw: string): string {
 export function toPlainText(raw: string): string {
   if (!raw) return raw
   if (looksLikeHtml(raw)) return htmlToPlain(raw)
-  return raw
+  // Тегів немає — але сутності бувають і в чистому тексті («–&ensp;Та ну його»),
+  // тож декодуємо завжди, а не лише коли розпізнали розмітку.
+  return decodeEntities(raw)
     .replace(/\r/g, '')
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')

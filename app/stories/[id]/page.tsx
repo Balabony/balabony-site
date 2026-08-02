@@ -7,7 +7,7 @@ import ReaderPulse from '@/app/components/ReaderPulse'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
 import AgeGate from '@/app/components/AgeGate'
 import AudioPlayer from '@/app/components/AudioPlayer'
-import { looksLikeHtml, htmlToPlain, toExcerpt } from '@/lib/plain-text'
+import { toPlainText, toExcerpt } from '@/lib/plain-text'
 import { leadInlineStyle } from '@/lib/reader-typography'
 
 // Базовий кегль тексту історії — має збігатися зі стилем <article> нижче.
@@ -217,7 +217,7 @@ function renderParaInner(p: string): string {
 // Якщо є ілюстрації (казки) — рівномірно розставляє їх між абзацами,
 // за хронологією: малюнок 1 ближче до початку, останній — ближче до кінця.
 function toStoryHtml(raw: string, images: string[] = []): string {
-  const source = looksLikeHtml(raw) ? htmlToPlain(raw) : raw
+  const source = toPlainText(raw)
   const paras = source
     .split(/\n+/)
     .map(p => p.trim())

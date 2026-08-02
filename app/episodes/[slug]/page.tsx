@@ -12,7 +12,7 @@ import StreakTracker from '@/app/components/StreakTracker'
 import ReadTracker from '@/app/components/ReadTracker'
 import AudioPlayer from '@/app/components/AudioPlayer'
 import { leadCssDeclarations } from '@/lib/reader-typography'
-import { toExcerpt } from '@/lib/plain-text'
+import { toExcerpt, toPlainText } from '@/lib/plain-text'
 
 const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
@@ -168,11 +168,14 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
   const prevRecap = prevEp?.recap?.trim() ? prevEp : null
 
   const v    = episode.published_version ?? 'original'
-  const body = (v === 'humanized' || v === 'corrected_humanized') && episode.humanized_text
+  const rawBody = (v === 'humanized' || v === 'corrected_humanized') && episode.humanized_text
     ? episode.humanized_text
     : v === 'corrected' && episode.corrected_text
       ? episode.corrected_text
       : episode.text
+  // Через єдину функцію: знімає розмітку старих творів і декодує сутності
+  // з Word («&ensp;», «&rsquo;»), які інакше видно читачеві як є.
+  const body = toPlainText(rawBody)
 
   const wordCount = body.trim().split(/\s+/).filter(Boolean).length
   const readMin   = readingMinutes(episode)
