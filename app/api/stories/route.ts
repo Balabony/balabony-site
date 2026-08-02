@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { toExcerpt } from '@/lib/plain-text'
+import { pickPublishedText } from '@/lib/published-text'
 
 export async function GET(req: Request) {
   try {
@@ -52,13 +53,6 @@ export async function GET(req: Request) {
   } catch {
     return NextResponse.json([], { status: 500 })
   }
-}
-
-function pickPublishedText(s: { text: string; corrected_text: string | null; humanized_text: string | null; published_version: string | null }): string {
-  const v = s.published_version ?? 'original'
-  if ((v === 'humanized' || v === 'corrected_humanized') && s.humanized_text) return s.humanized_text
-  if (v === 'corrected' && s.corrected_text) return s.corrected_text
-  return s.text
 }
 
 function buildTeaser(text: string): string {
