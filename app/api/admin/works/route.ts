@@ -50,6 +50,7 @@ export async function GET(req: NextRequest) {
 // ── PATCH: зміна статусу одного твору ───────────────────────────────────────
 interface PatchBody {
   id?: string
+  ids?: string[]
   status?: string
 }
 
@@ -62,11 +63,20 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = (await req.json()) as PatchBody
-    const id = body.id
     const status = body.status
 
-    if (!id) {
+    // Приймаємо або один id, або масив ids (масове схвалення)
+    const ids: string[] = Array.isArray(body.ids)
+      ? body.ids.filter(x => typeof x === 'string' && x.length > 0)
+      : body.id
+        ? [body.id]
+        : []
+
+    if (ids.length === 0) {
       return NextResponse.json({ error: 'id required' }, { status: 400 })
+    }
+    if (ids.length > 200) {
+      return NextResponse.json({ error: 'не більше 200 за раз' }, { status: 400 })
     }
     if (!status || !ALLOWED_STATUSES.includes(status)) {
       return NextResponse.json({ error: 'invalid status' }, { status: 400 })
@@ -80,11 +90,11 @@ export async function PATCH(req: NextRequest) {
     const { error } = await supabase
       .from('content')
       .update(update)
-      .eq('id', id)
+      .in('id', ids)
 
     if (error) throw error
 
-    return NextResponse.json({ ok: true, status })
+    return NextResponse.json({ ok: true, status, count: ids.length })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
   }

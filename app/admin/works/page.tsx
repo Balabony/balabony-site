@@ -44,6 +44,8 @@ export default function AdminWorksPage() {
   const [status,  setStatus]  = useState('all')
   const [busyId,  setBusyId]  = useState<string | null>(null)
   const [ready,   setReady]   = useState(false)
+  const [picked,  setPicked]  = useState<Set<string>>(new Set())
+  const [bulkBusy, setBulkBusy] = useState(false)
 
   // Читаємо ?q= та ?status= з адреси, щоб лінки можна було зберігати в закладках
   useEffect(() => {
@@ -67,6 +69,7 @@ export default function AdminWorksPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Помилка запиту')
       setItems(Array.isArray(data.items) ? data.items : [])
+      setPicked(new Set())
       setPhase('done')
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -86,6 +89,42 @@ export default function AdminWorksPage() {
     }, 350)
     return () => clearTimeout(t)
   }, [search, status, load, ready])
+
+  function toggle(id: string) {
+    setPicked(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleAll(list: WorkRow[]) {
+    setPicked(prev => (prev.size === list.length ? new Set() : new Set(list.map(w => w.id))))
+  }
+
+  async function bulkStatus(next: string) {
+    const ids = Array.from(picked)
+    if (ids.length === 0) return
+    const word = next === 'approved' ? 'Схвалити' : 'Опублікувати'
+    if (!window.confirm(`${word} ${ids.length} тв. ?\n\nТексти не будуть вичитані автоматично.`)) return
+    setBulkBusy(true)
+    try {
+      const res = await fetch('/api/admin/works', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids, status: next }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Не вдалося оновити')
+      setItems(prev => prev.map(w => (picked.has(w.id) ? { ...w, status: next } : w)))
+      setPicked(new Set())
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBulkBusy(false)
+    }
+  }
 
   async function changeStatus(id: string, next: string) {
     setBusyId(id)
@@ -166,13 +205,67 @@ export default function AdminWorksPage() {
 
         {phase === 'done' && items.length > 0 && (
           <>
-            <div style={{ color: '#7d8aa8', fontSize: 13, margin: '0 0 10px 6px' }}>
-              Знайдено: {items.length}
+            <div style={{
+              ...box, marginBottom: 12, display: 'flex', gap: 12,
+              alignItems: 'center', flexWrap: 'wrap',
+            }}>
+              <button
+                onClick={() => toggleAll(items)}
+                style={{
+                  background: 'transparent', color: GOLD, border: `1px solid ${GOLD}`,
+                  borderRadius: 10, padding: '9px 16px', fontSize: 14,
+                  cursor: 'pointer', fontFamily: FONT,
+                }}
+              >
+                {picked.size === items.length ? 'Зняти вибір' : 'Обрати всі'}
+              </button>
+
+              <span style={{ color: '#7d8aa8', fontSize: 13 }}>
+                Знайдено: {items.length}
+                {picked.size > 0 ? ` · обрано ${picked.size}` : ''}
+              </span>
+
+              <div style={{ flex: 1 }} />
+
+              {picked.size > 0 && (
+                <>
+                  <button
+                    onClick={() => void bulkStatus('approved')}
+                    disabled={bulkBusy}
+                    style={{
+                      background: GOLD, color: NAVY_DEEP, border: 'none',
+                      borderRadius: 10, padding: '10px 18px', fontSize: 14,
+                      fontWeight: 600, cursor: 'pointer', fontFamily: FONT,
+                      opacity: bulkBusy ? 0.6 : 1,
+                    }}
+                  >
+                    {bulkBusy ? '…' : `Схвалити (${picked.size})`}
+                  </button>
+                  <button
+                    onClick={() => void bulkStatus('published')}
+                    disabled={bulkBusy}
+                    style={{
+                      background: '#4caf7d', color: NAVY_DEEP, border: 'none',
+                      borderRadius: 10, padding: '10px 18px', fontSize: 14,
+                      fontWeight: 600, cursor: 'pointer', fontFamily: FONT,
+                      opacity: bulkBusy ? 0.6 : 1,
+                    }}
+                  >
+                    {bulkBusy ? '…' : `Опублікувати (${picked.size})`}
+                  </button>
+                </>
+              )}
             </div>
             {items.map(w => (
               <div key={w.id} style={{ ...box, marginBottom: 10 }}>
                 <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                  <div style={{ flex: '1 1 340px', minWidth: 220 }}>
+                  <input
+                    type="checkbox"
+                    checked={picked.has(w.id)}
+                    onChange={() => toggle(w.id)}
+                    style={{ width: 20, height: 20, marginTop: 4, cursor: 'pointer', accentColor: GOLD }}
+                  />
+                  <div style={{ flex: '1 1 300px', minWidth: 200 }}>
                     <div style={{ color: '#fff', fontSize: 17, fontWeight: 600 }}>
                       {w.title || '(без назви)'}
                     </div>
