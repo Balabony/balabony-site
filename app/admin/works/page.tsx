@@ -43,6 +43,17 @@ export default function AdminWorksPage() {
   const [search,  setSearch]  = useState('')
   const [status,  setStatus]  = useState('all')
   const [busyId,  setBusyId]  = useState<string | null>(null)
+  const [ready,   setReady]   = useState(false)
+
+  // Читаємо ?q= та ?status= з адреси, щоб лінки можна було зберігати в закладках
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search)
+    const q0 = sp.get('q')
+    const st0 = sp.get('status')
+    if (q0) setSearch(q0)
+    if (st0 && ['all', 'draft', 'approved', 'published'].includes(st0)) setStatus(st0)
+    setReady(true)
+  }, [])
 
   const load = useCallback(async (q: string, st: string) => {
     setPhase('loading')
@@ -64,9 +75,17 @@ export default function AdminWorksPage() {
   }, [])
 
   useEffect(() => {
-    const t = setTimeout(() => { void load(search, status) }, 350)
+    if (!ready) return
+    const t = setTimeout(() => {
+      void load(search, status)
+      const sp = new URLSearchParams()
+      if (search) sp.set('q', search)
+      if (status !== 'all') sp.set('status', status)
+      const qs = sp.toString()
+      window.history.replaceState(null, '', qs ? `?${qs}` : window.location.pathname)
+    }, 350)
     return () => clearTimeout(t)
-  }, [search, status, load])
+  }, [search, status, load, ready])
 
   async function changeStatus(id: string, next: string) {
     setBusyId(id)
