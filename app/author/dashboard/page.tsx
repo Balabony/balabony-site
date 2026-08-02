@@ -329,6 +329,23 @@ export default async function AuthorDashboardPage() {
           ))}
         </div>
 
+        {/* Публікація в газеті — це просування, а не другий гонорар.
+            Автор має знати це до того, як подасться на конкурс. */}
+        <div style={{
+          background: 'rgba(239,159,39,0.07)',
+          border: '1px solid rgba(239,159,39,0.22)',
+          borderRadius: 12, padding: '0.95rem 1.3rem', marginBottom: '1.5rem',
+          color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', lineHeight: 1.6,
+        }}>
+          <strong style={{ color: BRAND.amber, fontWeight: 700 }}>Про публікацію в газеті.</strong>{' '}
+          Історії переможців друкуються в газеті «Життя» разом із QR-кодом, що веде
+          на вашу сторінку тут, на Балабонах. Це просування, а не другий гонорар:
+          газета за публікацію нічого не виплачує, і саме тому вона й безкоштовна для вас.
+          Наклад — 25 000 примірників щотижня по всій Україні через Укрпошту.
+          Читач, який відсканував код, приходить на платформу й читає далі — а прочитання
+          вже нараховуються вам за вашою ставкою.
+        </div>
+
         {/* Умови співпраці */}
         <div style={{ background: BRAND.navyCard, color: 'white', borderRadius: 14, padding: '1.1rem 1.5rem', marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', border: '1px solid rgba(239,159,39,0.25)' }}>
           <div>
