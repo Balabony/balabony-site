@@ -247,7 +247,10 @@ function toStoryHtml(raw: string, images: string[] = []): string {
 
   let html = ''
   paras.forEach((p, i) => {
-    const style = i === 0 ? LEAD : 'margin:0 0 14px 0'
+    // На репліку («Панас: …») лід не ставимо: там уже є золоте імʼя,
+    // другий акцент поруч перевантажив би рядок.
+    const isLead = i === 0 && !SPEAKER_RE.test(p)
+    const style = isLead ? LEAD : 'margin:0 0 14px 0'
     html += `<p style="${style}">${renderParaInner(p)}</p>`
     const here = insertAfter.get(i)
     if (here) here.forEach(u => { html += imgTag(u) })

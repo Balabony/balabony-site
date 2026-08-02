@@ -324,6 +324,9 @@ function formatEpisodeText(raw: string): string {
     const sceneClass = sceneIdx === 0 ? 'scene scene-first' : 'scene'
     return `<div class="${sceneClass}">${renderedParagraphs}</div>`
   }).join('')
-  const styles = `<style>.scene{margin-top:28px}.scene-first{margin-top:0}.scene p{margin:0 0 14px 0}.scene p:last-child{margin-bottom:0}.speaker{padding-left:0}.narrative{}</style>`
+  // Лід: перший абзац нарації трохи більший і світліший — око чіпляється за
+  // початок. На репліки («Панас: …») не поширюється: там уже є золоте імʼя,
+  // другий акцент поруч перевантажив би рядок.
+  const styles = `<style>.scene{margin-top:28px}.scene-first{margin-top:0}.scene p{margin:0 0 14px 0}.scene p:last-child{margin-bottom:0}.speaker{padding-left:0}.narrative{}.scene-first p.narrative:first-child{font-size:1.09em;line-height:1.65;color:#fff;margin-bottom:18px}</style>`
   return styles + renderedScenes
 }

@@ -47,7 +47,10 @@ function formatTyshaText(raw: string): string {
     }).join('')
     return `<div class="scene${sceneIdx === 0 ? ' scene-first' : ''}">${inner}</div>`
   }).join('')
-  const styles = `<style>.scene{margin-top:28px}.scene-first{margin-top:0}.scene p{margin:0 0 16px 0;font-size:17px;line-height:1.75;font-family:'Georgia',serif}.scene p:last-child{margin-bottom:0}</style>`
+  // Лід: перший абзац нарації більший і світліший. Розмір задано в px, бо
+  // .scene p тут уже має свій 17px — відносна одиниця рахувалась би від
+  // батька, не від цього значення.
+  const styles = `<style>.scene{margin-top:28px}.scene-first{margin-top:0}.scene p{margin:0 0 16px 0;font-size:17px;line-height:1.75;font-family:'Georgia',serif}.scene p:last-child{margin-bottom:0}.scene-first p.narrative:first-child{font-size:18.5px;line-height:1.65;color:#fff;margin-bottom:20px}</style>`
   return styles + rendered
 }
 
