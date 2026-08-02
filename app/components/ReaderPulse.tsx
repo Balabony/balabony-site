@@ -103,7 +103,7 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
   if (!step) return <div ref={anchor} aria-hidden="true" style={{ height: 1 }} />
 
   const wrap: React.CSSProperties = {
-    marginTop: 34, padding: '22px 24px', borderRadius: 14,
+    marginTop: 30, padding: '18px 20px', borderRadius: 14,
     background: 'rgba(239,159,39,0.07)', border: '1px solid rgba(239,159,39,0.28)',
     textAlign: 'center',
   }
@@ -111,7 +111,7 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
     // Сайт темний: попередній var(--ink) зливався з фоном і читач бачив
     // три кнопки без питання. Золотий — той самий, що в рамці блока
     // й у заголовках сайту, тож опитування читається як частина Балабонів.
-    fontSize: 17, fontWeight: 700, color: GOLD, margin: '0 0 14px',
+    fontSize: 15.5, fontWeight: 700, color: GOLD, margin: '0 0 12px',
   }
   const row: React.CSSProperties = {
     display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
@@ -127,8 +127,13 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
   const rowTight: React.CSSProperties = {
     display: 'flex', gap: 6, flexWrap: 'nowrap', justifyContent: 'center',
   }
+  // Три відповіді на перше питання стоять одним рядком і мають лишатись
+  // скромними: це підпис під твором, а не головна дія сторінки. Розміри
+  // під найвужчий реальний екран — на iPhone SE всередині блока близько
+  // 287px, трійка вміщується з полями з обох боків.
   const chipTight: React.CSSProperties = {
-    ...chip, padding: '9px 12px', fontSize: 13.5, whiteSpace: 'nowrap',
+    ...chip, padding: '7px 12px', fontSize: 12.5, whiteSpace: 'nowrap',
+    flex: '0 1 auto', minWidth: 0, borderWidth: 1,
   }
 
   if (step === 'done') {
