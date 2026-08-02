@@ -36,6 +36,7 @@ export const ADMIN_GROUPS: AdminGroup[] = [
       { href: '/admin/stories1',        label: 'Авторські',      note: 'Твори авторів' },
       { href: '/admin/na-redakturi',    label: 'На редактурі',   note: 'Черга текстів у роботі' },
       { href: '/admin/editorial',       label: 'Редакція',       note: 'Редакційний розділ' },
+      { href: '/admin/cover-position',  label: 'Кадр обкладинки', note: 'Підгонка фото в картці, щоб не зрізало обличчя', quick: true, short: 'Кадр' },
     ],
   },
   {
