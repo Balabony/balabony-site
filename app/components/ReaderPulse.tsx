@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 /**
  * Три питання після прочитаної історії.
@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react'
 
 const ASK_AGAIN_DAYS = 5
 const STORE_KEY = 'bb_pulse_at'
+const GOLD = '#EF9F27'
 
 type Step = 'liked' | 'genre' | 'age' | 'done'
 
@@ -38,6 +39,7 @@ const AGES: [string, string][] = [
 
 export default function ReaderPulse({ contentId }: { contentId?: string | null }) {
   const [step, setStep] = useState<Step | null>(null)
+  const anchor = useRef<HTMLDivElement | null>(null)
   const [liked, setLiked] = useState<string | null>(null)
   const [genre, setGenre] = useState<string | null>(null)
 
@@ -45,8 +47,14 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
     try { window.localStorage.setItem(STORE_KEY, String(Date.now())) } catch { /* нічого */ }
   }
 
-  // Чи не питали нещодавно. localStorage тут доречний: це не дані, а вимикач
-  // настирливості; якщо він загубиться, людину спитають ще раз, і тільки.
+  // Компонент стоїть у розмітці завжди, тож саме по собі відкриття сторінки
+  // ще нічого не означає: людина могла заглянути й одразу піти. Показуємо
+  // тільки коли блок справді потрапив на екран — це і є ознака, що текст
+  // дочитано до кінця.
+  //
+  // Позначку «питали» ставимо в ТОЙ САМИЙ момент, а не після відповіді.
+  // Раніше вона писалась лише тому, хто дійшов до останнього питання;
+  // решта — тобто більшість — бачили ті самі три питання під кожним твором.
   useEffect(() => {
     try {
       const at = window.localStorage.getItem(STORE_KEY)
@@ -57,11 +65,26 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
     } catch {
       // приватний режим — просто показуємо
     }
-    // Позначку ставимо в момент ПОКАЗУ, а не відповіді. Раніше вона писалась
-    // лише тому, хто дійшов до кінця опитування; більшість читачів просто
-    // йшли зі сторінки — і бачили ті самі три питання під кожним твором.
-    remember()
-    setStep('liked')
+
+    const node = anchor.current
+    if (!node || typeof IntersectionObserver === 'undefined') {
+      remember()
+      setStep('liked')
+      return
+    }
+
+    const io = new IntersectionObserver(
+      entries => {
+        if (entries.some(e => e.isIntersecting)) {
+          io.disconnect()
+          remember()
+          setStep('liked')
+        }
+      },
+      { threshold: 0.6 },
+    )
+    io.observe(node)
+    return () => io.disconnect()
   }, [])
 
   const send = async (payload: Record<string, string | null>) => {
@@ -76,7 +99,8 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
     }
   }
 
-  if (!step) return null
+  // Поки не показуємо — лишаємо порожній якір, інакше спостерігачу нема за чим стежити
+  if (!step) return <div ref={anchor} aria-hidden="true" style={{ height: 1 }} />
 
   const wrap: React.CSSProperties = {
     marginTop: 34, padding: '22px 24px', borderRadius: 14,
@@ -84,7 +108,10 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
     textAlign: 'center',
   }
   const question: React.CSSProperties = {
-    fontSize: 17, fontWeight: 700, color: 'var(--ink, #16202e)', margin: '0 0 14px',
+    // Сайт темний: попередній var(--ink) зливався з фоном і читач бачив
+    // три кнопки без питання. Золотий — той самий, що в рамці блока
+    // й у заголовках сайту, тож опитування читається як частина Балабонів.
+    fontSize: 17, fontWeight: 700, color: GOLD, margin: '0 0 14px',
   }
   const row: React.CSSProperties = {
     display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
@@ -94,12 +121,21 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
     border: '1px solid rgba(22,32,46,0.22)', background: '#fff',
     color: '#16202e', fontSize: 14.5, fontFamily: 'inherit',
   }
+  // Перше питання — рівно три відповіді, і вони мають лишатись одним рядком
+  // навіть на вузькому телефоні: «Не зайшла» окремим рядком виглядає так,
+  // ніби це інша, менш бажана відповідь.
+  const rowTight: React.CSSProperties = {
+    display: 'flex', gap: 6, flexWrap: 'nowrap', justifyContent: 'center',
+  }
+  const chipTight: React.CSSProperties = {
+    ...chip, padding: '9px 12px', fontSize: 13.5, whiteSpace: 'nowrap',
+  }
 
   if (step === 'done') {
     return (
       <div style={wrap}>
         <p style={{ ...question, margin: 0 }}>Дякуємо!</p>
-        <p style={{ fontSize: 14, color: 'rgba(22,32,46,0.62)', margin: '6px 0 0' }}>
+        <p style={{ fontSize: 14, color: 'rgba(242,245,249,0.68)', margin: '6px 0 0' }}>
           Ваша відповідь допомагає нам вибирати, що публікувати далі.
         </p>
       </div>
@@ -110,12 +146,12 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
     return (
       <div style={wrap}>
         <p style={question}>Як вам ця історія?</p>
-        <div style={row}>
+        <div style={rowTight}>
           {[['yes', 'Сподобалась'], ['ok', 'Нормально'], ['no', 'Не зайшла']].map(([k, label]) => (
             <button
               key={k}
               type="button"
-              style={chip}
+              style={chipTight}
               onClick={() => { setLiked(k); setStep('genre') }}
             >
               {label}
@@ -147,7 +183,7 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
           onClick={() => { remember(); void send({ liked, genre: null, age: null }); setStep('done') }}
           style={{
             marginTop: 12, background: 'none', border: 'none', cursor: 'pointer',
-            color: 'rgba(22,32,46,0.5)', fontSize: 13.5, fontFamily: 'inherit',
+            color: 'rgba(242,245,249,0.58)', fontSize: 13.5, fontFamily: 'inherit',
           }}
         >
           Пропустити
@@ -176,7 +212,7 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
         onClick={() => { remember(); void send({ liked, genre, age: null }); setStep('done') }}
         style={{
           marginTop: 12, background: 'none', border: 'none', cursor: 'pointer',
-          color: 'rgba(22,32,46,0.5)', fontSize: 13.5, fontFamily: 'inherit',
+          color: 'rgba(242,245,249,0.58)', fontSize: 13.5, fontFamily: 'inherit',
         }}
       >
         Не хочу відповідати
