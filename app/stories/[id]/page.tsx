@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ShareButtons from '@/app/components/ShareButtons'
 import ReaderPulse from '@/app/components/ReaderPulse'
+import StoryReadTracker from '@/app/components/StoryReadTracker'
 import AgeGate from '@/app/components/AgeGate'
 import AudioPlayer from '@/app/components/AudioPlayer'
 
@@ -147,6 +148,10 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
             dangerouslySetInnerHTML={{ __html: toStoryHtml(body, story.images ?? []) }}
           />
         )}
+
+        {/* Облік прочитання — база для винагороди автора. Маркер кінця тексту
+            має стояти саме тут, одразу під статтею. */}
+        <StoryReadTracker contentId={story.id} slug={id} title={story.title} readMinutes={readMin} />
 
         {/* Три питання тому, хто дочитав */}
         <ReaderPulse contentId={story.id} />
