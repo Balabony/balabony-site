@@ -7,7 +7,7 @@ import ReaderPulse from '@/app/components/ReaderPulse'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
 import AgeGate from '@/app/components/AgeGate'
 import AudioPlayer from '@/app/components/AudioPlayer'
-import { looksLikeHtml, htmlToPlain } from '@/lib/plain-text'
+import { looksLikeHtml, htmlToPlain, toExcerpt } from '@/lib/plain-text'
 import { leadInlineStyle } from '@/lib/reader-typography'
 
 // Базовий кегль тексту історії — має збігатися зі стилем <article> нижче.
@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const story = await getStory(id)
   if (!story) return { title: 'Історія не знайдена' }
 
-  const desc    = story.text.replace(/\s+/g, ' ').trim().slice(0, 160)
+  const desc    = toExcerpt(story.text, 160)
   const url      = `/stories/${id}`
   // Fall back to the site OG image so shared links always show a preview card.
   const ogImage = story.cover_url ?? '/og-image.jpg'

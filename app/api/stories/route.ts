@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { toExcerpt } from '@/lib/plain-text'
 
 export async function GET(req: Request) {
   try {
@@ -61,7 +62,7 @@ function pickPublishedText(s: { text: string; corrected_text: string | null; hum
 }
 
 function buildTeaser(text: string): string {
-  const stripped = text.replace(/\s+/g, ' ').trim()
+  const stripped = toExcerpt(text, 100000)
   if (stripped.length <= 200) return stripped
   const cut = stripped.slice(0, 200)
   const lastSpace = cut.lastIndexOf(' ')

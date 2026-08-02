@@ -6,6 +6,7 @@ import AudioPlayer from '../components/AudioPlayer'
 import { ThemeProvider } from '../context/ThemeContext'
 import FreshStoriesGrid, { type Story } from '../components/FreshStoriesGrid'
 import Breadcrumbs from '../components/Breadcrumbs'
+import { toExcerpt } from '@/lib/plain-text'
 
 export const metadata: Metadata = {
   title: 'Казки — Балабони',
@@ -46,7 +47,7 @@ async function getFairytales(): Promise<Story[]> {
     coverUrl: s.cover_url ?? '/og-image.jpg',
     tags: [],
     hasAudio: false,
-    teaser: s.text.replace(/\s+/g, ' ').slice(0, 200),
+    teaser: toExcerpt(s.text, 200),
     url: `/stories/${s.slug}`,
     genre: s.genre ?? undefined,
     isAdult: s.is_adult ?? false,

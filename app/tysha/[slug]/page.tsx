@@ -9,6 +9,7 @@ import ReaderPulse from '@/app/components/ReaderPulse'
 import TyshaProgressTracker from '@/app/components/TyshaProgressTracker'
 import TyshaAgeGate from '@/app/components/TyshaAgeGate'
 import { leadCssDeclarations } from '@/lib/reader-typography'
+import { toExcerpt } from '@/lib/plain-text'
 
 const GOLD = '#ef9f27'
 const AMBER = '#FFB347'
@@ -158,7 +159,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const ep = await getEpisode(slug, false)
   if (!ep) return { title: 'Серію не знайдено' }
-  const desc = (ep.hook ?? ep.description ?? ep.text.replace(/\s+/g, ' ')).trim().slice(0, 160)
+  const desc = toExcerpt(ep.hook ?? ep.description ?? ep.text, 160)
   return {
     title: `${ep.title} · ТИША · Балабони`,
     description: desc,

@@ -12,6 +12,7 @@ import StreakTracker from '@/app/components/StreakTracker'
 import ReadTracker from '@/app/components/ReadTracker'
 import AudioPlayer from '@/app/components/AudioPlayer'
 import { leadCssDeclarations } from '@/lib/reader-typography'
+import { toExcerpt } from '@/lib/plain-text'
 
 const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
@@ -125,7 +126,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const episode = await getEpisode(slug)
   if (!episode) return { title: 'Епізод не знайдено' }
 
-  const desc = (episode.description ?? episode.text.replace(/\s+/g, ' ')).trim().slice(0, 160)
+  const desc = toExcerpt(episode.description ?? episode.text, 160)
   const url = `/episodes/${slug}`
   const ogImage = episode.cover_url ?? '/og-image.jpg'
   const ogTitle = `${episode.title} · Сезон ${episode.season_number}, Серія ${episode.episode_number}`

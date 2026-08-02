@@ -68,3 +68,19 @@ export function toPlainText(raw: string): string {
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
 }
+
+/**
+ * Анонс для картки або meta description.
+ *
+ * Окрема функція, бо тут легко наступити на ту саму міну двічі: читалка вміє
+ * розгортати HTML старих творів на льоту, а список — ні, тому в анонс лізли
+ * сирі «<p>», «<strong>» і вордівське «class="MsoNormal"». Спершу знімаємо
+ * розмітку, і аж тоді ріжемо — інакше обрізка може розсікти тег навпіл.
+ */
+export function toExcerpt(raw: string | null | undefined, maxLength: number): string {
+  if (!raw) return ''
+  return toPlainText(raw)
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLength)
+}
