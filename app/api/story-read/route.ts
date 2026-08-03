@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getOrCreateAnonUserId } from '@/lib/anon-user'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 
 /**
  * Облік прочитань творів авторів (article_reads) — база для винагороди
@@ -25,6 +26,53 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/**
+ * Чи йде це прочитання в розрахунок винагороди.
+ *
+ * За договором не враховуються (ні у показниках автора, ні в загальній
+ * кількості) два випадки:
+ *   п. 3.4    — промо-покази: твір відкрито безкоштовно з рекламною метою;
+ *   п. 3.4-1  — соціальний доступ: читач пільгової категорії.
+ *
+ * Позначку ставимо В МОМЕНТ читання і зберігаємо в рядку. Перераховувати
+ * потім не можна: і статус читача, і безкоштовність твору з часом
+ * змінюються, а нарахування за минулий місяць має лишитися таким, яким було.
+ */
+async function isPayable(contentId: string): Promise<boolean> {
+  const db = getSupabaseAdmin()
+
+  // Промо: твір відкрито безкоштовно
+  const { data: content } = await db
+    .from('content')
+    .select('is_free')
+    .eq('id', contentId)
+    .maybeSingle()
+  if (content?.is_free === true) return false
+
+  // Соціальний доступ: чинний пільговий статус у залогіненого читача.
+  // Анонімний відвідувач пільги мати не може — вона підтверджується в кабінеті.
+  try {
+    const auth = await createSupabaseServerClient()
+    const { data: { user } } = await auth.auth.getUser()
+    if (user) {
+      const { data: benefit } = await db
+        .from('benefit_status')
+        .select('valid_until')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      if (benefit) {
+        const until = benefit.valid_until ? new Date(benefit.valid_until) : null
+        if (!until || until.getTime() >= Date.now()) return false
+      }
+    }
+  } catch {
+    // Не вдалося з'ясувати статус — рахуємо як звичайне прочитання.
+    // Помилятися на користь автора чесніше, ніж мовчки його обділити.
+  }
+
+  return true
+}
 
 /** Поточна дата за Києвом у форматі YYYY-MM-DD. */
 function kyivToday(): string {
@@ -88,6 +136,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, counted: false })
     }
 
+    const payable = await isPayable(contentId)
+
     // read: закриваємо рядок за сьогодні, якщо він ще не закритий
     const { data: updated } = await db
       .from('article_reads')
@@ -96,6 +146,7 @@ export async function POST(req: Request) {
         time_spent_seconds: dwell,
         completed:          true,
         read_percentage:    percent,
+        counts_for_payout:  payable,
       })
       .eq('user_id', userId)
       .eq('content_id', contentId)
@@ -117,12 +168,13 @@ export async function POST(req: Request) {
           time_spent_seconds: dwell,
           completed:          true,
           read_percentage:    percent,
+          counts_for_payout:  payable,
         },
         { onConflict: 'user_id,content_id,read_date', ignoreDuplicates: true },
       )
     }
 
-    return NextResponse.json({ ok: true, counted: true })
+    return NextResponse.json({ ok: true, counted: true, payable })
   } catch {
     // Облік не повинен ламати читання: помилку ковтаємо мовчки.
     return NextResponse.json({ ok: false })
