@@ -479,7 +479,7 @@ export default function FlashGamePage() {
           <div>
             <div style={{ fontSize: 15.5, fontWeight: 700, color: '#fff', lineHeight: 1.35 }}>Ґрунтується на методиці, яку у США досліджують понад 25 років</div>
             <div style={{ fontSize: 13, color: TEXT_SOFT, lineHeight: 1.4, marginTop: 3 }}>Клінічне дослідження ACTIVE за підтримки Національних інститутів здоров’я США (NIH) · 20-річні результати опубліковано у 2026 році</div>
-            <div style={{ fontSize: 13.5, fontWeight: 700, color: GOLD, lineHeight: 1.4, marginTop: 6 }}>Пов’язана з кращою увагою, швидкістю мислення та нижчим ризиком вікового зниження пам’яті.</div>
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: GOLD, lineHeight: 1.4, marginTop: 6 }}>У дослідженні ця вправа пов’язана з кращою увагою та швидкістю мислення. Це вправа, а не лікування.</div>
           </div>
         </div>
 

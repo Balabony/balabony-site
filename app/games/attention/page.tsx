@@ -300,7 +300,7 @@ export default function AttentionGamePage() {
             <path d="M12 2 L20 5 V11 C20 16 16.5 20 12 22 C7.5 20 4 16 4 11 V5 Z" /><path d="M9 12 l2 2 l4 -4" />
           </svg>
           <div>
-            <div style={{ fontSize: 15.5, fontWeight: 700, color: '#fff', lineHeight: 1.35 }}>В основі — наукова вправа з дослідження у США, пов’язана з нижчим ризиком деменції</div>
+            <div style={{ fontSize: 15.5, fontWeight: 700, color: '#fff', lineHeight: 1.35 }}>В основі — вправа з дослідження ACTIVE (Національні інститути здоров’я США)</div>
             <div style={{ fontSize: 14, color: '#D5E5F5', lineHeight: 1.45, marginTop: 4 }}>Це «гра на розділену увагу» з дослідження ACTIVE (Національні інститути здоров’я США, NIH): треба бачити центр і водночас помічати, що майнуло скраю.</div>
           </div>
         </div>
