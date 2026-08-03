@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getSessionId } from '@/lib/analytics'
 
 /**
@@ -50,6 +50,11 @@ export default function StoryReadTracker({
   const sentRef      = useRef(false)
   const maxShareRef  = useRef(0)
   const activeMsRef  = useRef(0)
+
+  // Режим перевірки: /stories/щось?readcheck=1 показує лічильник на екрані.
+  // Потрібен, щоб бачити, чому прочитання не зарахувалось, — інакше
+  // доводиться гадати між «мало часу» і «не знайшло тексту».
+  const [check, setCheck] = useState<null | { share: number; sec: number; need: number; sent: boolean }>(null)
 
   // «Відкрив» — одразу, двома подіями: рядок у article_reads і подія
   // в story_events, з якої перераховується лічильник переглядів.
@@ -147,8 +152,20 @@ export default function StoryReadTracker({
       }).catch(() => {})
     }
 
+    const debugOn =
+      typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).get('readcheck') === '1'
+
     const maybeSend = () => {
       if (maxShareRef.current >= NEEDED_SHARE && activeMsRef.current >= needMs) send()
+      if (debugOn) {
+        setCheck({
+          share: Math.round(maxShareRef.current * 100),
+          sec:   Math.round(activeMsRef.current / 1000),
+          need:  Math.round(needMs / 1000),
+          sent:  sentRef.current,
+        })
+      }
     }
 
     const onScroll = () => {
@@ -176,5 +193,24 @@ export default function StoryReadTracker({
   }, [contentId, slug, title, charCount])
 
   // Маркер стоїть одразу під статтею — від нього шукаємо текст для вимірювання.
-  return <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />
+  return (
+    <>
+      <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />
+      {check && (
+        <div style={{
+          position: 'fixed', left: 12, bottom: 12, zIndex: 9999,
+          background: 'rgba(10,22,40,0.94)', color: '#f5f0e8',
+          border: '1px solid rgba(239,159,39,0.6)', borderRadius: 10,
+          padding: '10px 12px', fontSize: 13, lineHeight: 1.5,
+          fontFamily: "'Montserrat', Arial, sans-serif", pointerEvents: 'none',
+        }}>
+          <div>Прочитано обсягу: <b style={{ color: check.share >= 70 ? '#7ddba0' : '#ef9f27' }}>{check.share}%</b> із 70%</div>
+          <div>Час на сторінці: <b style={{ color: check.sec >= check.need ? '#7ddba0' : '#ef9f27' }}>{check.sec} с</b> із {check.need} с</div>
+          <div style={{ marginTop: 4, color: check.sent ? '#7ddba0' : '#b9c6db' }}>
+            {check.sent ? 'зараховано' : 'ще не зараховано'}
+          </div>
+        </div>
+      )}
+    </>
+  )
 }
