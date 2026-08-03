@@ -106,6 +106,9 @@ export default function CoverPositionPage() {
   const [frame, setFrame]     = useState<Frame>(DEFAULT_FRAME)
   const [saving, setSaving]   = useState(false)
   const [note, setNote]       = useState('')
+  const [uploading, setUploading] = useState(false)
+  const [urlInput, setUrlInput]   = useState('')
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const dragRef = useRef<{ startX: number; startY: number; base: Frame } | null>(null)
 
@@ -157,6 +160,52 @@ export default function CoverPositionPage() {
     }))
   }
   function onPointerUp() { dragRef.current = null }
+
+  /**
+   * Заміна фото. Після успіху оновлюємо адресу в списку і скидаємо кадр:
+   * нова картинка — нове кадрування, старий зсув до неї не пасує.
+   */
+  async function replaceCover(payload: FormData) {
+    if (!active) return
+    setUploading(true)
+    setNote('')
+    try {
+      payload.set('content_id', active.id)
+      const r = await fetch('/api/admin/cover-upload', { method: 'POST', body: payload })
+      const j = await r.json() as { ok?: boolean; cover_url?: string; error?: string }
+      if (!r.ok || !j.cover_url) throw new Error(j.error ?? `Помилка ${r.status}`)
+
+      const fresh = j.cover_url
+      setRows(prev => prev.map(x => (x.id === active.id ? { ...x, cover_url: fresh, cover_position: 'center' } : x)))
+      setActive(prev => (prev ? { ...prev, cover_url: fresh, cover_position: 'center' } : prev))
+      setFrame(DEFAULT_FRAME)
+      setUrlInput('')
+      if (fileRef.current) fileRef.current.value = ''
+      setNote('Фото замінено')
+    } catch (e) {
+      setNote(e instanceof Error ? e.message : 'Не вдалось замінити фото')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]
+    if (!f) return
+    const fd = new FormData()
+    fd.set('file', f)
+    void replaceCover(fd)
+  }
+
+  function onUseUrl() {
+    if (!/^https?:\/\//i.test(urlInput.trim())) {
+      setNote('Посилання має починатися з http:// або https://')
+      return
+    }
+    const fd = new FormData()
+    fd.set('source_url', urlInput.trim())
+    void replaceCover(fd)
+  }
 
   async function save() {
     if (!active) return
@@ -347,12 +396,52 @@ export default function CoverPositionPage() {
               </label>
             </div>
 
+            <div style={{ marginTop: 18, paddingTop: 16, borderTop: `1px solid ${LINE}` }}>
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Замінити фото</div>
+              <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.55, margin: '0 0 10px' }}>
+                Якщо знімок не пасує до історії. Нове фото стає обкладинкою одразу,
+                кадр скидається на початковий. Попереднє фото лишається в сховищі.
+              </p>
+
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={onPickFile}
+                disabled={uploading}
+                style={{ display: 'none' }}
+              />
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading}
+                  style={{ ...btn, opacity: uploading ? 0.6 : 1 }}
+                >
+                  {uploading ? 'Завантажую…' : 'Вибрати файл'}
+                </button>
+                <span style={{ fontSize: 12, color: MUTED }}>JPG, PNG або WebP, до 8 МБ</span>
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+                <input
+                  value={urlInput}
+                  onChange={e => setUrlInput(e.target.value)}
+                  placeholder="або посилання на зображення"
+                  disabled={uploading}
+                  style={{ ...btn, flex: '1 1 240px', cursor: 'text' }}
+                />
+                <button onClick={onUseUrl} disabled={uploading || !urlInput.trim()} style={{ ...btn, opacity: uploading || !urlInput.trim() ? 0.5 : 1 }}>
+                  Взяти
+                </button>
+              </div>
+            </div>
+
             <div style={{ fontSize: 12, color: MUTED, marginTop: 14, fontFamily: 'monospace' }}>
               {frameToValue(frame)}
             </div>
 
             {note && (
-              <div style={{ marginTop: 12, fontSize: 13, color: note === 'Збережено' ? '#7ddba0' : '#ffb3b3' }}>
+              <div style={{ marginTop: 12, fontSize: 13, color: (note === 'Збережено' || note === 'Фото замінено') ? '#7ddba0' : '#ffb3b3' }}>
                 {note}
               </div>
             )}
