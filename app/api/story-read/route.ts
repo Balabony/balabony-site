@@ -39,8 +39,13 @@ const UUID_RE =
  * потім не можна: і статус читача, і безкоштовність твору з часом
  * змінюються, а нарахування за минулий місяць має лишитися таким, яким було.
  */
-async function isPayable(contentId: string): Promise<boolean> {
+async function isPayable(contentId: string, promo: boolean): Promise<boolean> {
   const db = getSupabaseAdmin()
+
+  // Промо, оголошене сторінкою. Для серій безкоштовність визначається не
+  // колонкою is_free, а місцем серії в сезоні: перші дві відкриті всім
+  // саме з рекламною метою. Сторінка знає це правило, база — ні.
+  if (promo) return false
 
   // Промо: твір відкрито безкоштовно
   const { data: content } = await db
@@ -99,6 +104,9 @@ export async function POST(req: Request) {
 
     const event = body?.event === 'read' ? 'read' : 'open'
 
+    // Позначку промо ставить сторінка. Відсутня — вважаємо звичайним твором.
+    const promo = body?.promo === true
+
     const rawDwell = Number(body?.dwellSeconds)
     // Стеля 4 години: захист від забутих вкладок, що накручують час.
     const dwell =
@@ -136,7 +144,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, counted: false })
     }
 
-    const payable = await isPayable(contentId)
+    const payable = await isPayable(contentId, promo)
 
     // read: закриваємо рядок за сьогодні, якщо він ще не закритий
     const { data: updated } = await db

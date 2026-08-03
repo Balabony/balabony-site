@@ -10,6 +10,7 @@ import EpisodeCliffhanger from '@/app/components/EpisodeCliffhanger'
 import ReaderPulse from '@/app/components/ReaderPulse'
 import StreakTracker from '@/app/components/StreakTracker'
 import ReadTracker from '@/app/components/ReadTracker'
+import StoryReadTracker from '@/app/components/StoryReadTracker'
 import AudioPlayer from '@/app/components/AudioPlayer'
 import { leadCssDeclarations } from '@/lib/reader-typography'
 import { toExcerpt, toPlainText } from '@/lib/plain-text'
@@ -177,6 +178,13 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
   // з Word («&ensp;», «&rsquo;»), які інакше видно читачеві як є.
   const body = toPlainText(rawBody)
 
+  // Замок і промо рахуємо тут, бо від них залежить облік прочитань.
+  // Правило дослівно те саме, що в EpisodePaywall: перші дві серії сезону
+  // вільні, преміальна замкнена завжди, адмін бачить усе.
+  const FREE_PER_SEASON = 2
+  const isPromoEpisode  = !episode.is_premium && seasonPosition <= FREE_PER_SEASON
+  const isLocked        = !isAdmin && !isPromoEpisode
+
   const wordCount = body.trim().split(/\s+/).filter(Boolean).length
   const readMin   = readingMinutes(episode)
   const date      = episode.approved_at
@@ -247,6 +255,21 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         )}
 
         <EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={seasonPosition} bypass={isAdmin} isPremium={episode.is_premium} />
+
+        {/* Облік прочитань за договором (п. 1.5). Замкнену серію не рахуємо
+            взагалі: читач бачить тізер, а 70% обсягу тізера — це не 70%
+            обсягу твору. Маркер стоїть під текстом — від нього трекер
+            знаходить <article> і міряє, скільки тексту побувало на екрані. */}
+        {!isLocked && (
+          <StoryReadTracker
+            contentId={episode.id}
+            slug={episode.slug}
+            title={episode.title}
+            charCount={body.length}
+            promo={isPromoEpisode}
+            analytics={false}
+          />
+        )}
 
         {/* Три питання — лише тому, хто побачив серію цілком.
             Умова замка повторює EpisodePaywall: перші дві серії сезону вільні. */}

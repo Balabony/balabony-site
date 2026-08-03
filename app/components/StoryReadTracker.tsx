@@ -39,12 +39,26 @@ export default function StoryReadTracker({
   slug,
   title,
   charCount,
+  promo = false,
+  analytics = true,
 }: {
   contentId: string
   slug:      string
   title:     string
   /** Скільки знаків у тексті твору — з цього рахується мінімальний час. */
   charCount: number
+  /**
+   * Твір відкрито безкоштовно з рекламною метою (договір, п. 3.4).
+   * Для серій це перші дві серії сезону: база про це правило не знає,
+   * тож позначку ставить сторінка.
+   */
+  promo?: boolean
+  /**
+   * Чи слати ще й подію в story_events. Для історій — так, звідти
+   * рахуються перегляди. Для серій — ні: у них власний облік, інакше
+   * та сама подія потрапила б у статистику двічі.
+   */
+  analytics?: boolean
 }) {
   const sentinelRef  = useRef<HTMLDivElement | null>(null)
   const sentRef      = useRef(false)
@@ -64,21 +78,23 @@ export default function StoryReadTracker({
     fetch('/api/story-read', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ contentId, slug, title, event: 'open' }),
+      body:    JSON.stringify({ contentId, slug, title, event: 'open', promo }),
     }).catch(() => {})
 
-    fetch('/api/analytics/track', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({
-        type:        'story_event',
-        story_id:    contentId,
-        story_title: title,
-        event_type:  'open',
-        session_id:  getSessionId(),
-      }),
-    }).catch(() => {})
-  }, [contentId, slug, title])
+    if (analytics) {
+      fetch('/api/analytics/track', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          type:        'story_event',
+          story_id:    contentId,
+          story_title: title,
+          event_type:  'open',
+          session_id:  getSessionId(),
+        }),
+      }).catch(() => {})
+    }
+  }, [contentId, slug, title, promo, analytics])
 
   useEffect(() => {
     if (!contentId) return
@@ -134,22 +150,25 @@ export default function StoryReadTracker({
           event:        'read',
           dwellSeconds: seconds,
           percent,
+          promo,
         }),
       }).catch(() => {})
 
-      fetch('/api/analytics/track', {
-        method:    'POST',
-        headers:   { 'Content-Type': 'application/json' },
-        keepalive: true,
-        body:      JSON.stringify({
-          type:             'story_event',
-          story_id:         contentId,
-          story_title:      title,
-          event_type:       'read',
-          duration_seconds: seconds,
-          session_id:       getSessionId(),
-        }),
-      }).catch(() => {})
+      if (analytics) {
+        fetch('/api/analytics/track', {
+          method:    'POST',
+          headers:   { 'Content-Type': 'application/json' },
+          keepalive: true,
+          body:      JSON.stringify({
+            type:             'story_event',
+            story_id:         contentId,
+            story_title:      title,
+            event_type:       'read',
+            duration_seconds: seconds,
+            session_id:       getSessionId(),
+          }),
+        }).catch(() => {})
+      }
     }
 
     const debugOn =
@@ -190,7 +209,7 @@ export default function StoryReadTracker({
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
     }
-  }, [contentId, slug, title, charCount])
+  }, [contentId, slug, title, charCount, promo, analytics])
 
   // Маркер стоїть одразу під статтею — від нього шукаємо текст для вимірювання.
   return (

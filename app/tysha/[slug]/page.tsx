@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import ReadTracker from '@/app/components/ReadTracker'
+import StoryReadTracker from '@/app/components/StoryReadTracker'
 import ReaderPulse from '@/app/components/ReaderPulse'
 import TyshaProgressTracker from '@/app/components/TyshaProgressTracker'
 import TyshaAgeGate from '@/app/components/TyshaAgeGate'
@@ -261,6 +262,20 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
         <article style={{ maxWidth: 720, margin: '0 auto', padding: '22px 20px 40px' }}>
           <div dangerouslySetInnerHTML={{ __html: formatTyshaText(body) }} />
         </article>
+      )}
+
+      {/* Облік прочитань за договором (п. 1.5). Замкнена серія не рахується:
+          видно лише тізер. Перші FREE_EPISODES серій відкриті всім з
+          рекламною метою — це промо, у винагороду не йде (п. 3.4). */}
+      {!locked && (
+        <StoryReadTracker
+          contentId={ep.id}
+          slug={ep.slug}
+          title={ep.title}
+          charCount={body.length}
+          promo={epNum <= FREE_EPISODES}
+          analytics={false}
+        />
       )}
 
       {/* Три питання тому, хто дочитав серію цілком */}
