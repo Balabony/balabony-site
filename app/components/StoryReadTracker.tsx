@@ -4,52 +4,55 @@ import { useEffect, useRef } from 'react'
 import { getSessionId } from '@/lib/analytics'
 
 /**
- * Облік прочитань твору автора — те, що бачить автор у себе в кабінеті.
+ * Облік прочитань твору — база для винагороди автора.
  *
- * Кабінет читає вигляд author_story_stats, який бере:
- *   Перегляди   ← content.views_count, а той росте від story_event 'open'
- *   Прочитань   ← article_reads (усі рядки)
- *   Дочитування ← article_reads.completed / read_percentage
- * Досі жодного з трьох джерел на сторінці твору не було, тому в кабінеті
- * стояли нулі. Цей компонент наповнює всі три.
+ * Умови взято дослівно з договору, п. 1.5: прочитання — це перегляд не менш
+ * як 70% ОБСЯГУ тексту одним користувачем, не частіше разу на добу, і не
+ * зараховується, якщо час перегляду менший за 15 секунд на кожні 1000 знаків.
  *
- * Чому не як ReadTracker для серій: там подія шлеться одразу при відкритті
- * сторінки. Для балів читача цього досить, для ВИНАГОРОДИ АВТОРА — ні:
- * цифру, зібрану з відкриттів, автор має право оскаржити, і буде правий.
+ * Раніше тут мірявся лише час (35% від очікуваного, стеля 3 хвилини), і довгий
+ * твір зараховувався за три хвилини, хоч би скільки читач насправді подолав.
+ * Автор мав повне право таку цифру оскаржити. Тепер міряємо саме те, що
+ * записано в договорі, — інакше опублікована формула розходиться з дійсністю.
  *
- * Тому «прочитано» вимагає двох умов разом:
- *   1) кінець тексту побував у полі зору (людина долистала);
- *   2) минуло достатньо АКТИВНОГО часу — 35% від очікуваного часу читання,
- *      але не менше 20 с і не більше 3 хв.
+ * Як міряється обсяг: стежимо, наскільки глибоко нижній край екрана зайшов
+ * у текст. Це чесніше за «долистав до кінця»: кінець сторінки можна побачити,
+ * пролетівши все, а 70% обсягу разом із мінімальним часом — уже ні.
  *
  * Час рахується лише коли вкладка видима: відкрита й забута вкладка
- * прочитанням не стає. Разом умови відсікають і «пролетів вниз за секунду»,
- * і «відкрив та пішов».
+ * прочитанням не стає.
  */
 
-const TICK_MS      = 1000
-const MIN_DWELL_MS = 20_000
-const MAX_DWELL_MS = 180_000
-const DWELL_SHARE  = 0.35
+const TICK_MS = 1000
+
+/** Частка обсягу, за якої твір вважається прочитаним (договір, п. 1.5). */
+const NEEDED_SHARE = 0.7
+
+/** Секунд на кожні 1000 знаків (договір, п. 1.5). */
+const SECONDS_PER_1000_CHARS = 15
+
+/** Найменший поріг часу — щоб зовсім короткий текст не зараховувався миттєво. */
+const MIN_DWELL_MS = 15_000
 
 export default function StoryReadTracker({
   contentId,
   slug,
   title,
-  readMinutes,
+  charCount,
 }: {
-  contentId:   string
-  slug:        string
-  title:       string
-  readMinutes: number
+  contentId: string
+  slug:      string
+  title:     string
+  /** Скільки знаків у тексті твору — з цього рахується мінімальний час. */
+  charCount: number
 }) {
-  const sentinelRef   = useRef<HTMLDivElement | null>(null)
-  const sentRef       = useRef(false)
-  const reachedEndRef = useRef(false)
-  const activeMsRef   = useRef(0)
+  const sentinelRef  = useRef<HTMLDivElement | null>(null)
+  const sentRef      = useRef(false)
+  const maxShareRef  = useRef(0)
+  const activeMsRef  = useRef(0)
 
-  // «Відкрив» — одразу, двома подіями: у article_reads (рядок) і в
-  // story_events (звідки перераховується content.views_count).
+  // «Відкрив» — одразу, двома подіями: рядок у article_reads і подія
+  // в story_events, з якої перераховується лічильник переглядів.
   useEffect(() => {
     if (!contentId) return
 
@@ -75,15 +78,44 @@ export default function StoryReadTracker({
   useEffect(() => {
     if (!contentId) return
 
-    const needMs = Math.min(
-      MAX_DWELL_MS,
-      Math.max(MIN_DWELL_MS, Math.round(readMinutes * 60_000 * DWELL_SHARE)),
+    // Мінімальний час за договором, але не менший за нижню межу.
+    const needMs = Math.max(
+      MIN_DWELL_MS,
+      Math.round((charCount / 1000) * SECONDS_PER_1000_CHARS * 1000),
     )
+
+    /** Стаття — найближчий <article> над маркером. */
+    const findBody = (): HTMLElement | null => {
+      const node = sentinelRef.current
+      if (!node) return null
+      let prev = node.previousElementSibling
+      while (prev) {
+        const found = prev.tagName === 'ARTICLE' ? prev : prev.querySelector('article')
+        if (found instanceof HTMLElement) return found
+        prev = prev.previousElementSibling
+      }
+      return document.querySelector('article')
+    }
+
+    /**
+     * Яка частка тексту побувала на екрані. Рахуємо від того, наскільки низько
+     * опустився нижній край вікна відносно початку статті.
+     */
+    const currentShare = (): number => {
+      const body = findBody()
+      if (!body) return 0
+      const rect = body.getBoundingClientRect()
+      const height = rect.height
+      if (height <= 0) return 0
+      const seen = window.innerHeight - rect.top
+      return Math.max(0, Math.min(1, seen / height))
+    }
 
     const send = () => {
       if (sentRef.current) return
       sentRef.current = true
       const seconds = Math.round(activeMsRef.current / 1000)
+      const percent = Math.round(maxShareRef.current * 100)
 
       // keepalive: подія доходить, навіть якщо вкладку вже закривають.
       fetch('/api/story-read', {
@@ -96,6 +128,7 @@ export default function StoryReadTracker({
           title,
           event:        'read',
           dwellSeconds: seconds,
+          percent,
         }),
       }).catch(() => {})
 
@@ -115,7 +148,13 @@ export default function StoryReadTracker({
     }
 
     const maybeSend = () => {
-      if (reachedEndRef.current && activeMsRef.current >= needMs) send()
+      if (maxShareRef.current >= NEEDED_SHARE && activeMsRef.current >= needMs) send()
+    }
+
+    const onScroll = () => {
+      const share = currentShare()
+      if (share > maxShareRef.current) maxShareRef.current = share
+      maybeSend()
     }
 
     const timer = window.setInterval(() => {
@@ -125,27 +164,17 @@ export default function StoryReadTracker({
       }
     }, TICK_MS)
 
-    let observer: IntersectionObserver | null = null
-    const node = sentinelRef.current
-    if (node && typeof IntersectionObserver !== 'undefined') {
-      observer = new IntersectionObserver(
-        entries => {
-          if (entries.some(e => e.isIntersecting)) {
-            reachedEndRef.current = true
-            maybeSend()
-          }
-        },
-        { rootMargin: '0px 0px -10% 0px' },
-      )
-      observer.observe(node)
-    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll, { passive: true })
+    onScroll()   // короткий твір може вміститися на екран одразу
 
     return () => {
       window.clearInterval(timer)
-      observer?.disconnect()
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
     }
-  }, [contentId, slug, title, readMinutes])
+  }, [contentId, slug, title, charCount])
 
-  // Маркер кінця тексту. Стоїть одразу під статтею.
+  // Маркер стоїть одразу під статтею — від нього шукаємо текст для вимірювання.
   return <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />
 }

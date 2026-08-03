@@ -93,6 +93,9 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
       : story.text
 
   const wordCount = body.trim().split(/\s+/).length
+  // Знаки чистого тексту — з них рахується мінімальний час перегляду
+  // за договором (15 секунд на кожні 1000 знаків, п. 1.5).
+  const charCount = toPlainText(body).length
   const isFairytale = story.genre === 'Казка'
   const readMin   = Math.ceil(wordCount / 180)
   const date      = story.approved_at
@@ -155,7 +158,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
         {/* Облік прочитання — база для винагороди автора. Маркер кінця тексту
             має стояти саме тут, одразу під статтею. */}
-        <StoryReadTracker contentId={story.id} slug={id} title={story.title} readMinutes={readMin} />
+        <StoryReadTracker contentId={story.id} slug={id} title={story.title} charCount={charCount} />
 
         {/* Три питання тому, хто дочитав */}
         <ReaderPulse contentId={story.id} />
