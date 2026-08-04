@@ -131,11 +131,19 @@ export async function POST(req: NextRequest) {
 
   // --- Відправлення -------------------------------------------------------
   const from = process.env.RESEND_FROM_EMAIL ?? 'editorial@balabony.com'
+
+  // Куди автор потрапить, натиснувши «Відповісти».
+  //
+  // Відправник — noreply@, і відповідь на нього відбивається помилкою. Лист
+  // при цьому просить надсилати демозаписи голосу саме у відповідь, тож без
+  // reply_to кожен такий запис повертався б авторові як недоставлений, а ми
+  // б навіть не дізнались, що він був.
+  const replyTo = process.env.RESEND_REPLY_TO ?? 'nazar@balabony.com'
   let sendError: string | null = null
 
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
-    const res = await resend.emails.send({ from, to: email, subject, html, text })
+    const res = await resend.emails.send({ from, replyTo, to: email, subject, html, text })
     if (res.error) sendError = res.error.message || 'Resend відхилив лист'
   } catch (e) {
     const err = e as { message?: string }
