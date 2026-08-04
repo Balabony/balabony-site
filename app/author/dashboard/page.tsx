@@ -4,6 +4,7 @@ import NarrationOrderForm from '@/app/components/NarrationOrderForm'
 import AuthorContracts, { type ContractRow } from '@/app/components/AuthorContracts'
 import AuthorRequisites, { type Requisites } from '@/app/components/AuthorRequisites'
 import AuthorSurvey, { type Feedback } from '@/app/components/AuthorSurvey'
+import AuthorNewsletter from '@/app/components/AuthorNewsletter'
 import AuthorMessageForm from '@/app/components/AuthorMessageForm'
 import ContestCountdown from '@/app/components/ContestCountdown'
 import { dbQuery } from '@/lib/db'
@@ -28,6 +29,7 @@ type AuthorProfile = {
   postal_code?: string | null
   np_branch?: string | null
   requisites_updated_at?: string | null
+  newsletter_opt_out?: boolean | null
 }
 
 type StoryStat = {
@@ -496,6 +498,8 @@ export default async function AuthorDashboardPage() {
         <AuthorContracts contracts={contracts} diiaEnabled={Boolean((process.env.SIGN_SERVICE_URL ?? '').trim())} />
 
         <AuthorSurvey initial={feedback} />
+
+      <AuthorNewsletter initialOptOut={Boolean(profile.newsletter_opt_out)} />
 
         <AuthorMessageForm />
 
