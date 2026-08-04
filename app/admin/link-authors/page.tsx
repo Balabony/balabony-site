@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 const GOLD = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
@@ -38,6 +38,20 @@ export default function LinkAuthorsPage() {
   const [note, setNote] = useState('')
   const [err, setErr] = useState('')
   const [loading, setLoading] = useState(true)
+  const [query, setQuery] = useState('')
+
+  // Імен у списку понад сотня, і сортовані вони за кількістю історій — тож
+  // потрібне ім'я може лежати в самому низу. Порівнюємо без регістру й без
+  // апострофів: у базі вони трапляються і як ʼ, і як ', і як ’, а людина
+  // набирає той, що є на її клавіатурі.
+  const normalize = (t: string): string =>
+    t.toLowerCase().replace(/[ʼ'’`]/g, '').trim()
+
+  const visible = useMemo(() => {
+    const q = normalize(query)
+    if (!q) return names
+    return names.filter((n) => normalize(n.author_name).includes(q))
+  }, [names, query])
 
   const load = async () => {
     setLoading(true)
@@ -162,6 +176,33 @@ export default function LinkAuthorsPage() {
           <p style={{ color: CREAM, fontSize: 14.5, margin: '0 0 16px' }}>{note}</p>
         )}
 
+        {!loading && names.length > 0 && (
+          <div style={{ marginBottom: 18 }}>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Пошук за іменем — почніть друкувати"
+              style={{
+                width: '100%',
+                background: NAVY,
+                color: CREAM,
+                border: `1px solid ${LINE}`,
+                borderRadius: 8,
+                padding: '11px 14px',
+                fontSize: 15.5,
+                fontFamily: FONT,
+                boxSizing: 'border-box',
+              }}
+            />
+            <p style={{ fontSize: 13.5, color: MUTED, margin: '8px 2px 0' }}>
+              {query
+                ? `Знайдено: ${visible.length} з ${names.length}`
+                : `Усього імен: ${names.length}`}
+            </p>
+          </div>
+        )}
+
         {loading && <p style={{ color: MUTED, fontSize: 15 }}>Завантажую…</p>}
 
         {!loading && profiles.length === 0 && (
@@ -181,10 +222,19 @@ export default function LinkAuthorsPage() {
           </div>
         )}
 
+        {!loading && names.length > 0 && visible.length === 0 && (
+          <div style={card}>
+            <p style={{ fontSize: 15, color: CREAM, margin: 0 }}>
+              За запитом «{query}» нічого не знайшлося. Спробуйте частину імені або
+              лише прізвище.
+            </p>
+          </div>
+        )}
+
         {!loading &&
           names.length > 0 &&
           profiles.length > 0 &&
-          names.map((n) => (
+          visible.map((n) => (
             <div key={n.author_name} style={{ ...card, marginBottom: 12 }}>
               <div style={{ fontSize: 17, fontWeight: 700, color: CREAM }}>
                 {n.author_name}
