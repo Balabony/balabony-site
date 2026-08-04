@@ -94,7 +94,6 @@ function textIntro(v: Vars) {
     '',
     'З повагою,',
     'Богдан Хомин',
-    'Балабони · balabony.com',
   ].join('\n')
 }
 
