@@ -62,20 +62,24 @@ export async function POST(req: NextRequest) {
   // --- Профіль -----------------------------------------------------------
   let name = ''
   let email = ''
+  let optedOut = false
   try {
     const r = await dbQuery(
       `select coalesce(p.display_name, '') as display_name,
-              coalesce(p.email, u.email)   as email
+              coalesce(p.email, u.email)   as email,
+              coalesce(p.newsletter_opt_out, false) as newsletter_opt_out
          from author_profiles p
          left join auth.users u on u.id = p.user_id
         where p.user_id = $1
         limit 1`,
       [userId],
     )
-    const row = r.rows[0] as { display_name: string; email: string | null } | undefined
+    const row = r.rows[0] as
+      { display_name: string; email: string | null; newsletter_opt_out: boolean } | undefined
     if (!row) return NextResponse.json({ ok: false, error: 'Автора не знайдено' }, { status: 404 })
     name = row.display_name
     email = String(row.email ?? '').trim()
+    optedOut = Boolean(row.newsletter_opt_out)
   } catch (e) {
     const err = e as { message?: string }
     return NextResponse.json(
@@ -86,6 +90,18 @@ export async function POST(req: NextRequest) {
 
   if (!email) {
     return NextResponse.json({ ok: false, error: 'У автора не вказано пошту' }, { status: 400 })
+  }
+
+  // --- Відписка від розсилки ---------------------------------------------
+  // Автор натиснув «Відписатись» у кабінеті. Це стосується листів редакції;
+  // службові листи (вхід, договір, виплати) йдуть іншими шляхами й сюди не
+  // потрапляють. Якщо колись знадобиться написати такому авторові у справі —
+  // це має бути свідома дія людини, а не тихий обхід прапорця.
+  if (optedOut) {
+    return NextResponse.json(
+      { ok: false, error: 'Автор відписався від розсилки — лист не надіслано' },
+      { status: 409 },
+    )
   }
 
   // --- Згода: відкликана або відмова — не пишемо -------------------------
