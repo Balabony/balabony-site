@@ -33,16 +33,22 @@ export default function AuthMenu() {
         if (!cancelled) setIsAuthor(false)
         return
       }
-      try {
-        const { data } = await supabase
-          .from('author_profiles')
-          .select('user_id')
-          .eq('user_id', u.id)
-          .eq('is_active', true)
-          .maybeSingle()
-        if (!cancelled) setIsAuthor(Boolean(data))
-      } catch {
-        if (!cancelled) setIsAuthor(false)
+      // Питаємо сервер, а не таблицю з браузера. Клієнтський запит залежав від
+      // того, чи встигла сесія долетіти до політики доступу, і коли не встигав,
+      // автор бачив «Профіль». Помилка при цьому ковталася, тож збій виглядав
+      // як випадковість: учора заходило, сьогодні ні.
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const res = await fetch('/api/author/whoami', { cache: 'no-store' })
+          if (!res.ok) throw new Error(String(res.status))
+          const data = (await res.json()) as { isAuthor?: boolean }
+          if (!cancelled) setIsAuthor(Boolean(data.isAuthor))
+          return
+        } catch {
+          // Перша невдача — почекати й спробувати ще раз. Друга — лишити як є:
+          // краще кнопка без змін, ніж автора мовчки відправити в читацький профіль.
+          if (attempt === 0) await new Promise((r) => setTimeout(r, 700))
+        }
       }
     }
 
