@@ -9,6 +9,26 @@ export default function LoginPage() {
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
+  /**
+   * Зводить адресу до одного вигляду перед входом.
+   *
+   * Gmail ігнорує крапки в імені й усе після плюса: tamila.tarasenko@gmail.com
+   * і tamilatarasenko@gmail.com — та сама скринька. Supabase так не вважає й
+   * заводить два різні акаунти, тож авторка входила то під одним, то під
+   * другим, і під тим, де профілю не було, потрапляла в читацький профіль.
+   *
+   * Чіпаємо лише gmail: в інших доменах крапка може бути значуща.
+   */
+  function normalizeEmail(raw: string): string {
+    const t = raw.trim().toLowerCase()
+    const at = t.lastIndexOf('@')
+    if (at < 1) return t
+    const name = t.slice(0, at)
+    const domain = t.slice(at + 1)
+    if (domain !== 'gmail.com' && domain !== 'googlemail.com') return t
+    return `${name.split('+')[0].replace(/\./g, '')}@gmail.com`
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setStatus('sending')
@@ -16,7 +36,7 @@ export default function LoginPage() {
 
     const supabase = createSupabaseBrowserClient()
     const { error } = await supabase.auth.signInWithOtp({
-      email,
+      email: normalizeEmail(email),
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     })
 
