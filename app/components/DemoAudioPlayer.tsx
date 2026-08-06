@@ -161,18 +161,31 @@ export default function DemoAudioPlayer({ src, badge, caption, title = 'Ауді
         @media (prefers-reduced-motion: reduce){.${uid}-btn{transition:none;}.${uid}-btn:hover{transform:none;}}
       ` }} />
 
-      {/* Шапка: назва зліва, бейдж справа */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-        <div style={{ minWidth: 0 }}>
+      {/* Шапка: назва і бейдж. Бейдж не стискається, тому на вузьких екранах
+          він переносився б поверх назви й ламав слова посимвольно. Даємо назві
+          мінімум 200px: доки він є — обидва в рядку, як не влазить — бейдж
+          переходить на свій рядок. */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: '1 1 200px', minWidth: 0 }}>
           {title && (
-            <div style={{ fontSize: 19, fontWeight: 800, color: '#F5F0E8', lineHeight: 1.3 }}>{title}</div>
+            <div style={{
+              fontSize: 19, fontWeight: 800, color: '#F5F0E8', lineHeight: 1.3,
+              wordBreak: 'normal', overflowWrap: 'break-word',
+            }}>{title}</div>
           )}
           {caption && (
-            <p style={{ margin: '6px 0 0', fontSize: 15, color: '#9FB3C8' }}>{caption}</p>
+            <p style={{
+              margin: '6px 0 0', fontSize: 15, color: '#9FB3C8',
+              wordBreak: 'normal', overflowWrap: 'break-word',
+            }}>{caption}</p>
           )}
         </div>
         {badge && (
-          <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#0E1A2B', background: GOLD, padding: '5px 12px', borderRadius: 8 }}>
+          <span style={{
+            flexShrink: 0, whiteSpace: 'nowrap',
+            fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em',
+            color: '#0E1A2B', background: GOLD, padding: '5px 12px', borderRadius: 8,
+          }}>
             {badge}
           </span>
         )}
