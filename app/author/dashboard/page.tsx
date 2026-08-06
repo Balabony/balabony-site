@@ -56,7 +56,7 @@ const STATUS_LABEL: Record<string, string> = {
   draft: 'Чернетка',
   humanizing: 'Обробка',
   human_review: 'Перевірка',
-  approved: 'Схвалено',
+  approved: 'Опубліковано',
   review: 'На редактурі',
   published: 'Опубліковано',
 }
@@ -270,7 +270,11 @@ export default async function AuthorDashboardPage() {
 
   const totalViews = stories.reduce((s, x) => s + (x.views_count || 0), 0)
   const totalReads = stories.reduce((s, x) => s + (x.reads_total || 0), 0)
-  const published = stories.filter(s => s.status === 'published').length
+  // На сайті твір видно за статусом approved або published — публічні сторінки
+  // беруть обидва (.in('status', ['approved','published'])). Рахуємо так само,
+  // інакше автор бачить нуль при живому архіві.
+  const LIVE = ['approved', 'published']
+  const published = stories.filter(s => LIVE.includes(s.status)).length
 
   const card: React.CSSProperties = {
     background: BRAND.cream, borderRadius: 14, padding: '1.25rem 1.5rem',

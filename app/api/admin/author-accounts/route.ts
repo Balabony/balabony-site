@@ -88,7 +88,7 @@ export async function GET(req: NextRequest) {
       const r = await dbQuery(
         `select author_id::text as id,
                 count(*)::int as total,
-                count(*) filter (where status = 'published')::int as published
+                count(*) filter (where status in ('approved','published'))::int as published
            from content
           where author_id = any($1::uuid[])
           group by author_id`,
