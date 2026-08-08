@@ -74,11 +74,12 @@ export async function POST(req: NextRequest) {
       const source = Buffer.from(await blob.arrayBuffer())
       let output: Buffer
       try {
-        // Квадрат: портрет показується в круглій рамці, і прямокутне фото
-        // там обрізалося б випадковим чином.
+        // Квадрат по центру. Спершу тут стояв зріз по верхньому краю —
+        // на портретах великим планом це давало порожнечу над головою,
+        // бо обличчя й так уже займало кадр.
         output = await sharp(source)
           .rotate()
-          .resize(AVATAR_SIDE, AVATAR_SIDE, { fit: 'cover', position: 'top' })
+          .resize(AVATAR_SIDE, AVATAR_SIDE, { fit: 'cover', position: 'attention' })
           .jpeg({ quality: 88 })
           .toBuffer()
       } catch {
