@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 /**
  * Фото і біографія автора — блок у кабінеті.
@@ -11,6 +11,10 @@ import { useRef, useState } from 'react'
  *
  * Фото показується одразу і одразу стає публічним — модерації немає
  * свідомо, бо черга перевірки повернула б ту саму ручну роботу.
+ *
+ * Повзунок «Положення кадру» зʼявився тому, що автоматична обрізка по
+ * обличчю на портретах у пів зросту садила голову надто низько, а
+ * виправити це в кабінеті було нічим.
  */
 
 const BRAND = {
@@ -27,10 +31,14 @@ const MAX_BIO = 1200
 export default function AuthorProfileEditor({
   initialAvatar,
   initialBio,
+  initialPosition,
+  hasSource,
   displayName,
 }: {
   initialAvatar?: string | null
   initialBio?: string | null
+  initialPosition?: number | null
+  hasSource?: boolean
   displayName: string
 }) {
   const [avatar, setAvatar] = useState<string | null>(initialAvatar ?? null)
@@ -39,7 +47,26 @@ export default function AuthorProfileEditor({
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
+  const [position, setPosition] = useState<number>(initialPosition ?? 50)
+  const [preview, setPreview] = useState<string | null>(null)
+  const [source, setSource] = useState<boolean>(Boolean(hasSource))
   const inputRef = useRef<HTMLInputElement | null>(null)
+
+  // Прев'ю живе рівно стільки, скільки вибраний файл: інакше блоб висить
+  // у памʼяті до перезавантаження сторінки.
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview)
+    }
+  }, [preview])
+
+  const onPick = () => {
+    const file = inputRef.current?.files?.[0]
+    if (preview) URL.revokeObjectURL(preview)
+    setPreview(file ? URL.createObjectURL(file) : null)
+    setMsg(null)
+    setErr(null)
+  }
 
   const initials = displayName
     .split(/\s+/)
@@ -48,6 +75,12 @@ export default function AuthorProfileEditor({
     .map((w) => w[0])
     .join('')
     .toUpperCase()
+
+  // У прев'ю показуємо необрізаний файл із тим самим object-position, який
+  // піде на сервер. Уже збережений аватар — квадрат, його зсувати нічим,
+  // тому для нього прев'ю не рухається.
+  const shown = preview ?? avatar
+  const movable = Boolean(preview) || source
 
   const save = async () => {
     const file = inputRef.current?.files?.[0]
@@ -63,17 +96,29 @@ export default function AuthorProfileEditor({
     try {
       const fd = new FormData()
       fd.append('bio', bio)
+      fd.append('avatar_position', String(position))
       if (file) {
         fd.append('file', file)
         fd.append('photo_consent', 'yes')
       }
 
       const res = await fetch('/api/author/profile', { method: 'POST', body: fd })
-      const d = (await res.json()) as { ok?: boolean; avatar_url?: string | null; error?: string }
+      const d = (await res.json()) as {
+        ok?: boolean
+        avatar_url?: string | null
+        avatar_position?: number | null
+        error?: string
+      }
 
       if (d?.ok) {
-        if (d.avatar_url) setAvatar(d.avatar_url)
+        if (d.avatar_url) {
+          setAvatar(d.avatar_url)
+          setSource(true)
+        }
+        if (typeof d.avatar_position === 'number') setPosition(d.avatar_position)
         if (inputRef.current) inputRef.current.value = ''
+        if (preview) URL.revokeObjectURL(preview)
+        setPreview(null)
         setConsent(false)
         setMsg('Збережено. Зміни вже на вашій сторінці.')
       } else {
@@ -112,16 +157,17 @@ export default function AuthorProfileEditor({
       </p>
 
       <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        {avatar ? (
+        {shown ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={avatar}
+            src={shown}
             alt=""
             style={{
               width: 84,
               height: 84,
               borderRadius: '50%',
               objectFit: 'cover',
+              objectPosition: preview ? `50% ${position}%` : '50% 50%',
               border: `2px solid ${BRAND.amber}66`,
               flexShrink: 0,
             }}
@@ -153,6 +199,7 @@ export default function AuthorProfileEditor({
             ref={inputRef}
             type="file"
             accept="image/jpeg,image/png,image/webp"
+            onChange={onPick}
             style={{ color: BRAND.text, fontSize: '0.85rem', maxWidth: '100%' }}
           />
 
@@ -181,6 +228,44 @@ export default function AuthorProfileEditor({
           </label>
         </div>
       </div>
+
+      {/* Положення кадру. Показуємо тільки коли є що рухати: або вибрано новий
+          файл, або в базі лежить оригінал попереднього. */}
+      {movable && (
+        <div style={{ marginTop: 16 }}>
+          <label
+            style={{
+              display: 'block',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              color: BRAND.muted,
+              marginBottom: 7,
+              textTransform: 'uppercase',
+              letterSpacing: '0.4px',
+            }}
+          >
+            Положення кадру
+          </label>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.78rem', color: BRAND.muted }}>вище</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={5}
+              value={position}
+              onChange={(e) => setPosition(Number(e.target.value))}
+              style={{ flex: '1 1 200px', accentColor: BRAND.amber, maxWidth: 320 }}
+            />
+            <span style={{ fontSize: '0.78rem', color: BRAND.muted }}>нижче</span>
+          </div>
+          <p style={{ fontSize: '0.78rem', color: BRAND.muted, margin: '8px 0 0', lineHeight: 1.55 }}>
+            {preview
+              ? 'Кружечок ліворуч показує, як обріжеться. Посуньте й натисніть «Зберегти».'
+              : 'Посуньте й натисніть «Зберегти» — фото обріжеться наново з оригіналу.'}
+          </p>
+        </div>
+      )}
 
       <div style={{ marginTop: 18 }}>
         <label

@@ -31,6 +31,8 @@ type AuthorProfile = {
   pen_name?: string | null
   bio?: string | null
   avatar_url?: string | null
+  avatar_position?: number | null
+  avatar_source_url?: string | null
   postal_code?: string | null
   np_branch?: string | null
   requisites_updated_at?: string | null
@@ -330,6 +332,8 @@ export default async function AuthorDashboardPage() {
         <AuthorProfileEditor
           initialAvatar={profile.avatar_url ?? null}
           initialBio={profile.bio ?? null}
+          initialPosition={profile.avatar_position ?? null}
+          hasSource={Boolean(profile.avatar_source_url)}
           displayName={profile.pen_name?.trim() || profile.display_name || 'Автор'}
         />
 
