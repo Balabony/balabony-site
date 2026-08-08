@@ -44,6 +44,8 @@ interface StoryRow {
   humanized_text: string | null
   published_version: string | null
   cover_url: string | null
+  cover_position: string | null
+  episode_number: number | null
   is_adult: boolean | null
   approved_at: string
 }
@@ -119,10 +121,11 @@ async function getWorks(userId: string): Promise<{ groups: WorkGroup[]; total: n
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('id, slug, type, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, is_adult, approved_at')
+    .select('id, slug, type, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, cover_position, is_adult, approved_at, episode_number')
     .eq('author_id', userId)
     .in('status', ['approved', 'published'])
     .order('approved_at', { ascending: false })
+    .order('episode_number', { ascending: true, nullsFirst: false })
 
   if (error || !data) return { groups: [], total: 0, ids: [] }
 
@@ -137,6 +140,9 @@ async function getWorks(userId: string): Promise<{ groups: WorkGroup[]; total: n
       title: s.title,
       author: s.author_name,
       coverUrl: s.cover_url ?? '/og-image.jpg',
+      // Кадр, налаштований в /admin/cover-position. Без нього сітка
+      // ставить center і зрізає голови на портретних обкладинках.
+      coverPosition: s.cover_position ?? undefined,
       tags: [],
       hasAudio: false,
       teaser: toExcerpt(pickPublishedText(s), 200),
@@ -145,6 +151,19 @@ async function getWorks(userId: string): Promise<{ groups: WorkGroup[]; total: n
       isAdult: s.type === 'tysha' ? true : (s.is_adult ?? false),
     })
     byType.set(key, list)
+  }
+
+  // Серіали — за номером серії від першої; окремі історії лишаються
+  // за датою, там нумерації немає.
+  const orderByEpisode = (key: string) => key === 'balabony' || key === 'tysha'
+  const episodeOf = new Map<string, number>()
+  for (const r of rows) {
+    if (r.episode_number != null) episodeOf.set(r.slug, r.episode_number)
+  }
+
+  for (const [key, list] of byType.entries()) {
+    if (!orderByEpisode(key)) continue
+    list.sort((a, b) => (episodeOf.get(a.id) ?? 1e9) - (episodeOf.get(b.id) ?? 1e9))
   }
 
   const groups: WorkGroup[] = Array.from(byType.entries())
@@ -320,7 +339,7 @@ export default async function AuthorPage({
                     {g.note} · {pluralWorks(g.stories.length)}
                   </p>
                 )}
-                <FreshStoriesGrid stories={g.stories} />
+                <FreshStoriesGrid stories={g.stories} showHeading={false} />
               </section>
             ))}
           </div>

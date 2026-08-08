@@ -107,8 +107,20 @@ export interface Story {
   isAdult?: boolean
 }
 
+/**
+ * Кадр за замовчуванням зміщений угору, а не по центру.
+ *
+ * З 1235 обкладинок кадр налаштовано вручну лише в 39 — решті дістається
+ * дефолт. На портретних фото обличчя майже завжди у верхній третині, і
+ * центрування рівно по середині зрізає голови. 30% ставить обличчя в кадр
+ * без ручної роботи; хто налаштований в /admin/cover-position — не зачеплений.
+ */
+const DEFAULT_POSITION = '50% 30%'
+
 function getCoverStyle(coverPosition: string | undefined): React.CSSProperties {
-  if (!coverPosition || coverPosition === 'center') return { objectPosition: 'center' }
+  if (!coverPosition || coverPosition === 'center') {
+    return { objectPosition: DEFAULT_POSITION }
+  }
 
   const transformM = coverPosition.match(/scale:(-?\d+)\s+x:(-?\d+)\s+y:(-?\d+)/)
   if (transformM) {
@@ -129,7 +141,7 @@ function getCoverStyle(coverPosition: string | undefined): React.CSSProperties {
     return { objectPosition: coverPosition }
   }
 
-  return { objectPosition: 'center' }
+  return { objectPosition: DEFAULT_POSITION }
 }
 
 /**
@@ -150,7 +162,15 @@ function cleanTeaser(text: string): string {
   return words.join(' ')
 }
 
-export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
+export default function FreshStoriesGrid({
+  stories,
+  showHeading = true,
+}: {
+  stories: Story[]
+  /** На сторінці автора заголовок уже стоїть вище — другий «Свіжі історії»
+   *  всередині секції «Тиша» читається як помилка вёрстки. */
+  showHeading?: boolean
+}) {
   const { colors } = useTheme()
 
   return (
@@ -159,10 +179,12 @@ export default function FreshStoriesGrid({ stories }: { stories: Story[] }) {
 
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
-        <div style={{ marginBottom: 26 }}>
-          <div className="fs-kicker" style={{ color: colors.fg }}>Нові надходження</div>
-          <div style={{ fontSize: 19, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.2 }}>Свіжі історії</div>
-        </div>
+        {showHeading && (
+          <div style={{ marginBottom: 26 }}>
+            <div className="fs-kicker" style={{ color: colors.fg }}>Нові надходження</div>
+            <div style={{ fontSize: 19, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.2 }}>Свіжі історії</div>
+          </div>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(275px, 100%), 1fr))', gap: 20, alignItems: 'stretch' }}>
           {stories.map(story => (
