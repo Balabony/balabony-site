@@ -46,9 +46,24 @@ interface ProfileRow {
   display_name: string | null
   pen_name: string | null
   bio: string | null
+  hide_from_directory: boolean | null
+}
+
+interface BoardRow {
+  author_id: string
+  reads_completed: number
+  reads_total: number
+  avg_percentage: number
+}
+
+interface BoardEntry {
+  slug: string
+  name: string
+  value: string
 }
 
 interface AuthorCard {
+  userId: string
   slug: string
   name: string
   bio: string
@@ -132,12 +147,58 @@ async function allLikes(): Promise<Map<string, number>> {
   return counts
 }
 
+/**
+ * Дошки за останні 30 днів.
+ *
+ * Рахуємо дочитування, а не лайки: лайк анонімний і накручується очищенням
+ * браузера, а прочитання пишеться лише авторизованому читачеві й лише після
+ * 70% тексту. Публічний рейтинг на лайках посварив би авторів між собою.
+ *
+ * Період, а не весь час: інакше автор зі ста архівними текстами був би
+ * першим назавжди, і рейтинг перестав би щось означати для решти.
+ */
+async function getBoards(
+  nameById: Map<string, { slug: string; name: string }>,
+): Promise<{ mostRead: BoardEntry[]; bestDepth: BoardEntry[] }> {
+  const supabase = getSupabaseAdmin()
+
+  const { data, error } = await supabase
+    .from('author_month_stats')
+    .select('author_id, reads_completed, reads_total, avg_percentage')
+
+  if (error || !data) return { mostRead: [], bestDepth: [] }
+
+  const rows = (data as BoardRow[]).filter((r) => nameById.has(r.author_id))
+
+  const mostRead = rows
+    .filter((r) => r.reads_completed > 0)
+    .sort((a, b) => b.reads_completed - a.reads_completed)
+    .slice(0, 10)
+    .map((r) => {
+      const p = nameById.get(r.author_id)!
+      return { slug: p.slug, name: p.name, value: `${r.reads_completed}` }
+    })
+
+  // Поріг обовʼязковий: без нього перемагає той, чию єдину історію
+  // дочитали двічі зі ста відсотками, і дошка стає посміховиськом.
+  const bestDepth = rows
+    .filter((r) => r.reads_total >= 30)
+    .sort((a, b) => b.avg_percentage - a.avg_percentage)
+    .slice(0, 5)
+    .map((r) => {
+      const p = nameById.get(r.author_id)!
+      return { slug: p.slug, name: p.name, value: `${r.avg_percentage}%` }
+    })
+
+  return { mostRead, bestDepth }
+}
+
 async function getAuthors(): Promise<AuthorCard[]> {
   const supabase = getSupabaseAdmin()
 
   const { data: profileData, error } = await supabase
     .from('author_profiles')
-    .select('user_id, display_name, pen_name, bio')
+    .select('user_id, display_name, pen_name, bio, hide_from_directory')
     .eq('is_active', true)
 
   if (error || !profileData) return []
@@ -156,6 +217,11 @@ async function getAuthors(): Promise<AuthorCard[]> {
   const cards: AuthorCard[] = []
 
   for (const p of profiles) {
+    // Прапорець у базі, а не список імен у коді: сховати треба не лише
+    // засновника — редакційні акаунти й автори, які просили не показувати
+    // їх публічно, керуються тим самим перемикачем.
+    if (p.hide_from_directory) continue
+
     const name = displayName(p)
     if (!name) continue
 
@@ -164,6 +230,7 @@ async function getAuthors(): Promise<AuthorCard[]> {
     if (ids.length === 0) continue
 
     cards.push({
+      userId: p.user_id,
       slug: authorSlug(name),
       name,
       bio: shortBio(p.bio),
@@ -176,8 +243,109 @@ async function getAuthors(): Promise<AuthorCard[]> {
   return cards
 }
 
+/** Одна дошка: нумерований список із посиланнями на авторів. */
+function Board({
+  title,
+  note,
+  unit,
+  entries,
+}: {
+  title: string
+  note: string
+  unit: string
+  entries: BoardEntry[]
+}) {
+  if (entries.length === 0) return null
+
+  return (
+    <div
+      style={{
+        flex: '1 1 300px',
+        padding: '18px 20px',
+        background: '#0f1e3a',
+        border: '1px solid rgba(239,159,39,0.3)',
+        borderRadius: 14,
+      }}
+    >
+      <h2
+        style={{
+          fontFamily: FONT,
+          fontSize: 15,
+          fontWeight: 700,
+          color: GOLD,
+          margin: '0 0 4px',
+          letterSpacing: 0.3,
+        }}
+      >
+        {title}
+      </h2>
+      <p style={{ fontFamily: FONT, fontSize: 12, color: '#94a3b8', margin: '0 0 14px' }}>
+        {note}
+      </p>
+
+      <ol style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        {entries.map((e, i) => (
+          <li
+            key={e.slug}
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: 10,
+              padding: '7px 0',
+              borderTop: i === 0 ? 'none' : '1px solid rgba(143,163,196,0.14)',
+            }}
+          >
+            <span
+              style={{
+                flexShrink: 0,
+                width: 20,
+                fontFamily: FONT,
+                fontSize: 13,
+                fontWeight: 700,
+                color: i < 3 ? GOLD : '#64748b',
+              }}
+            >
+              {i + 1}
+            </span>
+            <a
+              href={`/avtor/${e.slug}`}
+              style={{
+                flex: 1,
+                fontFamily: FONT,
+                fontSize: 14,
+                fontWeight: 600,
+                color: '#f5f0e8',
+                textDecoration: 'none',
+                minWidth: 0,
+              }}
+            >
+              {e.name}
+            </a>
+            <span
+              style={{
+                flexShrink: 0,
+                fontFamily: FONT,
+                fontSize: 13,
+                fontWeight: 700,
+                color: GOLD,
+              }}
+            >
+              {e.value}
+              <span style={{ color: '#94a3b8', fontWeight: 500 }}> {unit}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  )
+}
+
 export default async function AuthorsPage() {
   const authors = await getAuthors()
+
+  const nameById = new Map<string, { slug: string; name: string }>()
+  for (const a of authors) nameById.set(a.userId, { slug: a.slug, name: a.name })
+  const boards = await getBoards(nameById)
 
   return (
     <ThemeProvider>
@@ -210,6 +378,23 @@ export default async function AuthorsPage() {
             власна сторінка з добіркою творів.
           </p>
         </header>
+
+        {(boards.mostRead.length > 0 || boards.bestDepth.length > 0) && (
+          <section style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: 34 }}>
+            <Board
+              title="Найчитаніші за місяць"
+              note="Скільки історій дочитали до кінця за останні 30 днів"
+              unit="дочитувань"
+              entries={boards.mostRead}
+            />
+            <Board
+              title="Найкраще дочитують"
+              note="Середня глибина читання, від 30 прочитань за місяць"
+              unit=""
+              entries={boards.bestDepth}
+            />
+          </section>
+        )}
 
         {authors.length === 0 ? (
           <p style={{ fontFamily: FONT, color: '#94a3b8', fontSize: 16 }}>

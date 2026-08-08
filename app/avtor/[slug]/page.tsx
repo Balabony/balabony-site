@@ -95,7 +95,27 @@ async function getLikesTotal(contentIds: string[]): Promise<number> {
   return count ?? 0
 }
 
-async function getWorks(userId: string): Promise<{ stories: Story[]; ids: string[] }> {
+/**
+ * Твори автора, розкладені по типах.
+ *
+ * Одна спільна сітка тут не працює: у Назара Колодія «Балабони» — теплий
+ * сільський гумор, а «Тиша» — військова драма 18+. Поруч у одному ряду вони
+ * читаються як помилка, і читач, що прийшов за одним, натрапляє на інше.
+ */
+interface WorkGroup {
+  key: string
+  label: string
+  note: string
+  stories: Story[]
+}
+
+const GROUP_META: Record<string, { label: string; note: string; order: number }> = {
+  balabony: { label: 'Серіал «Балабони»', note: 'Сільські історії з гумором', order: 1 },
+  story:    { label: 'Історії',           note: '',                          order: 2 },
+  tysha:    { label: 'Серіал «Тиша» 18+', note: 'Військова драма для дорослих', order: 3 },
+}
+
+async function getWorks(userId: string): Promise<{ groups: WorkGroup[]; total: number; ids: string[] }> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
@@ -104,23 +124,39 @@ async function getWorks(userId: string): Promise<{ stories: Story[]; ids: string
     .in('status', ['approved', 'published'])
     .order('approved_at', { ascending: false })
 
-  if (error || !data) return { stories: [], ids: [] }
+  if (error || !data) return { groups: [], total: 0, ids: [] }
 
   const rows = data as StoryRow[]
-  const stories = rows.map((s) => ({
-    id: s.slug,
-    title: s.title,
-    author: s.author_name,
-    coverUrl: s.cover_url ?? '/og-image.jpg',
-    tags: [],
-    hasAudio: false,
-    teaser: toExcerpt(pickPublishedText(s), 200),
-    url: workUrl(s.type, s.slug),
-    genre: s.genre ?? undefined,
-    isAdult: s.type === 'tysha' ? true : (s.is_adult ?? false),
-  }))
+  const byType = new Map<string, Story[]>()
 
-  return { stories, ids: rows.map((s) => s.id) }
+  for (const s of rows) {
+    const key = s.type === 'balabony' || s.type === 'tysha' ? s.type : 'story'
+    const list = byType.get(key) ?? []
+    list.push({
+      id: s.slug,
+      title: s.title,
+      author: s.author_name,
+      coverUrl: s.cover_url ?? '/og-image.jpg',
+      tags: [],
+      hasAudio: false,
+      teaser: toExcerpt(pickPublishedText(s), 200),
+      url: workUrl(s.type, s.slug),
+      genre: s.genre ?? undefined,
+      isAdult: s.type === 'tysha' ? true : (s.is_adult ?? false),
+    })
+    byType.set(key, list)
+  }
+
+  const groups: WorkGroup[] = Array.from(byType.entries())
+    .map(([key, stories]) => ({
+      key,
+      label: GROUP_META[key]?.label ?? 'Історії',
+      note: GROUP_META[key]?.note ?? '',
+      stories,
+    }))
+    .sort((a, b) => (GROUP_META[a.key]?.order ?? 9) - (GROUP_META[b.key]?.order ?? 9))
+
+  return { groups, total: rows.length, ids: rows.map((s) => s.id) }
 }
 
 /** «7 вподобань», «2 вподобання», «1 вподобання» */
@@ -186,7 +222,7 @@ export default async function AuthorPage({
   if (!profile) notFound()
 
   const name = displayName(profile)
-  const { stories: works, ids } = await getWorks(profile.user_id)
+  const { groups, total, ids } = await getWorks(profile.user_id)
   const likesTotal = await getLikesTotal(ids)
 
   return (
@@ -215,7 +251,7 @@ export default async function AuthorPage({
               margin: 0,
             }}
           >
-            {works.length > 0 ? pluralWorks(works.length) + ' на Балабонах' : 'Автор Балабонів'}
+            {total > 0 ? pluralWorks(total) + ' на Балабонах' : 'Автор Балабонів'}
             {likesTotal > 0 && (
               <>
                 {' · '}
@@ -248,7 +284,7 @@ export default async function AuthorPage({
           </div>
         </header>
 
-        {works.length === 0 ? (
+        {total === 0 ? (
           <p
             style={{
               fontFamily: "'Montserrat', sans-serif",
@@ -259,7 +295,35 @@ export default async function AuthorPage({
             Історії цього автора скоро зʼявляться.
           </p>
         ) : (
-          <FreshStoriesGrid stories={works} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+            {groups.map((g) => (
+              <section key={g.key}>
+                <h2
+                  style={{
+                    fontFamily: '"Comfortaa", sans-serif',
+                    fontSize: 22,
+                    color: 'var(--accent-gold)',
+                    margin: '0 0 4px',
+                  }}
+                >
+                  {g.label}
+                </h2>
+                {g.note && (
+                  <p
+                    style={{
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontSize: 13,
+                      color: '#94a3b8',
+                      margin: '0 0 16px',
+                    }}
+                  >
+                    {g.note} · {pluralWorks(g.stories.length)}
+                  </p>
+                )}
+                <FreshStoriesGrid stories={g.stories} />
+              </section>
+            ))}
+          </div>
         )}
       </main>
       <Footer />

@@ -9,6 +9,7 @@ import AuthorMessageForm from '@/app/components/AuthorMessageForm'
 import ContestCountdown from '@/app/components/ContestCountdown'
 import AuthorCoverUpload from '@/app/components/AuthorCoverUpload'
 import { dbQuery } from '@/lib/db'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -220,6 +221,23 @@ export default async function AuthorDashboardPage() {
 
   const coverById = new Map<string, string | null>()
   for (const c of coverRows ?? []) coverById.set(c.id, c.cover_url)
+
+  // Місце автора за останні 30 днів. Показуємо лише йому: публічно
+  // висить тільки топ, бо побачити себе останнім — привід піти, а не
+  // писати краще.
+  const admin = getSupabaseAdmin()
+  const { data: monthRows } = await admin
+    .from('author_month_stats')
+    .select('author_id, reads_completed, reads_total, avg_percentage') as {
+      data: { author_id: string; reads_completed: number; reads_total: number; avg_percentage: number }[] | null
+    }
+
+  const ranked = (monthRows ?? [])
+    .filter((r) => r.reads_completed > 0)
+    .sort((a, b) => b.reads_completed - a.reads_completed)
+
+  const myIndex = ranked.findIndex((r) => r.author_id === user.id)
+  const mine = myIndex >= 0 ? ranked[myIndex] : null
 
   // Баланс
   const { data: bal } = await supabase
@@ -510,6 +528,40 @@ export default async function AuthorDashboardPage() {
             </div>
           )}
         </div>
+
+        {mine && (
+          <div style={{
+            background: BRAND.cream,
+            border: `1px solid ${BRAND.line}`,
+            borderRadius: 14,
+            padding: '1.1rem 1.5rem',
+            marginBottom: '1.5rem',
+          }}>
+            <div style={{
+              fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.4px',
+              textTransform: 'uppercase', color: BRAND.muted, marginBottom: 8,
+            }}>
+              Ваші показники за 30 днів
+            </div>
+
+            <div style={{ display: 'flex', gap: '1.6rem', flexWrap: 'wrap', alignItems: 'baseline' }}>
+              <span style={{ color: BRAND.text, fontSize: '0.95rem' }}>
+                Дочитувань: <strong style={{ color: BRAND.ink }}>{mine.reads_completed}</strong>
+              </span>
+              <span style={{ color: BRAND.text, fontSize: '0.95rem' }}>
+                Глибина читання: <strong style={{ color: BRAND.ink }}>{mine.avg_percentage}%</strong>
+              </span>
+              <span style={{ color: BRAND.amber, fontSize: '0.95rem', fontWeight: 700 }}>
+                {myIndex + 1} місце з {ranked.length}
+              </span>
+            </div>
+
+            <p style={{ color: BRAND.muted, fontSize: '0.82rem', lineHeight: 1.6, margin: '10px 0 0' }}>
+              Рахуються прочитання, доведені щонайменше до 70% тексту. Публічно на
+              сторінці авторів видно лише перші місця — ваше місце бачите тільки ви.
+            </p>
+          </div>
+        )}
 
         <ContestCountdown />
 
