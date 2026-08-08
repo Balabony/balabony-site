@@ -13,6 +13,9 @@ import { useEffect, useState } from 'react'
  */
 
 const GOLD = '#ef9f27'
+// Той самий червоний, що вже стоїть на бейджі 18+ — щоб на сайті не
+// з'явився ще один випадковий відтінок.
+const RED = '#e0484d'
 const FONT = "'Montserrat', Arial, sans-serif"
 const VISITOR_KEY = 'bb_visitor'
 
@@ -126,9 +129,9 @@ export default function LikeButton({ contentId }: { contentId?: string | null })
           fontFamily: FONT,
           fontSize: 15,
           fontWeight: 700,
-          color: liked ? '#0a1628' : GOLD,
-          background: liked ? GOLD : 'rgba(239,159,39,0.12)',
-          border: `1px solid ${liked ? GOLD : 'rgba(239,159,39,0.45)'}`,
+          color: liked ? '#ffe3e4' : GOLD,
+          background: liked ? 'rgba(224,72,77,0.16)' : 'rgba(239,159,39,0.12)',
+          border: `1px solid ${liked ? RED : 'rgba(239,159,39,0.45)'}`,
           borderRadius: 12,
           padding: '10px 20px',
           cursor: busy ? 'default' : 'pointer',
@@ -137,7 +140,17 @@ export default function LikeButton({ contentId }: { contentId?: string | null })
           minHeight: 44,
         }}
       >
-        <span aria-hidden style={{ fontSize: 17, lineHeight: 1 }}>{liked ? '♥' : '♡'}</span>
+        <span
+          aria-hidden
+          style={{
+            fontSize: 18,
+            lineHeight: 1,
+            color: liked ? RED : GOLD,
+            transition: 'color 0.18s ease',
+          }}
+        >
+          {liked ? '♥' : '♡'}
+        </span>
         <span>{liked ? 'Подобається' : 'Подобається'}</span>
       </button>
 

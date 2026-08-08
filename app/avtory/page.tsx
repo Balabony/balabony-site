@@ -16,6 +16,10 @@ import { authorSlug } from '@/lib/author-slug'
  * без творів — це порожня сторінка, на яку не варто вести читача, і
  * заразом це страхує від публікації тих, чиї тексти ще не пройшли
  * перевірку згоди: немає опублікованого твору — немає й картки.
+ *
+ * Рахуємо всі типи, а не лише окремі історії: автор серіалу — теж автор,
+ * і з фільтром по type='story' він просто зникав зі списку власної
+ * платформи.
  */
 
 export const revalidate = 300
@@ -93,7 +97,6 @@ async function allWorks(): Promise<{ id: string; author_id: string }[]> {
     const { data, error } = await supabase
       .from('content')
       .select('id, author_id')
-      .eq('type', 'story')
       .in('status', ['approved', 'published'])
       .not('author_id', 'is', null)
       .range(from, from + step - 1)

@@ -35,6 +35,7 @@ interface ProfileRow {
 interface StoryRow {
   id: string
   slug: string
+  type: string | null
   title: string
   author_name: string
   genre: string | null
@@ -65,6 +66,19 @@ async function getProfile(slug: string): Promise<ProfileRow | null> {
 }
 
 /**
+ * Куди веде картка твору.
+ *
+ * Серіали живуть на власних маршрутах, і якщо всі посилання гнати на
+ * /stories, читач отримає 404 рівно на тому кліку, заради якого автор
+ * і поширював сторінку.
+ */
+function workUrl(type: string | null, slug: string): string {
+  if (type === 'balabony') return `/episodes/${slug}`
+  if (type === 'tysha') return `/tysha/${slug}`
+  return `/stories/${slug}`
+}
+
+/**
  * Сумарні вподобання всіх творів автора.
  *
  * Рахуємо на боці бази (head: true). Тягнути рядки і рахувати їх у коді
@@ -85,8 +99,7 @@ async function getWorks(userId: string): Promise<{ stories: Story[]; ids: string
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('id, slug, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, is_adult, approved_at')
-    .eq('type', 'story')
+    .select('id, slug, type, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, is_adult, approved_at')
     .eq('author_id', userId)
     .in('status', ['approved', 'published'])
     .order('approved_at', { ascending: false })
@@ -102,9 +115,9 @@ async function getWorks(userId: string): Promise<{ stories: Story[]; ids: string
     tags: [],
     hasAudio: false,
     teaser: toExcerpt(pickPublishedText(s), 200),
-    url: `/stories/${s.slug}`,
+    url: workUrl(s.type, s.slug),
     genre: s.genre ?? undefined,
-    isAdult: s.is_adult ?? false,
+    isAdult: s.type === 'tysha' ? true : (s.is_adult ?? false),
   }))
 
   return { stories, ids: rows.map((s) => s.id) }
