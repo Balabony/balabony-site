@@ -7,6 +7,7 @@ import AuthorSurvey, { type Feedback } from '@/app/components/AuthorSurvey'
 import AuthorNewsletter from '@/app/components/AuthorNewsletter'
 import AuthorMessageForm from '@/app/components/AuthorMessageForm'
 import ContestCountdown from '@/app/components/ContestCountdown'
+import AuthorCoverUpload from '@/app/components/AuthorCoverUpload'
 import { dbQuery } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
@@ -209,6 +210,16 @@ export default async function AuthorDashboardPage() {
 
   const stories = stats || []
   const groups = groupStories(stories)
+
+  // Обкладинки тягнемо окремо: view author_story_stats зібрана під
+  // статистику і колонки cover_url не має.
+  const { data: coverRows } = await supabase
+    .from('content')
+    .select('id, cover_url')
+    .eq('author_id', user.id) as { data: { id: string; cover_url: string | null }[] | null }
+
+  const coverById = new Map<string, string | null>()
+  for (const c of coverRows ?? []) coverById.set(c.id, c.cover_url)
 
   // Баланс
   const { data: bal } = await supabase
@@ -477,6 +488,11 @@ export default async function AuthorDashboardPage() {
                     <span>Прочитань: <strong style={{ color: BRAND.ink }}>{s.reads_total}</strong></span>
                     <span>Дочитування: <strong style={{ color: BRAND.ink }}>{s.avg_read_percentage}%</strong></span>
                   </div>
+                  <AuthorCoverUpload
+                    contentId={s.content_id}
+                    initialCover={coverById.get(s.content_id) ?? null}
+                  />
+
                   <a
                     href={`/author/series/${s.content_id}`}
                     style={{
