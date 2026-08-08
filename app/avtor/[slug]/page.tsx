@@ -33,6 +33,7 @@ interface ProfileRow {
 }
 
 interface StoryRow {
+  id: string
   slug: string
   title: string
   author_name: string
@@ -63,19 +64,37 @@ async function getProfile(slug: string): Promise<ProfileRow | null> {
   return match ?? null
 }
 
-async function getWorks(userId: string): Promise<Story[]> {
+/**
+ * Сумарні вподобання всіх творів автора.
+ *
+ * Рахуємо на боці бази (head: true). Тягнути рядки і рахувати їх у коді
+ * не можна: Supabase мовчки віддає максимум 1000 і цифра застрягла б.
+ */
+async function getLikesTotal(contentIds: string[]): Promise<number> {
+  if (contentIds.length === 0) return 0
+  const supabase = getSupabaseAdmin()
+  const { count, error } = await supabase
+    .from('content_likes')
+    .select('*', { count: 'exact', head: true })
+    .in('content_id', contentIds)
+  if (error) return 0
+  return count ?? 0
+}
+
+async function getWorks(userId: string): Promise<{ stories: Story[]; ids: string[] }> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('slug, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, is_adult, approved_at')
+    .select('id, slug, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, is_adult, approved_at')
     .eq('type', 'story')
     .eq('author_id', userId)
     .in('status', ['approved', 'published'])
     .order('approved_at', { ascending: false })
 
-  if (error || !data) return []
+  if (error || !data) return { stories: [], ids: [] }
 
-  return (data as StoryRow[]).map((s) => ({
+  const rows = data as StoryRow[]
+  const stories = rows.map((s) => ({
     id: s.slug,
     title: s.title,
     author: s.author_name,
@@ -87,6 +106,18 @@ async function getWorks(userId: string): Promise<Story[]> {
     genre: s.genre ?? undefined,
     isAdult: s.is_adult ?? false,
   }))
+
+  return { stories, ids: rows.map((s) => s.id) }
+}
+
+/** «7 вподобань», «2 вподобання», «1 вподобання» */
+function pluralLikes(n: number): string {
+  const mod100 = n % 100
+  const mod10 = n % 10
+  if (mod100 >= 11 && mod100 <= 14) return `${n} вподобань`
+  if (mod10 === 1) return `${n} вподобання`
+  if (mod10 >= 2 && mod10 <= 4) return `${n} вподобання`
+  return `${n} вподобань`
 }
 
 function displayName(p: ProfileRow): string {
@@ -142,7 +173,8 @@ export default async function AuthorPage({
   if (!profile) notFound()
 
   const name = displayName(profile)
-  const works = await getWorks(profile.user_id)
+  const { stories: works, ids } = await getWorks(profile.user_id)
+  const likesTotal = await getLikesTotal(ids)
 
   return (
     <ThemeProvider>
@@ -171,6 +203,13 @@ export default async function AuthorPage({
             }}
           >
             {works.length > 0 ? pluralWorks(works.length) + ' на Балабонах' : 'Автор Балабонів'}
+            {likesTotal > 0 && (
+              <>
+                {' · '}
+                <span style={{ color: 'var(--accent-gold)' }} aria-hidden>♥</span>{' '}
+                {pluralLikes(likesTotal)}
+              </>
+            )}
           </p>
 
           {profile.bio?.trim() && (

@@ -360,6 +360,11 @@ export default function Footer() {
               </a>
             </li>
             <li style={{ marginBottom: 4 }}>
+              <a href="/avtory" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+                Автори Балабонів
+              </a>
+            </li>
+            <li style={{ marginBottom: 4 }}>
               <a href="/sitemap" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
                 Навігація сайту
               </a>
