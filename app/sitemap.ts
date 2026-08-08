@@ -1,45 +1,59 @@
 import type { MetadataRoute } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { authorSlug } from '@/lib/author-slug'
 
 const BASE_URL = 'https://balabony.com'
 
 /**
- * Р В Р’В¤Р В Р’В°Р В РІвЂћвЂ“Р В Р’В» /sitemap.xml Р Р†Р вЂљРІР‚Сњ Р В РЎвЂќР В Р’В°Р РЋР вЂљР РЋРІР‚С™Р В Р’В° Р РЋР С“Р В Р’В°Р В РІвЂћвЂ“Р РЋРІР‚С™Р РЋРЎвЂњ Р В РўвЂР В Р’В»Р РЋР РЏ Р В РЎвЂ”Р В РЎвЂўР РЋРІвЂљВ¬Р РЋРЎвЂњР В РЎвЂќР В РЎвЂўР В Р вЂ Р В РЎвЂР В РЎвЂќР РЋРІР‚вЂњР В Р вЂ .
- * Next.js App Router Р В РЎвЂ“Р В Р’ВµР В Р вЂ¦Р В Р’ВµР РЋР вЂљР РЋРЎвЂњР РЋРІР‚Сњ Р В РІвЂћвЂ“Р В РЎвЂўР В РЎвЂ“Р В РЎвЂў Р В Р’В· Р РЋРІР‚В Р РЋР Р‰Р В РЎвЂўР В РЎвЂ“Р В РЎвЂў Р В РЎВР В РЎвЂўР В РўвЂР РЋРЎвЂњР В Р’В»Р РЋР РЏ Р В Р’В°Р В Р вЂ Р РЋРІР‚С™Р В РЎвЂўР В РЎВР В Р’В°Р РЋРІР‚С™Р В РЎвЂР РЋРІР‚РЋР В Р вЂ¦Р В РЎвЂў.
+ * Файл /sitemap.xml — карта сайту для пошукових систем.
+ * Next.js App Router генерує його з цього модуля автоматично.
  *
- * Р В РІР‚в„ўР В РЎвЂќР В Р’В»Р РЋР вЂ№Р РЋРІР‚РЋР В Р’В°Р РЋРІР‚Сњ:
- *  - Р РЋР С“Р РЋРІР‚С™Р В Р’В°Р РЋРІР‚С™Р В РЎвЂР РЋРІР‚РЋР В Р вЂ¦Р РЋРІР‚вЂњ Р РЋР С“Р РЋРІР‚С™Р В РЎвЂўР РЋР вЂљР РЋРІР‚вЂњР В Р вЂ¦Р В РЎвЂќР В РЎвЂ (Р РЋРІР‚С›Р РЋРІР‚вЂњР В РЎвЂќР РЋР С“Р В РЎвЂўР В Р вЂ Р В Р’В°Р В Р вЂ¦Р В РЎвЂР В РІвЂћвЂ“ Р РЋР С“Р В РЎвЂ”Р В РЎвЂР РЋР С“Р В РЎвЂўР В РЎвЂќ)
- *  - Р РЋРЎвЂњР РЋР С“Р РЋРІР‚вЂњ Р В РЎвЂўР В РЎвЂ”Р РЋРЎвЂњР В Р’В±Р В Р’В»Р РЋРІР‚вЂњР В РЎвЂќР В РЎвЂўР В Р вЂ Р В Р’В°Р В Р вЂ¦Р РЋРІР‚вЂњ Р РЋР С“Р В Р’ВµР РЋР вЂљР РЋРІР‚вЂњР РЋРІР‚вЂќ Р В Р’В· Supabase (type='balabony')
- *  - Р РЋРЎвЂњР РЋР С“Р РЋРІР‚вЂњ Р В РЎвЂўР В РЎвЂ”Р РЋРЎвЂњР В Р’В±Р В Р’В»Р РЋРІР‚вЂњР В РЎвЂќР В РЎвЂўР В Р вЂ Р В Р’В°Р В Р вЂ¦Р РЋРІР‚вЂњ Р РЋРІР‚вЂњР РЋР С“Р РЋРІР‚С™Р В РЎвЂўР РЋР вЂљР РЋРІР‚вЂњР РЋРІР‚вЂќ Р В Р’В· Supabase (type='story')
+ * Включає:
+ *  - статичні сторінки (фіксований список)
+ *  - опубліковані серії «Балабонів» (type='balabony')
+ *  - опубліковані серії «Тиші» (type='tysha')
+ *  - опубліковані історії (решта типів)
+ *  - публічні сторінки авторів /avtor/[slug]
  *
- * Р В РЎв„ўР В РЎвЂўР В Р’В¶Р В Р’ВµР В Р вЂ¦ Р В Р’В·Р В Р’В°Р В РЎвЂ”Р В РЎвЂР РЋР С“ Р В РЎВР В Р’В°Р РЋРІР‚Сњ priority (Р В Р вЂ Р В Р’В°Р В Р’В¶Р В Р’В»Р В РЎвЂР В Р вЂ Р РЋРІР‚вЂњР РЋР С“Р РЋРІР‚С™Р РЋР Р‰ 0-1) Р РЋРІР‚вЂњ changeFrequency (Р РЋРІР‚РЋР В Р’В°Р РЋР С“Р РЋРІР‚С™Р В РЎвЂўР РЋРІР‚С™Р В Р’В° Р В РЎвЂўР В Р вЂ¦Р В РЎвЂўР В Р вЂ Р В Р’В»Р В Р’ВµР В Р вЂ¦Р РЋР Р‰).
+ * Сторінки авторів довго не потрапляли сюди взагалі: це десятки адрес з
+ * унікальним текстом, про які пошуковик не знав. Slug не зберігається в
+ * базі — рахується з імені тією самою функцією, що й на самій сторінці,
+ * інакше в карті були б адреси, яких насправді немає.
+ *
+ * hide_from_directory виключає автора зі списку /avtory, але сама
+ * сторінка лишається робочою за прямим посиланням. У карту таких не
+ * додаємо: якщо автор просив не показувати його публічно, віддавати
+ * адресу пошуковику — те саме показування, тільки іншим шляхом.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
 
-  // 1. Р В Р Р‹Р РЋРІР‚С™Р В Р’В°Р РЋРІР‚С™Р В РЎвЂР РЋРІР‚РЋР В Р вЂ¦Р РЋРІР‚вЂњ Р РЋР С“Р РЋРІР‚С™Р В РЎвЂўР РЋР вЂљР РЋРІР‚вЂњР В Р вЂ¦Р В РЎвЂќР В РЎвЂ
+  // 1. Статичні сторінки
   const staticPages: MetadataRoute.Sitemap = [
     { url: `${BASE_URL}`,                       lastModified: now, changeFrequency: 'daily',   priority: 1.0 },
     { url: `${BASE_URL}/stories`,               lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
     { url: `${BASE_URL}/episodes`,              lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
+    { url: `${BASE_URL}/tysha`,                 lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
+    { url: `${BASE_URL}/fairytales`,            lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
+    { url: `${BASE_URL}/avtory`,                lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
+    { url: `${BASE_URL}/konkursy`,              lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
+    { url: `${BASE_URL}/support`,               lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE_URL}/about`,                 lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/games`,                 lastModified: now, changeFrequency: 'weekly',  priority: 0.7 },
-    { url: `${BASE_URL}/support`,               lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE_URL}/pro-balabony`,          lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE_URL}/vydannya`,              lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE_URL}/holosy`,                lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/become-author`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/accessibility`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/inclusivevoice`,        lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/tysha`,                 lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
-    { url: `${BASE_URL}/fairytales`,            lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
-    { url: `${BASE_URL}/pro-balabony`,          lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE_URL}/konkursy`,              lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
     { url: `${BASE_URL}/free`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/gift`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/demo`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${BASE_URL}/survey`,                lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
-    { url: `${BASE_URL}/contact`,               lastModified: now, changeFrequency: 'yearly',  priority: 0.4 },
     { url: `${BASE_URL}/pravopys`,              lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/pravopys/dity`,         lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${BASE_URL}/demo`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE_URL}/contacts`,              lastModified: now, changeFrequency: 'yearly',  priority: 0.5 },
+    { url: `${BASE_URL}/contact`,               lastModified: now, changeFrequency: 'yearly',  priority: 0.4 },
+    { url: `${BASE_URL}/survey`,                lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${BASE_URL}/sitemap`,               lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${BASE_URL}/legal/terms`,           lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
     { url: `${BASE_URL}/legal/privacy`,         lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
@@ -48,50 +62,118 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/legal/refund`,          lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
     { url: `${BASE_URL}/legal/author-contract`, lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
     { url: `${BASE_URL}/legal/child-safety`,    lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
-    { url: `${BASE_URL}/games/flash`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/attention`,     lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/maze`,          lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/digits`,        lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/fluency`,       lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/rhythm`,        lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/memory-order`,  lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/colors`,        lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/pairs`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/chess`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/checkers`,      lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/domino`,        lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/sudoku`,        lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/narde`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/flash`,           lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/attention`,       lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/maze`,            lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/digits`,          lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/fluency`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/rhythm`,          lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/memory-order`,    lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/colors`,          lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/pairs`,           lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/chess`,           lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/checkers`,        lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/domino`,          lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/sudoku`,          lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/narde`,           lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
   ]
 
-  // 2. Р В РІР‚СњР В РЎвЂР В Р вЂ¦Р В Р’В°Р В РЎВР РЋРІР‚вЂњР РЋРІР‚РЋР В Р вЂ¦Р РЋРІР‚вЂњ: Р РЋР С“Р В Р’ВµР РЋР вЂљР РЋРІР‚вЂњР РЋРІР‚вЂќ Р РЋРІР‚С™Р В Р’В° Р РЋРІР‚вЂњР РЋР С“Р РЋРІР‚С™Р В РЎвЂўР РЋР вЂљР РЋРІР‚вЂњР РЋРІР‚вЂќ Р В Р’В· Supabase
-  let dynamicPages: MetadataRoute.Sitemap = []
+  const supabase = getSupabaseAdmin()
+
+  // 2. Твори: серії «Балабонів», серії «Тиші», історії
+  let workPages: MetadataRoute.Sitemap = []
   try {
-    const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
       .from('content')
       .select('type, slug, approved_at')
       .in('status', ['approved', 'published'])
+      .limit(5000)
+
     if (!error && data) {
-      dynamicPages = data
-        .filter(row => row.slug)
-        .map(row => {
-          const isEpisode = row.type === 'balabony'
-          const path = isEpisode ? `/episodes/${row.slug}` : `/stories/${row.slug}`
-          const lastModified = row.approved_at ? new Date(row.approved_at) : now
+      workPages = data
+        .filter((row) => row.slug)
+        .map((row) => {
+          let path: string
+          let priority: number
+
+          if (row.type === 'balabony') {
+            path = `/episodes/${row.slug}`
+            priority = 0.8
+          } else if (row.type === 'tysha') {
+            path = `/tysha/${row.slug}`
+            priority = 0.8
+          } else {
+            path = `/stories/${row.slug}`
+            priority = 0.7
+          }
+
           return {
-            url:             `${BASE_URL}${path}`,
-            lastModified,
+            url: `${BASE_URL}${path}`,
+            lastModified: row.approved_at ? new Date(row.approved_at) : now,
             changeFrequency: 'monthly' as const,
-            priority:        isEpisode ? 0.8 : 0.7,
+            priority,
           }
         })
     }
   } catch (e) {
-    // Р В Р вЂЎР В РЎвЂќР РЋРІР‚В°Р В РЎвЂў Supabase Р В Р вЂ¦Р В Р’ВµР В РўвЂР В РЎвЂўР РЋР С“Р РЋРІР‚С™Р РЋРЎвЂњР В РЎвЂ”Р В Р вЂ¦Р В Р’В° Р Р†Р вЂљРІР‚Сњ Р В РЎвЂ”Р РЋР вЂљР В РЎвЂўР РЋР С“Р РЋРІР‚С™Р В РЎвЂў Р В РЎвЂ”Р В РЎвЂўР В Р вЂ Р В Р’ВµР РЋР вЂљР РЋРІР‚С™Р В Р’В°Р РЋРІР‚СњР В РЎВР В РЎвЂў Р РЋР С“Р РЋРІР‚С™Р В Р’В°Р РЋРІР‚С™Р В РЎвЂР РЋРІР‚РЋР В Р вЂ¦Р РЋРІР‚вЂњ Р РЋР С“Р РЋРІР‚С™Р В РЎвЂўР РЋР вЂљР РЋРІР‚вЂњР В Р вЂ¦Р В РЎвЂќР В РЎвЂ.
-    // Р В РЎСљР В Р’Вµ Р В Р’В±Р В Р’В»Р В РЎвЂўР В РЎвЂќР РЋРЎвЂњР РЋРІР‚СњР В РЎВР В РЎвЂў Р В РЎвЂ“Р В Р’ВµР В Р вЂ¦Р В Р’ВµР РЋР вЂљР В Р’В°Р РЋРІР‚В Р РЋРІР‚вЂњР РЋР вЂ№ sitemap.
-    console.error('Sitemap: failed to fetch dynamic pages from Supabase', e)
+    // Якщо Supabase недоступна — віддаємо принаймні статичні сторінки.
+    // Не блокуємо генерацію sitemap.
+    console.error('Sitemap: failed to fetch content', e)
   }
 
-  return [...staticPages, ...dynamicPages]
+  // 3. Сторінки авторів. Беремо лише тих, хто має опубліковані твори:
+  //    сторінка автора без творів — порожня, і вести на неї пошуковик
+  //    немає сенсу.
+  let authorPages: MetadataRoute.Sitemap = []
+  try {
+    const { data: profiles } = await supabase
+      .from('author_profiles')
+      .select('user_id, display_name, pen_name, hide_from_directory')
+      .eq('is_active', true)
+      .limit(2000)
+
+    const { data: works } = await supabase
+      .from('content')
+      .select('author_id')
+      .in('status', ['approved', 'published'])
+      .limit(5000)
+
+    if (profiles && works) {
+      const withWorks = new Set(
+        (works as { author_id: string | null }[])
+          .map((w) => w.author_id)
+          .filter((id): id is string => Boolean(id)),
+      )
+
+      const seen = new Set<string>()
+
+      for (const p of profiles as {
+        user_id: string
+        display_name: string | null
+        pen_name: string | null
+        hide_from_directory: boolean | null
+      }[]) {
+        if (p.hide_from_directory) continue
+        if (!withWorks.has(p.user_id)) continue
+
+        const name = (p.pen_name?.trim() || p.display_name?.trim() || '')
+        if (!name) continue
+
+        const slug = authorSlug(name)
+        if (!slug || seen.has(slug)) continue
+        seen.add(slug)
+
+        authorPages.push({
+          url: `${BASE_URL}/avtor/${slug}`,
+          lastModified: now,
+          changeFrequency: 'weekly' as const,
+          priority: 0.7,
+        })
+      }
+    }
+  } catch (e) {
+    console.error('Sitemap: failed to fetch authors', e)
+  }
+
+  return [...staticPages, ...workPages, ...authorPages]
 }

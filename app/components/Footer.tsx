@@ -383,6 +383,7 @@ export default function Footer() {
               { label: 'Серіал «Балабони»', href: '/episodes'   },
               { label: 'Серіал «Тиша» 18+', href: '/tysha'      },
               { label: 'Історії',           href: '/stories'    },
+              { label: 'Автори',            href: '/avtory'     },
               { label: 'Казки',             href: '/fairytales' },
               { label: 'Конкурси',          href: '/konkursy'   },
               { label: 'Ігри',              href: '/games'      },

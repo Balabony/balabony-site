@@ -33,6 +33,7 @@ const GROUPS: SitemapGroup[] = [
       { href: '/tysha',      label: 'Серіал «Тиша»',     note: 'Авторський, 18+' },
       { href: '/fairytales', label: 'Казки',             note: 'Українські казки' },
       { href: '/stories',    label: 'Історії читачів',   note: 'Реальні авторські історії' },
+      { href: '/avtory',     label: 'Автори Балабонів',  note: 'Усі автори з опублікованими творами' },
       { href: '/demo',       label: 'Демо озвучення',    note: 'Тестовий голос' },
       { href: '/holosy',     label: 'Голоси платформи',  note: 'Озвучення на замовлення' },
     ],
@@ -40,8 +41,9 @@ const GROUPS: SitemapGroup[] = [
   {
     title: 'Конкурси',
     links: [
-      { href: '/konkursy',                     label: 'Літературні конкурси',      note: 'Три конкурси, старт 1 листопада 2026' },
-      { href: '/konkursy#dovha-istoriya',      label: '«Це довга історія»',        note: 'Серіальний, 10 серій за 10 тижнів' },
+      { href: '/konkursy',                     label: 'Літературні конкурси',      note: 'Старт 25 листопада 2026' },
+      { href: '/konkursy#dovha-istoriya',      label: '«Це довга історія»',        note: 'Серіальний, 10 серій за 10 тижнів, головний приз 20 000 ₴' },
+      { href: '/konkursy#rozghin',             label: '«Розгін»',                  note: 'Найкоротша дистанція' },
       { href: '/konkursy#odyn-den',            label: '«Один день, який усе змінив»', note: 'Коротка проза до 1500 слів' },
       { href: '/konkursy#z-viterczem',         label: '«З вітерцем»',              note: 'Гумористична історія' },
     ],
