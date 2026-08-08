@@ -327,6 +327,12 @@ export default async function AuthorDashboardPage() {
           <p style={{ color: 'rgba(255,255,255,0.7)', margin: '0.35rem 0 0' }}>{profile.display_name}</p>
         </div>
 
+        <AuthorProfileEditor
+          initialAvatar={profile.avatar_url ?? null}
+          initialBio={profile.bio ?? null}
+          displayName={profile.pen_name?.trim() || profile.display_name || 'Автор'}
+        />
+
         {/* Конкурси. Усі активні конкурси з лінками на свої розділи сторінки
             /konkursy — автор бачить повний вибір, а не лише головний. */}
         <div style={{ marginBottom: '1.5rem' }}>
@@ -532,11 +538,6 @@ export default async function AuthorDashboardPage() {
           )}
         </div>
 
-        <AuthorProfileEditor
-          initialAvatar={profile.avatar_url ?? null}
-          initialBio={profile.bio ?? null}
-          displayName={profile.pen_name?.trim() || profile.display_name || 'Автор'}
-        />
 
         {mine && (
           <div style={{
