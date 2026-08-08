@@ -15,6 +15,10 @@ const BASE_URL = 'https://balabony.com'
  *  - опубліковані історії (решта типів)
  *  - публічні сторінки авторів /avtor/[slug]
  *
+ * /contact і /series свідомо відсутні: це permanentRedirect на /contacts
+ * і /episodes. Адреса, яка одразу перекидає, у карті сайту зайва —
+ * Search Console позначає такі як «Сторінка з переспрямуванням».
+ *
  * Сторінки авторів довго не потрапляли сюди взагалі: це десятки адрес з
  * унікальним текстом, про які пошуковик не знав. Slug не зберігається в
  * базі — рахується з імені тією самою функцією, що й на самій сторінці,
@@ -52,7 +56,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/pravopys/dity`,         lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE_URL}/demo`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE_URL}/contacts`,              lastModified: now, changeFrequency: 'yearly',  priority: 0.5 },
-    { url: `${BASE_URL}/contact`,               lastModified: now, changeFrequency: 'yearly',  priority: 0.4 },
     { url: `${BASE_URL}/survey`,                lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${BASE_URL}/sitemap`,               lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${BASE_URL}/legal/terms`,           lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
