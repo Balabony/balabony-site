@@ -8,6 +8,7 @@ import AuthorNewsletter from '@/app/components/AuthorNewsletter'
 import AuthorMessageForm from '@/app/components/AuthorMessageForm'
 import ContestCountdown from '@/app/components/ContestCountdown'
 import AuthorCoverUpload from '@/app/components/AuthorCoverUpload'
+import AuthorProfileEditor from '@/app/components/AuthorProfileEditor'
 import { dbQuery } from '@/lib/db'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
@@ -28,6 +29,8 @@ type AuthorProfile = {
   bank_name?: string | null
   payout_recipient?: string | null
   pen_name?: string | null
+  bio?: string | null
+  avatar_url?: string | null
   postal_code?: string | null
   np_branch?: string | null
   requisites_updated_at?: string | null
@@ -528,6 +531,12 @@ export default async function AuthorDashboardPage() {
             </div>
           )}
         </div>
+
+        <AuthorProfileEditor
+          initialAvatar={profile.avatar_url ?? null}
+          initialBio={profile.bio ?? null}
+          displayName={profile.pen_name?.trim() || profile.display_name || 'Автор'}
+        />
 
         {mine && (
           <div style={{

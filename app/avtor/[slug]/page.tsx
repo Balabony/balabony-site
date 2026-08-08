@@ -30,6 +30,7 @@ interface ProfileRow {
   display_name: string | null
   pen_name: string | null
   bio: string | null
+  avatar_url: string | null
 }
 
 interface StoryRow {
@@ -54,7 +55,7 @@ async function getProfile(slug: string): Promise<ProfileRow | null> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('author_profiles')
-    .select('user_id, display_name, pen_name, bio')
+    .select('user_id, display_name, pen_name, bio, avatar_url')
     .eq('is_active', true)
 
   if (error || !data) return null
@@ -250,7 +251,24 @@ export default async function AuthorPage({
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 20px' }}>
         <Breadcrumbs items={[{ label: 'Автори', href: '/stories' }, { label: name }]} />
 
-        <header style={{ marginBottom: 28 }}>
+        <header style={{ marginBottom: 28, display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          {profile.avatar_url && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={profile.avatar_url}
+              alt={name}
+              style={{
+                width: 108,
+                height: 108,
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '2px solid rgba(239,159,39,0.5)',
+                flexShrink: 0,
+              }}
+            />
+          )}
+
+          <div style={{ flex: '1 1 300px', minWidth: 0 }}>
           <h1
             style={{
               fontFamily: '"Comfortaa", sans-serif',
@@ -300,6 +318,7 @@ export default async function AuthorPage({
               url={`https://balabony.com/avtor/${slug}`}
               title={`${name} — автор на Балабонах`}
             />
+          </div>
           </div>
         </header>
 

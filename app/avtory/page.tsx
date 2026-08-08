@@ -46,6 +46,7 @@ interface ProfileRow {
   display_name: string | null
   pen_name: string | null
   bio: string | null
+  avatar_url: string | null
   hide_from_directory: boolean | null
 }
 
@@ -64,6 +65,7 @@ interface BoardEntry {
 
 interface AuthorCard {
   userId: string
+  avatar: string | null
   slug: string
   name: string
   bio: string
@@ -198,7 +200,7 @@ async function getAuthors(): Promise<AuthorCard[]> {
 
   const { data: profileData, error } = await supabase
     .from('author_profiles')
-    .select('user_id, display_name, pen_name, bio, hide_from_directory')
+    .select('user_id, display_name, pen_name, bio, avatar_url, hide_from_directory')
     .eq('is_active', true)
 
   if (error || !profileData) return []
@@ -231,6 +233,7 @@ async function getAuthors(): Promise<AuthorCard[]> {
 
     cards.push({
       userId: p.user_id,
+      avatar: p.avatar_url,
       slug: authorSlug(name),
       name,
       bio: shortBio(p.bio),
@@ -425,27 +428,43 @@ export default async function AuthorsPage() {
                   minHeight: 96,
                 }}
               >
-                <span
-                  aria-hidden
-                  style={{
-                    flexShrink: 0,
-                    width: 52,
-                    height: 52,
-                    borderRadius: '50%',
-                    background: 'rgba(239,159,39,0.16)',
-                    border: `1px solid ${GOLD}66`,
-                    color: GOLD,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontFamily: FONT,
-                    fontSize: 17,
-                    fontWeight: 700,
-                    letterSpacing: 0.5,
-                  }}
-                >
-                  {initials(a.name)}
-                </span>
+                {a.avatar ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={a.avatar}
+                    alt=""
+                    style={{
+                      flexShrink: 0,
+                      width: 52,
+                      height: 52,
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: `1px solid ${GOLD}66`,
+                    }}
+                  />
+                ) : (
+                  <span
+                    aria-hidden
+                    style={{
+                      flexShrink: 0,
+                      width: 52,
+                      height: 52,
+                      borderRadius: '50%',
+                      background: 'rgba(239,159,39,0.16)',
+                      border: `1px solid ${GOLD}66`,
+                      color: GOLD,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontFamily: FONT,
+                      fontSize: 17,
+                      fontWeight: 700,
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    {initials(a.name)}
+                  </span>
+                )}
 
                 <span style={{ display: 'block', minWidth: 0 }}>
                   <span
