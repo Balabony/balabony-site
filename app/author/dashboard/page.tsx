@@ -310,6 +310,14 @@ export default async function AuthorDashboardPage() {
   const LIVE = ['approved', 'published']
   const published = stories.filter(s => LIVE.includes(s.status)).length
 
+  // Скільки читачів стежить за автором. Рахує service role: RLS показує
+  // людині лише її власні підписки, і звичайний клієнт повернув би нуль.
+  const { count: followersCount } = await admin
+    .from('author_follows')
+    .select('follower_id', { count: 'exact', head: true })
+    .eq('author_user_id', user.id)
+  const followers = followersCount ?? 0
+
   const card: React.CSSProperties = {
     background: BRAND.cream, borderRadius: 14, padding: '1.25rem 1.5rem',
     boxShadow: '0 10px 30px rgba(0,0,0,0.25)', flex: '1 1 160px',
@@ -453,6 +461,7 @@ export default async function AuthorDashboardPage() {
           <div style={card}><div style={statNum}>{published}</div><div style={statLabel}>опубліковано історій</div></div>
           <div style={card}><div style={statNum}>{totalViews}</div><div style={statLabel}>переглядів усього</div></div>
           <div style={card}><div style={statNum}>{totalReads}</div><div style={statLabel}>прочитань</div></div>
+          <div style={card}><div style={statNum}>{followers}</div><div style={statLabel}>читачів стежать</div></div>
           <div style={{ ...card, background: BRAND.amber }}>
             <div style={{ ...statNum, color: BRAND.ink }}>{uah(balance.balance)} ₴</div>
             <div style={{ ...statLabel, color: 'rgba(28,25,23,0.7)' }}>баланс до виплати</div>

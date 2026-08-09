@@ -154,7 +154,24 @@ export default async function ProfilePage() {
         )}
 
         <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid #e5e7eb' }}>
-          <LogoutButton />
+          <a
+            href="/moi-avtory"
+            style={{
+              display: 'inline-block',
+              padding: '0.65rem 1.25rem',
+              borderRadius: '8px',
+              background: '#fef3c7',
+              color: '#92400e',
+              textDecoration: 'none',
+              fontWeight: 600,
+              marginBottom: '1.25rem',
+            }}
+          >
+            Мої автори →
+          </a>
+          <div>
+            <LogoutButton />
+          </div>
         </div>
       </div>
     </main>
