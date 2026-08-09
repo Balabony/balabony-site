@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/app/context/ThemeContext'
 import FreshStoriesGrid, { type Story } from '@/app/components/FreshStoriesGrid'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ShareButtons from '@/app/components/ShareButtons'
+import FollowAuthorButton from '@/app/components/FollowAuthorButton'
 import { toExcerpt } from '@/lib/plain-text'
 import { pickPublishedText } from '@/lib/published-text'
 import { authorSlug } from '@/lib/author-slug'
@@ -314,6 +315,10 @@ export default async function AuthorPage({
           )}
 
           <div style={{ marginTop: 20 }}>
+            <FollowAuthorButton authorUserId={profile.user_id} />
+          </div>
+
+          <div style={{ marginTop: 16 }}>
             <ShareButtons
               url={`https://balabony.com/avtor/${slug}`}
               title={`${name} — автор на Балабонах`}
