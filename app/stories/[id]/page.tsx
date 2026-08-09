@@ -10,6 +10,7 @@ import AgeGate from '@/app/components/AgeGate'
 import AudioPlayer from '@/app/components/AudioPlayer'
 import { toPlainText, toExcerpt } from '@/lib/plain-text'
 import { leadInlineStyle } from '@/lib/reader-typography'
+import { authorSlug } from '@/lib/author-slug'
 
 // Базовий кегль тексту історії — має збігатися зі стилем <article> нижче.
 const BODY_FONT_SIZE = 18
@@ -31,6 +32,7 @@ interface StoryRow {
   images:            string[] | null
   is_adult:          boolean | null
   is_free:           boolean | null
+  updated_at:        string | null
   is_premium:        boolean | null
   approved_at:       string
   audio_url:         string | null
@@ -41,7 +43,7 @@ async function getStory(id: string): Promise<StoryRow | null> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('id, slug, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, images, is_adult, is_free, is_premium, approved_at, audio_url, audio_status')
+    .select('id, slug, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, images, is_adult, is_free, is_premium, approved_at, updated_at, audio_url, audio_status')
     .eq('type', 'story')
     .eq('slug', id)
     .in('status', ['approved', 'published'])
@@ -107,14 +109,25 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: story.title,
-    author: { '@type': 'Person', name: story.author_name },
+    author: {
+      '@type': 'Person',
+      name: story.author_name,
+      url: `https://balabony.com/avtor/${authorSlug(story.author_name)}`,
+    },
     datePublished: story.approved_at,
+    dateModified: story.updated_at ?? story.approved_at,
     inLanguage: 'uk-UA',
     image: story.cover_url ? [story.cover_url] : undefined,
     publisher: {
       '@type': 'Organization',
       name: 'Balabony',
       url: 'https://balabony.com',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://balabony.com/icon-512.png',
+        width: 512,
+        height: 512,
+      },
     },
     mainEntityOfPage: {
       '@type': 'WebPage',
@@ -156,7 +169,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
             items={[
               isFairytale
                 ? { label: 'Казки', href: '/fairytales' }
-                : { label: 'Історії читачів', href: '/stories' },
+                : { label: 'Історії', href: '/stories' },
               { label: story.title },
             ]}
           />

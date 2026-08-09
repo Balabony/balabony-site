@@ -18,6 +18,16 @@ const BAD = '#E88686'
  * підрахунок, потім окреме підтвердження. Це аварійний інструмент, а не
  * частина щоденної роботи.
  */
+/** «1 твір», «2 твори», «5 творів» */
+function pluralWorks(n: number): string {
+  const mod100 = n % 100
+  const mod10 = n % 10
+  if (mod100 >= 11 && mod100 <= 14) return `${n} творів`
+  if (mod10 === 1) return `${n} твір`
+  if (mod10 >= 2 && mod10 <= 4) return `${n} твори`
+  return `${n} творів`
+}
+
 export default function WithdrawAuthorPage() {
   const [name, setName] = useState('')
   const [count, setCount] = useState<number | null>(null)
@@ -115,7 +125,7 @@ export default function WithdrawAuthorPage() {
             {count > 0 ? (
               <>
                 <p style={{ fontSize: 15, lineHeight: 1.6, margin: '0 0 14px' }}>
-                  З сайту зникне <b>{count}</b> творів автора <b>{name.trim()}</b>.
+                  З сайту зникне <b>{pluralWorks(count)}</b> автора <b>{name.trim()}</b>.
                   Читачі перестануть їх бачити одразу.
                 </p>
                 <button
