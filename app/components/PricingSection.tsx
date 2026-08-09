@@ -360,8 +360,8 @@ function PaymentModal({ pkg, onClose }: PaymentModalProps) {
                   color: 'var(--muted, #64748b)',
                   lineHeight: 1.5,
                 }}>
-                  Я погоджуюсь з умовами надання послуг та підтверджую, що скасування автопродовження можливе будь-коли,
-                  але оплачений рік залишається доступним до кінця періоду без повернення коштів.
+                  Я погоджуюсь з умовами надання послуг та підтверджую, що це разова оплата за рік доступу.
+                  Кошти не повертаються, гроші автоматично не списуються — продовжити можна буде вручну.
                 </span>
               </label>
             )}
@@ -569,8 +569,8 @@ const PLANS: PlanConfig[] = [
     ],
     cta: 'Підписатись',
     ctaStyle: 'outline',
-    cancelMain: 'Скасуй коли хочеш',
-    cancelSub: 'доступ до кінця місяця',
+    cancelMain: 'Оплата разова',
+    cancelSub: 'доступ діє 30 днів',
     hasInstallments: false,
   },
   {
@@ -590,8 +590,8 @@ const PLANS: PlanConfig[] = [
     ],
     cta: 'Оформити передплату',
     ctaStyle: 'primary-glow',
-    cancelMain: 'Скасуй автопродовження коли хочеш',
-    cancelSub: 'оплачений рік залишається твоїм',
+    cancelMain: 'Оплата разова',
+    cancelSub: 'доступ діє 12 місяців',
     hasInstallments: true,
     installmentFrom: 148,
     featured: true,
@@ -615,8 +615,8 @@ const PLANS: PlanConfig[] = [
     ],
     cta: 'Підписатись',
     ctaStyle: 'outline',
-    cancelMain: 'Скасуй коли хочеш',
-    cancelSub: 'доступ до кінця місяця',
+    cancelMain: 'Оплата разова',
+    cancelSub: 'доступ діє 30 днів',
     hasInstallments: false,
   },
   {
@@ -637,8 +637,8 @@ const PLANS: PlanConfig[] = [
     ],
     cta: 'Оформити передплату',
     ctaStyle: 'primary-glow',
-    cancelMain: 'Скасуй автопродовження коли хочеш',
-    cancelSub: 'оплачений рік залишається твоїм',
+    cancelMain: 'Оплата разова',
+    cancelSub: 'доступ діє 12 місяців',
     hasInstallments: true,
     installmentFrom: 232,
     featured: true,
