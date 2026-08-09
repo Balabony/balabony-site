@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { dbQuery } from '@/lib/db'
+import { normalizeEmail } from '@/lib/normalize-email'
 
 /**
  * Заведення автора: обліковий запис + профіль + запис згоди, одним рухом.
@@ -50,7 +51,11 @@ export async function POST(req: NextRequest) {
   }
 
   const fullName = (body.fullName ?? '').trim()
-  const email = (body.email ?? '').trim().toLowerCase()
+  // Адресу зводимо до того самого вигляду, який дає сторінка входу. Інакше
+  // акаунт створюється на «leonid.opiy@», а /login шукає «leonidopiy@», не
+  // знаходить і заводить автору другий, порожній кабінет.
+  const emailRaw = (body.email ?? '').trim().toLowerCase()
+  const email = normalizeEmail(emailRaw)
   const penName = (body.penName ?? '').trim()
   const isFop = body.isFop === true
   const channel = (body.consentChannel ?? 'other').trim()
@@ -132,5 +137,9 @@ export async function POST(req: NextRequest) {
     userId,
     reused: Boolean(created.error),
     loginLink,
+    // Саме цю адресу автор має вводити на сторінці входу. Якщо вона
+    // відрізняється від набраної, адмінка мусить показати підказану, а не свою.
+    email,
+    emailChanged: email !== emailRaw,
   })
 }

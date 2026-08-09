@@ -20,7 +20,7 @@ const CHANNELS: [string, string][] = [
   ['other', 'Інше'],
 ]
 
-type Result = { fullName: string; email: string; link: string; reused: boolean }
+type Result = { fullName: string; email: string; link: string; reused: boolean; emailChanged: boolean }
 
 export default function AdminAuthorsPage() {
   const [fullName, setFullName] = useState('')
@@ -51,13 +51,25 @@ export default function AdminAuthorsPage() {
           consentNote: note.trim(),
         }),
       })
-      const d = (await res.json()) as { ok: boolean; error?: string; loginLink?: string; reused?: boolean }
+      const d = (await res.json()) as {
+        ok: boolean; error?: string; loginLink?: string; reused?: boolean
+        email?: string; emailChanged?: boolean
+      }
       if (!d.ok) {
         setErr(d.error ?? 'Не вдалося завести автора')
         return
       }
+      // Показуємо адресу, яку повернув сервер, а не набрану. Gmail ігнорує
+      // крапки, Supabase — ні: якщо продиктувати автору свій варіант, він
+      // увійде не в той акаунт і не побачить творів.
       setDone((prev) => [
-        { fullName: fullName.trim(), email: email.trim(), link: d.loginLink ?? '', reused: d.reused === true },
+        {
+          fullName: fullName.trim(),
+          email: d.email ?? email.trim(),
+          link: d.loginLink ?? '',
+          reused: d.reused === true,
+          emailChanged: d.emailChanged === true,
+        },
         ...prev,
       ])
       setFullName(''); setEmail(''); setPenName(''); setNote(''); setIsFop(false)
@@ -195,6 +207,18 @@ export default function AdminAuthorsPage() {
                 <div style={{ color: MUTED, fontSize: 14, marginTop: 4 }}>
                   {d.email}{d.reused ? ' \u00b7 акаунт уже існував, використано наявний' : ''}
                 </div>
+
+                {d.emailChanged && (
+                  <div style={{
+                    marginTop: 10, padding: '10px 13px', borderRadius: 10,
+                    background: 'rgba(239,159,39,0.10)', border: `1px solid ${GOLD}`,
+                    fontSize: 13, color: CREAM, lineHeight: 1.6,
+                  }}>
+                    Адресу зведено до вигляду <b>{d.email}</b>. Gmail не розрізняє крапки
+                    в імені, а система входу — розрізняє. Диктуйте авторові саме цю адресу,
+                    інакше він створить собі другий, порожній кабінет.
+                  </div>
+                )}
 
                 <div style={{
                   marginTop: 14, padding: '13px 15px', borderRadius: 10,
