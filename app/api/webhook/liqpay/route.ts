@@ -53,7 +53,38 @@ function addMonths(date: Date, months: number): Date {
   return d
 }
 
+/**
+ * GET /api/webhook/liqpay
+ *
+ * Заглушка для перевірки з браузера: чи адреса взагалі жива і чи доходить
+ * до неї запит ззовні. LiqPay сюди шле тільки POST — цей обробник потрібен
+ * виключно для діагностики.
+ *
+ * 09.08.2026: у логах Vercel не було ЖОДНОГО звернення на цей маршрут після
+ * успішної оплати. Перш ніж шукати причину в підписі чи в тілі запиту, треба
+ * переконатись, що маршрут відповідає хоча б на GET.
+ */
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    route: '/api/webhook/liqpay',
+    method: 'GET',
+    note: 'Маршрут живий. LiqPay має слати сюди POST.',
+    privateKeyConfigured: Boolean(PRIVATE_KEY),
+    time: new Date().toISOString(),
+  })
+}
+
 export async function POST(req: NextRequest) {
+  // ── Журнал вхідного запиту ДО будь-яких перевірок.
+  // Якщо LiqPay стукає, але падає на підписі чи форматі, у логах Vercel буде
+  // видно сам факт звернення. Без цього рядка невдалий виклик виглядає так
+  // само, як відсутність виклику.
+  console.log(
+    `[webhook/liqpay] ⇢ POST отримано; content-type="${req.headers.get('content-type') ?? '—'}"; ` +
+    `user-agent="${req.headers.get('user-agent') ?? '—'}"`
+  )
+
   if (!PRIVATE_KEY) {
     console.error('[webhook/liqpay] LIQPAY_PRIVATE_KEY missing')
     return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
