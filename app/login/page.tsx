@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
-import { normalizeEmail } from '@/lib/normalize-email'
+
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -15,17 +14,25 @@ export default function LoginPage() {
     setStatus('sending')
     setErrorMsg('')
 
-    const supabase = createSupabaseBrowserClient()
-    const { error } = await supabase.auth.signInWithOtp({
-      email: normalizeEmail(email),
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    })
-
-    if (error) {
+    // Адресу підбирає сервер: у частини авторів акаунт заведений із крапкою
+    // в gmail, і сліпа нормалізація на клієнті відправляла їх у порожній
+    // кабінет замість власного.
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const d = (await res.json()) as { ok: boolean; error?: string }
+      if (!d.ok) {
+        setStatus('error')
+        setErrorMsg(d.error ?? 'Не вдалося надіслати лист')
+      } else {
+        setStatus('sent')
+      }
+    } catch {
       setStatus('error')
-      setErrorMsg(error.message)
-    } else {
-      setStatus('sent')
+      setErrorMsg('Немає звʼязку з сервером')
     }
   }
 
