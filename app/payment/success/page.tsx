@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PurchaseTracker from "./PurchaseTracker";
 
 export const metadata = {
   title: "Дякуємо за підтримку — Balabony",
@@ -7,6 +8,8 @@ export const metadata = {
 
 export default function PaymentSuccessPage() {
   return (
+    <>
+    <PurchaseTracker />
     <main
       style={{
         minHeight: "100vh",
@@ -130,5 +133,6 @@ export default function PaymentSuccessPage() {
         </div>
       </div>
     </main>
+    </>
   );
 }

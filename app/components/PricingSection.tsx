@@ -8,7 +8,7 @@
  *
  * Структура файлу:
  *   1. Константи + утиліти (FreeViewTimer, форматування)
- *   2. Функції оплати (initiatePayment, initiateInstallment, trackPurchase)
+ *   2. Функції оплати (initiatePayment, initiateInstallment, trackBeginCheckout)
  *   3. PaymentModal (з підтримкою ДІЯ, річної згоди, банків)
  *   4. Дані планів (PLANS, GIFTS)
  *   5. Головний компонент PricingSection
@@ -180,10 +180,29 @@ async function initiateInstallment(
   }
 }
 
-function trackPurchase(amount: string) {
+/**
+ * Намір оплатити — не сама оплата.
+ *
+ * Раніше тут слалася подія purchase у момент натискання кнопки, тобто ще до
+ * переходу на LiqPay. У звітах як покупці рахувалися всі, хто передумав,
+ * закрив вікно чи не мав коштів на картці. Налаштована на такий сигнал
+ * конверсія в Google Ads вчила б алгоритм на вигаданих продажах.
+ *
+ * Тепер тут begin_checkout, а purchase шле сторінка /payment/success —
+ * тобто лише той, хто справді дійшов до кінця. Суму передаємо туди через
+ * sessionStorage: LiqPay повертає користувача без параметрів запиту.
+ */
+function trackBeginCheckout(amount: string, method: string) {
   try {
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', `purchase_${amount}_uah`, { amount })
+    if (typeof window === 'undefined') return
+    window.sessionStorage.setItem('bb_pending_amount', amount)
+    window.sessionStorage.setItem('bb_pending_method', method)
+    if ((window as any).gtag) {
+      (window as any).gtag('event', 'begin_checkout', {
+        currency: 'UAH',
+        value: Number(amount) || 0,
+        payment_type: method,
+      })
     }
   } catch (_) {}
 }
@@ -206,14 +225,14 @@ function PaymentModal({ pkg, onClose }: PaymentModalProps) {
 
   const handlePay = async () => {
     setLoading(true)
-    trackPurchase(pkg.price)
+    trackBeginCheckout(pkg.price, 'liqpay')
     await initiatePayment(pkg)
     setLoading(false)
   }
 
   const handleInstallment = async (provider: 'privat' | 'oschadbank') => {
     setInstallmentLoading(provider)
-    trackPurchase('installment_' + provider)
+    trackBeginCheckout(pkg.price, 'installment_' + provider)
     await initiateInstallment(provider, parseInt(pkg.price), pkg.tier)
     setInstallmentLoading(null)
   }
@@ -312,7 +331,7 @@ function PaymentModal({ pkg, onClose }: PaymentModalProps) {
               fontSize: 13,
               color: '#64748b',
             }}>
-              Visa, Mastercard, Apple Pay, Google Pay
+              Приват24, Google Pay, Apple Pay, картка Visa або Mastercard
             </div>
 
             {isAnnual && (
