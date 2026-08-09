@@ -70,6 +70,38 @@ async function getProfile(slug: string): Promise<ProfileRow | null> {
 }
 
 /**
+ * Автор без облікового запису.
+ *
+ * Історії з газет залиті з іменем у author_name, але без author_id — кабінетів
+ * цим людям не заводили. Без цієї гілки клік на ім'я в картці твору давав 404.
+ * Щойно автор отримає кабінет і твори прив'яжуться, сторінка сама почне
+ * будуватись зі звичайного профілю.
+ */
+async function getUnlinkedName(slug: string): Promise<string | null> {
+  const supabase = getSupabaseAdmin()
+  const step = 1000
+
+  for (let from = 0; from < 100_000; from += step) {
+    const { data, error } = await supabase
+      .from('content')
+      .select('author_name')
+      .in('status', ['approved', 'published'])
+      .is('author_id', null)
+      .range(from, from + step - 1)
+
+    if (error || !data) return null
+
+    for (const r of data as { author_name: string | null }[]) {
+      const name = (r.author_name ?? '').trim()
+      if (name !== '' && authorSlug(name) === slug) return name
+    }
+    if (data.length < step) return null
+  }
+
+  return null
+}
+
+/**
  * Куди веде картка твору.
  *
  * Серіали живуть на власних маршрутах, і якщо всі посилання гнати на
@@ -119,12 +151,17 @@ const GROUP_META: Record<string, { label: string; note: string; order: number }>
   tysha:    { label: 'Серіал «Тиша» 18+', note: 'Військова драма для дорослих', order: 3 },
 }
 
-async function getWorks(userId: string): Promise<{ groups: WorkGroup[]; total: number; ids: string[] }> {
+async function getWorks(
+  by: { userId: string } | { authorName: string },
+): Promise<{ groups: WorkGroup[]; total: number; ids: string[] }> {
   const supabase = getSupabaseAdmin()
-  const { data, error } = await supabase
+  const base = supabase
     .from('content')
     .select('id, slug, type, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, cover_position, is_adult, approved_at, episode_number')
-    .eq('author_id', userId)
+  const scoped = 'userId' in by
+    ? base.eq('author_id', by.userId)
+    : base.eq('author_name', by.authorName).is('author_id', null)
+  const { data, error } = await scoped
     .in('status', ['approved', 'published'])
     .order('approved_at', { ascending: false })
     .order('episode_number', { ascending: true, nullsFirst: false })
@@ -211,11 +248,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params
   const profile = await getProfile(slug)
-  if (!profile) return { title: 'Автора не знайдено — Балабони' }
+  const plainName = profile ? null : await getUnlinkedName(slug)
+  if (!profile && !plainName) return { title: 'Автора не знайдено — Балабони' }
 
-  const name = displayName(profile)
+  const name = profile ? displayName(profile) : plainName!
   const title = `${name} — автор на Балабонах`
-  const description = profile.bio?.trim()
+  const description = profile?.bio?.trim()
     ? toExcerpt(profile.bio, 160)
     : `Історії автора ${name} на платформі Балабони. Читати українською.`
 
@@ -240,10 +278,13 @@ export default async function AuthorPage({
 }) {
   const { slug } = await params
   const profile = await getProfile(slug)
-  if (!profile) notFound()
+  const plainName = profile ? null : await getUnlinkedName(slug)
+  if (!profile && !plainName) notFound()
 
-  const name = displayName(profile)
-  const { groups, total, ids } = await getWorks(profile.user_id)
+  const name = profile ? displayName(profile) : plainName!
+  const { groups, total, ids } = profile
+    ? await getWorks({ userId: profile.user_id })
+    : await getWorks({ authorName: name })
   const likesTotal = await getLikesTotal(ids)
 
   return (
@@ -253,7 +294,7 @@ export default async function AuthorPage({
         <Breadcrumbs items={[{ label: 'Автори', href: '/stories' }, { label: name }]} />
 
         <header style={{ marginBottom: 28, display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-          {profile.avatar_url && (
+          {profile?.avatar_url && (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={profile.avatar_url}
@@ -299,7 +340,7 @@ export default async function AuthorPage({
             )}
           </p>
 
-          {profile.bio?.trim() && (
+          {profile?.bio?.trim() && (
             <p
               style={{
                 fontFamily: "'Montserrat', sans-serif",
@@ -315,7 +356,7 @@ export default async function AuthorPage({
           )}
 
           <div style={{ marginTop: 20 }}>
-            <FollowAuthorButton authorUserId={profile.user_id} />
+            {profile && <FollowAuthorButton authorUserId={profile.user_id} />}
           </div>
 
           <div style={{ marginTop: 16 }}>

@@ -195,6 +195,42 @@ async function getBoards(
   return { mostRead, bestDepth }
 }
 
+/**
+ * Автори без облікового запису.
+ *
+ * 500 історій із газет залито в базу з іменем у author_name, але без
+ * author_id: кабінетів цим людям ніколи не заводили. Раніше вони випадали
+ * зі списку зовсім — читач бачив ім'я в картці твору, клікав і не потрапляв
+ * нікуди. Тому збираємо їх окремо, за іменем.
+ *
+ * Профіль такий автор отримає пізніше, коли з'явиться його пошта й кабінет;
+ * тоді ці твори прив'яжуться за author_id, і гілка сама перестане їх бачити.
+ */
+async function getUnlinkedAuthors(): Promise<Map<string, number>> {
+  const supabase = getSupabaseAdmin()
+  const counts = new Map<string, number>()
+  const step = 1000
+
+  for (let from = 0; from < 100_000; from += step) {
+    const { data, error } = await supabase
+      .from('content')
+      .select('author_name')
+      .in('status', ['approved', 'published'])
+      .is('author_id', null)
+      .range(from, from + step - 1)
+
+    if (error || !data) break
+    for (const r of data as { author_name: string | null }[]) {
+      const name = (r.author_name ?? '').trim()
+      if (name === '') continue
+      counts.set(name, (counts.get(name) ?? 0) + 1)
+    }
+    if (data.length < step) break
+  }
+
+  return counts
+}
+
 async function getAuthors(): Promise<AuthorCard[]> {
   const supabase = getSupabaseAdmin()
 
@@ -239,6 +275,25 @@ async function getAuthors(): Promise<AuthorCard[]> {
       bio: shortBio(p.bio),
       works: ids.length,
       likes: ids.reduce((sum, id) => sum + (likesByContent.get(id) ?? 0), 0),
+    })
+  }
+
+  // Імена, які вже представлені профілем, другий раз не показуємо:
+  // якщо частина творів прив'язана, а частина ні, картка має бути одна.
+  const taken = new Set(cards.map((c) => c.slug))
+
+  for (const [name, works] of await getUnlinkedAuthors()) {
+    const slug = authorSlug(name)
+    if (slug === '' || taken.has(slug)) continue
+    taken.add(slug)
+    cards.push({
+      userId: '',
+      avatar: null,
+      slug,
+      name,
+      bio: '',
+      works,
+      likes: 0,
     })
   }
 
