@@ -30,6 +30,8 @@ interface StoryRow {
   cover_url:         string | null
   images:            string[] | null
   is_adult:          boolean | null
+  is_free:           boolean | null
+  is_premium:        boolean | null
   approved_at:       string
   audio_url:         string | null
   audio_status:      string | null
@@ -39,7 +41,7 @@ async function getStory(id: string): Promise<StoryRow | null> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('id, slug, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, images, is_adult, approved_at, audio_url, audio_status')
+    .select('id, slug, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, images, is_adult, is_free, is_premium, approved_at, audio_url, audio_status')
     .eq('type', 'story')
     .eq('slug', id)
     .in('status', ['approved', 'published'])
@@ -93,6 +95,43 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
       ? story.corrected_text
       : story.text
 
+  // Розмітка для пошуковиків.
+  //
+  // Без неї Google бачить сторінку як звичайний текст: ані автора, ані дати,
+  // ані того, що це літературний твір. З 25 листопада частина історій піде за
+  // передплатою, і тоді isAccessibleForFree стає обов'язковим — інакше пошук
+  // вважає, що читачеві показують одне, а роботу інше, і знижує сторінку у
+  // видачі. cssSelector вказує на той самий блок, який ховає пейвол.
+  const freeToRead = story.is_free !== false && story.is_premium !== true
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: story.title,
+    author: { '@type': 'Person', name: story.author_name },
+    datePublished: story.approved_at,
+    inLanguage: 'uk-UA',
+    image: story.cover_url ? [story.cover_url] : undefined,
+    publisher: {
+      '@type': 'Organization',
+      name: 'Balabony',
+      url: 'https://balabony.com',
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `https://balabony.com/stories/${id}`,
+    },
+    isAccessibleForFree: freeToRead,
+    ...(freeToRead
+      ? {}
+      : {
+          hasPart: {
+            '@type': 'WebPageElement',
+            isAccessibleForFree: false,
+            cssSelector: '.story-body',
+          },
+        }),
+  }
+
   const wordCount = body.trim().split(/\s+/).length
   // Знаки чистого тексту — з них рахується мінімальний час перегляду
   // за договором (15 секунд на кожні 1000 знаків, п. 1.5).
@@ -105,6 +144,10 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
             <div style={{ maxWidth: 720, margin: '0 auto', padding: story.cover_url ? '0 20px 80px' : '60px 20px 80px' }}>
 
         {/* Хлібні крихти — заміна старого back link */}
@@ -146,12 +189,14 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         {story.is_adult ? (
           <AgeGate>
             <article
+              className="story-body"
               style={{ fontSize: 18, lineHeight: 1.9, color: '#dde6f0', fontFamily: FONT, wordBreak: 'break-word' }}
               dangerouslySetInnerHTML={{ __html: toStoryHtml(body, story.images ?? []) }}
             />
           </AgeGate>
         ) : (
           <article
+            className="story-body"
             style={{ fontSize: 18, lineHeight: 1.9, color: '#dde6f0', fontFamily: FONT, wordBreak: 'break-word' }}
             dangerouslySetInnerHTML={{ __html: toStoryHtml(body, story.images ?? []) }}
           />
