@@ -540,7 +540,8 @@ const PLANS: PlanConfig[] = [
     subline: 'Перший місяць — 49 ₴, далі 129 ₴',
     perks: [
       { text: 'Офлайн-завантаження' },
-      { text: 'Усі відкриті серії, історії та казки' },
+      { text: 'Усі серії, історії та казки' },
+      { text: 'Нові серії — за тиждень після виходу' },
       { text: 'Реклама між серіями', ad: true },
     ],
     cta: 'Підписатись',
@@ -559,10 +560,10 @@ const PLANS: PlanConfig[] = [
     unit: '₴/рік',
     subline: 'Всього 74 ₴/міс · економія 658 ₴',
     perks: [
+      { text: 'Нові серії на тиждень раніше', highlight: true },
       { text: 'Жодної реклами' },
       { text: 'Офлайн-завантаження' },
-      { text: 'Усі відкриті серії, історії та казки' },
-      { text: 'Закриті серії та історії', highlight: true },
+      { text: 'Усі серії, історії та казки' },
     ],
     cta: 'Оформити передплату',
     ctaStyle: 'primary-glow',
@@ -584,8 +585,9 @@ const PLANS: PlanConfig[] = [
     subline: '50 ₴ на особу · до 4 акаунтів',
     perks: [
       { text: 'Офлайн-завантаження' },
-      { text: 'Усі відкриті серії, історії та казки' },
+      { text: 'Усі серії, історії та казки' },
       { text: 'До 4 акаунтів у родині' },
+      { text: 'Нові серії — за тиждень після виходу' },
       { text: 'Реклама між серіями', ad: true },
     ],
     cta: 'Підписатись',
@@ -604,11 +606,11 @@ const PLANS: PlanConfig[] = [
     unit: '₴/рік',
     subline: 'Всього 29 ₴ на особу/міс · економія 998 ₴',
     perks: [
+      { text: 'Нові серії на тиждень раніше', highlight: true },
       { text: 'Жодної реклами для всіх' },
       { text: 'Офлайн-завантаження' },
-      { text: 'Усі відкриті серії, історії та казки' },
+      { text: 'Усі серії, історії та казки' },
       { text: 'До 4 акаунтів у родині' },
-      { text: 'Закриті серії та історії', highlight: true },
     ],
     cta: 'Оформити передплату',
     ctaStyle: 'primary-glow',
@@ -731,6 +733,9 @@ export default function PricingSection() {
             <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#fff', background: '#0f1e3a', padding: '9px 12px', borderRadius: 8, marginTop: 8, lineHeight: 1.45 }}>
               Для ветеранів (УБД), ВПО та людей з інвалідністю
             </span>
+            <span style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#a05f00', marginTop: 9, lineHeight: 1.45 }}>
+              Нові серії на тиждень раніше — як у річній передплаті
+            </span>
             <span style={{
               display: 'inline-block',
               fontSize: 12,
@@ -784,6 +789,9 @@ export default function PricingSection() {
             <span style={{ display: 'block', fontSize: 14, color: 'rgba(255,255,255,0.82)', marginTop: 4, lineHeight: 1.5 }}>
               8 серій + 7 історій + тиждень повного доступу
             </span>
+            <span style={{ display: 'block', fontSize: 14, color: 'rgba(255,255,255,0.82)', marginTop: 4, lineHeight: 1.5 }}>
+              Нові серії відкриваються через тиждень після виходу
+            </span>
           </span>
           <span style={{ fontSize: 24, fontWeight: 800, color: '#ef9f27', whiteSpace: 'nowrap', flexShrink: 0 }}>0 ₴</span>
         </span>
@@ -822,7 +830,7 @@ export default function PricingSection() {
         >
           <span style={{ flex: '1 1 180px', minWidth: 0 }}>
             <span style={{ display: 'block', fontSize: 15, fontWeight: 500, color: '#fff', overflowWrap: 'normal', wordBreak: 'keep-all' }}>Без підписки</span>
-            <span style={{ display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>Одна історія або серія</span>
+            <span style={{ display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>Одна історія або серія — відкривається одразу</span>
           </span>
           <span style={{ fontSize: 18, fontWeight: 600, color: '#ef9f27', whiteSpace: 'nowrap', flexShrink: 0 }}>9 ₴</span>
         </button>
@@ -1008,8 +1016,8 @@ function PlanCard({
 function PensionCard() {
   const [diiaOpen, setDiiaOpen] = useState(false)
   const perks: { text: string; highlight?: boolean; ad?: boolean }[] = [
-    { text: 'Усі відкриті серії, історії та казки' },
-    { text: 'Закриті серії та історії', highlight: true },
+    { text: 'Нові серії на тиждень раніше', highlight: true },
+    { text: 'Усі серії, історії та казки' },
     { text: 'Офлайн-завантаження' },
     { text: 'Великий шрифт для читання' },
     { text: 'Реклама між серіями', ad: true },
