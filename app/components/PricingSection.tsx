@@ -112,10 +112,15 @@ async function initiatePayment(pkg: { price: string; tier: string; unit: string 
     })
     const json = await res.json()
     if (json.data && json.signature) {
+      // Перехід у тому самому вікні.
+      //
+      // Було target='_blank' — і оплата мовчки не відкривалась. Після await
+      // браузер уже не вважає відправку прямою дією користувача і блокує нову
+      // вкладку; на iPhone це відбувається завжди. Форму також не видаляємо
+      // одразу після submit(): у частині браузерів це обриває відправку.
       const form = document.createElement('form')
       form.method = 'POST'
       form.action = 'https://www.liqpay.ua/api/3/checkout'
-      form.target = '_blank'
       form.style.display = 'none'
       ;[['data', json.data], ['signature', json.signature]].forEach(([name, value]) => {
         const input = document.createElement('input')
@@ -126,7 +131,6 @@ async function initiatePayment(pkg: { price: string; tier: string; unit: string 
       })
       document.body.appendChild(form)
       form.submit()
-      form.remove()
     } else {
       alert('Помилка створення платежу. Спробуйте ще раз.')
     }
