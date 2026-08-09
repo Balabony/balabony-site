@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { getOrCreateAnonUserId } from '@/lib/anon-user'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 const PUBLIC_KEY  = process.env.LIQPAY_PUBLIC_KEY  || ''
 const PRIVATE_KEY = process.env.LIQPAY_PRIVATE_KEY || ''
@@ -29,12 +30,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 })
     }
 
-    // Identity = balabony_uid cookie. Creates new app_users row if absent,
-    // so the webhook can link the subscription back to the same anonymous
-    // user that's reading on the site.
+    // Identity = balabony_uid cookie.
     const userId = await getOrCreateAnonUserId()
     if (!userId) {
       return NextResponse.json({ error: 'Failed to identify user' }, { status: 500 })
+    }
+
+    // ── Гарантуємо рядок в app_users ДО оплати.
+    //
+    // 09.08.2026: тут стояв лише коментар про те, що getOrCreateAnonUserId
+    // «створює рядок в app_users, якщо його немає». Насправді вона цього не
+    // робила — тільки генерувала UUID і ставила cookie. Через це вебхук
+    // LiqPay падав на FOREIGN KEY (app_subscriptions.user_id → app_users.id),
+    // повертав 404, і жодна оплата не перетворювалась на підписку:
+    // revenue_events була порожня за весь час існування сайту.
+    //
+    // device_id — NOT NULL без default, тому кладемо туди той самий UUID.
+    // onConflict: 'id' + ignoreDuplicates — повторний виклик нічого не ламає.
+    {
+      const sb = getSupabaseAdmin()
+      const { error: userErr } = await sb
+        .from('app_users')
+        .upsert(
+          { id: userId, device_id: userId },
+          { onConflict: 'id', ignoreDuplicates: true }
+        )
+
+      if (userErr) {
+        console.error('[payment/create] app_users upsert failed:', userId, userErr)
+        return NextResponse.json(
+          { error: 'Failed to prepare user record' },
+          { status: 500 }
+        )
+      }
     }
 
     const plan        = numAmount <= 199 ? 'monthly' : 'yearly'

@@ -141,6 +141,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, alreadyProcessed: true })
     }
 
+    // ── Мінімальна сума, за яку взагалі можлива підписка.
+    //
+    // 09.08.2026: inferPlanAndDuration видавала 'monthly' + 1 місяць на будь-яку
+    // суму до 890 ₴. Кнопка «Без підписки · 9 ₴» шле на сервер лише amount,
+    // без tier — тому поштучна оплата виглядала для вебхука як звичайна
+    // місячна підписка, і 9 ₴ відкривали б доступ на місяць замість 129 ₴.
+    // Поки поштучна покупка не реалізована (потрібна прив'язка до конкретного
+    // твору), такі платежі фіксуємо в revenue_events і доступу не даємо.
+    const MIN_SUBSCRIPTION_UAH = 49 // найдешевший легітимний тариф: перший місяць
+
+    if (numAmount < MIN_SUBSCRIPTION_UAH) {
+      console.warn(
+        `[webhook/liqpay] amount ${numAmount}₴ < ${MIN_SUBSCRIPTION_UAH}₴ — ` +
+        `підписку не створюємо, order=${order_id}`
+      )
+      await recordRevenueEvent({
+        userId:    userId,
+        source:    'purchase',
+        provider:  'liqpay',
+        plan:      null,
+        amountUah: numAmount,
+        orderId:   order_id,
+        paymentId: payment_id ?? null,
+      })
+      return NextResponse.json({ ok: true, ignored: 'below_min_amount' })
+    }
+
     // ── Compute plan + expiry
     const { plan, months } = inferPlanAndDuration(numAmount)
     const startedAt = new Date()
