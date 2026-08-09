@@ -11,6 +11,7 @@ import AuthorCoverUpload from '@/app/components/AuthorCoverUpload'
 import AuthorProfileEditor from '@/app/components/AuthorProfileEditor'
 import { dbQuery } from '@/lib/db'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import PublishWorkButton from '@/app/components/PublishWorkButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -532,6 +533,10 @@ export default async function AuthorDashboardPage() {
                     contentId={s.content_id}
                     initialCover={coverById.get(s.content_id) ?? null}
                   />
+
+                  {s.status === 'draft' && (
+                    <PublishWorkButton contentId={s.content_id} title={s.title} />
+                  )}
 
                   <a
                     href={`/author/series/${s.content_id}`}
