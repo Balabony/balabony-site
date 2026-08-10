@@ -110,6 +110,7 @@ export default function CoverPositionPage() {
   const [saving, setSaving]   = useState(false)
   const [note, setNote]       = useState('')
   const [uploading, setUploading] = useState(false)
+  const [more, setMore]       = useState(false)
   const [urlInput, setUrlInput]   = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -133,6 +134,33 @@ export default function CoverPositionPage() {
   }, [q, only, type])
 
   useEffect(() => { void load() }, [load])
+
+  /**
+   * Дозавантаження наступної порції.
+   *
+   * Одразу всі 900+ обкладинок віддавати не можна: браузер тягтиме стільки ж
+   * картинок і сторінка застигне. Тому порціями по 60, як на /stories.
+   */
+  const loadMore = useCallback(async () => {
+    setMore(true)
+    setErr('')
+    try {
+      const params = new URLSearchParams({
+        q, only, type,
+        limit: '60',
+        offset: String(rows.length),
+      })
+      const r = await fetch(`/api/admin/cover-position?${params.toString()}`)
+      if (!r.ok) throw new Error(`Помилка ${r.status}`)
+      const j = await r.json() as { rows: Row[]; total: number }
+      setRows(prev => [...prev, ...j.rows])
+      setTotal(j.total)
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Не вдалось завантажити ще')
+    } finally {
+      setMore(false)
+    }
+  }, [q, only, type, rows.length])
 
   function open(row: Row) {
     setActive(row)
@@ -317,6 +345,23 @@ export default function CoverPositionPage() {
             )
           })}
         </div>
+
+        {rows.length < total && (
+          <div style={{ textAlign: 'center', padding: '22px 0 4px' }}>
+            <button
+              type="button"
+              onClick={() => void loadMore()}
+              disabled={more}
+              style={{
+                background: 'transparent', color: GOLD, border: `1.5px solid ${GOLD}`,
+                borderRadius: 999, padding: '11px 26px', fontSize: 14, fontWeight: 700,
+                fontFamily: FONT, cursor: more ? 'default' : 'pointer', opacity: more ? 0.6 : 1,
+              }}
+            >
+              {more ? 'Завантажую…' : `Показати ще · лишилось ${total - rows.length}`}
+            </button>
+          </div>
+        )}
       </div>
 
       {active && (
