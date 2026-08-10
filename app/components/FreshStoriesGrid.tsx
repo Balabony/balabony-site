@@ -111,14 +111,18 @@ export interface Story {
  * Кадр за замовчуванням зміщений угору, а не по центру.
  *
  * З 435 опублікованих історій кадр налаштовано вручну рівно в одній — решті
- * дістається дефолт. На портретних фото обличчя майже завжди у верхній
- * чверті, і навіть 30% лишало людей зрізаними по шию (напр. «Марфина Олька»).
- * 18% ставить обличчя в кадр без ручної роботи; хто налаштований
- * в /admin/cover-position — не зачеплений.
+ * дістається дефолт.
  *
- * Нижче опускати не варто: на 10% і менше у кадр лізе фон над головою.
+ * Головна причина зрізаних облич була не в позиції, а в пропорціях рамки:
+ * 159px висоти на ~290px ширини — це смуга майже 2:1, і від портретного фото
+ * лишалася вузька стрічка. Рамку піднято до 200px (~1.45:1), тож обрізається
+ * помітно менше.
+ *
+ * 10% ставить кадр майже під верхній край: на портретах голова починається
+ * одразу згори, і будь-який більший відступ зрізає маківку. Хто налаштований
+ * вручну в /admin/cover-position — не зачеплений.
  */
-const DEFAULT_POSITION = '50% 18%'
+const DEFAULT_POSITION = '50% 10%'
 
 function getCoverStyle(coverPosition: string | undefined): React.CSSProperties {
   if (!coverPosition || coverPosition === 'center') {
@@ -198,7 +202,7 @@ export default function FreshStoriesGrid({
               className="fs-card"
             >
               <div style={{ padding: 8, flexShrink: 0 }}>
-                <div style={{ position: 'relative', width: '100%', height: 159, overflow: 'hidden', background: '#000', borderRadius: 8 }}>
+                <div style={{ position: 'relative', width: '100%', height: 200, overflow: 'hidden', background: '#000', borderRadius: 8 }}>
                   <img
                     src={story.coverUrl}
                     alt={story.title}
