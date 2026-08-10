@@ -3,7 +3,7 @@
 import EpisodeBody from './EpisodeBody'
 
 const GOLD = '#ef9f27'
-const FREE_PER_SEASON = 2
+const FREE_PER_SEASON = 1
 
 interface Props {
   html:           string
@@ -12,6 +12,9 @@ interface Props {
   episodeNumber:  number
   bypass?:        boolean
   isPremium?:     boolean
+  hasPick?:            boolean
+  hasSub?:             boolean
+  globalEpisodeNumber?: number
 }
 
 // Бере перші ~10% параграфів як безкоштовний тізер.
@@ -54,9 +57,34 @@ function getTeaserHtml(html: string): string {
   return styles + teaserScenes.join('')
 }
 
-export default function EpisodePaywall({ html, fontFamily, episodeNumber, bypass = false, isPremium = false }: Props) {
+export default function EpisodePaywall({ html, fontFamily, seasonNumber, episodeNumber, bypass = false, isPremium = false, hasPick = false, hasSub = false, globalEpisodeNumber }: Props) {
   const scrollToPricing = () => {
     window.location.href = '/#pricing'
+  }
+
+  // Обрати цю серію як безкоштовну. Ліміт перевіряє сервер (/api/pick),
+  // тут лише надсилаємо запит і перезавантажуємо сторінку при успіху.
+  const pickThisEpisode = async () => {
+    if (!globalEpisodeNumber) return
+    try {
+      const res = await fetch('/api/pick', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contentType: 'series',
+          season: seasonNumber,
+          contentId: globalEpisodeNumber,
+        }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        window.location.reload()
+      } else {
+        alert(data.message ?? 'Безкоштовні серії цього сезону вичерпано.')
+      }
+    } catch {
+      alert('Не вдалося обрати серію. Спробуйте ще раз.')
+    }
   }
 
   // Адмін (залогінений власник) читає все без paywall.
@@ -64,9 +92,12 @@ export default function EpisodePaywall({ html, fontFamily, episodeNumber, bypass
     return <EpisodeBody html={html} fontFamily={fontFamily} />
   }
 
-  // Безкоштовно — перші дві серії кожного сезону («по дві серії з кожного сезону»).
-  const isLocked = isPremium || episodeNumber > FREE_PER_SEASON
-
+  // Відкрито, якщо: вітрина (перша серія сезону), підписка, або серію обрано.
+  // Преміальна серія доступна лише за підпискою — вибором не відкривається.
+  const isUnlocked =
+    hasSub ||
+    (!isPremium && (episodeNumber <= FREE_PER_SEASON || hasPick))
+  const isLocked = !isUnlocked
   if (!isLocked) {
     return <EpisodeBody html={html} fontFamily={fontFamily} />
   }
@@ -125,7 +156,27 @@ export default function EpisodePaywall({ html, fontFamily, episodeNumber, bypass
           }}
         >
           {isPremium ? 'Це закрита серія. Вона доступна лише за річною передплатою.' : 'Це була твоя безкоштовна серія. Щоб читати далі — обери пакет.'}
-        </p>
+        </p> 
+        {!isPremium && globalEpisodeNumber && (
+          <button
+            onClick={pickThisEpisode}
+            style={{
+              padding: '14px 28px',
+              background: 'transparent',
+              color: GOLD,
+              border: `1px solid ${GOLD}`,
+              borderRadius: 10,
+              fontSize: 15,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily,
+              marginRight: 12,
+              marginBottom: 12,
+            }}
+          >
+            Обрати цю серію
+          </button>
+        )}
         <button
           onClick={scrollToPricing}
           style={{
