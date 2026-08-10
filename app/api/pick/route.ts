@@ -28,7 +28,7 @@ import { getOrCreateAnonUserId } from '@/lib/anon-user'
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const SERIES_PER_SEASON_LIMIT = 2
+const SERIES_PER_SEASON_LIMIT = 1
 const STORIES_TOTAL_LIMIT = 7
 const MAX_REFERRAL_BONUS = 5 // +1 free story per unique story shared, capped
 const MAX_REFERRAL_BONUS_SERIES = 3 // +1 free series per unique episode shared, per season
