@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { readingMinutes } from '@/lib/readingTime'
 import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { getOrCreateAnonUserId } from '@/lib/anon-user'
 import type { Metadata } from 'next'
 import EpisodePaywall from './EpisodePaywall'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
@@ -162,6 +163,31 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
   // Залогінений власник (адмін) читає всі серії без paywall
   const cookieStore = await cookies()
   const isAdmin = cookieStore.get('admin_session')?.value === process.env.ADMIN_PASSWORD
+  // ── Хто читає і що йому вже доступно.
+  // 10.08.2026: раніше сторінка звірялась лише з позицією серії в сезоні
+  // й не бачила user_free_picks — читач «обирав» серію, ліміт списувався,
+  // а замок лишався. Тепер вибір і підписка враховуються тут.
+  const readerId = await getOrCreateAnonUserId()
+  const db = getSupabaseAdmin()
+
+  const { data: pickRow } = await db
+    .from('user_free_picks')
+    .select('id')
+    .eq('user_id', readerId)
+    .eq('content_type', 'series')
+    .eq('content_id', episode.episode_number)
+    .maybeSingle()
+  const hasPick = Boolean(pickRow)
+
+  const { data: subRow } = await db
+    .from('app_subscriptions')
+    .select('id')
+    .eq('user_id', readerId)
+    .eq('status', 'active')
+    .gt('expires_at', new Date().toISOString())
+    .limit(1)
+    .maybeSingle()
+  const hasSub = Boolean(subRow)
 
   const nextEp = await getNextEpisode(episode.season_number, episode.episode_number)
   const seasonPosition = await positionInSeason(episode.season_number, episode.episode_number)
@@ -181,9 +207,12 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
   // Замок і промо рахуємо тут, бо від них залежить облік прочитань.
   // Правило дослівно те саме, що в EpisodePaywall: перші дві серії сезону
   // вільні, преміальна замкнена завжди, адмін бачить усе.
-  const FREE_PER_SEASON = 2
+  // Вітрина: перша серія сезону відкрита всім без вибору.
+  // Друга — за вибором через /api/pick. Разом 8 безкоштовних на 4 сезони.
+  const FREE_PER_SEASON = 1
   const isPromoEpisode  = !episode.is_premium && seasonPosition <= FREE_PER_SEASON
-  const isLocked        = !isAdmin && !isPromoEpisode
+  const isUnlocked      = isAdmin || isPromoEpisode || hasSub || (hasPick && !episode.is_premium)
+  const isLocked        = !isUnlocked
 
   const wordCount = body.trim().split(/\s+/).filter(Boolean).length
   const readMin   = readingMinutes(episode)
@@ -254,8 +283,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           </div>
         )}
 
-        <EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={seasonPosition} bypass={isAdmin} isPremium={episode.is_premium} />
-
+<EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={seasonPosition} bypass={isAdmin} isPremium={episode.is_premium} hasPick={hasPick} hasSub={hasSub} globalEpisodeNumber={episode.episode_number} />
         {/* Облік прочитань за договором (п. 1.5). Замкнену серію не рахуємо
             взагалі: читач бачить тізер, а 70% обсягу тізера — це не 70%
             обсягу твору. Маркер стоїть під текстом — від нього трекер
