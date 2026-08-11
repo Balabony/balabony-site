@@ -46,12 +46,24 @@ export default function CookieConsent() {
       // приватний режим або заблоковане сховище — просто показуємо банер
     }
 
+    // 11.08.2026: банер більше не з'являється миттєво. Читач приходить із
+    // газети по QR прямо в текст історії, і перше, що він бачив, — вікно про
+    // cookies на пів екрана. Для аудиторії 55+ це причина закрити браузер.
+    // Тепер даємо 8 секунд почати читати; згода запитується так само, просто
+    // не перекриває перший екран.
+    let timer: ReturnType<typeof setTimeout> | undefined
+
     if (stored === 'granted') applyConsent('granted')
-    else if (stored !== 'denied') setVisible(true)
+    else if (stored !== 'denied') {
+      timer = setTimeout(() => setVisible(true), 8000)
+    }
 
     const reopen = () => setVisible(true)
     window.addEventListener('balabony:cookie-settings', reopen)
-    return () => window.removeEventListener('balabony:cookie-settings', reopen)
+    return () => {
+      if (timer) clearTimeout(timer)
+      window.removeEventListener('balabony:cookie-settings', reopen)
+    }
   }, [])
 
   function decide(choice: Choice) {
@@ -87,12 +99,12 @@ export default function CookieConsent() {
         color: '#f5f0e8',
       }}
     >
-      <p style={{ margin: '0 0 10px', fontSize: 15, lineHeight: 1.6 }}>
-        Ми використовуємо аналітику, щоб бачити, які історії читають і що на сайті працює погано.
-        Без вашої згоди аналітичні й рекламні дані не збираються — сайт працює й без неї.
+      <p style={{ margin: '0 0 10px', fontSize: 15, lineHeight: 1.55 }}>
+        Дозволяєте порахувати, які історії читають? Це допомагає нам їх
+        добирати. Читати можна й без дозволу.
       </p>
-      <p style={{ margin: '0 0 14px', fontSize: 13, lineHeight: 1.6, color: '#8899bb' }}>
-        Що саме зберігається — у{' '}
+      <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.5, color: '#8899bb' }}>
+        Докладніше — у{' '}
         <a href="/legal/cookies" style={{ color: GOLD, fontWeight: 600 }}>
           Політиці Cookies
         </a>
