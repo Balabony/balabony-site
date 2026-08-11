@@ -32,9 +32,13 @@ const SERIES_PER_SEASON_LIMIT = 1
 const STORIES_TOTAL_LIMIT = 7
 const MAX_REFERRAL_BONUS = 5 // +1 free story per unique story shared, capped
 const MAX_REFERRAL_BONUS_SERIES = 3 // +1 free series per unique episode shared, per season
-const SEASONS_COUNT = 4
+// Було 4 сезони / 80 серій — константи відстали від контенту: у базі вже
+// 6 сезонів і 102 опубліковані серії. Через це вибір безкоштовної серії
+// для сезонів 5–6 і для наскрізних номерів 81+ відхилявся як
+// invalid_input, тобто читач просто не міг обрати ці серії.
+const SEASONS_COUNT = 6
 const EPISODES_PER_SEASON = 20
-const TOTAL_EPISODES = SEASONS_COUNT * EPISODES_PER_SEASON // 80
+const TOTAL_EPISODES = SEASONS_COUNT * EPISODES_PER_SEASON // 120
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

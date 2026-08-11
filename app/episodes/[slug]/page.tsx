@@ -103,7 +103,15 @@ async function positionInSeason(season: number, episode: number): Promise<number
     .eq('status', 'published')
     .eq('season_number', season)
     .lt('episode_number', episode)
-  if (error || count == null) return 1
+  // При збої бази серію ЗАКРИВАЄМО, а не відкриваємо. Раніше тут стояло
+  // `return 1` — тобто будь-яка помилка запиту робила серію «першою в
+  // сезоні» й роздавала платний текст безкоштовно. Число ніде не
+  // показується читачеві, лише порівнюється з FREE_PER_SEASON, тож
+  // велике значення просто означає «не вітрина».
+  if (error || count == null) {
+    console.error('[positionInSeason] fail-closed:', error)
+    return Number.MAX_SAFE_INTEGER
+  }
   return count + 1
 }
 // Попередній епізод за наскрізною нумерацією (дзеркало getNextEpisode).
