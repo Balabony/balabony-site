@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { readingMinutes } from '@/lib/readingTime'
 import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { getOrCreateAnonUserId } from '@/lib/anon-user'
+import { getAnonUserId } from '@/lib/anon-user'
 import type { Metadata } from 'next'
 import EpisodePaywall from './EpisodePaywall'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
@@ -12,6 +12,7 @@ import ReaderPulse from '@/app/components/ReaderPulse'
 import StreakTracker from '@/app/components/StreakTracker'
 import ReadTracker from '@/app/components/ReadTracker'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
+import StoryEmailCapture from '@/app/components/StoryEmailCapture'
 import AudioPlayer from '@/app/components/AudioPlayer'
 import { leadCssDeclarations } from '@/lib/reader-typography'
 import { toExcerpt, toPlainText } from '@/lib/plain-text'
@@ -167,26 +168,37 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
   // 10.08.2026: раніше сторінка звірялась лише з позицією серії в сезоні
   // й не бачила user_free_picks — читач «обирав» серію, ліміт списувався,
   // а замок лишався. Тепер вибір і підписка враховуються тут.
-  const readerId = await getOrCreateAnonUserId()
+  // 11.08.2026: тут був getOrCreateAnonUserId(), який СТВОРЮЄ куку. Next.js
+  // забороняє записувати куки під час рендерингу сторінки (лише Server Action
+  // або Route Handler), тому сторінка падала з 500 для кожного, хто заходив
+  // УПЕРШЕ й куки ще не мав — тобто рівно для читачів, що приходять по QR
+  // з газети. У браузері з наявною кукою помилка не відтворювалась.
+  // Тепер лише читаємо: у нового читача ані вибору, ані підписки бути не може,
+  // а сама кука створиться при першому виклику /api/*, де це дозволено.
+  const readerId = await getAnonUserId()
   const db = getSupabaseAdmin()
 
-  const { data: pickRow } = await db
-    .from('user_free_picks')
-    .select('id')
-    .eq('user_id', readerId)
-    .eq('content_type', 'series')
-    .eq('content_id', episode.episode_number)
-    .maybeSingle()
+  const { data: pickRow } = readerId
+    ? await db
+        .from('user_free_picks')
+        .select('id')
+        .eq('user_id', readerId)
+        .eq('content_type', 'series')
+        .eq('content_id', episode.episode_number)
+        .maybeSingle()
+    : { data: null }
   const hasPick = Boolean(pickRow)
 
-  const { data: subRow } = await db
-    .from('app_subscriptions')
-    .select('id')
-    .eq('user_id', readerId)
-    .eq('status', 'active')
-    .gt('expires_at', new Date().toISOString())
-    .limit(1)
-    .maybeSingle()
+  const { data: subRow } = readerId
+    ? await db
+        .from('app_subscriptions')
+        .select('id')
+        .eq('user_id', readerId)
+        .eq('status', 'active')
+        .gt('expires_at', new Date().toISOString())
+        .limit(1)
+        .maybeSingle()
+    : { data: null }
   const hasSub = Boolean(subRow)
 
   const nextEp = await getNextEpisode(episode.season_number, episode.episode_number)
@@ -298,6 +310,12 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
             analytics={false}
           />
         )}
+
+        {/* Збір пошти. Головна точка втримання: саме сюди веде QR з газети,
+            і без цього блока читач із паперу зникає назавжди. Стоїть перед
+            опитуванням — його бачать усі, а опитування лише ті, кому відкрито
+            серію цілком. */}
+        <StoryEmailCapture slug={slug} />
 
         {/* Три питання — лише тому, хто побачив серію цілком.
             Умова замка повторює EpisodePaywall: перші дві серії сезону вільні. */}
