@@ -12,6 +12,7 @@ import ReaderPulse from '@/app/components/ReaderPulse'
 import StreakTracker from '@/app/components/StreakTracker'
 import ReadTracker from '@/app/components/ReadTracker'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
+import StoryEmailCapture from '@/app/components/StoryEmailCapture'
 import AudioPlayer from '@/app/components/AudioPlayer'
 import { leadCssDeclarations } from '@/lib/reader-typography'
 import { toExcerpt, toPlainText } from '@/lib/plain-text'
@@ -298,6 +299,12 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
             analytics={false}
           />
         )}
+
+        {/* Збір пошти. Головна точка втримання: саме сюди веде QR з газети,
+            і без цього блока читач із паперу зникає назавжди. Стоїть перед
+            опитуванням — його бачать усі, а опитування лише ті, кому відкрито
+            серію цілком. */}
+        <StoryEmailCapture slug={slug} />
 
         {/* Три питання — лише тому, хто побачив серію цілком.
             Умова замка повторює EpisodePaywall: перші дві серії сезону вільні. */}
