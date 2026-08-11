@@ -314,11 +314,17 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         {/* Гачок і перехід на наступну серію — одразу під текстом.
             Раніше стояв після пошти й шерингу: читач мусив пройти два
             блоки, перш ніж дізнавався, що буде далі. Тепер найсильніший
-            мотиватор іде першим, а пошту просимо вже в розігрітого. */}
-        {(episode.hook || episode.next_teaser || nextEp) && (
+            мотиватор іде першим, а пошту просимо вже в розігрітого.
+
+            Гачок — це кінцівка ПОТОЧНОЇ серії, тож на замкненій його
+            не показуємо: інакше читач без доступу безкоштовно отримує
+            фінал того, за що мав би заплатити. Тизер наступної серії
+            й обкладинка лишаються — вони нічого не спойлерять і саме
+            вони продають передплату. */}
+        {((!isLocked && episode.hook) || episode.next_teaser || nextEp) && (
           <div style={{ marginTop: 44, marginLeft: -20, marginRight: -20 }}>
             <EpisodeCliffhanger
-              hook={episode.hook ?? undefined}
+              hook={!isLocked ? (episode.hook ?? undefined) : undefined}
               next={(episode.next_teaser || nextEp) ? {
                 season:      nextEp?.season_number ?? episode.season_number,
                 number:      nextEp?.episode_number ?? episode.episode_number + 1,
