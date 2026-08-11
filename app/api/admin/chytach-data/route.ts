@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
   const db = getSupabaseAdmin()
   const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
 
-  const [reads, paywall, acq, episodes] = await Promise.all([
+  const [reads, paywall, acq, episodes, catalog, subs] = await Promise.all([
     db.from('article_reads')
       .select('user_id, content_id, article_slug, article_title, completed, read_percentage, read_date, time_spent_seconds')
       .gte('read_date', since.toISOString().slice(0, 10))
@@ -44,6 +44,15 @@ export async function GET(req: NextRequest) {
       .select('id, slug, title, season_number, episode_number, type')
       .not('episode_number', 'is', null)
       .limit(500),
+    // Увесь опублікований каталог — потрібні жанр і автор, щоб бачити смаки
+    db.from('content')
+      .select('slug, title, genre, author_name, type')
+      .in('status', ['approved', 'published'])
+      .limit(2000),
+    // Підписки — щоб знати, хто з читачів лишив пошту
+    db.from('subscribers')
+      .select('email, source, created_at')
+      .limit(20000),
   ])
 
   return NextResponse.json({
@@ -51,11 +60,15 @@ export async function GET(req: NextRequest) {
     paywall:  paywall.data  ?? [],
     acq:      acq.data      ?? [],
     episodes: episodes.data ?? [],
+    catalog:  catalog.data  ?? [],
+    subs:     subs.data     ?? [],
     errors: {
       reads:    reads.error?.message    ?? null,
       paywall:  paywall.error?.message  ?? null,
       acq:      acq.error?.message      ?? null,
       episodes: episodes.error?.message ?? null,
+      catalog:  catalog.error?.message  ?? null,
+      subs:     subs.error?.message     ?? null,
     },
   })
 }
