@@ -434,6 +434,55 @@ export default function Footer() {
         </p>
       </div>
 
+      {/* ════════ ІНШІ ПРОЄКТИ ОРГАНІЗАЦІЇ ════════ */}
+      {/* Дзеркальний блок до такого ж на storriss.com. Показує, що обидві
+          платформи належать одному видавцеві — ГО «Інститут громадянського
+          суспільства». Потрібно і для читача, і для донорів. */}
+      <div style={{
+        maxWidth: 1200, margin: '0 auto 24px',
+        padding: '16px 24px',
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.10)',
+        borderRadius: 12,
+      }}>
+        <h4 style={{
+          color: 'var(--accent-gold)', marginBottom: 8, fontSize: 11, fontWeight: 700,
+          textTransform: 'uppercase', letterSpacing: '0.8px',
+          fontFamily: "'Montserrat', sans-serif",
+        }}>
+          Інші проєкти організації
+        </h4>
+        <p style={{
+          fontSize: 13, lineHeight: 1.7, color: 'rgba(255,255,255,0.75)',
+          margin: 0, fontFamily: "'Montserrat', sans-serif",
+        }}>
+          Balabony — один із проєктів ЛОГО «Інститут громадянського суспільства».
+          Медіагрупа організації також видає щотижневі газети «Життя», «Життя. Історії»,
+          «Життєві історії», «Найкращі жіночі історії» та розвиває портал{' '}
+          <a
+            href="https://storriss.com"
+            target="_blank"
+            rel="noopener"
+            className="footer-link"
+            style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontWeight: 600 }}
+          >
+            Storriss
+          </a>
+          {' '}— життєві історії, факти й людські долі. Автори публікуються і на папері, і онлайн:
+          знайшовши автора в газеті, читач може читати його далі на будь-якій із платформ.{' '}
+          <a
+            href="https://glife.com.ua"
+            target="_blank"
+            rel="noopener"
+            className="footer-link"
+            style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontWeight: 600 }}
+          >
+            Про газети
+          </a>
+          .
+        </p>
+      </div>
+
       {/* ════════ ПАРТНЕРИ ════════ */}
       {/* Щоб додати партнера — додай об'єкт у масив нижче.
           Для темного фону футера логотип має бути світлим (білим). */}
