@@ -140,7 +140,12 @@ export default function EpisodeCliffhanger({ hook, next, allSeriesUrl = '/series
                     src={next.coverUrl}
                     alt={`Сезон ${next.season} · Серія ${next.number}`}
                     style={{
-                      width: '100%', height: '100%', objectFit: 'cover', display: 'block',
+                      width: '100%', height: '100%', objectFit: 'cover',
+                      // Вертикальні обкладинки в рамці 16:9 обрізались згори
+                      // й знизу порівну — голова персонажа відлітала. Прив'язка
+                      // до верху лишає обличчя в кадрі на будь-яких пропорціях.
+                      objectPosition: 'center top',
+                      display: 'block',
                       filter: hasFutureRelease ? 'saturate(0.85)' : 'none',
                     }}
                   />
