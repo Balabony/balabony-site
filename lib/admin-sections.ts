@@ -37,6 +37,7 @@ export const ADMIN_GROUPS: AdminGroup[] = [
       { href: '/admin/na-redakturi',    label: 'На редактурі',   note: 'Черга текстів у роботі' },
       { href: '/admin/editorial',       label: 'Редакція',       note: 'Редакційний розділ' },
       { href: '/admin/cover-position',  label: 'Кадр обкладинки', note: 'Підгонка фото в картці, щоб не зрізало обличчя', quick: true, short: 'Кадр' },
+      { href: '/admin/rozklad',         label: 'Розклад публікацій', note: 'Вівторок і пʼятниця о 18:00 — що на які дати призначено', quick: true, short: 'Розклад' },
     ],
   },
   {
@@ -73,7 +74,8 @@ export const ADMIN_GROUPS: AdminGroup[] = [
   {
     title: 'Читачі',
     items: [
-      { href: '/admin/benefits', label: 'Пільгові статуси', note: 'Ручні заявки на пільгу — те, що Дія не валідує', quick: true, short: 'Пільги' },
+      { href: '/admin/benefits',    label: 'Пільгові статуси', note: 'Ручні заявки на пільгу — те, що Дія не валідує', quick: true, short: 'Пільги' },
+      { href: '/admin/pidpysnyky',  label: 'Підписники',       note: 'База пошт із блоку під історіями, вивантаження CSV', quick: true, short: 'Підписники' },
     ],
   },
   {
