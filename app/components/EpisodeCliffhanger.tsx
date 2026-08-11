@@ -158,7 +158,7 @@ export default function EpisodeCliffhanger({ hook, next, allSeriesUrl = '/series
 
               {/* Інтрига наступної серії */}
               {next.teaser && (
-                <p style={{ fontSize: 14, color: colors.muted, fontFamily: FONT, lineHeight: 1.7, margin: '14px 0 0' }}>
+                <p style={{ fontSize: 16, fontWeight: 600, color: colors.fg, fontFamily: FONT, lineHeight: 1.65, margin: '16px 0 0' }}>
                   {next.teaser}
                 </p>
               )}
@@ -196,9 +196,15 @@ export default function EpisodeCliffhanger({ hook, next, allSeriesUrl = '/series
             </p>
           )}
 
-          <div style={{ marginTop: 24, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <a href={allSeriesUrl} style={ctaGhost}>Усі серії →</a>
-          </div>
+          {/* «Усі серії» показуємо лише тоді, коли головної кнопки нема:
+              інакше поруч стоять два однакові виходи і головна дія
+              («Читати Серію N») розмивається. Внизу сторінки серії
+              вже є «Більше епізодів →». */}
+          {!nextAvailable && (
+            <div style={{ marginTop: 24, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <a href={allSeriesUrl} style={ctaGhost}>Усі серії →</a>
+            </div>
+          )}
 
         </div>
       </div>
