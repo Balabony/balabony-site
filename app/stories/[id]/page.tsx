@@ -8,6 +8,7 @@ import LikeButton from '@/app/components/LikeButton'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
 import AgeGate from '@/app/components/AgeGate'
 import AudioPlayer from '@/app/components/AudioPlayer'
+import StoryEmailCapture from '@/app/components/StoryEmailCapture'
 import { toPlainText, toExcerpt } from '@/lib/plain-text'
 import { leadInlineStyle } from '@/lib/reader-typography'
 import { authorSlug } from '@/lib/author-slug'
@@ -221,6 +222,11 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
         {/* Вподобання: найпростіша дія, тому стоїть першою під текстом. */}
         <LikeButton contentId={story.id} />
+
+        {/* Збір пошти. Стоїть саме тут — після тексту й лайку, до опитування:
+            читач із газети по QR потрапляє одразу сюди, і це єдина точка,
+            де його можна втримати. */}
+        <StoryEmailCapture slug={id} />
 
         {/* Три питання тому, хто дочитав */}
         <ReaderPulse contentId={story.id} />
