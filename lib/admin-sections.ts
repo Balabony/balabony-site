@@ -65,6 +65,9 @@ export const ADMIN_GROUPS: AdminGroup[] = [
       { href: '/admin/protagonist-report', label: 'Хто головний герой', note: 'Класифікація серій для обкладинок' },
       { href: '/admin/reviews',            label: 'Відгуки',            note: 'Відгуки читачів' },
       { href: '/admin/analytics',          label: 'Аналітика',          note: 'Перегляди, сесії, доходимість', quick: true },
+      { href: '/admin/kanaly',             label: 'Канали приходу',     note: 'Газета і пошта: приходи, дочитування, підписки за тиждень', quick: true, short: 'Канали' },
+      { href: '/admin/chytach',            label: 'Шлях читача',        note: 'Що робить читач після першої серії — воронка, жанри, профілі', quick: true, short: 'Читач' },
+      { href: '/admin/qr',                 label: 'QR-посилання',       note: 'Куди веде код у газеті. Міняти в неділю ввечері', quick: true, short: 'QR' },
     ],
   },
   {
