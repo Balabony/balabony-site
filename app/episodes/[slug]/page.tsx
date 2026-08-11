@@ -200,7 +200,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
   const { data: subRow } = readerId
     ? await db
         .from('app_subscriptions')
-        .select('id')
+        .select('id, plan')
         .eq('user_id', readerId)
         .eq('status', 'active')
         .gt('expires_at', new Date().toISOString())
@@ -208,6 +208,25 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         .maybeSingle()
     : { data: null }
   const hasSub = Boolean(subRow)
+
+  // Бонусні серії (is_premium) відкриті лише річним підписникам і
+  // пільговикам. Місячна підписка їх НЕ відкриває — раніше тут стояла
+  // проста перевірка «є будь-яка активна підписка», через що місячник
+  // бачив те саме, що й річний. /api/episode уже працював за правилом
+  // plan === 'yearly'; тепер сторінка серії з ним узгоджена.
+  const { data: benefitRow } = readerId
+    ? await db
+        .from('benefit_status')
+        .select('valid_until')
+        .eq('user_id', readerId)
+        .maybeSingle()
+    : { data: null }
+  const hasBenefit = Boolean(
+    benefitRow &&
+      (!benefitRow.valid_until ||
+        new Date(benefitRow.valid_until).getTime() >= Date.now())
+  )
+  const hasPremiumAccess = subRow?.plan === 'yearly' || hasBenefit
 
   const nextEp = await getNextEpisode(episode.season_number, episode.episode_number)
   const seasonPosition = await positionInSeason(episode.season_number, episode.episode_number)
@@ -231,7 +250,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
   // Друга — за вибором через /api/pick. Разом 8 безкоштовних на 4 сезони.
   const FREE_PER_SEASON = 1
   const isPromoEpisode  = !episode.is_premium && seasonPosition <= FREE_PER_SEASON
-  const isUnlocked      = isAdmin || isPromoEpisode || hasSub || (hasPick && !episode.is_premium)
+  const isUnlocked      = isAdmin || isPromoEpisode || (episode.is_premium ? hasPremiumAccess : (hasSub || hasPick))
   const isLocked        = !isUnlocked
 
   const wordCount = body.trim().split(/\s+/).filter(Boolean).length
@@ -303,7 +322,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           </div>
         )}
 
-<EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={seasonPosition} bypass={isAdmin} isPremium={episode.is_premium} hasPick={hasPick} hasSub={hasSub} globalEpisodeNumber={episode.episode_number} />
+<EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={seasonPosition} bypass={isAdmin} isPremium={episode.is_premium} hasPick={hasPick} hasSub={hasSub} hasPremiumAccess={hasPremiumAccess} globalEpisodeNumber={episode.episode_number} />
         {/* Облік прочитань за договором (п. 1.5). Замкнену серію не рахуємо
             взагалі: читач бачить тізер, а 70% обсягу тізера — це не 70%
             обсягу твору. Маркер стоїть під текстом — від нього трекер

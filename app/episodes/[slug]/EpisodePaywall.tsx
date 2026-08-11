@@ -14,6 +14,7 @@ interface Props {
   isPremium?:     boolean
   hasPick?:            boolean
   hasSub?:             boolean
+  hasPremiumAccess?:   boolean
   globalEpisodeNumber?: number
 }
 
@@ -57,7 +58,7 @@ function getTeaserHtml(html: string): string {
   return styles + teaserScenes.join('')
 }
 
-export default function EpisodePaywall({ html, fontFamily, seasonNumber, episodeNumber, bypass = false, isPremium = false, hasPick = false, hasSub = false, globalEpisodeNumber }: Props) {
+export default function EpisodePaywall({ html, fontFamily, seasonNumber, episodeNumber, bypass = false, isPremium = false, hasPick = false, hasSub = false, hasPremiumAccess = false, globalEpisodeNumber }: Props) {
   const scrollToPricing = () => {
     window.location.href = '/#pricing'
   }
@@ -94,9 +95,12 @@ export default function EpisodePaywall({ html, fontFamily, seasonNumber, episode
 
   // Відкрито, якщо: вітрина (перша серія сезону), підписка, або серію обрано.
   // Преміальна серія доступна лише за підпискою — вибором не відкривається.
-  const isUnlocked =
-    hasSub ||
-    (!isPremium && (episodeNumber <= FREE_PER_SEASON || hasPick))
+  // Бонусна (преміальна) серія — лише річна передплата або пільговий
+  // статус. Будь-яка інша активна підписка (місячна, сімейна місячна)
+  // її НЕ відкриває.
+  const isUnlocked = isPremium
+    ? hasPremiumAccess
+    : (hasSub || episodeNumber <= FREE_PER_SEASON || hasPick)
   const isLocked = !isUnlocked
   if (!isLocked) {
     return <EpisodeBody html={html} fontFamily={fontFamily} />
@@ -155,7 +159,7 @@ export default function EpisodePaywall({ html, fontFamily, seasonNumber, episode
             fontFamily,
           }}
         >
-          {isPremium ? 'Це закрита серія. Вона доступна лише за річною передплатою.' : 'Це була твоя безкоштовна серія. Щоб читати далі — обери пакет.'}
+          {isPremium ? 'Це бонусна серія. Вона доступна за річною передплатою або пільговим доступом.' : 'Це була твоя безкоштовна серія. Щоб читати далі — обери пакет.'}
         </p> 
         {!isPremium && globalEpisodeNumber && (
           <button
