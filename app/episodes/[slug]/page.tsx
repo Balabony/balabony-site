@@ -311,22 +311,10 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           />
         )}
 
-        {/* Збір пошти. Головна точка втримання: саме сюди веде QR з газети,
-            і без цього блока читач із паперу зникає назавжди. Стоїть перед
-            опитуванням — його бачать усі, а опитування лише ті, кому відкрито
-            серію цілком. */}
-        <StoryEmailCapture slug={slug} />
-
-        {/* Три питання — лише тому, хто побачив серію цілком.
-            Умова замка повторює EpisodePaywall: перші дві серії сезону вільні. */}
-        {(isAdmin || (!episode.is_premium && seasonPosition <= 2)) && (
-          <ReaderPulse contentId={episode.id} />
-        )}
-
-        <div style={{ marginTop: 40 }}>
-          <ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} storyId={episode.id} season={episode.season_number} />
-        </div>
-
+        {/* Гачок і перехід на наступну серію — одразу під текстом.
+            Раніше стояв після пошти й шерингу: читач мусив пройти два
+            блоки, перш ніж дізнавався, що буде далі. Тепер найсильніший
+            мотиватор іде першим, а пошту просимо вже в розігрітого. */}
         {(episode.hook || episode.next_teaser || nextEp) && (
           <div style={{ marginTop: 44, marginLeft: -20, marginRight: -20 }}>
             <EpisodeCliffhanger
@@ -343,6 +331,22 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
             />
           </div>
         )}
+
+        {/* Збір пошти. Головна точка втримання: саме сюди веде QR з газети,
+            і без цього блока читач із паперу зникає назавжди. Стоїть перед
+            опитуванням — його бачать усі, а опитування лише ті, кому відкрито
+            серію цілком. */}
+        <StoryEmailCapture slug={slug} />
+
+        {/* Три питання — лише тому, хто побачив серію цілком.
+            Умова замка повторює EpisodePaywall: перші дві серії сезону вільні. */}
+        {(isAdmin || (!episode.is_premium && seasonPosition <= 2)) && (
+          <ReaderPulse contentId={episode.id} />
+        )}
+
+        <div style={{ marginTop: 40 }}>
+          <ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} storyId={episode.id} season={episode.season_number} />
+        </div>
 
         <div style={{ marginTop: 52, paddingTop: 24, borderTop: '0.5px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div style={{ fontSize: 13, color: 'var(--on-dark-muted)', fontFamily: FONT }}>
