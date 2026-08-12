@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { readingMinutes, countWords } from '@/lib/readingTime'
 import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { getAnonUserId } from '@/lib/anon-user'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import ReadTracker from '@/app/components/ReadTracker'
@@ -86,6 +87,7 @@ interface TyshaRow {
   description: string | null
   season_number: number | null
   episode_number: number | null
+  is_premium: boolean | null
   text: string
   corrected_text: string | null
   humanized_text: string | null
@@ -105,7 +107,7 @@ async function getEpisode(slug: string, isAdmin: boolean): Promise<TyshaRow | nu
   const supabase = getSupabaseAdmin()
   const q = supabase
     .from('content')
-    .select('id, slug, title, description, season_number, episode_number, text, corrected_text, humanized_text, published_version, cover_url, status, publish_at, hook, next_teaser, audio_url, audio_status')
+    .select('id, slug, title, description, season_number, episode_number, is_premium, text, corrected_text, humanized_text, published_version, cover_url, status, publish_at, hook, next_teaser, audio_url, audio_status')
     .eq('type', 'tysha')
     .eq('slug', slug)
 
@@ -180,9 +182,52 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
   const next = await getNextEpisode(ep.episode_number, isAdmin)
   const body = toPlainText((ep.corrected_text?.trim() ? ep.corrected_text : ep.text) ?? '')
 
-  // Пейвол: перші FREE_EPISODES серій вільні; далі — лише адмін бачить повністю.
+  // ── Пейвол «Тиші».
+  // 12.08.2026: раніше тут стояло `locked = !isAdmin && epNum > FREE_EPISODES` —
+  // сторінка звірялась ЛИШЕ з номером серії й не дивилась у підписку взагалі.
+  // Через це читач, який оплатив пакет, бачив той самий замок, що й гість:
+  // гроші взяті, доступу немає. Тепер правило те саме, що в «Балабонах»
+  // (app/episodes/[slug]/page.tsx): перші FREE_EPISODES серій — промо для всіх,
+  // далі відкриває будь-яка активна підписка, а бонусні серії (is_premium) —
+  // лише річний тариф або чинний пільговий статус.
+  // Вибору серій (user_free_picks) у «Тиші» немає навмисне: серіал 18+,
+  // безкоштовна «вітрина» тут обмежена промо-серіями.
   const epNum = ep.episode_number ?? 0
-  const locked = !isAdmin && epNum > FREE_EPISODES
+  const readerId = await getAnonUserId()
+  const db = getSupabaseAdmin()
+
+  const { data: subRow } = readerId
+    ? await db
+        .from('app_subscriptions')
+        .select('id, plan')
+        .eq('user_id', readerId)
+        .eq('status', 'active')
+        .gt('expires_at', new Date().toISOString())
+        .limit(1)
+        .maybeSingle()
+    : { data: null }
+  const hasSub = Boolean(subRow)
+
+  const { data: benefitRow } = readerId
+    ? await db
+        .from('benefit_status')
+        .select('valid_until')
+        .eq('user_id', readerId)
+        .maybeSingle()
+    : { data: null }
+  const hasBenefit = Boolean(
+    benefitRow &&
+      (!benefitRow.valid_until ||
+        new Date(benefitRow.valid_until).getTime() >= Date.now())
+  )
+  const hasPremiumAccess = subRow?.plan === 'yearly' || hasBenefit
+
+  const isPromoEpisode = epNum <= FREE_EPISODES
+  const isUnlocked =
+    isAdmin ||
+    isPromoEpisode ||
+    (ep.is_premium ? hasPremiumAccess : hasSub)
+  const locked = !isUnlocked
   const visibleBody = locked ? buildTeaser(body) : body
   const prevRecap = await getPrevTyshaRecap(ep.episode_number, isAdmin)
 
@@ -253,9 +298,19 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
           </div>
           <div style={{ marginTop: 24, padding: '32px 24px', borderRadius: 16, background: 'rgba(239,159,39,0.08)', border: `1px solid ${GOLD}44`, textAlign: 'center' }}>
             <div style={{ fontSize: 28, marginBottom: 12 }}>🔒</div>
-            <p style={{ fontSize: 16, color: '#f5f0e8', lineHeight: 1.6, margin: '0 0 6px', fontWeight: 700 }}>Далі — за підпискою</p>
-            <p style={{ fontSize: 14, color: 'rgba(245,240,232,0.7)', lineHeight: 1.6, margin: '0 0 20px' }}>Перші дві серії «Тиші» — вільні. Щоб читати серіал далі, обери пакет.</p>
-            <a href="/#pricing" style={{ display: 'inline-block', padding: '14px 28px', background: GOLD, color: NAVY_DEEP, borderRadius: 10, fontSize: 15, fontWeight: 700, textDecoration: 'none', fontFamily: FONT }}>Обрати пакет →</a>
+            {/* Читач із місячною підпискою на бонусній серії має бачити не
+                «обери пакет» (пакет у нього вже є), а причину замка. */}
+            <p style={{ fontSize: 16, color: '#f5f0e8', lineHeight: 1.6, margin: '0 0 6px', fontWeight: 700 }}>
+              {ep.is_premium && hasSub ? 'Бонусна серія' : 'Далі — за підпискою'}
+            </p>
+            <p style={{ fontSize: 14, color: 'rgba(245,240,232,0.7)', lineHeight: 1.6, margin: '0 0 20px' }}>
+              {ep.is_premium && hasSub
+                ? 'Бонусні серії «Тиші» відкриті для річної передплати та пільгового доступу.'
+                : 'Перші дві серії «Тиші» — вільні. Щоб читати серіал далі, обери пакет.'}
+            </p>
+            <a href="/#pricing" style={{ display: 'inline-block', padding: '14px 28px', background: GOLD, color: NAVY_DEEP, borderRadius: 10, fontSize: 15, fontWeight: 700, textDecoration: 'none', fontFamily: FONT }}>
+              {ep.is_premium && hasSub ? 'Перейти на річну →' : 'Обрати пакет →'}
+            </a>
           </div>
         </article>
       ) : (
