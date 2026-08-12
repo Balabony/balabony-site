@@ -139,6 +139,8 @@ const NEGATIVE_PROMPT = [
   'amputated legs', 'amputated feet', 'figure cropped at the knees',
   'cropped at the ankles', 'cropped at the shins', 'limbs cut by frame edge',
   'feet outside the frame', 'awkward body crop',
+  'blue jeans', 'denim', 'denim trousers', 'modern jeans', 'sportswear',
+  'tracksuit', 'sneakers', 'modern casual clothes', 'contemporary streetwear',
   'blurry face', 'plastic skin', 'doll face', 'wax figure', 'mannequin',
   'low quality', 'jpeg artifacts', 'oversaturated',
 ].join(', ')
@@ -387,10 +389,23 @@ export async function POST(req: NextRequest) {
     const framingFinal = pickBySeed(FRAMING_VARIANTS, seed, 13)
     const angleFinal   = pickBySeed(ANGLE_VARIANTS, seed, 29)
 
+    // Одяг персонажа НЕ описувався в промпті взагалі — малося на увазі, що він
+    // прийде з вхідної пози. Але flux-kontext перемальовує фігуру і вбирає діда
+    // на власний розсуд: на прогоні 12.08.2026 третина обкладинок вийшла з
+    // Панасом у синіх джинсах, що суперечить канону (вишиванка, темна жилетка,
+    // плетений пояс). Тому одяг фіксуємо явно, посилаючись на вхідне зображення.
+    const wardrobe = character === 'ganya'
+      ? 'keeping exactly the same traditional clothes as in the reference image: ' +
+        'embroidered blouse, dark skirt down to mid-calf, apron and floral headscarf'
+      : 'keeping exactly the same traditional clothes as in the reference image: ' +
+        'white embroidered shirt, dark sleeveless waistcoat, woven belt and plain ' +
+        'dark or beige work trousers'
+
     const promptParts = [
       objectPrefix + scene,
       locationPrompt,
       seasonPrompt,
+      wardrobe,
       lightingFinal,
       framingFinal,
       angleFinal,
