@@ -23,18 +23,23 @@ const PANEL_H = 1152 // 2:3, як в одиночних позах
 
 // Обидва обличчя описуємо явно: Kontext інакше «усереднює» вік і вбирає обох
 // на свій розсуд. Ті самі «замки», що в generate-ganya-pose і generate-cover.
+// 12.08.2026, перший прогін: словесні портрети обох (вік, обличчя, одяг) дали
+// зворотний ефект — Kontext прочитав їх як завдання МАЛЮВАТИ, а не ЗБЕРІГАТИ,
+// і перемалював обличчя по тексту: Ганя вийшла старша за еталон, Панас із чужою
+// бородою. На одиночних позах цього не було, бо там суб'єкт один і розрізняти
+// нікого не треба. Тому опис зведено до мінімуму: що менше тексту про зовнішність,
+// то сильніше модель тримається вхідного зображення.
 const PAIR_LOOK =
-  'the man from the LEFT half of the reference image and the woman from the RIGHT half, ' +
-  'two DIFFERENT people, an elderly Ukrainian village couple standing together in one scene, ' +
-  'the man: exactly 63 years old, grey moustache, white embroidered shirt, dark sleeveless ' +
-  'waistcoat, woven belt, plain dark work trousers; ' +
-  'the woman: exactly 68 years old, NOT frail, hair mostly dark brown with grey strands ' +
-  'under a floral headscarf, white embroidered blouse, long dark skirt to mid-calf, apron ' +
-  '(NOT trousers); ' +
-  'keep both faces exactly as in the reference image, do not merge or swap their faces, ' +
-  'do not duplicate the same person twice'
+  'the SAME two people as in the reference image, now together in one single scene, ' +
+  'keep both faces pixel-identical to the reference, do not age them, do not change ' +
+  'their hair or beard, do not merge or swap faces, the man on the left, the woman on the right'
 
+// Ополоник — фірмовий предмет ГАНІ. На першому прогоні модель роздала його обом
+// (а в одному кадрі — і Панасові теж), тож належність предмета фіксуємо явно.
+// Джинси в Панаса — та сама помилка, що вже ловилась на одиночних обкладинках.
 const PAIR_TECH =
+  'only the woman holds the wooden ladle, the man holds nothing in his hands, ' +
+  'the man wears plain dark or beige work trousers, NOT jeans, NOT denim, ' +
   'both people fully visible head to feet, standing at natural height side by side, ' +
   'camera at eye level, realistic adult proportions, well-formed hands with exactly five ' +
   'fingers, entire bodies within frame, feet visible, never cropped at the knees, ' +
@@ -47,6 +52,9 @@ const NEGATIVE_PROMPT = [
   'twins', 'identical faces', 'same person twice', 'merged faces',
   'three people', 'crowd', 'extra person',
   'deformed hands', 'extra fingers', 'cropped feet',
+  'jeans', 'denim trousers', 'blue jeans',
+  'man holding a ladle', 'two ladles', 'man holding a spoon',
+  'aged face', 'wrinkled face', 'different face', 'changed hairstyle',
 ].join(', ')
 
 function listPoses(folder: string, prefix: string): string[] {
