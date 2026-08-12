@@ -6,6 +6,11 @@ import Anthropic from '@anthropic-ai/sdk'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { applyGoldenFrame } from '@/lib/golden-frame'
 
+// Генерація в Replicate триває 30-90 с (є цикл опитування до 30×3 с нижче),
+// а Vercel за замовчуванням обриває функцію значно раніше — частина генерацій
+// падала саме через це, а не через модель. 300 с — стеля Vercel Pro.
+export const maxDuration = 300
+
 async function cropAboveHands(buf: Buffer): Promise<Buffer> {
   try {
     const meta = await sharp(buf).metadata()
@@ -450,6 +455,13 @@ export async function POST(req: NextRequest) {
 
     const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(fileName)
 
+    // Перед перезаписом запам'ятовуємо чинну обкладинку. Сам файл у Storage
+    // не зникає (ім'я унікальне за таймстампом), але посилання на нього в БД
+    // затирається — без цього відкотити невдалу генерацію не було б чим.
+    const { data: prevRow } = await supabase
+      .from('content').select('cover_url').eq('slug', seriesId).single()
+    const previousUrl: string | null = prevRow?.cover_url ?? null
+
     const coverMeta = {
       character,
       pose: usedPose,
@@ -463,6 +475,7 @@ export async function POST(req: NextRequest) {
       fileName,
       generatedAt: new Date().toISOString(),
       fromPlan: !!planRow,
+      previousUrl,
     }
 
     await supabase

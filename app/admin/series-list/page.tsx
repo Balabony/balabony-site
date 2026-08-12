@@ -52,6 +52,14 @@ export default function SeriesListPage() {
   const [coverChar,    setCoverChar]    = useState<'auto' | 'panas' | 'ganya'>('auto')
   // Батч-генерація recap
   const [recapRunning, setRecapRunning] = useState(false)
+
+  // Батч перегенерації обкладинок (серії без cover_meta — зроблені повз систему)
+  const [covRunning, setCovRunning] = useState(false)
+  const [covDone,    setCovDone]    = useState(0)
+  const [covTotal,   setCovTotal]   = useState(0)
+  const [covLast,    setCovLast]    = useState('')
+  const [covMsg,     setCovMsg]     = useState('')
+  const [covFailed,  setCovFailed]  = useState<string[]>([])
   const [recapDone,    setRecapDone]    = useState(0)
   const [recapTotal,   setRecapTotal]   = useState(0)
   const [recapLast,    setRecapLast]    = useState('')
@@ -146,6 +154,73 @@ export default function SeriesListPage() {
       }
     } catch { /* тихо */ } finally {
       setCovGenSlug(null)
+    }
+  }
+
+  // Батч перегенерації обкладинок: викликаємо endpoint у циклі, доки done=true.
+  // Кожен виклик обробляє ОДНУ серію без cover_meta. Серії, де генерація впала,
+  // накопичуються у skip-списку й передаються назад — інакше батч уперся б у ту
+  // саму проблемну серію і не рушив далі.
+  const runCoverBatch = async () => {
+    if (covRunning) return
+    if (!confirm(
+      'Перегенерувати обкладинки для серій, зроблених повз систему?\n\n' +
+      'Обробляються ТІЛЬКИ серії без cover_meta (їх 34). Обкладинки, вже ' +
+      'згенеровані з еталонних поз, не зачіпаються.\n\n' +
+      'Кожна серія — 30-90 секунд, тож повний прогін триватиме близько години. ' +
+      'Вкладку не закривай.'
+    )) return
+
+    setCovRunning(true); setCovDone(0); setCovTotal(0); setCovLast(''); setCovMsg(''); setCovFailed([])
+    const failed: string[] = []
+    let safety = 0
+
+    try {
+      while (safety < 200) {
+        safety++
+        const res = await fetch('/api/admin/cover-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ skipSlugs: failed }),
+        })
+        const data = await res.json() as {
+          done?: boolean; total?: number; error?: string; failedSlug?: string
+          processed?: { slug?: string; title?: string; season?: number; episode?: number; url?: string } | null
+        }
+
+        if (!res.ok && !data.processed) {
+          setCovMsg(`Помилка: ${data.error ?? 'невідома'}. Зупинено. Можна запустити знову — продовжить з місця.`)
+          break
+        }
+        if (data.total) setCovTotal(data.total)
+        if (data.done) {
+          setCovMsg(failed.length > 0
+            ? `Готово. Не вдалося: ${failed.length} — ${failed.join(', ')}. Спробуй їх окремо кнопкою на серії.`
+            : 'Готово — усі обкладинки перегенеровано.')
+          break
+        }
+
+        const p = data.processed
+        const label = p ? `S${p.season}E${p.episode} — ${p.title}` : ''
+
+        if (data.failedSlug) {
+          failed.push(data.failedSlug)
+          setCovFailed([...failed])
+          setCovLast(`${label} — збій, пропускаю`)
+        } else {
+          setCovDone(d => d + 1)
+          setCovLast(label)
+          // оновлюємо обкладинку в списку без перезавантаження сторінки
+          if (p?.slug && p?.url) {
+            const fresh = `${p.url}${p.url.includes('?') ? '&' : '?'}t=${Date.now()}`
+            setSeries(prev => prev.map(s => s.slug === p.slug ? { ...s, cover_url: fresh } : s))
+          }
+        }
+      }
+    } catch (e) {
+      setCovMsg(`Помилка: ${e instanceof Error ? e.message : 'невідома'}. Можна запустити знову.`)
+    } finally {
+      setCovRunning(false)
     }
   }
 
@@ -516,6 +591,38 @@ export default function SeriesListPage() {
               {ssLast && <div style={{ color: '#8899bb' }}>Останній: {ssLast}</div>}
               {ssText && <div style={{ marginTop: 6, padding: 10, background: 'rgba(255,255,255,0.04)', borderRadius: 8, color: '#e7d9bf', fontStyle: 'italic' }}>{ssText}</div>}
               {ssMsg && <div style={{ color: ssMsg.startsWith('Помилка') ? '#dd8f8f' : '#9ae6b4' }}>{ssMsg}</div>}
+            </div>
+          )}
+        </div>
+
+        {/* Батч-перегенерація обкладинок, зроблених повз систему (cover_meta IS NULL) */}
+        <div style={{ marginBottom: 20, padding: 14, background: NAVY, borderRadius: 12, border: '1px solid rgba(208, 163, 85,0.25)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={runCoverBatch}
+              disabled={covRunning}
+              style={{
+                fontSize: 13, fontWeight: 700, fontFamily: FONT,
+                color: '#1a1205', background: GOLD, border: 'none',
+                borderRadius: 8, padding: '9px 16px',
+                cursor: covRunning ? 'default' : 'pointer', opacity: covRunning ? 0.7 : 1,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {covRunning ? '⏳ Генерую обкладинки…' : '🖼 Перегенерувати старі обкладинки'}
+            </button>
+            <span style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>
+              Тільки серії без cover_meta — ті, чиї обкладинки зроблені повз систему, через що обличчя Панаса на них випадкове.
+              Уже згенеровані з еталонних поз не чіпаються. ~30-90 с на серію, вкладку не закривати.
+            </span>
+          </div>
+          {(covRunning || covDone > 0 || covMsg) && (
+            <div style={{ marginTop: 10, fontSize: 12, color: '#cbd5e1', fontFamily: FONT, lineHeight: 1.6 }}>
+              {covDone > 0 && <div>Перегенеровано цього запуску: <b style={{ color: GOLD }}>{covDone}</b>{covTotal ? ` (треба: ${covTotal})` : ''}</div>}
+              {covLast && <div style={{ color: '#8899bb' }}>Останній: {covLast}</div>}
+              {covFailed.length > 0 && <div style={{ color: '#dd8f8f' }}>Збої ({covFailed.length}): {covFailed.join(', ')}</div>}
+              {covMsg && <div style={{ color: covMsg.startsWith('Помилка') ? '#dd8f8f' : '#9ae6b4' }}>{covMsg}</div>}
             </div>
           )}
         </div>
