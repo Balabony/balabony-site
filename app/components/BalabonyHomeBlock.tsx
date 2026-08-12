@@ -8,7 +8,7 @@ const STYLES = `
 .bb-card { transition: transform 0.25s ease, box-shadow 0.25s ease; will-change: transform; display:flex; flex-direction:column; text-decoration:none; background:#0e2645; border:2px solid #ef9f27; border-radius:14px; overflow:hidden; }
 .bb-card:hover, .bb-card:focus-visible { transform: translateY(-6px); box-shadow: 0 0 32px rgba(239,159,39,0.5); outline: none; }
 .bb-card:hover .bb-cover-img { transform: scale(1.05); }
-.bb-cover-img { transition: transform 0.35s ease; width:100%; height:100%; object-fit:cover; object-position:center 15%; display:block; }
+.bb-cover-img { transition: transform 0.35s ease; width:100%; height:100%; object-fit:cover; object-position:center top; display:block; }
 .bb-badge { animation: bbPulse 2s ease-in-out infinite; position:absolute; top:10px; background:#ef9f27; color:#0e2645; font-size:15px; font-weight:500; padding:6px 14px; border-radius:4px; letter-spacing:0.06em; white-space:nowrap; z-index:2; }
 .bb-sub-badge { position:absolute; bottom:10px; left:10px; background:rgba(14,38,69,0.92); color:#ef9f27; font-size:14px; font-weight:500; padding:5px 12px; border-radius:4px; white-space:nowrap; z-index:2; }
 .bb-cta { text-transform:uppercase; letter-spacing:0.06em; background:#ef9f27; color:#0e2645; font-size:18px; font-weight:500; padding:11px 14px; border-radius:8px; text-align:center; margin-top:auto; }

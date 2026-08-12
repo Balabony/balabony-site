@@ -267,7 +267,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
       {episode.cover_url && (
         <div style={{ position: 'relative', maxWidth: 720, margin: '0 auto', aspectRatio: '1 / 1', overflow: 'hidden' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={episode.cover_url} alt={episode.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <img src={episode.cover_url} alt={episode.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #0a1628 0%, rgba(10,22,40,0.4) 60%, transparent 100%)' }} />
         </div>
       )}
