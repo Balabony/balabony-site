@@ -187,6 +187,15 @@ export default function TyshaMaisternia() {
   const [titleBusy, setTitleBusy] = useState(false)
   const [hookBusy, setHookBusy] = useState(false)
 
+  // ── Пакетна генерація гачків для всіх серій без гачка.
+  const [hkRunning, setHkRunning] = useState(false)
+  const [hkDone, setHkDone] = useState(0)
+  const [hkTotal, setHkTotal] = useState(0)
+  const [hkLast, setHkLast] = useState('')
+  const [hkText, setHkText] = useState('')
+  const [hkMsg, setHkMsg] = useState('')
+  const [hkSkipped, setHkSkipped] = useState<{ label: string; reason: string }[]>([])
+
   const [loadingList, setLoadingList] = useState(true)
   const [loadingItem, setLoadingItem] = useState(false)
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
@@ -546,6 +555,67 @@ export default function TyshaMaisternia() {
     } catch (e) { setErr(e instanceof Error ? e.message : 'Помилка') } finally { setHookBusy(false) }
   }
 
+  // Пакетна генерація гачків. Цикл крутиться в браузері: кожен виклик
+  // обробляє одну серію, доки не прийде done=true.
+  //
+  // Заблоковані Gemini серії (воєнний зміст) накопичуємо в skipIds і надсилаємо
+  // назад — інакше вибірка щоразу повертала б ту саму серію і цикл завис би.
+  async function runHookBatch() {
+    if (hkRunning) return
+    if (!confirm('Згенерувати гачки для всіх серій «Тиші» без гачка? Уже наявні не змінюються. Це може зайняти кілька хвилин.')) return
+    setHkRunning(true); setHkDone(0); setHkTotal(0); setHkLast(''); setHkText(''); setHkMsg(''); setHkSkipped([])
+
+    const skipIds: string[] = []
+    const skippedInfo: { label: string; reason: string }[] = []
+    let safety = 0
+
+    try {
+      while (safety < 300) {
+        safety++
+        const res = await fetch('/api/admin/tysha-hook-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ skipIds }),
+        })
+        const data = await res.json() as {
+          done?: boolean; total?: number; remaining?: number
+          processed?: { id?: string; title?: string; season?: number; episode?: number; hook?: string } | null
+          skipped?: { id?: string; title?: string; season?: number; episode?: number; reason?: string } | null
+          error?: string
+        }
+
+        if (!res.ok || data.error) {
+          setHkMsg(`Помилка: ${data.error ?? 'невідома'}. Зупинено. Можна запустити знову — продовжить з місця.`)
+          break
+        }
+        if (data.total) setHkTotal(data.total)
+        if (data.done) {
+          setHkMsg(skippedInfo.length > 0
+            ? `Готово. Пропущено серій: ${skippedInfo.length} — для них гачок треба написати вручну.`
+            : 'Готово — усі серії мають гачок.')
+          break
+        }
+        if (data.skipped?.id) {
+          skipIds.push(data.skipped.id)
+          const label = `E${data.skipped.episode ?? '?'} · ${data.skipped.title ?? ''}`
+          skippedInfo.push({ label, reason: data.skipped.reason ?? 'невідома причина' })
+          setHkSkipped([...skippedInfo])
+        }
+        if (data.processed) {
+          setHkDone(d => d + 1)
+          setHkLast(`E${data.processed.episode ?? '?'} · ${data.processed.title ?? ''}`)
+          if (data.processed.hook) setHkText(data.processed.hook)
+        }
+      }
+    } catch {
+      setHkMsg("Помилка з'єднання. Зупинено. Можна запустити знову — продовжить з місця.")
+    } finally {
+      setHkRunning(false)
+      void loadList()
+    }
+  }
+
   async function suggestTitles() {
     setTitleBusy(true); setErr(''); setTitleSugg(null)
     try {
@@ -796,6 +866,30 @@ export default function TyshaMaisternia() {
         <button onClick={createSeries} disabled={creating} style={{ display: 'block', width: '100%', marginBottom: 8, padding: '7px 11px', borderRadius: 8, cursor: creating ? 'default' : 'pointer', background: 'transparent', color: GOLD, border: `1px dashed ${GOLD}88`, fontSize: 13, fontWeight: 700, fontFamily: FONT }}>
           {creating ? 'Створюю…' : '+ Нова серія'}
         </button>
+        <button onClick={runHookBatch} disabled={hkRunning} style={{ display: 'block', width: '100%', marginBottom: 8, padding: '7px 11px', borderRadius: 8, cursor: hkRunning ? 'default' : 'pointer', background: hkRunning ? 'rgba(255,255,255,0.06)' : GOLD, color: hkRunning ? 'rgba(245,240,232,0.6)' : '#0a1628', border: 'none', fontSize: 12.5, fontWeight: 700, fontFamily: FONT }}>
+          {hkRunning ? '⏳ Генерую гачки…' : '✦ Згенерувати всі гачки'}
+        </button>
+
+        {(hkRunning || hkDone > 0 || hkMsg) && (
+          <div style={{ marginBottom: 10, padding: '8px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', fontSize: 11.5, lineHeight: 1.5 }}>
+            <div style={{ color: GOLD, fontWeight: 700 }}>
+              Згенеровано: {hkDone}{hkTotal ? ` (усього серій: ${hkTotal})` : ''}
+            </div>
+            {hkLast && <div style={{ color: 'rgba(245,240,232,0.6)', marginTop: 3 }}>Останній: {hkLast}</div>}
+            {hkText && <div style={{ color: 'rgba(245,240,232,0.85)', marginTop: 5, fontStyle: 'italic' }}>{hkText}</div>}
+            {hkSkipped.length > 0 && (
+              <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ color: '#e0a34d', fontWeight: 700 }}>Пропущено: {hkSkipped.length}</div>
+                {hkSkipped.map((s, i) => (
+                  <div key={i} style={{ color: 'rgba(245,240,232,0.55)', marginTop: 2 }}>{s.label}</div>
+                ))}
+                <div style={{ color: 'rgba(245,240,232,0.45)', marginTop: 3 }}>Для них гачок пишеться вручну в редакторі серії.</div>
+              </div>
+            )}
+            {hkMsg && <div style={{ color: 'rgba(245,240,232,0.75)', marginTop: 5 }}>{hkMsg}</div>}
+          </div>
+        )}
+
         {loadingList && <div style={{ fontSize: 13, color: 'rgba(245,240,232,0.5)' }}>Завантаження…</div>}
 
         {/* Компактний список — гортається окремо, без великих обкладинок */}
