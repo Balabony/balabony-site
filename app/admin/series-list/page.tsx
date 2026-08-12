@@ -50,6 +50,8 @@ export default function SeriesListPage() {
   const [savingId,     setSavingId]     = useState<string | null>(null)
   const [covGenSlug,   setCovGenSlug]   = useState<string | null>(null)
   const [coverChar,    setCoverChar]    = useState<'auto' | 'panas' | 'ganya'>('auto')
+  // Порожньо = позу вибирає модель. Інакше — примусово ця поза.
+  const [coverPose,    setCoverPose]    = useState('')
   // Батч-генерація recap
   const [recapRunning, setRecapRunning] = useState(false)
 
@@ -145,7 +147,7 @@ export default function SeriesListPage() {
       const res = await fetch('/api/generate-cover', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seriesId: slug, title, description: '', character: coverChar }),
+        body: JSON.stringify({ seriesId: slug, title, description: '', character: coverChar, pose: coverPose }),
       })
       const data = await res.json() as { url?: string; error?: string }
       if (res.ok && data.url) {
@@ -773,6 +775,21 @@ export default function SeriesListPage() {
             <option value="panas">Герой: Панас</option>
             <option value="ganya">Герой: Ганя</option>
           </select>
+          {coverChar === 'ganya' && (
+            <select
+              style={{ ...controlStyle, flex: '1 1 170px', cursor: 'pointer' }}
+              value={coverPose}
+              onChange={e => setCoverPose(e.target.value)}
+              title="Яку позу Гані брати за основу"
+            >
+              <option value="">Поза: авто</option>
+              <option value="ganya-talking">Поза: розмовляє</option>
+              <option value="ganya-scolding">Поза: свариться</option>
+              <option value="ganya-baking">Поза: місить тісто</option>
+              <option value="ganya-holding">Поза: тримає предмет</option>
+              <option value="ganya-standing">Поза: стоїть</option>
+            </select>
+          )}
         </div>
 
         {/* Loading */}

@@ -318,6 +318,29 @@ export async function POST(req: NextRequest) {
     if (requested === 'panas' || requested === 'ganya') character = requested
     else if (requested === 'auto') character = await detectProtagonist(title, episodeText)
 
+    // Явно задана поза (body.pose, напр. 'ganya-baking') має пріоритет над тим,
+    // що вибере analyzeGanya.
+    //
+    // 12.08.2026: у Гані реально існує 5 файлів із 12 перелічених у каталозі
+    // промпту, тож модель регулярно просить відсутню (найчастіше cooking) і
+    // серія падає на запасну standing. Коли Ганю ставлять на кілька серій
+    // поспіль, половина обкладинок виходить тим самим кадром. Ручний вибір
+    // дозволяє розвести серії по різних наявних позах.
+    // Приймається тільки поза, файл якої справді лежить у public/<folder>-poses:
+    // мовчазна підміна неіснуючої на standing — це те, від чого ми тут і тікаємо.
+    const poseFolderName = character === 'ganya' ? 'ganya-poses' : 'panas-poses'
+    let forcedPose: string | null = null
+    const rawPose = String(body.pose || '').trim().replace(/\.jpg$/i, '')
+    if (rawPose) {
+      if (!existsSync(join(process.cwd(), 'public', poseFolderName, `${rawPose}.jpg`))) {
+        return NextResponse.json(
+          { error: `Поза ${rawPose}.jpg відсутня в ${poseFolderName}` },
+          { status: 400 },
+        )
+      }
+      forcedPose = rawPose
+    }
+
     const seed = Math.floor(Math.random() * 2_000_000)
 
     let scene: string
@@ -335,8 +358,9 @@ export async function POST(req: NextRequest) {
 
     if (character === 'ganya') {
       const g = await analyzeGanya(title, episodeText)
-      poseFile = `${g.pose}.jpg`
-      usedPose = g.pose
+      const chosen = forcedPose || g.pose
+      poseFile = `${chosen}.jpg`
+      usedPose = chosen
       scene = g.scene || title
       keyObject = null
       objectOwner = null
@@ -351,14 +375,15 @@ export async function POST(req: NextRequest) {
       usedSeason = gSeason
       usedTimeOfDay = 'seed'
     } else if (planRow) {
-      poseFile = `${planRow.pose}.jpg`
-      usedPose = planRow.pose
+      const chosen = forcedPose || planRow.pose
+      poseFile = `${chosen}.jpg`
+      usedPose = chosen
       scene = planRow.scene_detail || title
       keyObject = planRow.key_object
       objectOwner = planRow.object_owner as 'self' | 'other' | null
     } else {
       const fb = await analyzeSceneFallback(title, description || '')
-      poseFile = POSE_FILES[Math.floor(Math.random() * POSE_FILES.length)] + '.jpg'
+      poseFile = (forcedPose || POSE_FILES[Math.floor(Math.random() * POSE_FILES.length)]) + '.jpg'
       usedPose = poseFile.replace(/\.jpg$/, '')
       scene = fb.scene
       keyObject = null
