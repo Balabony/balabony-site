@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
 import sharp from 'sharp'
 import Anthropic from '@anthropic-ai/sdk'
@@ -352,7 +352,19 @@ export async function POST(req: NextRequest) {
     }
 
     const poseFolder = character === 'ganya' ? 'ganya-poses' : 'panas-poses'
-    const imagePath = join(process.cwd(), 'public', poseFolder, poseFile)
+
+    // Обрана поза може бути відсутня на диску: каталог у промпті перелічує всі
+    // 12 поз, але у public/ лежать лише ті, що реально згенеровані й пройшли
+    // відбір за каноном (12.08.2026: у Гані відібрано 5 із 12 — решта вийшли
+    // у штанах замість спідниці). Без цієї перевірки readFileSync кидав виняток
+    // і генерація обкладинки падала з 500, щойно Claude вибирав відсутню позу.
+    // Запасна — нейтральна standing, вона є завжди.
+    const fallbackPose = character === 'ganya' ? 'ganya-standing.jpg' : 'panas-walking.jpg'
+    let imagePath = join(process.cwd(), 'public', poseFolder, poseFile)
+    if (!existsSync(imagePath)) {
+      console.warn(`[generate-cover] поза ${poseFile} відсутня в ${poseFolder} — беру ${fallbackPose}`)
+      imagePath = join(process.cwd(), 'public', poseFolder, fallbackPose)
+    }
     const imageBuffer = readFileSync(imagePath)
     const base64Image = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
 
