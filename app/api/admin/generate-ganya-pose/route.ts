@@ -15,10 +15,19 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 // Базовий «замок» вигляду — щоб обличчя/одяг були однакові на всіх позах.
 // Можна перевизначити з UI (поле опису).
+//
+// 12.08.2026: перший еталон виходив на 78-80 років — помітно старший за канонні
+// 68 і за Панаса (63), хоча вони пара. Причина в самому слові «elderly»:
+// без явного обмеження воно тягне генерацію в глибоку старість, до згорбленої
+// постави й густої сітки зморшок. Тому тут те саме заперечення, що працює
+// в Панаса («NOT very old»), плюс прибрано «elderly» як окреме слово.
 const DEFAULT_LOOK =
-  'a warm elderly Ukrainian village grandmother, around 68 years old, of average ' +
-  'height and slender build, kind lively face with soft wrinkles, gentle smile, ' +
-  'grey hair partly tucked under a floral headscarf (khustka), wearing a white ' +
+  'a warm Ukrainian village grandmother, exactly 68 years old, NOT very old, ' +
+  'NOT frail, still strong and active, upright and energetic posture, ' +
+  'of average height and slender build, kind lively face with only light soft ' +
+  'wrinkles and smooth full cheeks, healthy fresh complexion, gentle warm smile, ' +
+  'hair still mostly dark brown with grey strands (NOT fully white), partly tucked ' +
+  'under a floral headscarf (khustka), wearing a white ' +
   'embroidered Ukrainian blouse (vyshyvanka), a long dark skirt down to mid-calf ' +
   'and an apron over the skirt (NOT trousers), photorealistic, cinematic warm soft lighting'
 
