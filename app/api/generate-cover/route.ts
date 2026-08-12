@@ -97,18 +97,27 @@ const SAFE_LIGHTING = [
   TIME_OF_DAY_PROMPTS['overcast'],
 ]
 
-// У кожному варіанті ОБОВ'ЯЗКОВО вимога цілої голови. Без неї flux-kontext,
-// отримавши позу в повний зріст і вказівку «портрет по груди», просто наближав
-// кадр — і маківка вилітала за верхній край (S1E6, 12.08.2026). Формулювання
-// позитивне («вся голова в кадрі, є простір над маківкою»), бо на заборони
-// модель реагує слабко — той самий урок, що зі спідницею Гані.
+// Було три варіанти, і всі три — по суті один і той самий портрет по груди.
+// Через це обкладинки виходили одноманітними, а сильне наближення щоразу
+// зрізало маківку (S1E6). Тепер це справжня шкала планів — від крупного до
+// повного зросту — і в КОЖНОМУ явна вимога цілої голови. Що дальший план,
+// то більший запас над головою, тож ризик обрізання падає сам собою.
 const HEAD_SAFE = 'the entire head fully inside the frame with clear headroom above the hair, ' +
   'top of the head never touching or crossing the upper edge'
 
 const FRAMING_VARIANTS = [
-  `head and shoulders portrait, cropped at mid-chest above the hands, hands not visible, ${HEAD_SAFE}, face well lit and clearly visible, natural human proportions`,
-  `close-up portrait, head and upper chest only, hands out of frame, ${HEAD_SAFE}, expressive well-lit face, shallow depth of field, natural human proportions`,
+  // крупний — але з обов'язковим повітрям над головою
+  `close portrait, head and shoulders, hands out of frame, ${HEAD_SAFE}, expressive well-lit face, softly blurred background, natural human proportions`,
+  // поясний
   `upper-body portrait from the chest up, cropped above the hands, hands not visible, ${HEAD_SAFE}, face clearly visible and well lit, natural human proportions`,
+  // до пояса, з руками
+  `medium shot from the waist up, hands may be visible and well-formed, ${HEAD_SAFE}, face clearly visible, some of the surroundings visible behind, natural human proportions`,
+  // три чверті фігури
+  `three-quarter shot from the knees up, full torso visible, ${HEAD_SAFE}, figure occupying most of the frame height, location clearly readable behind, natural human proportions`,
+  // повний зріст
+  `full-length shot, entire figure from head to feet inside the frame, ${HEAD_SAFE}, feet fully visible and never cropped, the location clearly visible around the figure, natural human proportions`,
+  // фігура в середовищі, ширше
+  `wide environmental shot, the figure standing within the location and clearly recognisable, full body inside the frame, ${HEAD_SAFE}, surroundings occupying much of the frame, natural human proportions`,
 ]
 
 const ANGLE_VARIANTS = [
@@ -116,6 +125,10 @@ const ANGLE_VARIANTS = [
   'three-quarter view, body turned slightly to one side, face still toward camera',
   'turned slightly away, looking back over the shoulder toward the camera, face visible',
   'slight low camera angle, dignified grounded perspective, face clearly lit',
+  'profile view from the side, face in clear silhouette against the light',
+  'slightly elevated camera angle looking gently down, face still clearly visible',
+  'seen from a short distance across the space, face readable, surroundings framing the figure',
+  'off-centre composition, figure to one side of the frame, the location filling the rest',
 ]
 
 function pickBySeed<T>(arr: T[], seed: number, salt: number): T {
