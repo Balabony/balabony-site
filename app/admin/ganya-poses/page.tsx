@@ -24,6 +24,7 @@ export default function GanyaPosesPage() {
   const [poses, setPoses] = useState<PoseItem[]>([])
   const [refs, setRefs] = useState<string[]>([])
   const [chosenRef, setChosenRef] = useState('')
+  const [manualRef, setManualRef] = useState('')
   const [poseImgs, setPoseImgs] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState<string | null>(null)
   const [err, setErr] = useState('')
@@ -140,6 +141,38 @@ export default function GanyaPosesPage() {
         <button style={btn(busy !== 'refs')} disabled={busy === 'refs'} onClick={genRefs}>
           {busy === 'refs' ? 'Генерую 4 еталони…' : 'Згенерувати 4 еталони'}
         </button>
+
+        {/* Вставити URL уже наявного еталона зі Storage — щоб нові пози
+            збіглися обличчям із тими, що вже згенеровані раніше. */}
+        <div style={{ marginTop: 14, padding: 14, background: NAVY2, borderRadius: 10, border: '1px solid #2c3e57' }}>
+          <label style={{ display: 'block', color: GOLD2, fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
+            Або встав URL наявного еталона (Storage → covers → ganya-gen → ref-…jpg)
+          </label>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <input
+              value={manualRef}
+              onChange={e => setManualRef(e.target.value)}
+              placeholder="https://…/storage/v1/object/public/covers/ganya-gen/ref-…jpg"
+              style={{ flex: 1, minWidth: 260, background: NAVY, color: CREAM, border: '1px solid #2c3e57', borderRadius: 8, padding: '10px 12px', fontFamily: FONT, fontSize: 13 }}
+            />
+            <button
+              style={btn(manualRef.trim().startsWith('http'))}
+              disabled={!manualRef.trim().startsWith('http')}
+              onClick={() => { setChosenRef(manualRef.trim()); setErr('') }}
+            >
+              Використати
+            </button>
+          </div>
+        </div>
+
+        {chosenRef && (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ color: GOLD2, fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Чинний еталон</div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={chosenRef} alt="чинний еталон" style={{ width: 180, borderRadius: 10, border: `3px solid ${GOLD}`, display: 'block' }} />
+            <div style={{ color: BLUE, fontSize: 12, marginTop: 6, wordBreak: 'break-all' }}>{chosenRef}</div>
+          </div>
+        )}
 
         {refs.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14, marginTop: 16 }}>
