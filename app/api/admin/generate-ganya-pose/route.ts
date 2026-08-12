@@ -117,14 +117,21 @@ export async function POST(req: NextRequest) {
 
     if (mode === 'reference') {
       // Еталонний портрет з нуля — flux-1.1-pro (text-to-image).
-      // Поясний/майже на повний зріст портрет, щоб обличчя було чітке.
+      //
+      // 12.08.2026: еталон навмисно просився поясним («cropped at the chest»),
+      // щоб обличчя було чітке, а тіло мав добудувати Kontext із POSE_TECH.
+      // На практиці вийшло навпаки: чого немає у вхідному зображенні, те модель
+      // вигадує — і низ фігури щоразу приходив у джинсах або чорних штанях
+      // замість спідниці (baking, praying, surprised). Kontext тримається
+      // картинки сильніше, ніж тексту, тож заперечення «NOT trousers» у
+      // словесному описі його не спиняли.
+      // Тепер еталон знімається на повний зріст: обличчя дрібніше, зате
+      // спідниця, фартух і взуття приходять із референсу, а не з фантазії.
       const prompt =
-        `${look}, head and shoulders portrait cropped at the chest, above the hands, ` +
-        `hands not visible, facing the camera, realistic adult human proportions, ` +
-        `plain neutral studio background, soft even lighting, photorealistic, ` +
-        `sharp focus, no text, no watermark, seed_${seed}`
+        `${look}, ${POSE_TECH}, standing straight and facing the camera, ` +
+        `arms relaxed at her sides, neutral pose, seed_${seed}`
       endpoint = 'https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro/predictions'
-      input = { prompt, aspect_ratio: '3:4', output_format: 'jpg', safety_tolerance: 2, seed }
+      input = { prompt, aspect_ratio: '2:3', output_format: 'jpg', safety_tolerance: 2, seed }
       tag = 'ref'
     } else {
       // Поза з еталона — flux-kontext-pro (image-to-image, тримає обличчя).
