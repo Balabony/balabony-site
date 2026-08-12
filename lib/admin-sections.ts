@@ -37,6 +37,7 @@ export const ADMIN_GROUPS: AdminGroup[] = [
       { href: '/admin/na-redakturi',    label: 'На редактурі',   note: 'Черга текстів у роботі' },
       { href: '/admin/editorial',       label: 'Редакція',       note: 'Редакційний розділ' },
       { href: '/admin/cover-position',  label: 'Кадр обкладинки', note: 'Підгонка фото в картці, щоб не зрізало обличчя', quick: true, short: 'Кадр' },
+      { href: '/admin/balabony-covers', label: 'Обкладинки «Балабонів»', note: 'Перегляд усіх обкладинок серій — пошук збоїв генерації', quick: true, short: 'Обкладинки Б' },
       { href: '/admin/rozklad',         label: 'Розклад публікацій', note: 'Вівторок і пʼятниця о 18:00 — що на які дати призначено', quick: true, short: 'Розклад' },
     ],
   },
