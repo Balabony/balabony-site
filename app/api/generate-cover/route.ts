@@ -97,10 +97,18 @@ const SAFE_LIGHTING = [
   TIME_OF_DAY_PROMPTS['overcast'],
 ]
 
+// У кожному варіанті ОБОВ'ЯЗКОВО вимога цілої голови. Без неї flux-kontext,
+// отримавши позу в повний зріст і вказівку «портрет по груди», просто наближав
+// кадр — і маківка вилітала за верхній край (S1E6, 12.08.2026). Формулювання
+// позитивне («вся голова в кадрі, є простір над маківкою»), бо на заборони
+// модель реагує слабко — той самий урок, що зі спідницею Гані.
+const HEAD_SAFE = 'the entire head fully inside the frame with clear headroom above the hair, ' +
+  'top of the head never touching or crossing the upper edge'
+
 const FRAMING_VARIANTS = [
-  'head and shoulders portrait, cropped at mid-chest above the hands, hands not visible, face well lit and clearly visible, natural human proportions',
-  'close-up portrait, head and upper chest only, hands out of frame, expressive well-lit face, shallow depth of field, natural human proportions',
-  'upper-body portrait from the chest up, cropped above the hands, hands not visible, face clearly visible and well lit, natural human proportions',
+  `head and shoulders portrait, cropped at mid-chest above the hands, hands not visible, ${HEAD_SAFE}, face well lit and clearly visible, natural human proportions`,
+  `close-up portrait, head and upper chest only, hands out of frame, ${HEAD_SAFE}, expressive well-lit face, shallow depth of field, natural human proportions`,
+  `upper-body portrait from the chest up, cropped above the hands, hands not visible, ${HEAD_SAFE}, face clearly visible and well lit, natural human proportions`,
 ]
 
 const ANGLE_VARIANTS = [
@@ -135,6 +143,9 @@ const NEGATIVE_PROMPT = [
   'picture-in-picture', 'frame within frame', 'photo inside photo',
   'image within image', 'mise en abyme',
   'pure back view on dark background', 'lonely silhouette no context',
+  'cropped head', 'head cut off', 'top of head cut off', 'headless',
+  'face out of frame', 'head above the frame', 'forehead cut by frame edge',
+  'skull cropped', 'hair cut by upper edge', 'decapitated framing',
   'cropped legs', 'legs cut off', 'feet cut off', 'cut-off feet',
   'amputated legs', 'amputated feet', 'figure cropped at the knees',
   'cropped at the ankles', 'cropped at the shins', 'limbs cut by frame edge',
