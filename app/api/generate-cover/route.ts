@@ -181,6 +181,11 @@ const FRAMING_VARIANTS = [
   `wide environmental shot, the figure standing within the location and clearly recognisable, full body inside the frame, ${HEAD_SAFE}, surroundings occupying much of the frame, natural human proportions`,
 ]
 
+// Для Gemini беремо лише ближчу половину шкали. Прогони 13.08.2026 показали,
+// що на дальніх планах він відводить камеру ще далі, ніж просять, і обличчя
+// стає нечитабельним на мініатюрі обкладинки. Панорами лишаємо Replicate.
+const CLOSE_FRAMING_VARIANTS = FRAMING_VARIANTS.slice(0, 4)
+
 const ANGLE_VARIANTS = [
   'facing the camera, frontal view, face clearly visible',
   'three-quarter view, body turned slightly to one side, face still toward camera',
@@ -379,7 +384,10 @@ const GEMINI_AVOID =
   'never held in the hands, never inside a book or container, never oversized, ' +
   'and never replaced by a drawing, illustration, photograph or statue of that animal. ' +
   'Do not add any people who are not described in the scene: no bystanders, no crowd, no onlookers. ' +
-  'The man is the main subject and his face must be clearly readable, not lost in the scene. ' +
+  'FRAMING IS CRITICAL: the man is close to the camera and fills a large part of the frame. ' +
+  'Frame him from the knees up or closer — never a distant or wide establishing shot, ' +
+  'never a small figure lost in the landscape. His face must be large enough to read clearly ' +
+  'when the image is shown as a small thumbnail. ' +
   'Do not crop the head: the whole head stays inside the frame with clear headroom above the hair.'
 
 // Заборона тексту стоїть ОКРЕМО і йде ОСТАННІМ рядком промпту. Коли вона була
@@ -473,6 +481,12 @@ export async function POST(req: NextRequest) {
       )
     }
     const engine: 'replicate' | 'gemini' = rawEngine
+
+    // dryRun: згенерувати й покласти у Storage, але НЕ чіпати content.
+    // Gemini дає помітний розкид між прогонами на тому самому промпті, тож
+    // робочий режим — зробити 2-3 варіанти й вибрати очима. Без цього прапорця
+    // кожна проба одразу міняла обкладинку на живому сайті.
+    const dryRun = body.dryRun === true
 
     const token = process.env.REPLICATE_API_TOKEN
     const geminiKey = process.env.GEMINI_API_KEY
@@ -672,7 +686,9 @@ export async function POST(req: NextRequest) {
     const lightingFinal = (timePrompt && timePrompt !== GOLDEN_HOUR_LIGHTING)
       ? timePrompt
       : pickBySeed(SAFE_LIGHTING, seed, 7)
-    const framingFinal = pickBySeed(FRAMING_VARIANTS, seed, 13)
+    const framingFinal = engine === 'gemini'
+      ? pickBySeed(CLOSE_FRAMING_VARIANTS, seed, 13)
+      : pickBySeed(FRAMING_VARIANTS, seed, 13)
     const angleFinal   = pickBySeed(ANGLE_VARIANTS, seed, 29)
 
     // Одяг персонажа НЕ описувався в промпті взагалі — малося на увазі, що він
@@ -814,13 +830,16 @@ export async function POST(req: NextRequest) {
       previousUrl,
     }
 
-    await supabase
-      .from('content')
-      .update({ cover_url: publicUrl, cover_meta: coverMeta })
-      .eq('slug', seriesId)
+    if (!dryRun) {
+      await supabase
+        .from('content')
+        .update({ cover_url: publicUrl, cover_meta: coverMeta })
+        .eq('slug', seriesId)
+    }
 
     return NextResponse.json({
       url: publicUrl,
+      dryRun,
       character,
       engine,
       outfit: character === 'panas' ? outfit : null,
