@@ -37,6 +37,9 @@ interface AudioPlayerProps {
 
 const SPEEDS = [0.75, 1.0, 1.25, 1.5, 2.0]
 
+// Скільки секунд гасне звук перед зупинкою за таймером сну.
+const FADE_SEC = 20
+
 // Sleep timer — опції у хвилинах; 'end' = до кінця епізоду; null = вимкнено.
 type SleepOption = 15 | 30 | 45 | 'end' | null
 const SLEEP_OPTIONS: SleepOption[] = [15, 30, 45, 'end', null]
@@ -66,6 +69,7 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId, s
   const [speedIdx, setSpeedIdx] = useState(0)
   const [sleepIdx, setSleepIdx] = useState(SLEEP_OPTIONS.length - 1) // старт = null (вимк.)
   const sleepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const fadeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const openTracked = useRef(false)
   const readTracked = useRef(false)
 
@@ -182,25 +186,69 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId, s
   // Sleep timer: для хвилинних опцій ставимо таймаут на паузу.
   // Опція 'end' обробляється через onEnded аудіо, тут таймаут не потрібен.
   // Таймер відлічується лише поки реально грає; на паузі — зупиняється.
+  //
+  // Останні FADE_SEC секунд гучність плавно спадає до нуля. Різкий обрив
+  // будить того, хто вже засинає, — а таймером сну користуються саме для сну.
+  // Після паузи гучність повертаємо на 1, інакше наступний запуск буде німим.
   useEffect(() => {
     if (sleepTimerRef.current) {
       clearTimeout(sleepTimerRef.current)
       sleepTimerRef.current = null
     }
+    if (fadeIntervalRef.current) {
+      clearInterval(fadeIntervalRef.current)
+      fadeIntervalRef.current = null
+    }
     if (!playing) return
     if (typeof sleepOption !== 'number') return // null або 'end' — без таймауту
 
+    const totalMs = sleepOption * 60 * 1000
+    const fadeMs = Math.min(FADE_SEC * 1000, totalMs / 2)
+
+    // Крок 1: за fadeMs до кінця починаємо гасити звук.
+    const fadeStart = setTimeout(() => {
+      const a = audioRef.current
+      if (!a) return
+      const steps = FADE_SEC * 4 // чотири кроки на секунду — на слух безперервно
+      let done = 0
+      const startVolume = a.volume
+      fadeIntervalRef.current = setInterval(() => {
+        done += 1
+        const left = Math.max(0, 1 - done / steps)
+        if (audioRef.current) audioRef.current.volume = startVolume * left
+        if (done >= steps && fadeIntervalRef.current) {
+          clearInterval(fadeIntervalRef.current)
+          fadeIntervalRef.current = null
+        }
+      }, fadeMs / steps)
+    }, totalMs - fadeMs)
+
+    // Крок 2: власне зупинка і повернення гучності.
     sleepTimerRef.current = setTimeout(() => {
       const a = audioRef.current
-      if (a) a.pause()
+      if (a) {
+        a.pause()
+        a.volume = 1
+      }
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current)
+        fadeIntervalRef.current = null
+      }
       setSleepIdx(SLEEP_OPTIONS.length - 1) // скинути на «вимк.» після спрацювання
-    }, sleepOption * 60 * 1000)
+    }, totalMs)
 
     return () => {
+      clearTimeout(fadeStart)
       if (sleepTimerRef.current) {
         clearTimeout(sleepTimerRef.current)
         sleepTimerRef.current = null
       }
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current)
+        fadeIntervalRef.current = null
+      }
+      // Скасували таймер або натиснули паузу — звук має бути повним.
+      if (audioRef.current) audioRef.current.volume = 1
     }
   }, [sleepOption, playing])
 
