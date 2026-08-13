@@ -40,6 +40,15 @@ const SPEEDS = [0.75, 1.0, 1.25, 1.5, 2.0]
 // Скільки секунд гасне звук перед зупинкою за таймером сну.
 const FADE_SEC = 20
 
+// Кнопки перемотування: 44 px — мінімум, за який палець упевнено влучає.
+const SKIP_BTN_STYLE: React.CSSProperties = {
+  width: 40, height: 40, flexShrink: 0,
+  background: 'transparent', border: '1px solid #475569', borderRadius: '50%',
+  color: '#94a3b8', cursor: 'pointer',
+  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+  fontSize: 15, lineHeight: 1, fontFamily: "'Montserrat', sans-serif",
+}
+
 // Sleep timer — опції у хвилинах; 'end' = до кінця епізоду; null = вимкнено.
 type SleepOption = 15 | 30 | 45 | 'end' | null
 const SLEEP_OPTIONS: SleepOption[] = [15, 30, 45, 'end', null]
@@ -295,6 +304,17 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId, s
   const cycleSpeed = () => setSpeedIdx((i) => (i + 1) % SPEEDS.length)
   const cycleSleep = () => setSleepIdx((i) => (i + 1) % SLEEP_OPTIONS.length)
 
+  // Перемотування на задану кількість секунд: назад — коли прослухав неуважно,
+  // вперед — щоб проскочити довгий вступ.
+  const skipBy = (sec: number) => {
+    const a = audioRef.current
+    if (!a) return
+    const limit = duration || a.duration || 0
+    const next = a.currentTime + sec
+    a.currentTime = Math.max(0, limit ? Math.min(next, limit) : next)
+    setCurrent(a.currentTime)
+  }
+
   const onSeek = (e: React.MouseEvent<HTMLDivElement>) => {
     const a = audioRef.current
     if (!a || !duration) return
@@ -399,6 +419,17 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId, s
       </div>
 
       <div style={{ padding: '10px 4%', display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* Назад на 15 с. З клавіатури перемотування є давно, але слухають
+            переважно з телефона, де стрілок немає. */}
+        <button
+          onClick={() => skipBy(-15)}
+          aria-label="Назад на 15 секунд"
+          style={SKIP_BTN_STYLE}
+        >
+          <span aria-hidden="true">↺</span>
+          <span style={{ fontSize: 9, fontWeight: 700, marginTop: -2 }}>15</span>
+        </button>
+
         {/* Відтворення / пауза */}
         <button
           onClick={togglePlay}
@@ -417,6 +448,16 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId, s
           ) : (
             <div style={{ width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderLeft: '11px solid #fff', marginLeft: 2 }} />
           )}
+        </button>
+
+        {/* Вперед на 30 с */}
+        <button
+          onClick={() => skipBy(30)}
+          aria-label="Вперед на 30 секунд"
+          style={SKIP_BTN_STYLE}
+        >
+          <span aria-hidden="true">↻</span>
+          <span style={{ fontSize: 9, fontWeight: 700, marginTop: -2 }}>30</span>
         </button>
 
         {/* Час */}
