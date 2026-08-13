@@ -3,8 +3,16 @@ import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
 import sharp from 'sharp'
 import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI, type GenerationConfig } from '@google/generative-ai'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { applyGoldenFrame } from '@/lib/golden-frame'
+
+// SDK-тип не має responseModalities/imageConfig — розширюємо локально
+// (так само, як у /api/admin/tysha-trio-gemini).
+type GenConfigWithModalities = GenerationConfig & {
+  responseModalities?: string[]
+  imageConfig?: { aspectRatio?: string }
+}
 
 // Генерація в Replicate триває 30-90 с (є цикл опитування до 30×3 с нижче),
 // а Vercel за замовчуванням обриває функцію значно раніше — частина генерацій
@@ -32,6 +40,34 @@ const POSE_FILES = [
   'panas-notebook', 'panas-quarrel', 'panas-tree', 'panas-chickens',
   'panas-neighbor', 'panas-holding', 'panas-packages',
 ]
+
+// ── ДВА ЕТАЛОНИ ОДЯГУ ПАНАСА (рішення Богдана 12.08.2026) ───────────────────
+// Студійні пози в public/panas-poses зняті в ТЕМНІЙ безрукавці — це 'vest-black'
+// і він лишається типовим. Оливковий жилет із ширшою вишивкою ('vest-olive')
+// живе окремим еталонним кадром і вмикається явно, параметром outfit.
+// Без цього розділення генерація тягне костюм із випадкового кадру, і на 102
+// серіях набирається три різні лінійки Панаса замість однієї.
+const PANAS_OUTFITS = {
+  'vest-black': {
+    prompt:
+      'white embroidered shirt with a narrow red-and-black pattern on the collar and cuffs, ' +
+      'dark sleeveless waistcoat, woven belt, small wooden cross on a cord, ' +
+      'plain dark work trousers',
+    reference: 'panas-reference-headshot.jpg',
+  },
+  'vest-olive': {
+    prompt:
+      'linen embroidered shirt with a wide red-and-black pattern across the chest and sleeves, ' +
+      'olive-green sleeveless waistcoat, small wooden cross on a cord, ' +
+      'plain olive-green work trousers',
+    reference: 'panas-reference-olive.jpg',
+  },
+} as const
+
+type PanasOutfit = keyof typeof PANAS_OUTFITS
+
+const GANYA_OUTFIT =
+  'embroidered blouse, dark skirt down to mid-calf, apron and floral headscarf'
 
 const LOCATION_PROMPTS: Record<string, string> = {
   'old-house-interior': 'interior of an old Ukrainian village house, whitewashed clay stove (pich), wooden ceiling beams, embroidered icons on the wall',
@@ -284,6 +320,88 @@ async function analyzeGanya(title: string, text: string): Promise<{ pose: string
   }
 }
 
+// ── ДРУГИЙ РУШІЙ: GEMINI (gemini-2.5-flash-image, «Nano Banana») ────────────
+// Причина появи: flux-kontext-pro приймає рівно ОДНЕ input_image і при кількох
+// суб'єктах у кадрі перемальовує обличчя (парний тест 12.08.2026 провалено).
+// Gemini бере КІЛЬКА референсів одночасно, тож ним можна тримати обличчя з
+// еталона окремо від пози й додавати другого суб'єкта (напр. козу Маньку).
+// Replicate лишається типовим — на ньому зав'язані пози, cropAboveHands,
+// golden frame і cover_meta, і поки він не переміряний, з нього не з'їжджаємо.
+function inlineFromFile(path: string) {
+  return {
+    inlineData: {
+      data: readFileSync(path).toString('base64'),
+      mimeType: 'image/jpeg',
+    },
+  }
+}
+
+// negative_prompt у Gemini немає — заборони доводиться проговорювати текстом.
+const GEMINI_AVOID =
+  'Absolutely no text, letters, captions, logos, watermarks or signatures anywhere in the image. ' +
+  'No blue jeans, no denim, no sportswear, no sneakers, no modern casual clothes. ' +
+  'No radiators, no plastic windows, no factory curtains, no laminate flooring, ' +
+  'no modern city apartment interiors. ' +
+  'Natural human proportions, well-formed hands, no extra fingers or limbs. ' +
+  'Do not crop the head: the whole head stays inside the frame with clear headroom above the hair.'
+
+async function generateWithGemini(opts: {
+  apiKey: string
+  posePath: string
+  referencePath: string | null
+  extraRefPath: string | null
+  prompt: string
+  outfitPrompt: string
+}): Promise<Buffer> {
+  const genAI = new GoogleGenerativeAI(opts.apiKey)
+  const generationConfig: GenConfigWithModalities = {
+    responseModalities: ['Image'],
+    imageConfig: { aspectRatio: '1:1' },
+  }
+  const model = genAI.getGenerativeModel(
+    { model: 'gemini-2.5-flash-image', generationConfig },
+    { apiVersion: 'v1beta' },
+  )
+
+  const parts: Array<Record<string, unknown>> = []
+
+  parts.push({
+    text:
+      'Create ONE new photorealistic photograph of an elderly Ukrainian village man. ' +
+      'You are given reference photographs below. Use them ONLY for identity and wardrobe: ' +
+      'the SAME face, the same beard and hair, the same clothes. ' +
+      'Do NOT copy the reference framing, background or studio lighting — ' +
+      'build a completely new scene as described. ' +
+      `Wardrobe (must match the references exactly): ${opts.outfitPrompt}. ` +
+      `Scene: ${opts.prompt}. ` +
+      GEMINI_AVOID,
+  })
+
+  if (opts.referencePath) {
+    parts.push({ text: 'Reference — his face and clothing (identity):' })
+    parts.push(inlineFromFile(opts.referencePath))
+  }
+  parts.push({ text: 'Reference — the body pose to reproduce (ignore its grey studio background):' })
+  parts.push(inlineFromFile(opts.posePath))
+  if (opts.extraRefPath) {
+    parts.push({ text: 'Reference — the second subject that must also appear in the scene:' })
+    parts.push(inlineFromFile(opts.extraRefPath))
+  }
+
+  const result = await model.generateContent({
+    contents: [{ role: 'user', parts: parts as never }],
+  })
+
+  const candidates = result.response?.candidates ?? []
+  for (const cand of candidates) {
+    for (const part of cand.content?.parts ?? []) {
+      const inline = (part as { inlineData?: { data?: string } }).inlineData
+      if (inline?.data) return Buffer.from(inline.data, 'base64')
+    }
+  }
+  throw new Error('Gemini не повернув зображення')
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -293,9 +411,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'seriesId and title are required' }, { status: 400 })
     }
 
+    // Рушій генерації. Типовий — replicate; gemini вмикається явно.
+    const rawEngine = String(body.engine || 'replicate').toLowerCase()
+    if (rawEngine !== 'replicate' && rawEngine !== 'gemini') {
+      return NextResponse.json(
+        { error: `Невідомий engine: ${rawEngine}. Дозволено replicate або gemini.` },
+        { status: 400 },
+      )
+    }
+    const engine: 'replicate' | 'gemini' = rawEngine
+
     const token = process.env.REPLICATE_API_TOKEN
-    if (!token) {
+    const geminiKey = process.env.GEMINI_API_KEY
+    if (engine === 'replicate' && !token) {
       return NextResponse.json({ error: 'REPLICATE_API_TOKEN not set' }, { status: 500 })
+    }
+    if (engine === 'gemini' && !geminiKey) {
+      return NextResponse.json({ error: 'GEMINI_API_KEY not set' }, { status: 500 })
     }
 
     const supabase = getSupabaseAdmin()
@@ -339,6 +471,40 @@ export async function POST(req: NextRequest) {
         )
       }
       forcedPose = rawPose
+    }
+
+    // Еталон одягу. Для Гані вибору поки немає — у неї один канонний костюм.
+    const rawOutfit = String(body.outfit || 'vest-black').trim()
+    if (character === 'panas' && !(rawOutfit in PANAS_OUTFITS)) {
+      return NextResponse.json(
+        { error: `Невідомий outfit: ${rawOutfit}. Дозволено vest-black або vest-olive.` },
+        { status: 400 },
+      )
+    }
+    const outfit = rawOutfit as PanasOutfit
+
+    // Другий суб'єкт у кадрі (коза Манька, сусід тощо) — лише для Gemini:
+    // flux-kontext приймає одне зображення і другого суб'єкта не витягує.
+    let extraRefPath: string | null = null
+    const rawExtraRef = String(body.extraRef || '').trim().replace(/\.jpg$/i, '')
+    if (rawExtraRef) {
+      if (engine !== 'gemini') {
+        return NextResponse.json(
+          { error: 'extraRef підтримує лише engine=gemini' },
+          { status: 400 },
+        )
+      }
+      if (!/^[a-z0-9-]+$/i.test(rawExtraRef)) {
+        return NextResponse.json({ error: 'Некоректне ім\'я extraRef' }, { status: 400 })
+      }
+      const candidate = join(process.cwd(), 'public', 'refs', `${rawExtraRef}.jpg`)
+      if (!existsSync(candidate)) {
+        return NextResponse.json(
+          { error: `Референс ${rawExtraRef}.jpg відсутній у public/refs` },
+          { status: 400 },
+        )
+      }
+      extraRefPath = candidate
     }
 
     const seed = Math.floor(Math.random() * 2_000_000)
@@ -443,12 +609,11 @@ export async function POST(req: NextRequest) {
     // на власний розсуд: на прогоні 12.08.2026 третина обкладинок вийшла з
     // Панасом у синіх джинсах, що суперечить канону (вишиванка, темна жилетка,
     // плетений пояс). Тому одяг фіксуємо явно, посилаючись на вхідне зображення.
-    const wardrobe = character === 'ganya'
-      ? 'keeping exactly the same traditional clothes as in the reference image: ' +
-        'embroidered blouse, dark skirt down to mid-calf, apron and floral headscarf'
-      : 'keeping exactly the same traditional clothes as in the reference image: ' +
-        'white embroidered shirt, dark sleeveless waistcoat, woven belt and plain ' +
-        'dark or beige work trousers'
+    const outfitPrompt = character === 'ganya'
+      ? GANYA_OUTFIT
+      : PANAS_OUTFITS[outfit].prompt
+    const wardrobe =
+      'keeping exactly the same traditional clothes as in the reference image: ' + outfitPrompt
 
     const promptParts = [
       objectPrefix + scene,
@@ -461,50 +626,83 @@ export async function POST(req: NextRequest) {
     ].filter(Boolean).join(', ')
     const prompt = `${promptParts}, seed_${seed}`
 
-    const replicateRes = await fetch(
-      'https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions',
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          Prefer: 'wait',
-        },
-        body: JSON.stringify({ input: { prompt, negative_prompt: NEGATIVE_PROMPT, input_image: base64Image, seed, guidance_scale: 7 } }),
+    let downloaded: Buffer
+
+    if (engine === 'gemini') {
+      // Еталон обличчя й одягу передається ОКРЕМИМ зображенням — саме цим
+      // Gemini і відрізняється від kontext: поза береться з одного кадру,
+      // ідентичність з другого, і вони не змішуються.
+      let referencePath: string | null = null
+      if (character === 'panas') {
+        const refName = PANAS_OUTFITS[outfit].reference
+        const refCandidate = join(process.cwd(), 'public', 'panas-poses', refName)
+        if (!existsSync(refCandidate)) {
+          return NextResponse.json(
+            { error: `Еталон ${refName} відсутній у public/panas-poses` },
+            { status: 400 },
+          )
+        }
+        referencePath = refCandidate
       }
-    )
 
-    if (!replicateRes.ok) {
-      const errText = await replicateRes.text()
-      return NextResponse.json({ error: `Replicate error: ${errText}` }, { status: 502 })
-    }
-
-    let prediction = await replicateRes.json()
-
-    if (!prediction.output && prediction.id && prediction.status !== 'failed') {
-      for (let i = 0; i < 30; i++) {
-        await new Promise(r => setTimeout(r, 3000))
-        const poll = await fetch(`https://api.replicate.com/v1/predictions/${prediction.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
+      try {
+        downloaded = await generateWithGemini({
+          apiKey: geminiKey as string,
+          posePath: imagePath,
+          referencePath,
+          extraRefPath,
+          prompt,
+          outfitPrompt,
         })
-        prediction = await poll.json()
-        if (prediction.status === 'succeeded' || prediction.status === 'failed') break
+      } catch (e) {
+        return NextResponse.json({ error: `Gemini error: ${String(e)}` }, { status: 502 })
       }
-    }
+    } else {
+      const replicateRes = await fetch(
+        'https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token as string}`,
+            'Content-Type': 'application/json',
+            Prefer: 'wait',
+          },
+          body: JSON.stringify({ input: { prompt, negative_prompt: NEGATIVE_PROMPT, input_image: base64Image, seed, guidance_scale: 7 } }),
+        }
+      )
 
-    if (prediction.status === 'failed' || !prediction.output) {
-      return NextResponse.json({ error: 'Generation failed or timed out' }, { status: 502 })
-    }
+      if (!replicateRes.ok) {
+        const errText = await replicateRes.text()
+        return NextResponse.json({ error: `Replicate error: ${errText}` }, { status: 502 })
+      }
 
-    const generatedUrl: string = Array.isArray(prediction.output)
-      ? prediction.output[0]
-      : prediction.output
+      let prediction = await replicateRes.json()
 
-    const imgRes = await fetch(generatedUrl)
-    if (!imgRes.ok) {
-      return NextResponse.json({ error: 'Failed to download generated image' }, { status: 502 })
+      if (!prediction.output && prediction.id && prediction.status !== 'failed') {
+        for (let i = 0; i < 30; i++) {
+          await new Promise(r => setTimeout(r, 3000))
+          const poll = await fetch(`https://api.replicate.com/v1/predictions/${prediction.id}`, {
+            headers: { Authorization: `Bearer ${token as string}` },
+          })
+          prediction = await poll.json()
+          if (prediction.status === 'succeeded' || prediction.status === 'failed') break
+        }
+      }
+
+      if (prediction.status === 'failed' || !prediction.output) {
+        return NextResponse.json({ error: 'Generation failed or timed out' }, { status: 502 })
+      }
+
+      const generatedUrl: string = Array.isArray(prediction.output)
+        ? prediction.output[0]
+        : prediction.output
+
+      const imgRes = await fetch(generatedUrl)
+      if (!imgRes.ok) {
+        return NextResponse.json({ error: 'Failed to download generated image' }, { status: 502 })
+      }
+      downloaded = Buffer.from(await imgRes.arrayBuffer())
     }
-    const downloaded = Buffer.from(await imgRes.arrayBuffer())
     const rawBuffer = character === 'ganya' ? await cropAboveHands(downloaded) : downloaded
     const finalBuffer = await applyGoldenFrame(rawBuffer)
 
@@ -528,6 +726,9 @@ export async function POST(req: NextRequest) {
 
     const coverMeta = {
       character,
+      engine,
+      outfit: character === 'panas' ? outfit : null,
+      extraRef: rawExtraRef || null,
       pose: usedPose,
       location: usedLocation,
       season: usedSeason,
@@ -550,6 +751,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       url: publicUrl,
       character,
+      engine,
+      outfit: character === 'panas' ? outfit : null,
       fileName,
       scene,
       poseFile,
