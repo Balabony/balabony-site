@@ -371,7 +371,6 @@ function inlineFromFile(path: string) {
 
 // negative_prompt у Gemini немає — заборони доводиться проговорювати текстом.
 const GEMINI_AVOID =
-  'Absolutely no text, letters, captions, logos, watermarks or signatures anywhere in the image. ' +
   'No blue jeans, no denim, no sportswear, no sneakers, no modern casual clothes. ' +
   'No radiators, no plastic windows, no factory curtains, no laminate flooring, ' +
   'no modern city apartment interiors. ' +
@@ -382,6 +381,19 @@ const GEMINI_AVOID =
   'Do not add any people who are not described in the scene: no bystanders, no crowd, no onlookers. ' +
   'The man is the main subject and his face must be clearly readable, not lost in the scene. ' +
   'Do not crop the head: the whole head stays inside the frame with clear headroom above the hair.'
+
+// Заборона тексту стоїть ОКРЕМО і йде ОСТАННІМ рядком промпту. Коли вона була
+// першою фразою в загальному списку заборон, її вагу розмивало рештою абзацу:
+// прогін 13.08.2026 на s2e29 дав псевдокирилицю на обкладинці блокнота, хоча
+// «no text» у промпті було. Останню інструкцію модель тримає найкраще, тож
+// текстову заборону дублюємо в кінці й проговорюємо конкретно про обкладинки.
+const GEMINI_NO_TEXT =
+  'CRITICAL, applies to the whole image: there must be NO writing of any kind. ' +
+  'No letters, no words, no numbers, no captions, no logos, no watermarks, no signatures. ' +
+  'Any book, notebook, album, sign, package or label visible in the scene has a ' +
+  'completely BLANK, smooth, unmarked surface — no title, no lettering, no printed text, ' +
+  'no embossed characters, no invented or gibberish script of any alphabet. ' +
+  'If a notebook or book appears, show it plain and unlettered.'
 
 async function generateWithGemini(opts: {
   apiKey: string
@@ -425,6 +437,9 @@ async function generateWithGemini(opts: {
     parts.push({ text: 'Reference — the second subject that must also appear in the scene:' })
     parts.push(inlineFromFile(opts.extraRefPath))
   }
+
+  // Останній блок промпту — саме тут заборона тексту тримається найкраще.
+  parts.push({ text: GEMINI_NO_TEXT })
 
   const result = await model.generateContent({
     contents: [{ role: 'user', parts: parts as never }],
