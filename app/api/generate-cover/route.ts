@@ -488,6 +488,12 @@ export async function POST(req: NextRequest) {
     // кожна проба одразу міняла обкладинку на живому сайті.
     const dryRun = body.dryRun === true
 
+    // freeShot: кадр «просто Панас» — без сюжету серії. План, key_object і
+    // аналіз тексту ігноруються; поза, локація, сезон і час беруться випадково.
+    // Потрібен, щоб набити банк універсальних кадрів, якими потім можна
+    // закривати серії без окремої генерації під кожну.
+    const freeShot = body.freeShot === true
+
     const token = process.env.REPLICATE_API_TOKEN
     const geminiKey = process.env.GEMINI_API_KEY
     if (engine === 'replicate' && !token) {
@@ -499,11 +505,13 @@ export async function POST(req: NextRequest) {
 
     const supabase = getSupabaseAdmin()
 
-    const { data: planRow } = await supabase
+    const { data: planRowRaw } = await supabase
       .from('cover_plan')
       .select('*')
       .eq('slug', seriesId)
       .single()
+
+    const planRow = freeShot ? null : planRowRaw
 
     let episodeText = (description || '').trim()
     if (!episodeText) {
@@ -589,7 +597,26 @@ export async function POST(req: NextRequest) {
     let seasonPrompt   = planRow ? (SEASON_PROMPTS[planRow.season] || '') : ''
     let timePrompt     = planRow ? (TIME_OF_DAY_PROMPTS[planRow.time_of_day] || GOLDEN_HOUR_LIGHTING) : GOLDEN_HOUR_LIGHTING
 
-    if (character === 'ganya') {
+    if (freeShot) {
+      // Ніякого сюжету: тільки герой у краєвиді. Сцену тримаємо загальною,
+      // щоб локація й пора року самі задавали різноманіття кадрів.
+      const chosen = forcedPose || POSE_FILES[Math.floor(Math.random() * POSE_FILES.length)]
+      poseFile = `${chosen}.jpg`
+      usedPose = chosen
+      scene = 'an elderly Ukrainian village man going about an ordinary day, calm natural expression'
+      keyObject = null
+      objectOwner = null
+      const locKeys = Object.keys(LOCATION_PROMPTS)
+      const seasonKeys = Object.keys(SEASON_PROMPTS)
+      const fLoc = locKeys[Math.floor(Math.random() * locKeys.length)]
+      const fSeason = seasonKeys[Math.floor(Math.random() * seasonKeys.length)]
+      locationPrompt = LOCATION_PROMPTS[fLoc] || ''
+      seasonPrompt = SEASON_PROMPTS[fSeason] || ''
+      timePrompt = SAFE_LIGHTING[Math.floor(Math.random() * SAFE_LIGHTING.length)]
+      usedLocation = fLoc
+      usedSeason = fSeason
+      usedTimeOfDay = 'free'
+    } else if (character === 'ganya') {
       const g = await analyzeGanya(title, episodeText)
       const chosen = forcedPose || g.pose
       poseFile = `${chosen}.jpg`
@@ -814,6 +841,7 @@ export async function POST(req: NextRequest) {
     const coverMeta = {
       character,
       engine,
+      freeShot,
       outfit: character === 'panas' ? outfit : null,
       extraRef: rawExtraRef || null,
       pose: usedPose,
