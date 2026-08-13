@@ -391,7 +391,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
       </div>
 
       {/* Аудіоплеєр: показує плеєр, якщо audio_status='ready', інакше «у розробці» */}
-      <AudioPlayer audioUrl={episode.audio_url} audioStatus={episode.audio_status} title={episode.title} contentId={episode.id} />
+      <AudioPlayer audioUrl={episode.audio_url} audioStatus={episode.audio_status} title={episode.title} contentId={episode.id} slug={episode.slug} />
     </div>
   )
 }
