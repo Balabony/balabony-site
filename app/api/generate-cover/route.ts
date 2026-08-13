@@ -227,8 +227,11 @@ const NEGATIVE_PROMPT = [
   'blue jeans', 'denim', 'denim trousers', 'modern jeans', 'sportswear',
   'tracksuit', 'sneakers', 'modern casual clothes', 'contemporary streetwear',
   'animal held in hands', 'animal inside a book', 'animal in a basket',
+  'drawing of an animal', 'illustration of an animal', 'picture of an animal',
+  'animal on a book page', 'animal poster', 'animal statue', 'toy animal',
+  'open book in hands', 'open album in hands', 'illustrated page',
   'oversized animal', 'giant animal', 'animal larger than the person',
-  'animal covering the face', 'toy animal', 'stuffed animal',
+  'animal covering the face', 'stuffed animal',
   'unrequested bystanders', 'random crowd', 'group of onlookers',
   'extra people in the background', 'audience watching',
   'blurry face', 'plastic skin', 'doll face', 'wax figure', 'mannequin',
@@ -373,8 +376,9 @@ const GEMINI_AVOID =
   'No radiators, no plastic windows, no factory curtains, no laminate flooring, ' +
   'no modern city apartment interiors. ' +
   'Natural human proportions, well-formed hands, no extra fingers or limbs. ' +
-  'Any animal in the scene stands on the ground in correct natural scale — ' +
-  'never held in the hands, never inside a book or container, never oversized. ' +
+  'Any animal in the scene is a real living animal standing on the ground in correct natural scale — ' +
+  'never held in the hands, never inside a book or container, never oversized, ' +
+  'and never replaced by a drawing, illustration, photograph or statue of that animal. ' +
   'Do not add any people who are not described in the scene: no bystanders, no crowd, no onlookers. ' +
   'The man is the main subject and his face must be clearly readable, not lost in the scene. ' +
   'Do not crop the head: the whole head stays inside the frame with clear headroom above the hair.'
@@ -627,12 +631,22 @@ export async function POST(req: NextRequest) {
     let objectPrefix = ''
     if (keyObject && isAnimal(keyObject)) {
       // Тварина: на землі, поруч, у природному масштабі. Ніколи в руках.
+      //
+      // Прогін 13.08.2026 показав обхідний шлях: заборонивши тварину В книжці,
+      // модель намалювала тварину НА сторінці книжки — формально не порушивши
+      // умову. Причина в тому, що в еталонах Панас майже завжди з синім
+      // блокнотом, і «страус» + «блокнот» зчіплюються в ілюстрований альбом.
+      // Тому вимагаємо саме ЖИВУ істоту і прибираємо з рук розгорнуту книжку.
       const him = character === 'ganya' ? 'her' : 'him'
+      const his = character === 'ganya' ? 'her' : 'his'
       objectPrefix =
-        `a live ${keyObject} standing on the ground beside ${him} at a natural distance, ` +
-        `shown in correct natural scale, never held in ${character === 'ganya' ? 'her' : 'his'} hands, ` +
-        `never placed inside a book, basket or any container, ` +
-        `not larger than ${him}, not covering ${character === 'ganya' ? 'her' : 'his'} face, `
+        `a real live ${keyObject} physically present in the scene, standing on the ground ` +
+        `beside ${him} at a natural distance, shown in correct natural scale, ` +
+        `never held in ${his} hands, never inside a book, basket or any container, ` +
+        `not larger than ${him}, not covering ${his} face, ` +
+        `the ${keyObject} must be a living animal in the scene, ` +
+        `NOT a drawing, illustration, photograph, painting, poster or statue of one, ` +
+        `and ${his} hands hold no open book or album, `
     } else if (keyObject && objectOwner === 'other') {
       objectPrefix = `${keyObject} as a small detail at edge of frame, partially visible, hinting at another presence, `
     } else if (keyObject) {
