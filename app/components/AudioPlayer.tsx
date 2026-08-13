@@ -58,9 +58,11 @@ function sleepLabel(o: SleepOption): string {
   return `Таймер сну: ${o} хв`
 }
 function sleepShort(o: SleepOption): string {
-  if (o === null) return '⏾'
-  if (o === 'end') return '⏾ кін.'
-  return `⏾ ${o}`
+  // U+23FE (⏾) немає в наших шрифтах — браузер малює порожній квадрат.
+  // Місяць U+1F319 присутній у системних емодзі-шрифтах усіх платформ.
+  if (o === null) return '🌙'
+  if (o === 'end') return '🌙 кін.'
+  return `🌙 ${o}`
 }
 
 function fmt(s: number): string {
@@ -92,6 +94,7 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId, s
   const [resumeAt, setResumeAt] = useState<number | null>(null)
   const userIdRef = useRef<string | null>(null)
   const lastSavedRef = useRef(0)
+  const playedRef = useRef(false)
   const currentRef = useRef(0)
   const durationRef = useRef(0)
 
@@ -101,7 +104,14 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId, s
   const saveProgress = useCallback(async (force = false) => {
     const uid = userIdRef.current
     const pos = currentRef.current
+    // Без реального відтворення нічого не пишемо. Інакше просте відкриття
+    // сторінки перезаписує позицію тим, що лишилося в стані від минулого разу,
+    // і навіть видалений рядок відроджується при першому ж оновленні.
+    if (!playedRef.current) return
     if (!uid || !progressKey || !pos) return
+    // Дослухане до кінця не зберігаємо: продовжувати нема з чого.
+    const dur = durationRef.current
+    if (dur && pos > dur - 15) return
     if (!force && Math.abs(pos - lastSavedRef.current) < 10) return
     lastSavedRef.current = pos
     try {
@@ -185,6 +195,7 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId, s
     readTracked.current = false
     setResumeAt(null)
     lastSavedRef.current = 0
+    playedRef.current = false
   }, [audioUrl])
 
   // Тримаємо швидкість синхронною з реальним елементом.
@@ -394,7 +405,7 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId, s
         }}
         onDurationChange={(e) => { readDuration(e.currentTarget) }}
         onTimeUpdate={(e) => setCurrent(e.currentTarget.currentTime || 0)}
-        onPlay={() => setPlaying(true)}
+        onPlay={() => { playedRef.current = true; setPlaying(true) }}
         onPause={() => setPlaying(false)}
         onEnded={(e) => {
           // Якщо файл так і не повідомив тривалість, беремо її з точки завершення.
@@ -525,7 +536,7 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId, s
             fontFamily: "'Montserrat', sans-serif", flexShrink: 0,
           }}
         >
-          {SPEEDS[speedIdx].toFixed(1)}×
+          {SPEEDS[speedIdx]}×
         </button>
 
         {/* Таймер сну */}
