@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { trackStoryEvent } from '@/lib/analytics'
+import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 import { AudioWaveIcon } from './AudioBadge'
 
 // ============================================================
@@ -26,6 +27,12 @@ interface AudioPlayerProps {
    * й змінюються).
    */
   contentId?: string | null
+  /**
+   * Ключ, під яким зберігається місце зупинки в `listening_progress`.
+   * Якщо не передано — беремо contentId, далі title. Аби ключ був стабільний:
+   * назви змінюються, тож slug або uuid надійніші.
+   */
+  slug?: string | null
 }
 
 const SPEEDS = [0.75, 1.0, 1.25, 1.5, 2.0]
@@ -51,7 +58,7 @@ function fmt(s: number): string {
   return m + ':' + (sec < 10 ? '0' : '') + sec
 }
 
-export default function AudioPlayer({ audioUrl, audioStatus, title, contentId }: AudioPlayerProps) {
+export default function AudioPlayer({ audioUrl, audioStatus, title, contentId, slug }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [playing, setPlaying] = useState(false)
   const [current, setCurrent] = useState(0)
@@ -62,9 +69,99 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId }:
   const openTracked = useRef(false)
   const readTracked = useRef(false)
 
-  const sleepOption = SLEEP_OPTIONS[sleepIdx]
-
   const ready = audioStatus === 'ready' && !!audioUrl
+
+  // ── МІСЦЕ ЗУПИНКИ ─────────────────────────────────────────────────────────
+  // Слухають уривками: у дорозі, між справами, перед сном. Без цього людина
+  // щоразу починає епізод спочатку. Позицію тримаємо в listening_progress
+  // (ключ user_id + progressKey), пишемо не частіше разу на 10 секунд.
+  const progressKey = slug || contentId || title || null
+  const [resumeAt, setResumeAt] = useState<number | null>(null)
+  const userIdRef = useRef<string | null>(null)
+  const lastSavedRef = useRef(0)
+  const currentRef = useRef(0)
+  const durationRef = useRef(0)
+
+  useEffect(() => { currentRef.current = current }, [current])
+  useEffect(() => { durationRef.current = duration }, [duration])
+
+  const saveProgress = useCallback(async (force = false) => {
+    const uid = userIdRef.current
+    const pos = currentRef.current
+    if (!uid || !progressKey || !pos) return
+    if (!force && Math.abs(pos - lastSavedRef.current) < 10) return
+    lastSavedRef.current = pos
+    try {
+      const supabase = createSupabaseBrowserClient()
+      await supabase.from('listening_progress').upsert({
+        user_id: uid,
+        slug: progressKey,
+        position_sec: Math.round(pos),
+        duration_sec: durationRef.current ? Math.round(durationRef.current) : null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id,slug' })
+    } catch {
+      // Місце зупинки — зручність, а не критична функція: мовчки пропускаємо.
+    }
+  }, [progressKey])
+
+  // Хто слухає і де зупинився минулого разу.
+  useEffect(() => {
+    if (!ready || !progressKey) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const supabase = createSupabaseBrowserClient()
+        const { data: auth } = await supabase.auth.getUser()
+        const uid = auth?.user?.id ?? null
+        if (cancelled) return
+        userIdRef.current = uid
+        if (!uid) return
+        const { data } = await supabase
+          .from('listening_progress')
+          .select('position_sec, duration_sec')
+          .eq('user_id', uid)
+          .eq('slug', progressKey)
+          .maybeSingle()
+        if (cancelled || !data) return
+        const pos = Number(data.position_sec) || 0
+        const dur = Number(data.duration_sec) || 0
+        // Не пропонуємо продовжити з самого початку і з майже кінця.
+        if (pos > 15 && (!dur || pos < dur - 15)) setResumeAt(pos)
+      } catch {
+        // мовчки
+      }
+    })()
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audioUrl, progressKey])
+
+  // Періодичний запис під час програвання + запис при виході зі сторінки.
+  useEffect(() => {
+    if (!playing) { void saveProgress(true); return }
+    const id = setInterval(() => { void saveProgress() }, 10000)
+    return () => clearInterval(id)
+  }, [playing, saveProgress])
+
+  useEffect(() => {
+    const onLeave = () => { void saveProgress(true) }
+    window.addEventListener('pagehide', onLeave)
+    return () => {
+      window.removeEventListener('pagehide', onLeave)
+      void saveProgress(true)
+    }
+  }, [saveProgress])
+
+  const jumpToResume = () => {
+    const a = audioRef.current
+    if (!a || resumeAt === null) return
+    a.currentTime = resumeAt
+    setCurrent(resumeAt)
+    setResumeAt(null)
+    void a.play()
+  }
+
+  const sleepOption = SLEEP_OPTIONS[sleepIdx]
 
   // Скидаємо стан, якщо змінилося джерело аудіо.
   useEffect(() => {
@@ -73,6 +170,8 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId }:
     setDuration(0)
     openTracked.current = false
     readTracked.current = false
+    setResumeAt(null)
+    lastSavedRef.current = 0
   }, [audioUrl])
 
   // Тримаємо швидкість синхронною з реальним елементом.
@@ -199,6 +298,43 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId }:
           }
         }}
       />
+
+      {/* Місце зупинки з минулого разу. Не перемотуємо самі — пропонуємо. */}
+      {resumeAt !== null && (
+        <div
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '8px 4%', background: 'rgba(239,159,39,0.14)',
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            fontSize: 14,
+          }}
+        >
+          <span style={{ flex: 1 }}>
+            Ви зупинилися на {fmt(resumeAt)}
+          </span>
+          <button
+            onClick={jumpToResume}
+            style={{
+              background: 'var(--accent-gold, #EF9F27)', color: '#0E1A2B',
+              border: 'none', borderRadius: 6, padding: '6px 14px',
+              fontSize: 14, fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            Продовжити
+          </button>
+          <button
+            onClick={() => setResumeAt(null)}
+            aria-label="Слухати спочатку"
+            style={{
+              background: 'transparent', color: '#fff', opacity: 0.7,
+              border: 'none', fontSize: 18, lineHeight: 1,
+              cursor: 'pointer', padding: '0 4px',
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Смужка прогресу */}
       <div
