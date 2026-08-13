@@ -69,6 +69,31 @@ type PanasOutfit = keyof typeof PANAS_OUTFITS
 const GANYA_OUTFIT =
   'embroidered blouse, dark skirt down to mid-calf, apron and floral headscarf'
 
+// ── ЖИВІ ІСТОТИ В keyObject ─────────────────────────────────────────────────
+// key_object у cover_plan задумувався як ПРЕДМЕТ (синій блокнот, глек, сокира),
+// і формулювання «в руках або поруч» для предмета працює. Але в плані трапляються
+// і тварини — страус, коза Манька, корова Лиса, кури. Прогін 13.08.2026 на s2e29
+// показав, чим це закінчується: модель послухалась буквально й посадила страусеня
+// в розгорнуту книжку, а на другому кадрі намалювала страуса на пів кадру.
+// Тому тварин відокремлюємо: вони стоять на землі поруч, у природному масштабі,
+// і ніколи не опиняються в руках.
+const ANIMAL_ROOTS = [
+  'страус', 'кіз', 'коза', 'козу', 'козою', 'цап',
+  'коров', 'бик', 'теля', 'телят',
+  'кур', 'куриц', 'півень', 'півня', 'квочк', 'курча',
+  'гус', 'качк', 'індик', 'індич',
+  'свин', 'порос', 'кабан',
+  'кін', 'кон', 'лошат', 'осел',
+  'пес', 'соба', 'цуцен', 'кіт', 'кот', 'кішк', 'кошен',
+  'вівц', 'баран', 'ягн', 'кріл', 'заєц', 'зайц',
+  'бджол', 'вул', 'лелек', 'бусол', 'голуб', 'ворон',
+]
+
+function isAnimal(word: string): boolean {
+  const w = word.toLowerCase()
+  return ANIMAL_ROOTS.some(root => w.includes(root))
+}
+
 const LOCATION_PROMPTS: Record<string, string> = {
   'old-house-interior': 'interior of an old Ukrainian village house, whitewashed clay stove (pich), wooden ceiling beams, embroidered icons on the wall',
   'old-house-exterior': 'exterior of a white-painted clay village house, thatched roof, wooden window shutters',
@@ -201,6 +226,11 @@ const NEGATIVE_PROMPT = [
   'feet outside the frame', 'awkward body crop',
   'blue jeans', 'denim', 'denim trousers', 'modern jeans', 'sportswear',
   'tracksuit', 'sneakers', 'modern casual clothes', 'contemporary streetwear',
+  'animal held in hands', 'animal inside a book', 'animal in a basket',
+  'oversized animal', 'giant animal', 'animal larger than the person',
+  'animal covering the face', 'toy animal', 'stuffed animal',
+  'unrequested bystanders', 'random crowd', 'group of onlookers',
+  'extra people in the background', 'audience watching',
   'blurry face', 'plastic skin', 'doll face', 'wax figure', 'mannequin',
   'low quality', 'jpeg artifacts', 'oversaturated',
 ].join(', ')
@@ -343,6 +373,10 @@ const GEMINI_AVOID =
   'No radiators, no plastic windows, no factory curtains, no laminate flooring, ' +
   'no modern city apartment interiors. ' +
   'Natural human proportions, well-formed hands, no extra fingers or limbs. ' +
+  'Any animal in the scene stands on the ground in correct natural scale — ' +
+  'never held in the hands, never inside a book or container, never oversized. ' +
+  'Do not add any people who are not described in the scene: no bystanders, no crowd, no onlookers. ' +
+  'The man is the main subject and his face must be clearly readable, not lost in the scene. ' +
   'Do not crop the head: the whole head stays inside the frame with clear headroom above the hair.'
 
 async function generateWithGemini(opts: {
@@ -591,7 +625,15 @@ export async function POST(req: NextRequest) {
     const base64Image = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`
 
     let objectPrefix = ''
-    if (keyObject && objectOwner === 'other') {
+    if (keyObject && isAnimal(keyObject)) {
+      // Тварина: на землі, поруч, у природному масштабі. Ніколи в руках.
+      const him = character === 'ganya' ? 'her' : 'him'
+      objectPrefix =
+        `a live ${keyObject} standing on the ground beside ${him} at a natural distance, ` +
+        `shown in correct natural scale, never held in ${character === 'ganya' ? 'her' : 'his'} hands, ` +
+        `never placed inside a book, basket or any container, ` +
+        `not larger than ${him}, not covering ${character === 'ganya' ? 'her' : 'his'} face, `
+    } else if (keyObject && objectOwner === 'other') {
       objectPrefix = `${keyObject} as a small detail at edge of frame, partially visible, hinting at another presence, `
     } else if (keyObject) {
       const poss = character === 'ganya' ? 'her' : 'his'
