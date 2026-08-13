@@ -304,6 +304,41 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId, s
   const cycleSpeed = () => setSpeedIdx((i) => (i + 1) % SPEEDS.length)
   const cycleSleep = () => setSleepIdx((i) => (i + 1) % SLEEP_OPTIONS.length)
 
+  // ── ТРИВАЛІСТЬ ФАЙЛІВ БЕЗ ЗАГОЛОВКА ───────────────────────────────────────
+  // mp3 зі змінним бітрейтом і без Xing/VBRI-заголовка не повідомляє довжину:
+  // браузер віддає 0 або Infinity, і смужка прогресу стоїть, а перемотування
+  // вперед не має верхньої межі. Такі файли дає більшість TTS-конвеєрів.
+  // Обхід відомий: перемотати у завідомо недосяжну точку — браузер дочитує
+  // структуру файлу й повертає справжню тривалість, після чого вертаємось на 0.
+  const probedRef = useRef(false)
+
+  const readDuration = (a: HTMLAudioElement) => {
+    const d = a.duration
+    if (isFinite(d) && d > 0) {
+      setDuration(d)
+      return true
+    }
+    return false
+  }
+
+  const probeDuration = (a: HTMLAudioElement) => {
+    if (probedRef.current) return
+    probedRef.current = true
+    const wasTime = a.currentTime
+    const onUpdate = () => {
+      if (readDuration(a)) {
+        a.removeEventListener('durationchange', onUpdate)
+        try { a.currentTime = wasTime } catch { /* ігноруємо */ }
+      }
+    }
+    a.addEventListener('durationchange', onUpdate)
+    try {
+      a.currentTime = 1e101
+    } catch {
+      a.removeEventListener('durationchange', onUpdate)
+    }
+  }
+
   // Перемотування на задану кількість секунд: назад — коли прослухав неуважно,
   // вперед — щоб проскочити довгий вступ.
   const skipBy = (sec: number) => {
@@ -353,11 +388,20 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId, s
         ref={audioRef}
         src={audioUrl ?? undefined}
         preload="metadata"
-        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || 0)}
+        onLoadedMetadata={(e) => {
+          const a = e.currentTarget
+          if (!readDuration(a)) probeDuration(a)
+        }}
+        onDurationChange={(e) => { readDuration(e.currentTarget) }}
         onTimeUpdate={(e) => setCurrent(e.currentTarget.currentTime || 0)}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
-        onEnded={() => {
+        onEnded={(e) => {
+          // Якщо файл так і не повідомив тривалість, беремо її з точки завершення.
+          if (!duration) {
+            const d = e.currentTarget.currentTime
+            if (d > 0) setDuration(d)
+          }
           setPlaying(false)
           setSleepIdx(SLEEP_OPTIONS.length - 1) // епізод завершився — таймер сну скинути
           if (!readTracked.current && title) {
