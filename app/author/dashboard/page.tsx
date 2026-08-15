@@ -142,38 +142,6 @@ function BrandBar() {
   )
 }
 
-interface ContestLink {
-  href:  string
-  title: string
-  text:  string
-  main?: boolean
-}
-
-// Джерело — сторінка /konkursy. Якорі збігаються з id секцій на ній.
-const CONTESTS: ContestLink[] = [
-  {
-    href:  '/konkursy',
-    title: '«Це довга історія» — конкурс серіалів',
-    text:  'Десять серій за десять тижнів. Головна нагорода — 20 000 ₴, багатоголосе озвучення та місяць у газеті «Життя». Заявки: 1–15 листопада 2026.',
-    main:  true,
-  },
-  {
-    href:  '/konkursy#rozghin',
-    title: '«Розгін» — три серії за десять днів',
-    text:  'Найкоротша дистанція. Перше місце — 5 000 ₴. Подання будь-коли, дедлайну немає.',
-  },
-  {
-    href:  '/konkursy#odyn-den',
-    title: '«Один день, який усе змінив»',
-    text:  'Коротка проза до 1500 слів. Перше місце — 3 000 ₴, історії переможців виходять у газеті «Життя». Прийом: 1 листопада — 15 грудня 2026.',
-  },
-  {
-    href:  '/konkursy#z-viterczem',
-    title: '«З вітерцем» — гумористична історія',
-    text:  'Смішна історія з життя до 1500 слів. Перше місце — 3 000 ₴, публікація в газеті «Життя». Прийом: 1 листопада — 15 грудня 2026.',
-  },
-]
-
 export default async function AuthorDashboardPage() {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -346,45 +314,8 @@ export default async function AuthorDashboardPage() {
           displayName={profile.pen_name?.trim() || profile.display_name || 'Автор'}
         />
 
-        {/* Конкурси. Усі активні конкурси з лінками на свої розділи сторінки
-            /konkursy — автор бачить повний вибір, а не лише головний. */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{
-            fontSize: '0.85rem', color: BRAND.amber, fontWeight: 700,
-            letterSpacing: 1, textTransform: 'uppercase', marginBottom: '0.7rem',
-          }}>
-            Конкурси для авторів
-          </div>
-
-          {CONTESTS.map((c, i) => (
-            <a
-              key={c.href}
-              href={c.href}
-              style={{
-                display: 'block', textDecoration: 'none',
-                background: BRAND.navyCard, borderRadius: 14,
-                padding: '1rem 1.4rem',
-                marginBottom: i === CONTESTS.length - 1 ? 0 : '0.7rem',
-                border: c.main
-                  ? `2px solid ${BRAND.amber}`
-                  : '1px solid rgba(239,159,39,0.28)',
-              }}
-            >
-              <div style={{
-                fontFamily: SERIF, fontSize: c.main ? '1.3rem' : '1.12rem',
-                fontWeight: 700, color: 'white',
-              }}>
-                {c.title} &rarr;
-              </div>
-              <div style={{
-                color: 'rgba(255,255,255,0.82)', fontSize: '0.93rem',
-                marginTop: 5, lineHeight: 1.55,
-              }}>
-                {c.text}
-              </div>
-            </a>
-          ))}
-        </div>
+        {/* Конкурси — усі активні, з дедлайнами. Компонент рахує дні в браузері. */}
+        <ContestCountdown />
 
         {/* Публікація в газеті — це просування, а не другий гонорар.
             Автор має знати це до того, як подасться на конкурс. */}
@@ -590,8 +521,6 @@ export default async function AuthorDashboardPage() {
             </p>
           </div>
         )}
-
-        <ContestCountdown />
 
         <AuthorRequisites initial={requisites} />
 

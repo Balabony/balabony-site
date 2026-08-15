@@ -33,6 +33,10 @@ const LAUNCH = new Date('2026-11-25T00:00:00+02:00')
 /** «Розгін»: останній старт і підбиття підсумків. */
 const SPRINT_LAST_START = new Date('2027-02-18T23:59:59+02:00')
 const RESULTS = new Date('2027-02-27T00:00:00+02:00')
+/** Короткі конкурси: «Один день, який усе змінив» і «З вітерцем». */
+const SHORT_OPEN = new Date('2026-11-01T00:00:00+02:00')
+const SHORT_CLOSE = new Date('2026-12-15T23:59:59+02:00')
+const SHORT_RESULTS = new Date('2027-01-31T00:00:00+02:00')
 
 function daysUntil(target: Date, from: Date): number {
   return Math.max(0, Math.ceil((target.getTime() - from.getTime()) / 86400000))
@@ -134,6 +138,52 @@ function buildCards(now: Date): Card[] {
     })
   }
 
+  // ── Короткі конкурси: однакові строки, різні теми ──
+  const shorts = [
+    {
+      name: 'Один день, який усе змінив',
+      href: '/konkursy#odyn-den',
+      what: 'Коротка проза до 1500 слів · 3 000 ₴',
+      hint: 'Один день, після якого життя героя пішло інакше. Переможці виходять у газеті «Життя».',
+    },
+    {
+      name: 'З вітерцем',
+      href: '/konkursy#z-viterczem',
+      what: 'Смішна історія до 1500 слів · 3 000 ₴',
+      hint: 'Гумористична історія з життя. Переможці виходять у газеті «Життя».',
+    },
+  ]
+
+  for (const sh of shorts) {
+    if (now < SHORT_OPEN) {
+      out.push({
+        name: sh.name, href: sh.href,
+        label: 'До відкриття прийому',
+        value: days(daysUntil(SHORT_OPEN, now)),
+        what: sh.what, hint: sh.hint,
+        urgent: false,
+      })
+    } else if (now <= SHORT_CLOSE) {
+      const d = daysUntil(SHORT_CLOSE, now)
+      out.push({
+        name: sh.name, href: sh.href,
+        label: 'До закриття прийому',
+        value: days(d),
+        what: sh.what, hint: sh.hint,
+        urgent: d <= 14,
+      })
+    } else if (now < SHORT_RESULTS) {
+      out.push({
+        name: sh.name, href: sh.href,
+        label: 'До підсумків',
+        value: days(daysUntil(SHORT_RESULTS, now)),
+        what: sh.what,
+        hint: 'Прийом закрито. Читаємо надіслане.',
+        urgent: false,
+      })
+    }
+  }
+
   return out
 }
 
@@ -153,13 +203,24 @@ export default function ContestCountdown() {
   return (
     <section style={{
       background: BRAND.cream, borderRadius: 14, padding: '1.25rem 1.5rem',
-      boxShadow: '0 10px 30px rgba(0,0,0,0.25)', marginTop: '1.5rem',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.25)', marginBottom: '1.5rem',
     }}>
       <h2 style={{ fontFamily: SERIF, fontSize: '1.35rem', color: BRAND.amber, margin: '0 0 0.2rem' }}>
         Конкурси
       </h2>
-      <p style={{ color: BRAND.muted, fontSize: '0.85rem', margin: '0 0 1.2rem' }}>
+      <p style={{ color: BRAND.muted, fontSize: '0.85rem', margin: '0 0 0.7rem', lineHeight: 1.6 }}>
         Участь у кількох конкурсах дозволена. Один твір подається лише в один.
+      </p>
+
+      <p style={{
+        color: BRAND.text, fontSize: '0.85rem', margin: '0 0 1.2rem', lineHeight: 1.6,
+        padding: '10px 12px', borderRadius: 10,
+        background: 'rgba(239,159,39,0.08)', border: `1px solid ${BRAND.line}`,
+      }}>
+        <strong style={{ color: BRAND.ink }}>Як подати.</strong> Надішліть твір на{' '}
+        <a href="mailto:nazar@balabony.com" style={{ color: BRAND.amberDark }}>nazar@balabony.com</a>,
+        у темі листа вкажіть назву конкурсу. Ми відповідаємо на кожну заявку —
+        якщо відповіді немає більше трьох днів, напишіть ще раз.
       </p>
 
       <div style={{ display: 'grid', gap: 12 }}>
