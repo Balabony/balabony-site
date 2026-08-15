@@ -8,10 +8,10 @@ const BRAND = {
   cream: '#fffdf8',
   amber: '#b8730f',
   amberDark: '#8a5a10',
-  ink: '#1c1917',
-  text: '#3f3f46',
-  muted: '#78716c',
-  line: 'rgba(28,25,23,0.16)',
+  ink: '#0c0a09',
+  text: '#1c1917',
+  muted: '#44403c',
+  line: 'rgba(28,25,23,0.28)',
 }
 
 export type WorkRow = {
@@ -73,6 +73,7 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
   const [rows, setRows] = useState<WorkRow[]>(works)
   const [prior, setPrior] = useState<Record<string, string>>({})
   const [extra, setExtra] = useState<Record<string, Extra>>({})
+  const [editing, setEditing] = useState<Record<string, boolean>>({})
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<string | null>(null)
 
@@ -91,6 +92,24 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
 
   function ex(id: string): Extra {
     return extra[id] ?? EMPTY_EXTRA
+  }
+
+  // Автор може повернутися до вже підтвердженого твору — наприклад, згадав про
+  // аудіоверсію на ютубі або вирішив обʼєднати твори в серію.
+  function openEdit(w: WorkRow) {
+    setExtra(prev => ({
+      ...prev,
+      [w.id]: {
+        hasAudio: Boolean(w.has_third_party_audio),
+        consent: w.audio_with_consent ? 'yes' : 'no',
+        sources: w.audio_sources ?? '',
+        inSeries: Boolean(w.series_name),
+        seriesName: w.series_name ?? '',
+        seriesOrder: w.series_order ? String(w.series_order) : '',
+      },
+    }))
+    setPrior(prev => ({ ...prev, [w.id]: w.prior_publication ?? '' }))
+    setEditing(prev => ({ ...prev, [w.id]: true }))
   }
 
   function patch(id: string, p: Partial<Extra>) {
@@ -128,7 +147,12 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
           series_order: it.seriesOrder,
         }
       }))
-      setNote(items.length === 1 ? 'Твір підтверджено.' : `Підтверджено творів: ${items.length}.`)
+      setEditing(prev => {
+        const next = { ...prev }
+        for (const it of items) delete next[it.id]
+        return next
+      })
+      setNote(items.length === 1 ? 'Збережено.' : `Збережено творів: ${items.length}.`)
     } catch {
       setNote('Немає звʼязку із сервером.')
     } finally {
@@ -182,9 +206,11 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
           Це перелік творів до договору № {contractNumber} — Додаток № 1. Підтвердження твору
           означає, що ви погоджуєтесь на його розміщення та озвучення на умовах договору.
         </div>
-        <div style={{ fontSize: '0.88rem', color: BRAND.muted, lineHeight: 1.7, marginTop: 8 }}>
+        <div style={{ fontSize: '0.9rem', color: BRAND.text, lineHeight: 1.7, marginTop: 8 }}>
           Якщо твір раніше публікувався в інших виданнях — впишіть яких. На такі твори
           передаються невиключні права: ви зможете й далі використовувати їх деінде.
+          Тут же можна позначити наявні аудіоверсії й обʼєднати твори в серію. Уже
+          підтверджений твір можна змінити — кнопка «змінити» в його рядку.
         </div>
       </div>
 
@@ -221,13 +247,13 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
                 <span style={{ color: BRAND.muted, marginRight: 8 }}>{i + 1}.</span>
                 {w.title}
               </div>
-              <div style={{ fontSize: '0.82rem', color: BRAND.muted, marginTop: 4, lineHeight: 1.6 }}>
+              <div style={{ fontSize: '0.85rem', color: BRAND.muted, marginTop: 4, lineHeight: 1.6 }}>
                 Статус: {WORK_STATUS[w.content_status ?? ''] ?? 'не опубліковано'}
                 {' · '}Опубліковано: {d(w.published_at)}
                 {' · '}Долучено: {d(w.added_at)}
               </div>
-              {w.confirmed_at && (
-                <div style={{ fontSize: '0.82rem', color: BRAND.muted, marginTop: 3 }}>
+              {w.confirmed_at && !editing[w.id] && (
+                <div style={{ fontSize: '0.85rem', color: BRAND.muted, marginTop: 3 }}>
                   Підтверджено {d(w.confirmed_at)}
                   {w.prior_publication ? ` · раніше: ${w.prior_publication}` : ''}
                   {w.has_third_party_audio
@@ -236,11 +262,23 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
                   {w.series_name
                     ? ` · серія: ${w.series_name}${w.series_order ? ` (№${w.series_order})` : ''}`
                     : ''}
+                  {'  '}
+                  <button
+                    type="button"
+                    onClick={() => openEdit(w)}
+                    style={{
+                      border: 'none', background: 'none', padding: 0, cursor: 'pointer',
+                      color: BRAND.amberDark, fontSize: '0.85rem', fontFamily: 'inherit',
+                      textDecoration: 'underline',
+                    }}
+                  >
+                    змінити
+                  </button>
                 </div>
               )}
             </div>
             <span style={{
-              flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,
+              flex: 'none', fontSize: '0.75rem', padding: '3px 9px', borderRadius: 999,
               letterSpacing: '0.02em', whiteSpace: 'nowrap', lineHeight: 1.5,
               fontWeight: 700,
               ...(w.confirmed_at
@@ -251,7 +289,7 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
             </span>
           </div>
 
-          {!w.confirmed_at && (
+          {(!w.confirmed_at || editing[w.id]) && (
             <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
               <input
                 type="text"
@@ -346,10 +384,20 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
                 </div>
               )}
 
-              <div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button type="button" onClick={() => confirmOne(w)} disabled={busy} style={secondaryBtn}>
-                  Підтвердити
+                  {editing[w.id] ? 'Зберегти' : 'Підтвердити'}
                 </button>
+                {editing[w.id] && (
+                  <button
+                    type="button"
+                    onClick={() => setEditing(p => ({ ...p, [w.id]: false }))}
+                    disabled={busy}
+                    style={{ ...secondaryBtn, borderColor: 'transparent', color: BRAND.muted }}
+                  >
+                    Скасувати
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -397,7 +445,7 @@ const nestedBox: React.CSSProperties = {
 }
 
 const hintStyle: React.CSSProperties = {
-  fontSize: '0.78rem', color: BRAND.muted, lineHeight: 1.5,
+  fontSize: '0.82rem', color: BRAND.muted, lineHeight: 1.55,
 }
 
 const secondaryBtn: React.CSSProperties = {
