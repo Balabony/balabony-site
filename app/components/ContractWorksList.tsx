@@ -22,6 +22,25 @@ export type WorkRow = {
   published_at: string | null
   content_type: string | null
   episode_number: number | null
+  has_third_party_audio?: boolean | null
+  audio_with_consent?: boolean | null
+  audio_sources?: string | null
+  series_name?: string | null
+  series_order?: number | null
+}
+
+type Extra = {
+  hasAudio: boolean
+  consent: 'yes' | 'no'
+  sources: string
+  inSeries: boolean
+  seriesName: string
+  seriesOrder: string
+}
+
+const EMPTY_EXTRA: Extra = {
+  hasAudio: false, consent: 'no', sources: '',
+  inSeries: false, seriesName: '', seriesOrder: '',
 }
 
 type Props = {
@@ -51,13 +70,32 @@ function d(v: string | null): string {
 export default function ContractWorksList({ contractId, contractNumber, works, generatedAt }: Props) {
   const [rows, setRows] = useState<WorkRow[]>(works)
   const [prior, setPrior] = useState<Record<string, string>>({})
+  const [extra, setExtra] = useState<Record<string, Extra>>({})
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<string | null>(null)
 
   const pending = useMemo(() => rows.filter(w => !w.confirmed_at), [rows])
   const confirmed = useMemo(() => rows.filter(w => w.confirmed_at), [rows])
 
-  async function send(items: { id: string; priorPublication: string | null }[]) {
+  type SendItem = {
+    id: string
+    priorPublication: string | null
+    hasThirdPartyAudio: boolean
+    audioWithConsent: boolean | null
+    audioSources: string | null
+    seriesName: string | null
+    seriesOrder: number | null
+  }
+
+  function ex(id: string): Extra {
+    return extra[id] ?? EMPTY_EXTRA
+  }
+
+  function patch(id: string, p: Partial<Extra>) {
+    setExtra(prev => ({ ...prev, [id]: { ...(prev[id] ?? EMPTY_EXTRA), ...p } }))
+  }
+
+  async function send(items: SendItem[]) {
     if (items.length === 0) return
     setBusy(true)
     setNote(null)
@@ -73,10 +111,21 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
         return
       }
       const now = new Date().toISOString()
-      const map = new Map(items.map(i => [i.id, i.priorPublication]))
-      setRows(prev => prev.map(w => map.has(w.id)
-        ? { ...w, confirmed_at: now, prior_publication: map.get(w.id) ?? null }
-        : w))
+      const map = new Map(items.map(i => [i.id, i]))
+      setRows(prev => prev.map(w => {
+        const it = map.get(w.id)
+        if (!it) return w
+        return {
+          ...w,
+          confirmed_at: now,
+          prior_publication: it.priorPublication,
+          has_third_party_audio: it.hasThirdPartyAudio,
+          audio_with_consent: it.audioWithConsent,
+          audio_sources: it.audioSources,
+          series_name: it.seriesName,
+          series_order: it.seriesOrder,
+        }
+      }))
       setNote(items.length === 1 ? 'Твір підтверджено.' : `Підтверджено творів: ${items.length}.`)
     } catch {
       setNote('Немає звʼязку із сервером.')
@@ -85,15 +134,42 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
     }
   }
 
-  function confirmOne(w: WorkRow) {
+  function buildItem(w: WorkRow): SendItem {
     const p = (prior[w.id] ?? '').trim()
-    void send([{ id: w.id, priorPublication: p ? p : null }])
+    const e = ex(w.id)
+    const orderNum = e.inSeries && e.seriesOrder.trim()
+      ? Number.parseInt(e.seriesOrder, 10)
+      : NaN
+    return {
+      id: w.id,
+      priorPublication: p ? p : null,
+      hasThirdPartyAudio: e.hasAudio,
+      audioWithConsent: e.hasAudio ? e.consent === 'yes' : null,
+      audioSources: e.hasAudio && e.sources.trim() ? e.sources.trim() : null,
+      seriesName: e.inSeries && e.seriesName.trim() ? e.seriesName.trim() : null,
+      seriesOrder: Number.isFinite(orderNum) ? orderNum : null,
+    }
+  }
+
+  function confirmOne(w: WorkRow) {
+    void send([buildItem(w)])
   }
 
   function confirmAllClean() {
     const items = pending
-      .filter(w => !(prior[w.id] ?? '').trim())
-      .map(w => ({ id: w.id, priorPublication: null }))
+      .filter(w => {
+        const e = ex(w.id)
+        return !(prior[w.id] ?? '').trim() && !e.hasAudio && !e.inSeries
+      })
+      .map(w => ({
+        id: w.id,
+        priorPublication: null,
+        hasThirdPartyAudio: false,
+        audioWithConsent: null,
+        audioSources: null,
+        seriesName: null,
+        seriesOrder: null,
+      }))
     void send(items)
   }
 
@@ -152,6 +228,12 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
                 <div style={{ fontSize: '0.82rem', color: BRAND.muted, marginTop: 3 }}>
                   Підтверджено {d(w.confirmed_at)}
                   {w.prior_publication ? ` · раніше: ${w.prior_publication}` : ''}
+                  {w.has_third_party_audio
+                    ? ` · аудіо третіх осіб: ${w.audio_with_consent ? 'за згодою' : 'без згоди'}`
+                    : ''}
+                  {w.series_name
+                    ? ` · серія: ${w.series_name}${w.series_order ? ` (№${w.series_order})` : ''}`
+                    : ''}
                 </div>
               )}
             </div>
@@ -166,21 +248,105 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
           </div>
 
           {!w.confirmed_at && (
-            <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
               <input
                 type="text"
                 value={prior[w.id] ?? ''}
                 onChange={e => setPrior(p => ({ ...p, [w.id]: e.target.value }))}
                 placeholder="Раніше публікувався в… (якщо ні — лишіть порожнім)"
-                style={{
-                  flex: '1 1 260px', minWidth: 200, padding: '0.5rem 0.7rem',
-                  border: `1px solid ${BRAND.line}`, borderRadius: 8, background: 'transparent',
-                  color: BRAND.text, fontSize: '0.88rem', fontFamily: 'inherit',
-                }}
+                style={inputStyle}
               />
-              <button type="button" onClick={() => confirmOne(w)} disabled={busy} style={secondaryBtn}>
-                Підтвердити
-              </button>
+
+              <label style={checkRow}>
+                <input
+                  type="checkbox"
+                  checked={ex(w.id).hasAudio}
+                  onChange={e => patch(w.id, { hasAudio: e.target.checked })}
+                  style={{ marginTop: 3 }}
+                />
+                <span>Твір має аудіоверсію, створену третіми особами</span>
+              </label>
+
+              {ex(w.id).hasAudio && (
+                <div style={nestedBox}>
+                  <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
+                    <label style={radioRow}>
+                      <input
+                        type="radio"
+                        name={`consent-${w.id}`}
+                        checked={ex(w.id).consent === 'yes'}
+                        onChange={() => patch(w.id, { consent: 'yes' })}
+                      />
+                      <span>З моєї згоди</span>
+                    </label>
+                    <label style={radioRow}>
+                      <input
+                        type="radio"
+                        name={`consent-${w.id}`}
+                        checked={ex(w.id).consent === 'no'}
+                        onChange={() => patch(w.id, { consent: 'no' })}
+                      />
+                      <span>Без моєї згоди</span>
+                    </label>
+                  </div>
+                  <input
+                    type="text"
+                    value={ex(w.id).sources}
+                    onChange={e => patch(w.id, { sources: e.target.value })}
+                    placeholder="Де саме розміщено (посилання або назви каналів)"
+                    style={inputStyle}
+                  />
+                  <div style={hintStyle}>
+                    {ex(w.id).consent === 'yes'
+                      ? 'Права на цей твір передаються як невиключні (п. 2.8-1).'
+                      : 'Це не є порушенням договору. Ми можемо допомогти з вилученням (п. 6.2-1).'}
+                  </div>
+                </div>
+              )}
+
+              <label style={checkRow}>
+                <input
+                  type="checkbox"
+                  checked={ex(w.id).inSeries}
+                  onChange={e => patch(w.id, e.target.checked
+                    ? { inSeries: true }
+                    : { inSeries: false, seriesName: '', seriesOrder: '' })}
+                  style={{ marginTop: 3 }}
+                />
+                <span>Твір належить до серії (циклу)</span>
+              </label>
+
+              {ex(w.id).inSeries && (
+                <div style={nestedBox}>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <input
+                      type="text"
+                      value={ex(w.id).seriesName}
+                      onChange={e => patch(w.id, { seriesName: e.target.value })}
+                      placeholder="Назва серії"
+                      style={{ ...inputStyle, flex: '1 1 220px' }}
+                    />
+                    <input
+                      type="number"
+                      min={1}
+                      max={999}
+                      value={ex(w.id).seriesOrder}
+                      onChange={e => patch(w.id, { seriesOrder: e.target.value })}
+                      placeholder="№"
+                      style={{ ...inputStyle, flex: '0 0 90px', minWidth: 70 }}
+                    />
+                  </div>
+                  <div style={hintStyle}>
+                    Номер — за хронологією подій, а не за порядком написання (п. 2.5-2).
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <button type="button" onClick={() => confirmOne(w)} disabled={busy} style={secondaryBtn}>
+                  Підтвердити
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -202,6 +368,32 @@ const primaryBtn: React.CSSProperties = {
   padding: '0.5rem 0.9rem', borderRadius: 9, border: 'none',
   background: BRAND.amber, color: BRAND.ink, fontWeight: 700,
   fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit',
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '0.5rem 0.7rem',
+  border: `1px solid ${BRAND.line}`, borderRadius: 8, background: 'transparent',
+  color: BRAND.text, fontSize: '0.88rem', fontFamily: 'inherit',
+}
+
+const checkRow: React.CSSProperties = {
+  display: 'flex', gap: 9, alignItems: 'flex-start',
+  fontSize: '0.86rem', color: BRAND.text, lineHeight: 1.5, cursor: 'pointer',
+}
+
+const radioRow: React.CSSProperties = {
+  display: 'flex', gap: 7, alignItems: 'center',
+  fontSize: '0.86rem', color: BRAND.text, cursor: 'pointer',
+}
+
+const nestedBox: React.CSSProperties = {
+  display: 'grid', gap: 8, padding: '0.7rem 0.8rem',
+  border: `1px solid ${BRAND.line}`, borderRadius: 9,
+  background: 'rgba(143,163,196,0.06)',
+}
+
+const hintStyle: React.CSSProperties = {
+  fontSize: '0.78rem', color: BRAND.muted, lineHeight: 1.5,
 }
 
 const secondaryBtn: React.CSSProperties = {
