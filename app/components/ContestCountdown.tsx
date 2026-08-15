@@ -209,7 +209,7 @@ export default function ContestCountdown() {
         Конкурси
       </h2>
       <p style={{ color: BRAND.muted, fontSize: '0.85rem', margin: '0 0 0.7rem', lineHeight: 1.6 }}>
-        Участь у кількох конкурсах дозволена. Один твір подається лише в один.
+        Подаватися можна на кілька конкурсів одразу. Але кожен твір — лише на один із них.
       </p>
 
       <p style={{
@@ -217,10 +217,12 @@ export default function ContestCountdown() {
         padding: '10px 12px', borderRadius: 10,
         background: 'rgba(239,159,39,0.08)', border: `1px solid ${BRAND.line}`,
       }}>
-        <strong style={{ color: BRAND.ink }}>Як подати.</strong> Надішліть твір на{' '}
+        <strong style={{ color: BRAND.ink }}>Як подати.</strong> Унизу цієї сторінки —
+        форма «Написати редакції». Виберіть тему «Заявка на конкурс», назвіть конкурс
+        і додайте текст. На пошту одразу прийде підтвердження, що заявку отримано.
+        Можна й листом на{' '}
         <a href="mailto:nazar@balabony.com" style={{ color: BRAND.amberDark }}>nazar@balabony.com</a>,
-        у темі листа вкажіть назву конкурсу. Ми відповідаємо на кожну заявку —
-        якщо відповіді немає більше трьох днів, напишіть ще раз.
+        але тоді підтвердження не буде автоматичним.
       </p>
 
       <div style={{ display: 'grid', gap: 12 }}>
