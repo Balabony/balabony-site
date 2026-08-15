@@ -2,14 +2,16 @@
 
 import { useMemo, useState } from 'react'
 
+// Компонент живе на світлій кремовій картці сторінки /author/dashboard/works.
+// Палітра раніше була від темного макета — текст був майже не видно.
 const BRAND = {
-  cream: '#0f1e3a',
-  amber: '#ef9f27',
-  amberDark: '#FFB347',
-  ink: '#f5f0e8',
-  text: '#e8eef7',
-  muted: '#b9c6db',
-  line: 'rgba(143,163,196,0.22)',
+  cream: '#fffdf8',
+  amber: '#b8730f',
+  amberDark: '#8a5a10',
+  ink: '#1c1917',
+  text: '#3f3f46',
+  muted: '#78716c',
+  line: 'rgba(28,25,23,0.16)',
 }
 
 export type WorkRow = {
@@ -241,7 +243,9 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
               flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,
               letterSpacing: '0.02em', whiteSpace: 'nowrap', lineHeight: 1.5,
               fontWeight: 700,
-              ...(w.confirmed_at ? { background: 'rgba(151,196,89,0.16)', color: '#C0DD97', border: '1px solid rgba(151,196,89,0.4)' } : { background: 'rgba(143,163,196,0.15)', color: '#e8eef7', border: '1px solid rgba(143,163,196,0.35)' }),
+              ...(w.confirmed_at
+                ? { background: 'rgba(101,163,13,0.14)', color: '#3f6212', border: '1px solid rgba(101,163,13,0.35)' }
+                : { background: 'rgba(28,25,23,0.06)', color: '#57534e', border: '1px solid rgba(28,25,23,0.18)' }),
             }}>
               {w.confirmed_at ? 'Підтверджено' : 'Очікує'}
             </span>
@@ -366,7 +370,7 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
 
 const primaryBtn: React.CSSProperties = {
   padding: '0.5rem 0.9rem', borderRadius: 9, border: 'none',
-  background: BRAND.amber, color: BRAND.ink, fontWeight: 700,
+  background: '#ef9f27', color: '#1c1917', fontWeight: 700,
   fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit',
 }
 
@@ -389,7 +393,7 @@ const radioRow: React.CSSProperties = {
 const nestedBox: React.CSSProperties = {
   display: 'grid', gap: 8, padding: '0.7rem 0.8rem',
   border: `1px solid ${BRAND.line}`, borderRadius: 9,
-  background: 'rgba(143,163,196,0.06)',
+  background: 'rgba(239,159,39,0.07)',
 }
 
 const hintStyle: React.CSSProperties = {
