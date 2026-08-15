@@ -26,6 +26,7 @@ const BRAND = {
 const SERIF = 'Georgia, "Times New Roman", serif'
 
 export const MESSAGE_TOPICS: [string, string][] = [
+  ['contest', 'Заявка на конкурс'],
   ['works', 'Мої твори — додати або виправити'],
   ['tech', 'Щось не працює'],
   ['contract', 'Питання щодо договору'],
@@ -36,7 +37,7 @@ export const MESSAGE_TOPICS: [string, string][] = [
 ]
 
 export default function AuthorMessageForm() {
-  const [topic, setTopic] = useState('works')
+  const [topic, setTopic] = useState('contest')
   const [body, setBody] = useState('')
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')

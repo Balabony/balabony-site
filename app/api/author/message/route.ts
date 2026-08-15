@@ -15,6 +15,7 @@ import { dbQuery } from '@/lib/db'
  */
 
 const TOPIC_LABEL: Record<string, string> = {
+  contest: 'Заявка на конкурс',
   works: 'Мої твори — додати або виправити',
   tech: 'Щось не працює',
   contract: 'Питання щодо договору',
@@ -137,6 +138,59 @@ export async function POST(req: Request) {
         const err = e as { message?: string }
         // Звернення вже в базі — мовчазна помилка пошти не втрачає його.
         console.error('[author/message] mail', err?.message)
+      }
+
+      // --- Автовідповідь авторові -----------------------------------------
+      // Автор має бачити, що лист дійшов. Без цього він не знає, чи заявка
+      // на конкурс узагалі отримана, і пише вдруге або не пише зовсім.
+      if (email) {
+        const isContest = topic === 'contest'
+        const head = isContest
+          ? 'Заявку отримано'
+          : 'Ваш лист отримано'
+        const lead = isContest
+          ? 'Ми прочитаємо заявку й відповімо. Якщо відповіді не буде більше трьох робочих днів — напишіть ще раз, лист міг загубитися.'
+          : 'Ми прочитаємо звернення й відповімо. Якщо відповіді не буде більше трьох робочих днів — напишіть ще раз.'
+
+        try {
+          const resend = new Resend(process.env.RESEND_API_KEY)
+          await resend.emails.send({
+            from,
+            to: email,
+            replyTo: to,
+            subject: isContest ? 'Заявку на конкурс отримано · Балабони' : 'Ваш лист отримано · Балабони',
+            text: [
+              `Доброго дня${name ? `, ${name}` : ''}!`,
+              '',
+              head + '.',
+              `Тема: ${label}`,
+              '',
+              lead,
+              '',
+              'Ваш текст:',
+              body.length > 1200 ? body.slice(0, 1200) + '…' : body,
+              '',
+              '— — —',
+              'Це автоматичне підтвердження. Відповідати на нього не треба —',
+              'але якщо відповісте, лист дійде до редакції.',
+              'balabony.com',
+            ].join('\n'),
+            html: `<!DOCTYPE html><html lang="uk"><body style="margin:0;padding:24px;background:#f4f4f5">
+<div style="max-width:620px;margin:0 auto;background:#fff;border:1px solid #e4e4e7;border-radius:10px;padding:26px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.65;color:#18181b">
+  <div style="font-weight:700;font-size:19px;margin-bottom:6px">${escapeHtml(head)}</div>
+  <div style="font-size:13px;color:#71717a;margin-bottom:16px">${escapeHtml(label)}</div>
+  <p style="margin:0 0 16px">${escapeHtml(lead)}</p>
+  <div style="border-top:1px solid #e4e4e7;padding-top:14px;font-size:13px;color:#71717a;margin-bottom:6px">Ваш текст</div>
+  <div style="white-space:pre-wrap;color:#3f3f46;font-size:14px">${escapeHtml(body.length > 1200 ? body.slice(0, 1200) + '…' : body)}</div>
+  <div style="border-top:1px solid #e4e4e7;margin-top:18px;padding-top:12px;font-size:12px;color:#71717a">
+    Це автоматичне підтвердження. Відповідати не треба — але якщо відповісте, лист дійде до редакції.
+  </div>
+</div></body></html>`,
+          })
+        } catch (e) {
+          const err = e as { message?: string }
+          console.error('[author/message] ack', err?.message)
+        }
       }
     }
 
