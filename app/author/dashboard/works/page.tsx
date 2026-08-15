@@ -43,6 +43,11 @@ export default async function ContractWorksPage(
                   w.prior_publication,
                   w.confirmed_at,
                   w.added_at,
+                  w.has_third_party_audio,
+                  w.audio_with_consent,
+                  w.audio_sources,
+                  w.series_name,
+                  w.series_order,
                   t.status        as content_status,
                   t.published_at  as published_at,
                   t.type          as content_type,
@@ -57,7 +62,12 @@ export default async function ContractWorksPage(
         )
         works = w.rows as WorkRow[]
       }
-    } catch {
+    } catch (e) {
+      // Мовчазний catch тут колись показував «Договір не знайдено» на будь-якій
+      // помилці SQL — наприклад, коли в запиті зʼявлялася нова колонка, якої ще
+      // немає в базі. Тепер причина видна в логах Vercel.
+      const err = e as { message?: string }
+      console.error('[author/works] db', err?.message)
       found = false
     }
   }
