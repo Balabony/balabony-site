@@ -55,7 +55,7 @@ export default async function ContractWorksPage(
              from contract_works w
              left join content t on t.id = w.content_id
             where w.contract_id = $1
-            order by coalesce(t.type, 'zzz') asc,
+            order by coalesce(t.type::text, 'zzz') asc,
                      t.episode_number asc nulls last,
                      w.title asc`,
           [contractId],
