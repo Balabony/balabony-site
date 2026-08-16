@@ -98,9 +98,10 @@ export async function GET(req: NextRequest) {
     const items = await loadCandidates(500)
     const total = items.reduce((s, i) => s + i.size, 0)
     const done = await dbQuery(
-      `select count(*)::int as n,
-              coalesce(sum(old_size), 0)::bigint as was,
-              coalesce(sum(new_size), 0)::bigint as now
+      `select count(*) filter (where not skipped)::int as n,
+              count(*) filter (where skipped)::int     as skipped,
+              coalesce(sum(old_size) filter (where not skipped), 0)::bigint as was,
+              coalesce(sum(new_size) filter (where not skipped), 0)::bigint as now
          from cover_compression_log`,
     )
     return NextResponse.json({
@@ -179,6 +180,18 @@ export async function POST(req: NextRequest) {
 
       const gain = 1 - compressed.byteLength / original.byteLength
       if (gain < MIN_GAIN) {
+        // Пропущене теж іде в журнал. Інакше наступна партія бере ці самі
+        // файли знову — і цикл «Стиснути всі» крутиться нескінченно, бо
+        // processed щоразу більший за нуль.
+        if (!dryRun) {
+          await dbQuery(
+            `insert into cover_compression_log
+               (old_name, new_name, old_url, new_url, old_size, new_size, skipped)
+             values ($1, $2, $3, $4, $5, $6, true)
+             on conflict (old_name) do nothing`,
+            [item.name, item.name, item.url, item.url, original.byteLength, compressed.byteLength],
+          )
+        }
         results.push({
           name: item.name,
           status: 'skipped',
@@ -244,7 +257,8 @@ export async function POST(req: NextRequest) {
         `insert into cover_compression_log
            (old_name, new_name, old_url, new_url, old_size, new_size,
             rows_content, rows_stories, rows_series)
-         values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         on conflict (old_name) do nothing`,
         [
           item.name, newName, item.url, newUrl,
           original.byteLength, compressed.byteLength,

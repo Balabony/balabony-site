@@ -16,7 +16,7 @@ type Scan = {
   pendingBytes: number
   byFormat: Record<string, number>
   heaviest: { name: string; size: number }[]
-  done: { n: number; was: string; now: string }
+  done: { n: number; skipped: number; was: string; now: string }
   error?: string
 }
 
@@ -106,6 +106,9 @@ export default function CompressCoversPage() {
     for (;;) {
       const d = await runOne(false)
       if (!d || d.processed === 0) break
+      // Партія без жодного стиснутого файла означає, що лишилось тільки те,
+      // що не стискається. Продовжувати — крутити цикл даремно.
+      if (d.ok === 0) break
       if (stopRef.current) break
       await refresh()
     }
@@ -144,7 +147,8 @@ export default function CompressCoversPage() {
               </div>
               {scan.done?.n > 0 && (
                 <div style={{ color: MUTED, fontSize: 14 }}>
-                  Уже оброблено: {scan.done.n} · було {mb(Number(scan.done.was))} → стало {mb(Number(scan.done.now))}
+                  Стиснуто: {scan.done.n} · було {mb(Number(scan.done.was))} → стало {mb(Number(scan.done.now))}
+                  {scan.done.skipped > 0 && ` · пропущено як безнадійні: ${scan.done.skipped}`}
                 </div>
               )}
             </>
