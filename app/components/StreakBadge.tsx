@@ -23,9 +23,11 @@ export default function StreakBadge() {
 
   useEffect(() => {
     fetch('/api/streak')
-      .then(r => r.json())
+      // Статус перевіряємо обов'язково: без цього помилка сервера
+      // розбиралася як звичайна відповідь і бейдж показував нулі.
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error('streak'))))
       .then((d: StreakData) => setData(d))
-      .catch(() => {})
+      .catch(() => setData(null))
   }, [])
 
   if (!data) return null

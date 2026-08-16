@@ -57,7 +57,10 @@ export async function GET() {
       readToday: gap === 0,
     })
   } catch {
-    return NextResponse.json({ current: 0, longest: 0, freezes: MAX_FREEZES, readToday: false })
+    // Раніше тут поверталися нулі зі статусом 200, і бейдж показував читачеві
+    // «0 днів» — тобто збій бази виглядав як утрачений стрік. Тепер віддаємо
+    // помилку: краще не показати нічого, ніж показати чужу поразку.
+    return NextResponse.json({ error: 'streak unavailable' }, { status: 500 })
   }
 }
 
