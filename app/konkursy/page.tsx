@@ -100,7 +100,7 @@ const FACTS: { label: string; value: string }[] = [
   { label: 'Обсяг', value: '10 серій по 1500–1800 слів' },
   { label: 'Ритм', value: 'одна серія на тиждень, у свій день' },
   { label: 'Реєстрація кабінетів', value: 'відкрито' },
-  { label: 'Заявки', value: '1–20 грудня 2026' },
+  { label: 'Заявки', value: '1 вересня — 31 жовтня 2026' },
   { label: 'Перші серії', value: '25 листопада — 1 грудня 2026' },
   { label: 'Підсумки', value: 'до 27 лютого 2027' },
 ]
@@ -169,7 +169,7 @@ const PROMO: { title: string; text: string }[] = [
 
 const DATES: [string, string][] = [
   ['Реєстрація кабінетів', 'відкрито'],
-  ['Заявки', '1–20 грудня'],
+  ['Заявки', '1 вересня — 31 жовтня'],
   ['Оголошення учасників', '18 листопада'],
   ['Перші серії', '25 листопада — 1 грудня'],
   ['Різдвяна пауза', '24 грудня — 6 січня'],
@@ -610,7 +610,7 @@ function ShortContestCard({ c }: { c: ShortContest }) {
 /** Три плитки вгорі: одразу видно, який конкурс про що і скільки коштує. */
 function ContestPicker() {
   const tiles = [
-    { href: '#dovha-istoriya', accent: SCHEMES.serial, mark: 'weeks' as const, name: 'Це довга історія',           what: 'Серіал · 10 серій',    when: 'Заявки 1–20 грудня', prize: '20 000 ₴', main: true  },
+    { href: '#dovha-istoriya', accent: SCHEMES.serial, mark: 'weeks' as const, name: 'Це довга історія',           what: 'Серіал · 10 серій',    when: 'Заявки до 31 жовтня', prize: '20 000 ₴', main: true  },
     { href: '#pyat-vechoriv',  accent: SCHEMES.sprint, mark: 'sprint' as const, name: "П'ять вечорів",            what: "П'ять серій по 1000 слів", when: 'Заявки до 20 жовтня', prize: '8 000 ₴',  main: false },
     { href: '#odyn-den',       accent: SCHEMES.oneDay, mark: 'break' as const, name: 'Один день, який усе змінив', what: 'Одна історія',         when: 'Прийом до 15 грудня',   prize: '3 000 ₴',  main: false },
     { href: '#z-viterczem',    accent: SCHEMES.humour, mark: 'gust'  as const, name: 'З вітерцем',                 what: 'Одна історія · гумор', when: 'Прийом до 15 грудня',   prize: '3 000 ₴',  main: false },
@@ -1019,7 +1019,7 @@ export default function KonkursyPage() {
             Заходьте, підписуйте договір, заповнюйте реквізити — щоб потім не робити це поспіхом.
           </p>
           <p style={P}>
-            <strong style={{ color: GOLD_SOFT }}>З 1 до 20 грудня</strong> подача заявки через
+            <strong style={{ color: GOLD_SOFT }}>З 1 вересня до 31 жовтня</strong> подача заявки через
             Особистий кабінет: синопсис на одну сторінку і повний текст першої серії.
           </p>
           <p style={{ ...P, margin: '0 0 18px' }}>
