@@ -23,6 +23,9 @@ import sharp from 'sharp'
 
 export const runtime = 'nodejs'
 export const maxDuration = 300
+// Стан читається щоразу заново: кешована відповідь показувала б залишок
+// на момент першого відкриття сторінки, хоча файли вже оброблені.
+export const dynamic = 'force-dynamic'
 
 function checkAuth(req: NextRequest): boolean {
   const pass = process.env.ADMIN_PASSWORD

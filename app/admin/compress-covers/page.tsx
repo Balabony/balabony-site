@@ -61,7 +61,10 @@ export default function CompressCoversPage() {
   const refresh = useCallback(async () => {
     setErr('')
     try {
-      const res = await fetch('/api/admin/compress-covers')
+      // no-store обов'язково: інакше браузер віддає відповідь, збережену при
+      // першому відкритті сторінки, і лічильник показує стан до обробки —
+      // виглядає так, ніби стиснення нічого не зробило.
+      const res = await fetch('/api/admin/compress-covers', { cache: 'no-store' })
       const d = (await res.json()) as Scan
       if (d.error) { setErr(d.error); return }
       setScan(d)
