@@ -69,6 +69,23 @@ function d(v: string | null): string {
   return Number.isNaN(t.getTime()) ? '—' : t.toLocaleDateString('uk-UA')
 }
 
+/**
+ * Кінець строку передачі прав щодо конкретного твору.
+ *
+ * За п. 4.2 договору (редакція 4.6) три роки рахуються окремо для кожного
+ * твору від дати ЙОГО публікації, а не від дати підписання. Тому твори,
+ * опубліковані в різний час, закінчуються в різні дні — і автор має бачити
+ * це в переліку, а не вираховувати сам.
+ */
+function termEnd(published: string | null): string {
+  if (!published) return '—'
+  const t = new Date(published)
+  if (Number.isNaN(t.getTime())) return '—'
+  const end = new Date(t)
+  end.setFullYear(end.getFullYear() + 3)
+  return end.toLocaleDateString('uk-UA')
+}
+
 export default function ContractWorksList({ contractId, contractNumber, works, generatedAt }: Props) {
   const [rows, setRows] = useState<WorkRow[]>(works)
   const [prior, setPrior] = useState<Record<string, string>>({})
@@ -212,6 +229,11 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
           Тут же можна позначити наявні аудіоверсії й обʼєднати твори в серію. Уже
           підтверджений твір можна змінити — кнопка «змінити» в його рядку.
         </div>
+        <div style={{ fontSize: '0.85rem', color: BRAND.muted, lineHeight: 1.7, marginTop: 8 }}>
+          «Права до» — дата, коли строк передачі прав щодо цього твору завершується.
+          Три роки рахуються окремо для кожного твору від дня його публікації (п. 4.2),
+          тому в творів, опублікованих у різний час, дати різні.
+        </div>
       </div>
 
       <div style={{
@@ -251,6 +273,14 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
                 Статус: {WORK_STATUS[w.content_status ?? ''] ?? 'не опубліковано'}
                 {' · '}Опубліковано: {d(w.published_at)}
                 {' · '}Долучено: {d(w.added_at)}
+                {w.published_at && (
+                  <>
+                    {' · '}
+                    <span title="Три роки від дати публікації цього твору, п. 4.2 договору">
+                      Права до: {termEnd(w.published_at)}
+                    </span>
+                  </>
+                )}
               </div>
               {w.confirmed_at && !editing[w.id] && (
                 <div style={{ fontSize: '0.85rem', color: BRAND.muted, marginTop: 3 }}>
