@@ -33,7 +33,10 @@ function checkAuth(req: NextRequest): boolean {
 // Ширина з запасом: найбільший показ обкладинки на сайті — герой епізоду.
 // 1200 px покриває його і на екранах з подвійною щільністю.
 const MAX_WIDTH = 1200
-const QUALITY = 82
+// 87, а не 82: обкладинки «Тиші» — це листя, гілки, мішковина, суцільна
+// дрібна текстура. Саме на такому матеріалі WebP першим ділом робить кашу.
+// Зайвих 50 КБ на файл дешевші за зіпсовану обкладинку.
+const QUALITY = 87
 const MIN_GAIN = 0.10
 
 type Candidate = {
@@ -122,6 +125,8 @@ type Result = {
   newSize?: number
   rows?: number
   reason?: string
+  oldUrl?: string
+  newUrl?: string
 }
 
 export async function POST(req: NextRequest) {
@@ -250,6 +255,8 @@ export async function POST(req: NextRequest) {
         oldSize: original.byteLength,
         newSize: compressed.byteLength,
         rows: (c.rowCount ?? 0) + (s.rowCount ?? 0) + (r.rowCount ?? 0),
+        oldUrl: item.url,
+        newUrl,
       })
     } catch (e) {
       results.push({

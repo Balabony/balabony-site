@@ -27,6 +27,8 @@ type Result = {
   newSize?: number
   rows?: number
   reason?: string
+  oldUrl?: string
+  newUrl?: string
 }
 
 type Batch = {
@@ -87,6 +89,13 @@ export default function CompressCoversPage() {
     setBusy(true); setErr(''); setLog([])
     await runOne(true)
     setBusy(false)
+  }
+
+  const realFive = async () => {
+    setBusy(true); setErr(''); setLog([]); setSaved(0)
+    await runOne(false)
+    setBusy(false)
+    await refresh()
   }
 
   const runAll = async () => {
@@ -152,6 +161,17 @@ export default function CompressCoversPage() {
             Пробний прогін ({BATCH} шт.)
           </button>
           <button
+            onClick={realFive}
+            disabled={busy}
+            style={{
+              background: 'transparent', color: CREAM, border: `1px solid ${CREAM}`,
+              borderRadius: 10, padding: '12px 22px', fontSize: 15, fontFamily: FONT,
+              cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.5 : 1,
+            }}
+          >
+            Залити {BATCH} по-справжньому
+          </button>
+          <button
             onClick={runAll}
             disabled={busy}
             style={{
@@ -201,6 +221,14 @@ export default function CompressCoversPage() {
                     : ''}
                   {r.reason ? ` · ${r.reason}` : ''}
                   {r.rows !== undefined ? ` · записів: ${r.rows}` : ''}
+                  {r.oldUrl && r.newUrl ? (
+                    <>
+                      {' · '}
+                      <a href={r.oldUrl} target="_blank" rel="noreferrer" style={{ color: GOLD }}>було</a>
+                      {' / '}
+                      <a href={r.newUrl} target="_blank" rel="noreferrer" style={{ color: GOLD }}>стало</a>
+                    </>
+                  ) : null}
                 </span>
               </div>
             ))}
