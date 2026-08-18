@@ -5,7 +5,16 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: 'swwzsrtbfjsdsmpgfpsk.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'storriss.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.storriss.com',
       },
     ],
   },

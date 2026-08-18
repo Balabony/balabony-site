@@ -1,6 +1,7 @@
 'use client'
 
 import { AudioWaveIcon } from '@/app/components/AudioBadge'
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import type { AnalysisResult } from '@/components/admin/GeminiAnalyzer'
 
@@ -826,11 +827,13 @@ export default function SeriesListPage() {
 
               {/* Cover */}
               {s.cover_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={s.cover_url}
                   alt={s.title}
-                  style={{ width: 60, height: 60, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
+                  width={60}
+                  height={60}
+                  sizes="60px"
+                  style={{ borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
                 />
               ) : (
                 <div style={{ width: 60, height: 60, borderRadius: 8, background: NAVY_DEEP, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#334455', flexShrink: 0 }}>
