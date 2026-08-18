@@ -1,5 +1,6 @@
-import CoverImage from './CoverImage'
 'use client'
+
+import CoverImage from './CoverImage'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'

@@ -1,5 +1,6 @@
-﻿import CoverImage from './CoverImage'
-'use client'
+﻿'use client'
+
+import CoverImage from './CoverImage'
 
 import { useState } from 'react'
 import { useTheme } from '../context/ThemeContext'

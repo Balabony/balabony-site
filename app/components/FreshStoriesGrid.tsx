@@ -1,5 +1,6 @@
-import CoverImage from './CoverImage'
 'use client'
+
+import CoverImage from './CoverImage'
 
 import { useTheme } from '../context/ThemeContext'
 import { trackStoryEvent } from '@/lib/analytics'
