@@ -1,3 +1,4 @@
+import CoverImage from './CoverImage'
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -109,11 +110,13 @@ export default function TyshaSection(
               <div style={{ padding: 8, flexShrink: 0 }}>
                 <div style={{ position: 'relative', width: '100%', aspectRatio: '3 / 2', overflow: 'hidden', background: 'linear-gradient(135deg,#1a2a4a,#0f1e3a)', borderRadius: 8 }}>
                   {ep.cover_url ? (
-                    <img
+                    <CoverImage
+                      mode="fill"
                       src={ep.cover_url}
                       alt={ep.title}
+                      sizes="(max-width: 700px) 100vw, 320px"
                       style={{ objectPosition: ep.cover_position || 'center 40%' }}
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                      hideOnError
                       className="ts-cover-img"
                     />
                   ) : (

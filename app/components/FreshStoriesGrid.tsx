@@ -1,3 +1,4 @@
+import CoverImage from './CoverImage'
 'use client'
 
 import { useTheme } from '../context/ThemeContext'
@@ -203,10 +204,11 @@ export default function FreshStoriesGrid({
             >
               <div style={{ padding: 8, flexShrink: 0 }}>
                 <div style={{ position: 'relative', width: '100%', height: 200, overflow: 'hidden', background: '#000', borderRadius: 8 }}>
-                  <img
+                  <CoverImage
+                    mode="fill"
                     src={story.coverUrl}
                     alt={story.title}
-                    onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }}
+                    sizes="(max-width: 700px) 100vw, 320px"
                     className="fs-cover-img"
                     style={getCoverStyle(story.coverPosition)}
                   />

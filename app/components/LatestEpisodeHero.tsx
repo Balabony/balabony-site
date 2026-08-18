@@ -1,4 +1,5 @@
-﻿'use client'
+﻿import CoverImage from './CoverImage'
+'use client'
 
 import { useTheme } from '../context/ThemeContext'
 import ShareButtons from './ShareButtons'
@@ -36,8 +37,15 @@ export default function LatestEpisodeHero({ episode }: { episode: Episode }) {
 
           {/* Cover */}
           <div className="ep-hero-cover" style={{ position: 'relative', borderRadius: 18, overflow: 'hidden', boxShadow: `0 8px 48px rgba(239,159,39,0.22), 0 2px 12px rgba(0,0,0,0.4)`, border: `1.5px solid ${GOLD}`, flexShrink: 0 }}>
-            <img src={episode.coverUrl} alt={episode.title}
-              style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', display: 'block' }} />
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '3/4' }}>
+              <CoverImage
+                mode="fill"
+                src={episode.coverUrl}
+                alt={episode.title}
+                sizes="(max-width: 700px) 100vw, 360px"
+                priority
+              />
+            </div>
             <div style={{ position: 'absolute', top: 14, left: 14, background: GOLD, color: '#081420', fontSize: 11, fontWeight: 800, fontFamily: FONT, padding: '4px 11px', borderRadius: 20, letterSpacing: 0.5 }}>
               Сезон {episode.season} · Серія {episode.number}
             </div>

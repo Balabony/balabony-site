@@ -1,4 +1,5 @@
-﻿'use client'
+﻿import CoverImage from './CoverImage'
+'use client'
 
 import { useState } from 'react'
 import { useTheme } from '../context/ThemeContext'
@@ -73,10 +74,11 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                   {/* Cover — clickable, clean photo + gold frame */}
                   <div onClick={() => toggle(s.id)} className="ss-cover">
                     <div className="ss-frame">
-                      <img
+                      <CoverImage
+                        mode="fill"
                         src={s.coverUrl}
                         alt={s.title}
-                        onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }}
+                        sizes="(max-width: 700px) 100vw, 96px"
                         className="ss-img"
                       />
                     </div>
@@ -168,7 +170,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
       <style jsx>{`
         .ss-row { display: flex; flex-direction: row; align-items: stretch; }
         .ss-cover { flex-shrink: 0; align-self: stretch; cursor: pointer; padding: 8px; display: flex; }
-        .ss-frame { width: 96px; border: 1.5px solid ${GOLD}; border-radius: 8px; overflow: hidden; display: flex; }
+        .ss-frame { position: relative; width: 96px; aspect-ratio: 3 / 2; border: 1.5px solid ${GOLD}; border-radius: 8px; overflow: hidden; display: flex; }
         .ss-img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
         .ss-info { padding: 12px 14px; flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
         .ss-teaser { font-size: 12px; line-height: 1.5; color: rgba(200,212,232,0.72); margin: 0;
