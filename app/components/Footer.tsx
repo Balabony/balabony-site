@@ -39,7 +39,7 @@ const LEGAL_LINKS = [
 
 const SOCIALS = [
   { label: 'Telegram',  href: 'https://t.me/balabony' },
-  { label: 'Viber',     href: 'https://connect.viber.com/business/fc54c304-3c99-11f1-954e-c29e734e1403' },
+  { label: 'Viber',     href: 'https://invite.viber.com/?g2=AQBMgFGe%2Fjk0PlcLhJHUZH2E2oZwkFAw%2FlwxOFzMzeyndRSZrPl0L6YpePg1hlZR' },
   { label: 'Instagram', href: 'https://www.instagram.com/balabony_' },
   { label: 'TikTok',    href: 'https://www.tiktok.com/@balabony_' },
   { label: 'Facebook',  href: 'https://www.facebook.com/profile.php?id=61568006368489' },
@@ -264,17 +264,6 @@ export default function Footer() {
               }}
             >
               ♿ Доступність сайту <span className="footer-cta-arrow">→</span>
-            </a>
-            <a
-              href="/inclusivevoice"
-              className="footer-support-main"
-              style={{
-                display: 'block', marginTop: 8,
-                color: 'var(--accent-gold)', fontSize: 13, fontWeight: 700,
-                textDecoration: 'none',
-              }}
-            >
-              🎙 InclusiveVoice <span className="footer-cta-arrow">→</span>
             </a>
           </div>
         </div>
