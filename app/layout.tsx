@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     url: 'https://balabony.com/',
     title: 'Balabony™ — українські історії для всієї родини',
     description: 'Українські історії в тексті й аудіо. Соціальний тариф 1 ₴ на рік для ветеранів, людей з інвалідністю та родин ВПО — верифікація через Дію.',
-    images: [{ url: 'https://balabony.com/og-image-v2.jpg', width: 1200, height: 630 }],
+    images: [{ url: 'https://balabony.com/og-image-v4.jpg', width: 1200, height: 630 }],
     locale: 'uk_UA',
     siteName: 'Balabony™',
   },
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Balabony™ — українські історії для всієї родини',
     description: 'Українські історії в тексті й аудіо. Соціальний тариф 1 ₴ на рік для ветеранів, людей з інвалідністю та родин ВПО — верифікація через Дію.',
-    images: ['https://balabony.com/og-image-v2.jpg'],
+    images: ['https://balabony.com/og-image-v4.jpg'],
   },
   icons: {
     icon: [{ url: '/icon-192.png', type: 'image/png' }],
