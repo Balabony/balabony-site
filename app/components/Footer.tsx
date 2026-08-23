@@ -1,6 +1,5 @@
 'use client'
 
-import { Fragment } from 'react'
 import { FooterLegalSection } from './FooterLegalSection'
 
 const E_USER = 'nazar'
@@ -33,7 +32,6 @@ const LEGAL_LINKS = [
   { title: 'Політика конфіденційності', href: '/legal/privacy' },
   { title: 'Угода користувача',         href: '/legal/terms' },
   { title: 'Публічна оферта',           href: '/legal/offer' },
-  { title: 'Правила повернення коштів', href: '/legal/refund' },
   { title: 'Політика Cookies',          href: '/legal/cookies' },
   { title: 'Захист дітей',              href: '/legal/child-safety' },
   { title: 'Договір з автором',         href: '/legal/author-contract' },
@@ -50,28 +48,10 @@ const SOCIALS = [
 
 const PLATFORMS = [
   { label: 'Web (браузер)',        href: '/',  soon: false },
+  { label: 'iOS (Safari PWA)',     href: null, soon: true  },
+  { label: 'Android (Chrome PWA)', href: null, soon: true  },
   { label: 'Telegram-бот',         href: null, soon: true  },
   { label: 'Smart TV / Tablets',   href: null, soon: true  },
-]
-
-// ── ПАРТНЕРИ ─────────────────────────────────────────────
-// Щоб додати грантодавця — додай об'єкт у масив.
-// ВАЖЛИВО: фон футера темний, тож логотип має бути СВІТЛИМ (білим).
-// Зовнішнє лого — повний URL; локальне — клади у /public/partners/ і вказуй '/partners/файл.svg'.
-const PARTNERS = [
-  {
-    name: 'ElevenLabs Impact Program',
-    href: 'https://elevenlabs.io/impact-program',
-    logo: '/partners/elevenlabs-white.svg?v=3',
-    height: 26,
-  },
-  {
-    name: 'Benevity',
-    href: 'https://causes.benevity.org/projects/735963',
-    logo: '/partners/benevity-white.svg?v=1',
-    height: 22,
-  },
-  // { name: 'Назва грантодавця', href: 'https://...', logo: '/partners/xxx-white.svg', height: 26 },
 ]
 
 export default function Footer() {
@@ -79,13 +59,12 @@ export default function Footer() {
     <footer className="footer-root" style={{ background: 'var(--dark)', color: '#94a3b8', padding: '24px 5% 72px', marginTop: 24 }}>
 
       {/* ════════ ОСНОВНІ 4 КОЛОНКИ ════════ */}
-      <div className="footer-grid" style={{
+      <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-        gap: 28,
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: 32,
         maxWidth: 1200,
-        margin: '0 auto 20px',
-        alignItems: 'start'
+        margin: '0 auto 20px'
       }}>
 
         {/* ───── КОЛОНКА 1: БРЕНД + КОНТАКТИ + ПІДТРИМАТИ ───── */}
@@ -116,7 +95,7 @@ export default function Footer() {
               WhatsApp +380 50 585 9141
             </a>
             <a
-              href="/contacts"
+              href="/contact"
               className="footer-cta-write"
               style={{
                 display: 'inline-block', padding: '7px 16px',
@@ -141,7 +120,7 @@ export default function Footer() {
           </div>
 
           <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-            Підтримати проєкт
+            Підтримати
           </h4>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             <a
@@ -231,22 +210,8 @@ export default function Footer() {
           >
             Стати автором →
           </a>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', margin: '0 0 10px' }}>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', margin: 0 }}>
             Запропонувати свою історію
-          </p>
-          <a
-            href="/konkursy"
-            className="footer-link"
-            style={{
-              display: 'block',
-              color: 'var(--accent-gold)', fontSize: 14, fontWeight: 700,
-              textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
-            }}
-          >
-            Літературні конкурси <span className="footer-cta-arrow">→</span>
-          </a>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', margin: '2px 0 0' }}>
-            Призи, публікація в газетах
           </p>
         </div>
 
@@ -315,14 +280,13 @@ export default function Footer() {
         </div>
 
         {/* ───── КОЛОНКА 4: ДОКУМЕНТИ + ПРО НАС + НАВІГАЦІЯ ───── */}
-        <div style={{ alignContent: 'start' }}>
-          <div>
+        <div>
           <h4 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Документи
           </h4>
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: 8 }}>
             {LEGAL_LINKS.map(d => (
-              <li key={d.title} style={{ marginBottom: 4 }}>
+              <li key={d.title} style={{ marginBottom: 5 }}>
                 <a
                   href={d.href}
                   className="footer-link"
@@ -333,68 +297,32 @@ export default function Footer() {
               </li>
             ))}
           </ul>
-          <button
-            type="button"
-            onClick={() => window.dispatchEvent(new Event('balabony:cookie-settings'))}
-            className="footer-link"
-            style={{
-              background: 'none', border: 'none', padding: 0, marginBottom: 8,
-              color: 'rgba(255,255,255,0.8)', fontSize: 14, cursor: 'pointer',
-              fontFamily: "'Montserrat', sans-serif", textAlign: 'left',
-            }}
-          >
-            Налаштування cookie
-          </button>
-          </div>
 
-          <div>
-          <h4 style={{ marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-            <a href="/pro-balabony" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none' }}>
-              Про нас
-            </a>
+          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            Про нас
           </h4>
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: 8 }}>
-            <li style={{ marginBottom: 4 }}>
-              <a href="/pro-balabony" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
-                Про проєкт
+            <li style={{ marginBottom: 5 }}>
+              <a href="/about" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+                Про автора
               </a>
             </li>
-            <li style={{ marginBottom: 4 }}>
-              <a href="/avtory" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
-                Автори Балабонів
-              </a>
-            </li>
-            <li style={{ marginBottom: 4 }}>
+            <li style={{ marginBottom: 5 }}>
               <a href="/sitemap" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
                 Навігація сайту
               </a>
             </li>
           </ul>
-          </div>
-        </div>
 
-        {/* ───── КОЛОНКА 5: РОЗДІЛИ ───── */}
-        <div>
-          <h4 style={{ marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-            <a href="/sitemap" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none' }}>Розділи</a>
+          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            Розділи
           </h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {[
-              { label: 'Серіал «Балабони»', href: '/episodes'   },
-              { label: 'Серіал «Тиша» 18+', href: '/tysha'      },
-              { label: 'Історії',           href: '/stories'    },
-              { label: 'Автори',            href: '/avtory'     },
-              { label: 'Казки',             href: '/fairytales' },
-              { label: 'Конкурси',          href: '/konkursy'   },
-              { label: 'Ігри',              href: '/games'      },
-              { label: 'Рідер',             href: '/#reader'    },
-              { label: 'Правопис',          href: '/pravopys'   },
-              { label: 'Тарифи',            href: '/#pricing'   },
-              { label: 'Безкоштовно',       href: '/free'       },
-              { label: 'Подарунок',         href: '/gift'       },
-              { label: 'Опитування',        href: '/survey'     },
+              { label: 'Рідер',  href: '/#reader'  },
+              { label: 'Тарифи', href: '/#pricing' },
             ].map(item => (
-              <li key={item.label} style={{ marginBottom: 4 }}>
+              <li key={item.label} style={{ marginBottom: 5 }}>
                 <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 14 }}>
                   {item.label}
                 </a>
@@ -423,7 +351,7 @@ export default function Footer() {
           fontSize: 14, lineHeight: 1.7, color: 'rgba(255,255,255,0.85)',
           marginBottom: 8, fontFamily: "'Montserrat', sans-serif",
         }}>
-          Balabony — освітньо-літературна платформа українських історій. Ми повертаємо радість українського слова через сучасну літературу та оригінальні українські історії. Пільговий тариф для родин ВПО, ветеранів (УБД) та людей з інвалідністю забезпечується у партнерстві з <span style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>ЛОГО «Інститут громадянського суспільства»</span>. Через спільні історії, живу мову й теплий гумор ми обʼєднуємо українців навколо рідної культури — щоб вони залишалися в Україні й будували її майбутнє.
+          Balabony — освітньо-літературна платформа українських історій. Ми повертаємо радість українського слова через сучасну літературу та оригінальні українські історії. Безкоштовний доступ для дітей ВПО, ветеранів (УБД) та людей з інвалідністю забезпечується у партнерстві з <span style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>ГО «Інститут громадянського суспільства»</span>. Через спільні історії, живу мову й теплий гумор ми обʼєднуємо українців навколо рідної культури — щоб вони залишалися в Україні й будували її майбутнє.
         </p>
         <p style={{
           fontSize: 12, lineHeight: 1.6, color: 'rgba(255,255,255,0.55)',
@@ -434,117 +362,19 @@ export default function Footer() {
         </p>
       </div>
 
-      {/* ════════ ІНШІ ПРОЄКТИ ОРГАНІЗАЦІЇ ════════ */}
-      {/* Дзеркальний блок до такого ж на storriss.com. Показує, що обидві
-          платформи належать одному видавцеві — ГО «Інститут громадянського
-          суспільства». Потрібно і для читача, і для донорів. */}
-      <div style={{
-        maxWidth: 1200, margin: '0 auto 24px',
-        padding: '16px 24px',
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.10)',
-        borderRadius: 12,
-      }}>
-        <h4 style={{
-          color: 'var(--accent-gold)', marginBottom: 8, fontSize: 11, fontWeight: 700,
-          textTransform: 'uppercase', letterSpacing: '0.8px',
-          fontFamily: "'Montserrat', sans-serif",
-        }}>
-          Інші проєкти організації
-        </h4>
-        <p style={{
-          fontSize: 13, lineHeight: 1.7, color: 'rgba(255,255,255,0.75)',
-          margin: 0, fontFamily: "'Montserrat', sans-serif",
-        }}>
-          Balabony — один із проєктів ЛОГО «Інститут громадянського суспільства».
-          Медіагрупа організації також видає щотижневі газети «Життя», «Життя. Історії»,
-          «Життєві історії», «Найкращі жіночі історії» та розвиває портал{' '}
-          <a
-            href="https://storriss.com"
-            target="_blank"
-            rel="noopener"
-            className="footer-link"
-            style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontWeight: 600 }}
-          >
-            Storriss
-          </a>
-          {' '}— життєві історії, факти й людські долі. Автори публікуються і на папері, і онлайн:
-          знайшовши автора в газеті, читач може читати його далі на будь-якій із платформ.{' '}
-          <a
-            href="https://glife.com.ua"
-            target="_blank"
-            rel="noopener"
-            className="footer-link"
-            style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontWeight: 600 }}
-          >
-            Про газети
-          </a>
-          .
-        </p>
-      </div>
-
-      {/* ════════ ПАРТНЕРИ ════════ */}
-      {/* Щоб додати партнера — додай об'єкт у масив нижче.
-          Для темного фону футера логотип має бути світлим (білим). */}
-      <div style={{
-        maxWidth: 1200, margin: '0 auto 24px', paddingTop: 4,
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-      }}>
-        <h4 style={{
-          color: 'var(--accent-gold)', fontSize: 11, fontWeight: 700,
-          textTransform: 'uppercase', letterSpacing: '0.8px', margin: 0,
-          fontFamily: "'Montserrat', sans-serif",
-        }}>
-          Партнери
-        </h4>
-        <div style={{
-          display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center',
-          gap: '12px 22px', maxWidth: 760,
-        }}>
-          {PARTNERS.map((p, i) => (
-            <Fragment key={p.name}>
-              {i > 0 && (
-                <span aria-hidden="true" style={{
-                  width: 1, height: 16, background: 'rgba(255,255,255,0.18)',
-                }} />
-              )}
-              <a
-                href={p.href}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={p.name}
-                className="footer-partner-logo"
-                style={{ display: 'inline-flex', opacity: 0.7, transition: 'opacity 0.2s ease' }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={p.logo}
-                  alt={p.name}
-                  height={p.height}
-                  style={{ height: p.height, width: 'auto', maxWidth: 180, display: 'block' }}
-                />
-              </a>
-            </Fragment>
-          ))}
-        </div>
-      </div>
-
       {/* ════════ КОПІРАЙТИ ════════ */}
       <div style={{
         borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: 22, textAlign: 'center',
         fontSize: 13, color: 'rgba(255,255,255,0.6)', maxWidth: 1200, margin: '0 auto'
       }}>
         <p style={{ marginBottom: 6 }}>
-          © 2026 Balabony™. Соціальний проєкт ЛЬВІВСЬКОЇ ОБЛАСНОЇ ГРОМАДСЬКОЇ ОРГАНІЗАЦІЇ «ІНСТИТУТ ГРОМАДЯНСЬКОГО СУСПІЛЬСТВА» (ЄДРПОУ 33951844). Історії українською. Усі права захищено згідно із законодавством України.
+          © 2026 Balabony™. Історії українською. Усі права захищено згідно із законодавством України.
         </p>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '3px 0 0 0' }}>
           Торговельна марка: заявка №m202607908 до Укрпатенту.
         </p>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '3px 0 0 0' }}>
           Авторське право: свідоцтво АП №147106 від 18.05.2026 (УКРНОІВІ).
-        </p>
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '6px 0 0 0' }}>
-          Balabony — соціальний проєкт. Грантові та донорські кошти спрямовуються виключно на місійні цілі й не змішуються з доходами від передплат.
         </p>
       </div>
 
@@ -572,7 +402,6 @@ export default function Footer() {
           position: relative;
           transition: color 0.25s ease, transform 0.2s ease;
           display: inline-block;
-          white-space: nowrap;
         }
         .footer-root :global(.footer-link::after) {
           content: '';
@@ -613,11 +442,6 @@ export default function Footer() {
         }
         .footer-root :global(.footer-social:hover::after) {
           width: 100%;
-        }
-
-        /* ── Partner logo (ElevenLabs) ── */
-        .footer-root :global(.footer-partner-logo:hover) {
-          opacity: 1 !important;
         }
 
         /* ── Email button ── */
@@ -693,15 +517,6 @@ export default function Footer() {
           30%      { transform: scale(1); }
           45%      { transform: scale(1.15); }
           60%      { transform: scale(1); }
-        }
-
-        /* ── Fix mobile horizontal overflow: let grid columns shrink so flex-wrap works ── */
-        .footer-root :global(.footer-grid) > div {
-          min-width: 0;
-        }
-        .footer-root :global(.footer-grid) a,
-        .footer-root :global(.footer-grid) p {
-          overflow-wrap: break-word;
         }
       `}</style>
     </footer>
