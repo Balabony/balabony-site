@@ -43,7 +43,7 @@ const SOCIALS = [
   { label: 'Viber',     href: 'https://invite.viber.com/?g2=AQBMgFGe%2Fjk0PlcLhJHUZH2E2oZwkFAw%2FlwxOFzMzeyndRSZrPl0L6YpePg1hlZR' },
   { label: 'Instagram', href: 'https://www.instagram.com/balabony_' },
   { label: 'TikTok',    href: 'https://www.tiktok.com/@balabony_' },
-  { label: 'Facebook',  href: 'https://www.facebook.com/profile.php?id=61568006368489' },
+  { label: 'Facebook',  href: 'https://www.facebook.com/profile.php?id=61593491802778' },
   { label: 'WhatsApp',  href: 'https://wa.me/380505859141' },
 ]
 

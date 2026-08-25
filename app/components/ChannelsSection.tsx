@@ -3,11 +3,11 @@
 export default function ChannelsSection() {
   const channels = [
     { name: 'Telegram',  handle: '@balabony',         url: 'https://t.me/balabony',                icon: 'telegram'  },
-    { name: 'Viber',     handle: 'Спільнота',         url: 'https://invite.viber.com/?g2=AQB8...',  icon: 'viber'     },
+    { name: 'Viber',     handle: 'Спільнота',         url: 'https://invite.viber.com/?g2=AQBMgFGe%2Fjk0PlcLhJHUZH2E2oZwkFAw%2FlwxOFzMzeyndRSZrPl0L6YpePg1hlZR',  icon: 'viber'     },
     { name: 'WhatsApp',  handle: 'Написати',  url: 'https://wa.me/380505859141',           icon: 'whatsapp'  },
-    { name: 'Facebook',  handle: 'Balabony',          url: 'https://facebook.com/balabony',        icon: 'facebook'  },
-    { name: 'Instagram', handle: '@balabony_',        url: 'https://instagram.com/balabony_',      icon: 'instagram' },
-    { name: 'TikTok',    handle: '@balabony',         url: 'https://tiktok.com/@balabony',         icon: 'tiktok'    },
+    { name: 'Facebook',  handle: 'Balabony',          url: 'https://www.facebook.com/profile.php?id=61593491802778',        icon: 'facebook'  },
+    { name: 'Instagram', handle: '@balabony_',        url: 'https://www.instagram.com/balabony_',  icon: 'instagram' },
+    { name: 'TikTok',    handle: '@balabony_',        url: 'https://www.tiktok.com/@balabony_',    icon: 'tiktok'    },
   ]
 
   const GOLD = '#EF9F27'
