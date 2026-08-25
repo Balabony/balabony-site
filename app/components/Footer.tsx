@@ -35,6 +35,7 @@ const LEGAL_LINKS = [
   { title: 'Політика Cookies',          href: '/legal/cookies' },
   { title: 'Захист дітей',              href: '/legal/child-safety' },
   { title: 'Договір з автором',         href: '/legal/author-contract' },
+  { title: 'Повернення коштів',         href: '/legal/refund' },
 ]
 
 const SOCIALS = [
@@ -44,6 +45,15 @@ const SOCIALS = [
   { label: 'TikTok',    href: 'https://www.tiktok.com/@balabony_' },
   { label: 'Facebook',  href: 'https://www.facebook.com/profile.php?id=61568006368489' },
   { label: 'WhatsApp',  href: 'https://wa.me/380505859141' },
+]
+
+const READ_LINKS = [
+  { label: 'Серіал «Балабони»', href: '/episodes' },
+  { label: 'Серіал «Тиша» 18+', href: '/tysha' },
+  { label: 'Історії читачів',   href: '/stories' },
+  { label: 'Казки',             href: '/fairytales' },
+  { label: 'Ігри для мозку',    href: '/games' },
+  { label: 'Автори Балабонів',  href: '/avtory' },
 ]
 
 const PLATFORMS = [
@@ -162,8 +172,21 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* ───── КОЛОНКА 2: ПЛАТФОРМИ + ДЛЯ АВТОРІВ ───── */}
+        {/* ───── КОЛОНКА 2: ЧИТАТИ + ПЛАТФОРМИ + ДЛЯ АВТОРІВ ───── */}
         <div>
+          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            Читати
+          </h4>
+          <ul style={{ listStyle: 'none', padding: 0, marginBottom: 14 }}>
+            {READ_LINKS.map(item => (
+              <li key={item.href} style={{ marginBottom: 5 }}>
+                <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 14 }}>
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+
           <h4 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Платформи
           </h4>
@@ -223,6 +246,17 @@ export default function Footer() {
             }}
           >
             Літературні конкурси →
+          </a>
+          <a
+            href="/holosy"
+            className="footer-link"
+            style={{
+              display: 'block', marginTop: 6,
+              color: 'var(--accent-gold)', fontSize: 14, fontWeight: 600,
+              textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
+            }}
+          >
+            Озвучення на замовлення →
           </a>
         </div>
 
@@ -303,8 +337,18 @@ export default function Footer() {
           </h4>
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: 8 }}>
             <li style={{ marginBottom: 5 }}>
+              <a href="/pro-balabony" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+                Про проєкт
+              </a>
+            </li>
+            <li style={{ marginBottom: 5 }}>
               <a href="/about" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
                 Про автора
+              </a>
+            </li>
+            <li style={{ marginBottom: 5 }}>
+              <a href="/vydannya" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+                Друковані видання
               </a>
             </li>
             <li style={{ marginBottom: 5 }}>
@@ -319,9 +363,11 @@ export default function Footer() {
           </h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {[
-              { label: 'Конкурси', href: '/konkursy' },
-              { label: 'Рідер',  href: '/#reader'  },
-              { label: 'Тарифи', href: '/#pricing' },
+              { label: 'Конкурси',    href: '/konkursy' },
+              { label: 'Безкоштовно', href: '/free'     },
+              { label: 'Подарунок',   href: '/gift'     },
+              { label: 'Рідер',       href: '/#reader'  },
+              { label: 'Тарифи',      href: '/#pricing' },
             ].map(item => (
               <li key={item.label} style={{ marginBottom: 5 }}>
                 <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 14 }}>
