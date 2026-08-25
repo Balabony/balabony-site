@@ -210,9 +210,20 @@ export default function Footer() {
           >
             Стати автором →
           </a>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', margin: 0 }}>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', margin: '0 0 10px' }}>
             Запропонувати свою історію
           </p>
+          <a
+            href="/konkursy"
+            className="footer-link"
+            style={{
+              display: 'inline-block',
+              color: 'var(--accent-gold)', fontSize: 14, fontWeight: 600,
+              textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
+            }}
+          >
+            Літературні конкурси →
+          </a>
         </div>
 
         {/* ───── КОЛОНКА 3: ВИДІЛЕНІ КАРТКИ ─ ІНКЛЮЗИВНІСТЬ + ДОСТУПНІСТЬ ───── */}
@@ -308,6 +319,7 @@ export default function Footer() {
           </h4>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {[
+              { label: 'Конкурси', href: '/konkursy' },
               { label: 'Рідер',  href: '/#reader'  },
               { label: 'Тарифи', href: '/#pricing' },
             ].map(item => (
