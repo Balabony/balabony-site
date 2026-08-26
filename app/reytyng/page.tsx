@@ -5,11 +5,14 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { ThemeProvider } from '../context/ThemeContext'
 import Breadcrumbs from '../components/Breadcrumbs'
+import { REYTYNG_DEMO } from '@/lib/reytyng'
 
 export const metadata: Metadata = {
   title: 'Рейтинг авторів — Балабони',
   description: 'Щотижневий рейтинг авторів Балабонів: найбільше прочитань, найкраща дочитуваність, новий автор тижня, відкриття тижня.',
   alternates: { canonical: '/reytyng' },
+  // Поки дані умовні — сторінку не індексуємо (див. lib/reytyng.ts).
+  robots: REYTYNG_DEMO ? { index: false, follow: false } : undefined,
   openGraph: {
     title: 'Рейтинг авторів — Балабони',
     description: 'Щотижневий рейтинг авторів Балабонів.',
@@ -20,17 +23,8 @@ export const metadata: Metadata = {
 
 export const revalidate = 3600
 
-/**
- * ⭐ ГОЛОВНИЙ ПЕРЕМИКАЧ.
- *
- * true  — сторінка показує ПРИКЛАД оформлення з умовними іменами
- *         і великою плашкою «дані умовні». Потрібно, поки прочитань мало.
- * false — сторінка рахує реальні дані з article_reads.
- *
- * Коли за тиждень набереться хоча б 200–300 дочитувань — міняємо на false.
- * Більше нічого правити не треба.
- */
-const DEMO = true
+/** Перемикач «умовні дані / реальні дані» живе в lib/reytyng.ts. */
+const DEMO = REYTYNG_DEMO
 
 /** Скільки місць показуємо. Одинадцятий не має знати, що він одинадцятий. */
 const TOP = 10

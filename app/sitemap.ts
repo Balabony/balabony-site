@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { authorSlug } from '@/lib/author-slug'
+import { REYTYNG_DEMO } from '@/lib/reytyng'
 
 const BASE_URL = 'https://balabony.com'
 
@@ -14,6 +15,10 @@ const BASE_URL = 'https://balabony.com'
  *  - опубліковані серії «Тиші» (type='tysha')
  *  - опубліковані історії (решта типів)
  *  - публічні сторінки авторів /avtor/[slug]
+ *
+ * /reytyng додається лише коли рейтинг рахує реальні дані. Поки в
+ * lib/reytyng.ts стоїть REYTYNG_DEMO = true, сторінка показує умовні
+ * прізвища — віддавати таке пошуковику не можна.
  *
  * /contact і /series свідомо відсутні: це permanentRedirect на /contacts
  * і /episodes. Адреса, яка одразу перекидає, у карті сайту зайва —
@@ -57,6 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/demo`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE_URL}/contacts`,              lastModified: now, changeFrequency: 'yearly',  priority: 0.5 },
     { url: `${BASE_URL}/survey`,                lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
+    ...(REYTYNG_DEMO ? [] : [{ url: `${BASE_URL}/reytyng`, lastModified: now, changeFrequency: 'weekly' as const, priority: 0.6 }]),
     { url: `${BASE_URL}/sitemap`,               lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${BASE_URL}/legal/terms`,           lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
     { url: `${BASE_URL}/legal/privacy`,         lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
