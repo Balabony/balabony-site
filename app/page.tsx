@@ -110,7 +110,7 @@ export default function HomePage() {
       <div id="series"><SeriesStrip series={seriesData} /></div>
 
       <div style={viewAllWrapperStyle}>
-        <Link href="/series" style={viewAllLinkStyle}>Усі серії →</Link>
+        <Link href="/episodes" style={viewAllLinkStyle}>Усі серії →</Link>
       </div>
 
       <div style={{ background: '#FFF8EE', padding: '20px 0' }}>
