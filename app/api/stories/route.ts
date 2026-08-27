@@ -26,7 +26,10 @@ export async function GET(req: Request) {
     if (genreFilter) {
       query = query.eq('genre', genreFilter)
     } else if (excludeGenreFilter) {
-      query = query.neq('genre', excludeGenreFilter)
+      // NULL != 'Казка' у SQL дає NULL, тому .neq() мовчки викидає всі історії
+      // з порожнім жанром. Явно лишаємо і їх, і ті, чий жанр не збігається.
+      const safe = excludeGenreFilter.replace(/[(),]/g, '')
+      query = query.or(`genre.is.null,genre.neq.${safe}`)
     }
 
     const { data, error } = await query
