@@ -542,6 +542,7 @@ export default function AdminAuthorAccountsPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 1080 }}>
               <thead>
                 <tr>
+                  <th style={{ ...th, width: 40, textAlign: 'right', paddingRight: 6 }}>№</th>
                   <th style={th}>Автор</th>
                   <th style={th}>Вхід</th>
                   <th style={th}>Реквізити</th>
@@ -553,11 +554,14 @@ export default function AdminAuthorAccountsPage() {
                 </tr>
               </thead>
               <tbody>
-                {shown.map(r => {
+                {shown.map((r, i) => {
                   const consentTone = r.consent === 'refused' || r.consent === 'revoked'
                     ? 'bad' : r.consent ? 'ok' : 'warn'
                   return (
                     <tr key={r.user_id}>
+                      <td style={{ ...td, width: 40, textAlign: 'right', paddingRight: 6, color: MUTED, fontVariantNumeric: 'tabular-nums' }}>
+                        {i + 1}
+                      </td>
                       <td style={{ ...td, minWidth: 210 }}>
                         <div style={{ fontWeight: 700 }}>
                           {r.display_name || '(без імені)'}
