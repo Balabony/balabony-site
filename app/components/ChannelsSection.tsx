@@ -10,6 +10,13 @@ export default function ChannelsSection() {
     { name: 'TikTok',    handle: '@balabony_',        url: 'https://www.tiktok.com/@balabony_',    icon: 'tiktok'    },
   ]
 
+  const feeds = [
+    { name: 'Усе',        url: '/feed.xml' },
+    { name: 'Балабони',   url: '/feed/balabony.xml' },
+    { name: 'Тиша',       url: '/feed/tysha.xml' },
+    { name: 'Історії',    url: '/feed/stories.xml' },
+  ]
+
   const GOLD = '#EF9F27'
   const NAVY = '#0E1A2B'
 
@@ -90,6 +97,26 @@ export default function ChannelsSection() {
               </div>
             </a>
           ))}
+        </div>
+
+        <div className="rss-row">
+          <div className="rss-lead">
+            <span className="rss-glyph" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round">
+                <path d="M4 11a9 9 0 0 1 9 9" />
+                <path d="M4 4a16 16 0 0 1 16 16" />
+                <circle cx="5" cy="19" r="1.6" fill={GOLD} stroke="none" />
+              </svg>
+            </span>
+            Або через RSS — у вашій читалці чи подкаст-застосунку
+          </div>
+          <div className="rss-links">
+            {feeds.map((f) => (
+              <a key={f.url} className="rss-link" href={f.url} type="application/rss+xml">
+                {f.name}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -190,6 +217,53 @@ export default function ChannelsSection() {
           opacity: 1;
           transform: translate(2px, -2px);
         }
+        .rss-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 12px 18px;
+          margin-top: 18px;
+          padding-top: 18px;
+          border-top: 1px solid rgba(239,159,39,0.2);
+        }
+        .rss-lead {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          color: #B5D4F4;
+          font-size: 13.5px;
+          line-height: 1.4;
+        }
+        .rss-glyph {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+        }
+        .rss-links {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        /* 44px по висоті — щоб влучати пальцем, а не нігтем. */
+        .rss-link {
+          display: inline-flex;
+          align-items: center;
+          min-height: 44px;
+          padding: 0 16px;
+          color: #DCE5F0;
+          font-size: 13.5px;
+          text-decoration: none;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(239,159,39,0.25);
+          border-radius: 999px;
+          transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+        }
+        .rss-link:hover {
+          color: #fff;
+          border-color: ${GOLD};
+          background: rgba(239,159,39,0.1);
+        }
         @media (max-width: 900px) {
           .ch-grid {
             grid-template-columns: repeat(2, 1fr);
@@ -201,6 +275,31 @@ export default function ChannelsSection() {
           }
           .ch-title {
             font-size: 26px;
+          }
+          /* На телефоні підпис стає над кнопками, кнопки — по дві в ряд
+             на всю ширину. Один рядок із чотирьох на 360 px не влазить:
+             або зріже текст, або з'явиться горизонтальна прокрутка. */
+          .rss-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+          }
+          .rss-lead {
+            justify-content: center;
+            text-align: center;
+            font-size: 13px;
+          }
+          /* Не жорстка сітка 2x2, а перенос за потребою: на 360 px
+             чотири кнопки стають в один рядок, на 320 px переносяться
+             самі. Жорстка сітка на широкому телефоні лишала б пів екрана
+             порожнім. */
+          .rss-links {
+            justify-content: center;
+          }
+          .rss-link {
+            justify-content: center;
+            padding: 0 13px;
+            font-size: 13px;
           }
         }
       `}</style>
