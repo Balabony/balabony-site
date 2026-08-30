@@ -14,7 +14,18 @@ export const metadata: Metadata = {
   keywords: ['українські історії', 'балабони', 'інклюзивна література', 'доступ для людей з інвалідністю', 'література для ВПО', 'соціальний проєкт'],
   authors: [{ name: 'Balabony™' }],
   robots: 'index, follow',
-  alternates: { canonical: '/' },
+  alternates: {
+    canonical: '/',
+    // Автовиявлення фідів: читалки і скрінрідери шукають саме тут.
+    types: {
+      'application/rss+xml': [
+        { url: '/feed.xml',          title: 'Балабони — усі нові матеріали' },
+        { url: '/feed/balabony.xml', title: 'Балабони — сімейний серіал' },
+        { url: '/feed/tysha.xml',    title: 'Тиша — авторський серіал' },
+        { url: '/feed/stories.xml',  title: 'Історії письменників' },
+      ],
+    },
+  },
   openGraph: {
     type: 'website',
     url: 'https://balabony.com/',
