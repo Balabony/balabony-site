@@ -26,7 +26,7 @@ export type FeedRow = {
   title: string | null
   short_description: string | null
   description: string | null
-  preview_text: string | null
+  hook: string | null
   cover_url: string | null
   author_name: string | null
   published_at: string | null
@@ -78,10 +78,22 @@ export function workPath(type: string | null, slug: string): string {
   return `/stories/${slug}`
 }
 
-/** Короткий опис: перше, що є, обрізане до розумної довжини. */
+/**
+ * Короткий опис твору.
+ *
+ * preview_text свідомо НЕ використовуємо: це початок самого твору, а не
+ * анотація. У фіді він виглядав як опис, і читалка віддавала 400 знаків
+ * платного тексту людині, яка навіть не заходила на сайт.
+ *
+ * hook підходить: це короткий гачок для картки, написаний редакцією,
+ * а не шматок тексту. Якщо немає і його — ставимо нейтральний рядок.
+ * Порожній <description> частина агрегаторів показує як «(no description)»,
+ * що гірше за просту фразу.
+ */
 function summary(r: FeedRow): string {
-  const raw = r.short_description || r.description || r.preview_text || ''
+  const raw = r.short_description || r.description || r.hook || ''
   const t = clean(raw).replace(/\s+/g, ' ').trim()
+  if (!t) return 'Читати на Балабонах'
   if (t.length <= 400) return t
   return t.slice(0, 397).trimEnd() + '…'
 }
@@ -178,6 +190,6 @@ export const FEED_HEADERS = {
 
 /** Поля, які тягнемо з content. Виніс окремо, щоб не розходились між маршрутами. */
 export const FEED_SELECT =
-  'type, slug, title, short_description, description, preview_text, cover_url, ' +
+  'type, slug, title, short_description, description, hook, cover_url, ' +
   'author_name, published_at, approved_at, created_at, audio_url, duration_minutes, ' +
   'season_number, episode_number, is_adult'
