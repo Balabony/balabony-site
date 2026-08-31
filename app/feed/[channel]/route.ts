@@ -1,5 +1,5 @@
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { buildFeed, FEED_HEADERS, FEED_SELECT, type Channel, type FeedRow } from '@/lib/rss'
+import { buildFeed, BASE_URL, FEED_HEADERS, FEED_SELECT, type Channel, type FeedRow } from '@/lib/rss'
 
 /**
  * Фіди за розділами: /feed/balabony.xml, /feed/tysha.xml, /feed/stories.xml
@@ -16,6 +16,7 @@ const CHANNELS: Record<string, { types: string[] } & Omit<Channel, 'self'>> = {
     types: ['balabony'],
     title: 'Балабони — сімейний серіал',
     description: 'Історії з українського села. Нові серії у міру виходу.',
+    image: `${BASE_URL}/cover-balabony.png`,
   },
   tysha: {
     types: ['tysha'],
@@ -23,11 +24,13 @@ const CHANNELS: Record<string, { types: string[] } & Omit<Channel, 'self'>> = {
     description:
       'Військова драма про життя тилу й повернення з війни. Матеріал для дорослих читачів.',
     explicit: true,
+    image: `${BASE_URL}/cover-tysha.png`,
   },
   stories: {
     types: [],           // усе, що не balabony і не tysha
     title: 'Балабони — історії письменників',
     description: 'Короткі історії сучасних українських авторів.',
+    image: `${BASE_URL}/cover-stories.png`,
   },
 }
 
