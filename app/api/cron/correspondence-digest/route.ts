@@ -10,6 +10,10 @@ import { dbQuery } from '@/lib/db'
  *
  * Захист: у продакшені Vercel надсилає заголовок Authorization з
  * CRON_SECRET. Ручний запуск — той самий заголовок або cookie адмінки.
+ *
+ * Прострочені й ті, у кого строк спливає, показуються повністю — саме
+ * вони потребують дії. Решта обрізається до десяти рядків, інакше лист
+ * перетворюється на стіну тексту, яку перестають відкривати.
  */
 
 export const dynamic = 'force-dynamic'
@@ -71,9 +75,11 @@ const esc = (s: string) =>
 const dt = (s: string | null) =>
   s ? new Date(s).toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
 
-function block(title: string, rows: Row[], color: string): string {
+function block(title: string, rows: Row[], color: string, limit?: number): string {
   if (rows.length === 0) return ''
-  const items = rows
+  const shown = limit === undefined ? rows : rows.slice(0, limit)
+  const hidden = rows.length - shown.length
+  const items = shown
     .map((r) => {
       const who = esc(r.author_name ?? r.author_email ?? 'без профілю')
       const what = esc(r.subject ?? KIND_LABEL[r.kind] ?? r.kind)
@@ -90,8 +96,13 @@ function block(title: string, rows: Row[], color: string): string {
     })
     .join('')
 
+  const tail =
+    hidden > 0
+      ? `<p style="color:#777;font-size:13px;margin:6px 0 0">…і ще ${hidden}. Повний перелік — у реєстрі.</p>`
+      : ''
+
   return `<h3 style="color:${color};font-size:15px;margin:22px 0 10px">${title} — ${rows.length}</h3>
-    <ul style="padding-left:18px;margin:0">${items}</ul>`
+    <ul style="padding-left:18px;margin:0">${items}</ul>${tail}`
 }
 
 export async function GET(req: NextRequest) {
@@ -125,7 +136,7 @@ export async function GET(req: NextRequest) {
     <p style="color:#666;font-size:13px;margin:0 0 8px">Без відповіді всього: ${rows.length}</p>
     ${block('Прострочені', overdue, '#c0392b')}
     ${block('Строк спливає протягом трьох днів', soon, '#b8860b')}
-    ${block('Решта без відповіді', rest, '#555')}
+    ${block('Решта без відповіді', rest, '#555', 10)}
     <p style="margin:26px 0 0">
       <a href="${SITE}/admin/correspondence" style="background:#ef9f27;color:#1c1917;text-decoration:none;padding:11px 18px;border-radius:8px;font-weight:700;display:inline-block">Відкрити реєстр</a>
     </p>

@@ -93,7 +93,9 @@ export async function GET(req: NextRequest) {
     const r = await dbQuery(LIST_SQL, [])
     const rows = (r.rows ?? []) as CorrRow[]
 
-    const open = rows.filter((x) => x.answered_at === null && x.direction === 'in').length
+    // Рахуємо всі без відповіді, а не лише вхідні: лічильник у кнопці
+    // має збігатися з тим, що показує фільтр.
+    const open = rows.filter((x) => x.answered_at === null).length
     const overdue = rows.filter(
       (x) => x.answered_at === null && x.days_left !== null && x.days_left < 0,
     ).length
