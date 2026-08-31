@@ -279,7 +279,7 @@ export default function ProBalabonyPage() {
             <h2 style={h2Style}>Impact</h2>
             <p style={{ margin: "0 0 10px" }}>A direct contribution to the UN Sustainable Development Goals:</p>
             <p style={{ ...pStyle, fontWeight: 700, margin: "0 0 2px" }}>SDG 4 — Quality Education</p>
-            <p style={pStyle}>Restoring literacy and access to Ukrainian-language content for children affected by war.</p>
+            <p style={pStyle}>Restoring access to Ukrainian-language literature for people affected by the war: veterans, people with disabilities and internally displaced families.</p>
             <p style={{ ...pStyle, fontWeight: 700, margin: "0 0 2px" }}>SDG 10 — Reduced Inequalities</p>
             <p style={pLastStyle}>Accessibility-first access for people excluded by disability, age or the digital divide.</p>
           </section>
