@@ -2,5 +2,11 @@
   "functions": {
     "app/api/generate-cover/route.ts": { "maxDuration": 300 },
     "app/api/admin/series-sync/route.ts": { "maxDuration": 300 }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/correspondence-digest",
+      "schedule": "0 6 1,15 * *"
+    }
+  ]
 }

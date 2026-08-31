@@ -1,3 +1,5 @@
+// Порядкові номери рядків у переліку договорів. Нумерація — за поточним
+// порядком видачі з API, не зберігається в базі.
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -130,9 +132,10 @@ export default function SyncWorksPage() {
           <div style={{ color: MUTED }}>Договорів немає.</div>
         ) : (
           <div style={{ background: NAVY, borderRadius: 14, overflowX: 'auto', border: `1px solid ${LINE}` }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 760 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 810 }}>
               <thead>
                 <tr>
+                  <th style={{ ...th, width: 48, textAlign: 'right' }}>№</th>
                   <th style={th}>Договір</th>
                   <th style={th}>Автор</th>
                   <th style={th}>У переліку</th>
@@ -142,8 +145,9 @@ export default function SyncWorksPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => (
+                {rows.map((r, i) => (
                   <tr key={r.id}>
+                    <td style={{ ...td, color: MUTED, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{i + 1}</td>
                     <td style={td}>
                       <div style={{ fontWeight: 700 }}>{r.number}</div>
                       <div style={{ color: MUTED, fontSize: 12, marginTop: 4 }}>{r.status}</div>
