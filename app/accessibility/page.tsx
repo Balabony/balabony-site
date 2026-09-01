@@ -686,7 +686,7 @@ export default function AccessibilityPage() {
             {/* ІЛЮСТРАЦІЯ ГЕРОЯ (додано) */}
             <figure style={{ margin: '14px 0 18px', textAlign: 'center' }}>
               <img
-                src="/images/panas.jpg"
+                src="/images/panas.webp"
                 alt="Літній чоловік у вишиванці та безрукавці з книгою в руках, усміхнений, на тлі української хати з мальованими віконницями"
                 loading="lazy"
                 style={{ width: '100%', maxWidth: 360, height: 'auto', borderRadius: 14, border: '1px solid rgba(239,159,39,0.4)' }}

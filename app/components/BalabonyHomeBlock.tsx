@@ -116,7 +116,7 @@ function ArchiveCard({ totalCount }: { totalCount: number }) {
   return (
     <Link href="/episodes" className="bb-card">
       <div className="bb-cover">
-        <img src="/panas-archive.jpg" alt="Архів Балабонів" className="bb-cover-img" />
+        <img src="/panas-archive.webp" alt="Архів Балабонів" className="bb-cover-img" />
         <div className="bb-sub-badge">Усі серії</div>
       </div>
       <div className="bb-body">
