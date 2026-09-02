@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import BookList, { type Book } from './BookList'
 
-export const revalidate = 86400 // оновлюємо раз на добу
+export const revalidate = 604800 // оновлюємо раз на тиждень: каталог класики майже не змінюється,
+// а кожне оновлення означає сотню звернень до бібліотеки
 
 export const metadata: Metadata = {
   title: 'Львів і Галичина у Wolne Lektury — вільні тексти й аудіо | Balabony',
@@ -26,8 +27,6 @@ const MAP_URL = 'https://wolnelektury.pl/mapa/'
 const AUTHORS: { name: string; note: string }[] = [
   { name: 'Gabriela Zapolska', note: 'працювала і померла у Львові' },
   { name: 'Aleksander Fredro', note: 'жив і помер у Львові' },
-  { name: 'Leopold Staff', note: 'народився у Львові' },
-  { name: 'Maria Konopnicka', note: 'померла у Львові' },
   { name: 'Kornel Makuszyński', note: 'народився у Стрию, працював у Львові' },
   { name: 'Jan Kasprowicz', note: 'професор Львівського університету' },
 ]
@@ -74,7 +73,7 @@ async function getDetail(href: string): Promise<unknown> {
   try {
     const res = await fetch(href, {
       headers: { Accept: 'application/json' },
-      next: { revalidate: 86400 },
+      next: { revalidate: 604800 },
     })
     if (!res.ok) return null
     return (await res.json()) as unknown
@@ -87,7 +86,7 @@ async function getBooks(): Promise<{ ok: boolean; books: Book[] }> {
   try {
     const res = await fetch(API_URL, {
       headers: { Accept: 'application/json' },
-      next: { revalidate: 86400 },
+      next: { revalidate: 604800 },
     })
     if (!res.ok) return { ok: false, books: [] }
 
@@ -171,7 +170,7 @@ export default async function WolneLekturyPage() {
         </h1>
 
         <p style={{ color: LIGHTBLUE, fontSize: 16, lineHeight: 1.7, marginBottom: 16 }}>
-          Шестеро авторів, чиї життя пов’язані зі Львовом і Галичиною. Їхні твори давно в
+          Четверо авторів, чиї життя пов’язані зі Львовом і Галичиною. Їхні твори давно в
           суспільному надбанні, а польська цифрова бібліотека{' '}
           <a href="https://wolnelektury.pl/" target="_blank" rel="noopener" style={{ color: GOLD }}>
             Wolne Lektury
@@ -247,7 +246,7 @@ export default async function WolneLekturyPage() {
           <p style={{ fontSize: 15, lineHeight: 1.7, color: CREAM, margin: '0 0 12px' }}>
             Сторінку сформовано автоматично через відкритий програмний інтерфейс Wolne Lektury.
             Назви, жанри, епохи, доступні формати й наявність аудіо надходять безпосередньо з
-            їхньої бібліотеки й оновлюються щодня. Тексти й аудіо лишаються на сайті Wolne
+            їхньої бібліотеки й оновлюються щотижня. Тексти й аудіо лишаються на сайті Wolne
             Lektury — ми їх не зберігаємо й не поширюємо.
           </p>
           <a
@@ -324,12 +323,12 @@ export default async function WolneLekturyPage() {
           </h2>
           <p style={{ fontSize: 14, lineHeight: 1.75, color: 'rgba(255,248,238,0.85)', margin: '0 0 10px' }}>
             Balabony to ukraińska platforma literacka ze Lwowa. Na tej stronie zbieramy utwory
-            sześciorga autorów związanych ze Lwowem i Galicją, dostępne w bibliotece Wolne
+            czworga autorów związanych ze Lwowem i Galicją, dostępne w bibliotece Wolne
             Lektury.
           </p>
           <p style={{ fontSize: 14, lineHeight: 1.75, color: 'rgba(255,248,238,0.85)', margin: 0 }}>
             Dane — tytuły, gatunki, epoki, formaty i informacja o audiobookach — pochodzą z
-            otwartego API Wolnych Lektur i są odświeżane raz na dobę. Teksty i nagrania
+            otwartego API Wolnych Lektur i są odświeżane raz w tygodniu. Teksty i nagrania
             pozostają na stronie biblioteki: nie kopiujemy ich ani nie udostępniamy u siebie.
             Każdy odnośnik prowadzi do źródła.
           </p>
