@@ -562,10 +562,10 @@ const PLANS: PlanConfig[] = [
     unit: '₴/міс',
     subline: 'Перший місяць — 49 ₴, далі 129 ₴',
     perks: [
-      { text: 'Офлайн-завантаження' },
+      { text: 'Нові серії на тиждень раніше', highlight: true },
+      { text: 'Жодної реклами' },
       { text: 'Усі серії, історії та казки' },
-      { text: 'Нові серії — за тиждень після виходу' },
-      { text: 'Реклама між серіями', ad: true },
+      { text: 'Офлайн-завантаження' },
     ],
     cta: 'Підписатись',
     ctaStyle: 'outline',
@@ -583,6 +583,7 @@ const PLANS: PlanConfig[] = [
     unit: '₴/рік',
     subline: 'Всього 74 ₴/міс · економія 658 ₴',
     perks: [
+      { text: 'Бонусні серії «Балабонів» і «Тиші»', highlight: true },
       { text: 'Нові серії на тиждень раніше', highlight: true },
       { text: 'Жодної реклами' },
       { text: 'Офлайн-завантаження' },
@@ -607,11 +608,11 @@ const PLANS: PlanConfig[] = [
     unit: '₴/міс',
     subline: '50 ₴ на особу · до 4 акаунтів',
     perks: [
-      { text: 'Офлайн-завантаження' },
+      { text: 'Нові серії на тиждень раніше', highlight: true },
+      { text: 'Жодної реклами' },
       { text: 'Усі серії, історії та казки' },
       { text: 'До 4 акаунтів у родині' },
-      { text: 'Нові серії — за тиждень після виходу' },
-      { text: 'Реклама між серіями', ad: true },
+      { text: 'Офлайн-завантаження' },
     ],
     cta: 'Підписатись',
     ctaStyle: 'outline',
@@ -629,6 +630,7 @@ const PLANS: PlanConfig[] = [
     unit: '₴/рік',
     subline: 'Всього 29 ₴ на особу/міс · економія 998 ₴',
     perks: [
+      { text: 'Бонусні серії «Балабонів» і «Тиші»', highlight: true },
       { text: 'Нові серії на тиждень раніше', highlight: true },
       { text: 'Жодної реклами для всіх' },
       { text: 'Офлайн-завантаження' },
@@ -649,7 +651,7 @@ const PLANS: PlanConfig[] = [
 const GIFTS_INDIVIDUAL: GiftConfig[] = [
   { tier: 'gift-1m', period: '1 місяць', price: 129, priceLabel: '129 ₴', unit: '₴ (подарунок)' },
   { tier: 'gift-3m', period: '3 місяці', price: 349, priceLabel: '349 ₴', saveAmount: 38, unit: '₴ (подарунок)' },
-  { tier: 'gift-6m', period: '6 місяців', price: 699, priceLabel: '699 ₴', saveAmount: 75, unit: '₴ (подарунок)' },
+  { tier: 'gift-6m', period: '6 місяців', price: 649, priceLabel: '649 ₴', saveAmount: 125, unit: '₴ (подарунок)' },
   { tier: 'gift-1y', period: 'Рік', price: 890, priceLabel: '890 ₴', saveAmount: 658, unit: '₴ (подарунок)' },
 ]
 
@@ -757,7 +759,7 @@ export default function PricingSection() {
               Для ветеранів (УБД), ВПО та людей з інвалідністю
             </span>
             <span style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#a05f00', marginTop: 9, lineHeight: 1.45 }}>
-              Нові серії на тиждень раніше — як у річній передплаті
+              Нові серії на тиждень раніше й бонусні серії — як у річній передплаті
             </span>
             <span style={{
               display: 'inline-block',
@@ -886,6 +888,9 @@ export default function PricingSection() {
         onGiftClick={openPaymentForGift}
         onGiftCta={handleGiftCtaClick}
       />
+
+      {/* ПОДЯКИ — імена тих, хто оплатив пільгові доступи */}
+      <ThanksSection />
 
       {/* РОЗМЕЖУВАННЯ ВОРОНОК — некомерційний напрям ГО */}
       <p style={{
@@ -1039,11 +1044,11 @@ function PlanCard({
 function PensionCard() {
   const [diiaOpen, setDiiaOpen] = useState(false)
   const perks: { text: string; highlight?: boolean; ad?: boolean }[] = [
+    { text: 'Бонусні серії «Балабонів» і «Тиші»', highlight: true },
     { text: 'Нові серії на тиждень раніше', highlight: true },
+    { text: 'Жодної реклами' },
     { text: 'Усі серії, історії та казки' },
-    { text: 'Офлайн-завантаження' },
     { text: 'Великий шрифт для читання' },
-    { text: 'Реклама між серіями', ad: true },
   ]
   return (
     <div className="bb-pricing-card bb-pricing-card-featured bb-pricing-pension">
@@ -1175,6 +1180,59 @@ function GiftSection({
       <button type="button" className="bb-pricing-gift-cta" onClick={onGiftCta}>
         Подарувати
       </button>
+    </div>
+  )
+}
+
+const THANKS: { name: string; note?: string }[] = [
+  { name: 'Олексій Шептишин' },
+  { name: 'Наталія Конечна' },
+]
+
+function ThanksIcon() {
+  return (
+    <svg
+      width="44"
+      height="44"
+      viewBox="0 0 48 48"
+      fill="none"
+      aria-hidden="true"
+      className="bb-pricing-thanks-icon"
+    >
+      <path
+        d="M24 40 C 12 31, 7 25, 7 19 C 7 13.5, 11 10, 15.5 10 C 19 10, 22.2 12, 24 15 C 25.8 12, 29 10, 32.5 10 C 37 10, 41 13.5, 41 19 C 41 25, 36 31, 24 40 Z"
+        fill="rgba(255,179,71,0.18)"
+        stroke="#FFB347"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <path d="M 24 20 L 25.6 23.4 L 29.3 23.9 L 26.6 26.5 L 27.3 30.2 L 24 28.4 L 20.7 30.2 L 21.4 26.5 L 18.7 23.9 L 22.4 23.4 Z" fill="#FFB347"/>
+    </svg>
+  )
+}
+
+function ThanksSection() {
+  return (
+    <div className="bb-pricing-thanks">
+      <div className="bb-pricing-thanks-head">
+        <ThanksIcon />
+        <h3 className="bb-pricing-thanks-title">Подяки</h3>
+      </div>
+      <p className="bb-pricing-thanks-text">
+        Тут імена тих, хто оплатив доступ не лише собі. Завдяки їм читають ветерани,
+        переселенці й люди з інвалідністю.
+      </p>
+
+      <ul className="bb-pricing-thanks-list">
+        {THANKS.map((person) => (
+          <li key={person.name} className="bb-pricing-thanks-item">
+            <span className="bb-pricing-thanks-name">{person.name}</span>
+            {person.note && <span className="bb-pricing-thanks-note">{person.note}</span>}
+          </li>
+        ))}
+      </ul>
+
+      <p className="bb-pricing-thanks-foot">Дякуємо.</p>
     </div>
   )
 }
@@ -1634,6 +1692,74 @@ const styles = `
   .bb-pricing-cancel-line, .bb-pricing-cancel-second { display: block; }
   .bb-pricing-cancel-second { margin-top: 2px; }
 
+  /* THANKS SECTION */
+  .bb-pricing-thanks {
+    margin-top: 28px;
+    padding: 26px 22px;
+    background: linear-gradient(180deg, rgba(255,179,71,0.10), rgba(255,179,71,0.02));
+    border: 1.5px solid rgba(239,159,39,0.55);
+    border-radius: 14px;
+    position: relative;
+    z-index: 1;
+  }
+  .bb-pricing-thanks-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  .bb-pricing-thanks-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #FFB347;
+    margin: 0;
+  }
+  .bb-pricing-thanks-icon { flex-shrink: 0; }
+  .bb-pricing-thanks-text {
+    font-size: 14.5px;
+    color: rgba(255,255,255,0.92);
+    text-align: center;
+    line-height: 1.55;
+    margin: 0 auto 18px;
+    max-width: 540px;
+  }
+  .bb-pricing-thanks-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+  }
+  .bb-pricing-thanks-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 10px 18px;
+    border: 1px solid rgba(239,159,39,0.45);
+    border-radius: 10px;
+    background: rgba(255,179,71,0.06);
+  }
+  .bb-pricing-thanks-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #FFB347;
+    white-space: nowrap;
+  }
+  .bb-pricing-thanks-note {
+    font-size: 12px;
+    color: rgba(255,255,255,0.62);
+  }
+  .bb-pricing-thanks-foot {
+    font-size: 13px;
+    color: rgba(255,255,255,0.62);
+    text-align: center;
+    margin: 16px 0 0;
+  }
+
   /* GIFT SECTION */
   .bb-pricing-gift {
     padding: 26px 22px;
@@ -1819,6 +1945,9 @@ const styles = `
 
     .bb-pricing-gift { padding: 20px 14px; }
     .bb-pricing-gift-title { font-size: 18px; }
+    .bb-pricing-thanks-title { font-size: 18px; }
+    .bb-pricing-thanks { padding: 20px 16px; }
+    .bb-pricing-thanks-name { font-size: 14px; }
     .bb-pricing-gift-text { font-size: 12.5px; }
     .bb-pricing-gift-options { grid-template-columns: 1fr 1fr; }
     .bb-pricing-gift-opt-price { font-size: 19px; }
