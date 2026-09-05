@@ -39,6 +39,7 @@ type AuthorProfile = {
   np_branch?: string | null
   requisites_updated_at?: string | null
   newsletter_opt_out?: boolean | null
+  hide_from_directory?: boolean | null
 }
 
 type StoryStat = {
@@ -314,6 +315,7 @@ export default async function AuthorDashboardPage() {
           initialPosition={profile.avatar_position ?? null}
           hasSource={Boolean(profile.avatar_source_url)}
           displayName={profile.pen_name?.trim() || profile.display_name || 'Автор'}
+          initialHidden={profile.hide_from_directory ?? false}
         />
 
         {/* Конкурси — усі активні, з дедлайнами. Компонент рахує дні в браузері. */}

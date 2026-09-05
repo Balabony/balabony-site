@@ -34,12 +34,14 @@ export default function AuthorProfileEditor({
   initialPosition,
   hasSource,
   displayName,
+  initialHidden,
 }: {
   initialAvatar?: string | null
   initialBio?: string | null
   initialPosition?: number | null
   hasSource?: boolean
   displayName: string
+  initialHidden?: boolean | null
 }) {
   const [avatar, setAvatar] = useState<string | null>(initialAvatar ?? null)
   const [bio, setBio] = useState(initialBio ?? '')
@@ -48,6 +50,7 @@ export default function AuthorProfileEditor({
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [position, setPosition] = useState<number>(initialPosition ?? 50)
+  const [hidden, setHidden] = useState<boolean>(Boolean(initialHidden))
   const [preview, setPreview] = useState<string | null>(null)
   const [source, setSource] = useState<boolean>(Boolean(hasSource))
   const inputRef = useRef<HTMLInputElement | null>(null)
@@ -97,6 +100,7 @@ export default function AuthorProfileEditor({
       const fd = new FormData()
       fd.append('bio', bio)
       fd.append('avatar_position', String(position))
+      fd.append('hide_from_directory', hidden ? 'yes' : 'no')
       if (file) {
         fd.append('file', file)
         fd.append('photo_consent', 'yes')
@@ -304,6 +308,36 @@ export default function AuthorProfileEditor({
           {bio.length} / {MAX_BIO}
         </div>
       </div>
+
+      <label
+        style={{
+          display: 'flex',
+          gap: 10,
+          alignItems: 'flex-start',
+          marginTop: 16,
+          padding: '12px 14px',
+          borderRadius: 10,
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(239,159,39,0.28)',
+          cursor: 'pointer',
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={hidden}
+          onChange={e => setHidden(e.target.checked)}
+          style={{ width: 18, height: 18, marginTop: 2, flexShrink: 0, cursor: 'pointer' }}
+        />
+        <span>
+          <span style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: '#FFF8EE' }}>
+            Не показувати мене в каталозі авторів
+          </span>
+          <span style={{ display: 'block', fontSize: '0.82rem', color: '#C08A2E', marginTop: 3, lineHeight: 1.4 }}>
+            Ваші твори лишаються на сайті, але вашого імені й фото не буде на
+            сторінці «Автори» та в добірці на головній.
+          </span>
+        </span>
+      </label>
 
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginTop: 14 }}>
         <button

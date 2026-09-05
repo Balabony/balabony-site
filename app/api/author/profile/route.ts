@@ -80,8 +80,15 @@ export async function POST(req: NextRequest) {
     const bioRaw = form.get('bio')
     const consent = String(form.get('photo_consent') ?? '')
     const posRaw = form.get('avatar_position')
+    const hideRaw = form.get('hide_from_directory')
 
     const update: Record<string, unknown> = {}
+
+    // Прапорець «не показувати в каталозі». Приходить лише з редактора
+    // профілю; інші виклики його не надсилають і поле не чіпається.
+    if (typeof hideRaw === 'string' && hideRaw !== '') {
+      update.hide_from_directory = hideRaw === 'yes'
+    }
 
     // Біографію можна змінювати окремо від фото.
     if (typeof bioRaw === 'string') {
