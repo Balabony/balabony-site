@@ -50,10 +50,9 @@ export default function FairytalesSection() {
         {/* Картки */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(275px, 100%), 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(275px, 100%), 1fr))',
           gap: 20,
-          maxWidth: 700,
-          margin: '0 auto',
+          alignItems: 'stretch',
         }}>
           {tales.map(t => (
             <a
