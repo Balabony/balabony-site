@@ -13,7 +13,16 @@ export async function GET(req: Request) {
     const genreFilter        = searchParams.get('genre')         // показати тільки цей жанр
     const excludeGenreFilter = searchParams.get('exclude_genre') // приховати цей жанр
 
+    // rotate=1 вмикає щоденну ротацію вітрини (див. rotateDaily нижче).
+    // Без цього параметра роут поводиться точно як раніше — усі наявні
+    // виклики (адмінка, інші сторінки) не змінюють поведінки.
+    const rotate = searchParams.get('rotate') === '1'
+
     const supabase = getSupabaseAdmin()
+
+    // У режимі ротації тягнемо ширшу вибірку, бо далі відсіюємо по одному
+    // твору на автора і ріжемо вікно вручну.
+    const fetchLimit = rotate ? 500 : limit
 
     let query = supabase
       .from('content')
@@ -21,7 +30,7 @@ export async function GET(req: Request) {
       .eq('type', 'story')
       .in('status', ['approved', 'published'])
       .order('approved_at', { ascending: false, nullsFirst: false })
-      .limit(limit)
+      .limit(fetchLimit)
 
     if (genreFilter) {
       query = query.eq('genre', genreFilter)
@@ -36,7 +45,9 @@ export async function GET(req: Request) {
 
     if (error) throw error
 
-    const stories = (data ?? []).map(s => ({
+    const rows = rotate ? rotateDaily(data ?? [], limit) : (data ?? [])
+
+    const stories = rows.map(s => ({
       id:               s.id,
       title:            s.title,
       author:           s.author_name,
@@ -52,10 +63,63 @@ export async function GET(req: Request) {
       isAdult:          s.is_adult ?? false,
     }))
 
-    return NextResponse.json(stories)
+    // Кеш на межі мережі: відповідь віддається миттєво з кешу Vercel,
+    // база опитується у фоні раз на добу. Прибирає паузу на головній.
+    // У режимі ротації добірка й так змінюється лише раз на добу.
+    return NextResponse.json(stories, {
+      headers: rotate
+        ? { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800' }
+        : {},
+    })
   } catch {
     return NextResponse.json([], { status: 500 })
   }
+}
+
+type Row = { id: string; author_name: string | null; approved_at: string | null }
+
+// Щоденна ротація вітрини без випадковості.
+//
+// 1. Лишаємо по одному твору на автора — інакше три поспіль від однієї людини
+//    (саме так виглядала стрічка до цієї зміни).
+// 2. Сортуємо стабільно: свіжіші вперед, id як запасний ключ. approved_at
+//    буває null, тому порівняння через рядок, а не через Date.
+// 3. Твори останніх 7 днів завжди стоять першими — розділ називається
+//    «Свіжі історії» і не повинен ховати новинку через ротацію.
+// 4. Решту крутимо вікном: номер доби × limit зі згортанням через кінець.
+//    При 100+ авторах це десятки днів поспіль без жодного повтору —
+//    гарантовано, а не ймовірно.
+function rotateDaily<T extends Row>(rows: T[], limit: number): T[] {
+  const seen = new Set<string>()
+  const unique: T[] = []
+  for (const r of rows) {
+    const key = (r.author_name ?? r.id).trim().toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    unique.push(r)
+  }
+
+  unique.sort((a, b) => {
+    const av = a.approved_at ?? ''
+    const bv = b.approved_at ?? ''
+    if (av !== bv) return av < bv ? 1 : -1
+    return a.id < b.id ? -1 : 1
+  })
+
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+  const fresh = unique.filter(r => r.approved_at !== null && Date.parse(r.approved_at) >= weekAgo)
+  const rest  = unique.filter(r => !(r.approved_at !== null && Date.parse(r.approved_at) >= weekAgo))
+
+  const out = fresh.slice(0, limit)
+  const need = limit - out.length
+  if (need <= 0 || rest.length === 0) return out
+
+  const day = Math.floor(Date.now() / 86400000)
+  const start = ((day * limit) % rest.length + rest.length) % rest.length
+  for (let i = 0; i < need; i++) {
+    out.push(rest[(start + i) % rest.length])
+  }
+  return out
 }
 
 function buildTeaser(text: string): string {
