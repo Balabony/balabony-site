@@ -160,7 +160,7 @@ export default function HomePage() {
         </div>
 
         <div style={{ display: 'block' }}>
-          <FAQ />
+          <FAQ limit={5} showAllLink />
         </div>
 
         <BonusSection />

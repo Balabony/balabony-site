@@ -83,7 +83,8 @@ const ITEMS: { q: string; a: React.ReactNode }[] = [
   },
 ]
 
-export default function FAQ() {
+export default function FAQ({ limit, showAllLink }: { limit?: number; showAllLink?: boolean } = {}) {
+  const items = typeof limit === 'number' ? ITEMS.slice(0, limit) : ITEMS
   return (
     <section
       id="faq"
@@ -128,13 +129,33 @@ export default function FAQ() {
           zIndex: 1,
         }}
       >
-        {ITEMS.map((item, i) => (
+        {items.map((item, i) => (
           <div key={i} className="faq__card">
             <div className="faq__q">{item.q}</div>
             <p className="faq__a">{item.a}</p>
           </div>
         ))}
       </div>
+
+      {showAllLink && (
+        <div style={{ textAlign: 'center', position: 'relative', zIndex: 1, marginTop: '1.5rem' }}>
+          <a
+            href="/faq"
+            style={{
+              display: 'inline-block',
+              color: 'var(--accent-gold)',
+              fontSize: 15,
+              fontWeight: 700,
+              textDecoration: 'none',
+              border: '1px solid rgba(240, 165, 0, 0.5)',
+              borderRadius: 12,
+              padding: '11px 26px',
+            }}
+          >
+            Читати далі &rarr;
+          </a>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes faq-glow-a {
