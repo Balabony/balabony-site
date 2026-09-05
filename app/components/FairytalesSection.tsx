@@ -38,26 +38,13 @@ export default function FairytalesSection() {
     <section style={{ background: 'var(--dark)', padding: '16px 5% 24px' }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 18 }}>
-          <h2 style={{
-            fontFamily: "'Lora', serif",
-            fontSize: 'clamp(28px, 6vw, 44px)',
-            fontWeight: 600,
-            color: '#fff',
-            margin: '0 0 8px',
-            letterSpacing: -0.5,
-          }}>
+        <div style={{ borderLeft: `3px solid ${GOLD}`, paddingLeft: 14, marginBottom: 22 }}>
+          <div style={{ fontSize: 19, fontWeight: 800, color: '#fff', fontFamily: FONT, lineHeight: 1.2 }}>
             Казки
-          </h2>
-          <p style={{
-            fontSize: 'clamp(14px, 2.5vw, 17px)',
-            color: '#ef9f27',
-            margin: 0,
-            lineHeight: 1.6,
-            fontWeight: 600,
-          }}>
+          </div>
+          <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.65)', fontStyle: 'italic', fontFamily: FONT, lineHeight: 1.35, marginTop: 5 }}>
             Українські казки
-          </p>
+          </div>
         </div>
 
         {/* Картки */}

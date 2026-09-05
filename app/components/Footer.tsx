@@ -107,7 +107,7 @@ export default function Footer() {
         {/* ───── КОЛОНКА 1: БРЕНД + КОНТАКТИ + ПІДТРИМАТИ ───── */}
         <div>
           <span className="footer-logo" style={{ fontFamily: "'Comfortaa', cursive", fontSize: 22, display: 'block', marginBottom: 6 }}>
-            Balabony<sup style={{ fontSize: 10 }}>™</sup>
+            Balabony<sup style={{ fontSize: 10 }}></sup>
           </span>
           <p style={{ fontSize: 13, lineHeight: 1.5, color: 'rgba(255,255,255,0.55)', marginBottom: 8 }}>
             Українські історії для всієї родини
@@ -393,7 +393,7 @@ export default function Footer() {
               { label: 'Конкурси',    href: '/konkursy' },
               { label: 'Безкоштовно', href: '/free'     },
               { label: 'Подарунок',   href: '/gift'     },
-              { label: 'Рідер',       href: '/#reader'  },
+              { label: 'Історії',     href: '/stories'  },
               { label: 'Тарифи',      href: '/#pricing' },
             ].map(item => (
               <li key={item.label} style={{ marginBottom: 5 }}>
@@ -488,7 +488,7 @@ export default function Footer() {
         fontSize: 13, color: 'rgba(255,255,255,0.6)', maxWidth: 1200, margin: '0 auto'
       }}>
         <p style={{ marginBottom: 6 }}>
-          © 2026 Balabony™. Історії українською. Усі права захищено згідно із законодавством України.
+          © 2026 Balabony. Історії українською. Усі права захищено згідно із законодавством України.
         </p>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '3px 0 0 0' }}>
           Торговельна марка: заявка №m202607908 до Укрпатенту.

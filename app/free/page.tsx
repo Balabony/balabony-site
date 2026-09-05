@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 export default function FreePage() {
   return (
     <main>
-      <FreeHero ctaHref="/#reader" />
+      <FreeHero ctaHref="/episodes" />
       <HowItWorks />
       <FAQ />
     </main>
