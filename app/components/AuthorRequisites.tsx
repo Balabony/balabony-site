@@ -31,6 +31,7 @@ const UI = {
 export type Requisites = {
   full_name: string | null
   rnokpp: string | null
+  birth_date: string | null
   address: string | null
   phone: string | null
   payout_iban: string | null
@@ -45,7 +46,7 @@ export type Requisites = {
 
 type Props = { initial: Requisites }
 
-const REQUIRED: (keyof Requisites)[] = ['full_name', 'rnokpp', 'address', 'phone', 'payout_iban', 'bank_name']
+const REQUIRED: (keyof Requisites)[] = ['full_name', 'rnokpp', 'birth_date', 'address', 'phone', 'payout_iban', 'bank_name']
 
 export function isComplete(r: Requisites): boolean {
   return REQUIRED.every(k => {
@@ -72,6 +73,12 @@ export default function AuthorRequisites({ initial }: Props) {
     if (rnokpp.length !== 10) return 'РНОКПП має містити 10 цифр.'
     const iban = (form.payout_iban ?? '').replace(/\s/g, '').toUpperCase()
     if (!/^UA\d{27}$/.test(iban)) return 'IBAN має починатися з UA і містити 29 символів.'
+    const bd = (form.birth_date ?? '').trim()
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(bd)) return 'Впишіть дату народження.'
+    const born = new Date(bd)
+    if (isNaN(born.getTime())) return 'Невірна дата народження.'
+    const eighteen = new Date(born.getFullYear() + 18, born.getMonth(), born.getDate())
+    if (eighteen > new Date()) return 'Договір укладається з особами, які досягли 18 років. Напишіть нам — оформимо за згодою батьків.'
     if ((form.phone ?? '').replace(/\D/g, '').length < 10) return 'Впишіть номер телефону.'
     if (!(form.address ?? '').trim()) return 'Впишіть адресу.'
     if (!(form.bank_name ?? '').trim()) return 'Впишіть назву банку.'
@@ -90,6 +97,7 @@ export default function AuthorRequisites({ initial }: Props) {
         body: JSON.stringify({
           fullName: (form.full_name ?? '').trim(),
           rnokpp: (form.rnokpp ?? '').replace(/\D/g, ''),
+          birthDate: (form.birth_date ?? '').trim(),
           address: (form.address ?? '').trim(),
           phone: (form.phone ?? '').trim(),
           iban: (form.payout_iban ?? '').replace(/\s/g, '').toUpperCase(),
@@ -176,6 +184,22 @@ export default function AuthorRequisites({ initial }: Props) {
 
           <Field label="Прізвище, імʼя, по батькові" value={form.full_name ?? ''} onChange={v => set('full_name', v)} placeholder="Прізвище Імʼя По батькові" />
           <Field label="РНОКПП (ідентифікаційний код)" value={form.rnokpp ?? ''} onChange={v => set('rnokpp', v)} placeholder="10 цифр" />
+          <div style={{ marginBottom: '0.9rem' }}>
+            <div style={label}>Дата народження</div>
+            <input
+              type="date"
+              value={form.birth_date ?? ''}
+              onChange={e => set('birth_date', e.target.value)}
+              style={{
+                width: '100%', padding: '0.6rem 0.75rem', border: `1px solid ${UI.fieldBorder}`,
+                borderRadius: 10, background: 'rgba(255,255,255,0.05)', color: BRAND.text, fontSize: '0.95rem',
+                fontFamily: 'inherit', boxSizing: 'border-box', colorScheme: 'dark',
+              }}
+            />
+            <p style={{ color: BRAND.muted, fontSize: '0.82rem', lineHeight: 1.6, marginTop: 6 }}>
+              Потрібна для договору: він укладається з особами, які досягли 18 років.
+            </p>
+          </div>
           <Field label="Адреса" value={form.address ?? ''} onChange={v => set('address', v)} placeholder="Місто, вулиця, будинок, квартира" />
           <Field label="Поштовий індекс" value={form.postal_code ?? ''} onChange={v => set('postal_code', v)} placeholder="5 цифр" />
           <Field label="Відділення Нової пошти" value={form.np_branch ?? ''} onChange={v => set('np_branch', v)} placeholder="Напр.: 12" />

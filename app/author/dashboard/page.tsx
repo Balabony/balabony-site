@@ -25,6 +25,7 @@ type AuthorProfile = {
   is_active: boolean
   full_name?: string | null
   rnokpp?: string | null
+  birth_date?: string | null
   address?: string | null
   phone?: string | null
   bank_name?: string | null
@@ -225,6 +226,7 @@ export default async function AuthorDashboardPage() {
   const requisites: Requisites = {
     full_name: profile.full_name ?? null,
     rnokpp: profile.rnokpp ?? null,
+    birth_date: profile.birth_date ?? null,
     address: profile.address ?? null,
     phone: profile.phone ?? null,
     payout_iban: profile.payout_iban ?? null,

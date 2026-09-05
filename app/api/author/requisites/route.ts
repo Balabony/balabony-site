@@ -5,7 +5,8 @@ import { dbQuery } from '@/lib/db'
 /**
  * Реквізити автора для договору.
  * Статус (ФОП / фізична особа) автор обирає сам — від нього залежить ставка:
- * ФОП 50%, фізична особа 40% «на руки» (податки платформа сплачує понад).
+ * ФОП 50%, фізична особа 40% «на руки»: сума збільшується до бази оподаткування,
+ * з якої утримуються ПДФО і військовий збір (п. 5.3 договору).
  * Уже підписані договори зберігають свою ставку й не переписуються.
  */
 
@@ -18,6 +19,7 @@ type Body = {
   bankName?: string
   payoutRecipient?: string | null
   penName?: string | null
+  birthDate?: string | null
   postalCode?: string | null
   npBranch?: string | null
   isFop?: boolean
@@ -41,6 +43,7 @@ export async function POST(req: NextRequest) {
   const phone = (b.phone ?? '').trim()
   const iban = (b.iban ?? '').replace(/\s/g, '').toUpperCase()
   const bankName = (b.bankName ?? '').trim()
+  const birthDate = (b.birthDate ?? '').trim() || null
   const isFop = b.isFop === true
 
   if (fullName.split(/\s+/).length < 3) {
@@ -54,6 +57,22 @@ export async function POST(req: NextRequest) {
   }
   if (!address || !bankName || phone.replace(/\D/g, '').length < 10) {
     return NextResponse.json({ ok: false, error: 'Заповніть усі обовʼязкові поля' }, { status: 400 })
+  }
+
+  // Дата народження — п. 6.1-2 договору: підтвердження повноліття Автора.
+  if (!birthDate || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
+    return NextResponse.json({ ok: false, error: 'Впишіть дату народження' }, { status: 400 })
+  }
+  const born = new Date(birthDate)
+  if (isNaN(born.getTime())) {
+    return NextResponse.json({ ok: false, error: 'Невірна дата народження' }, { status: 400 })
+  }
+  const eighteen = new Date(born.getFullYear() + 18, born.getMonth(), born.getDate())
+  if (eighteen > new Date()) {
+    return NextResponse.json({
+      ok: false,
+      error: 'Договір укладається з особами, які досягли 18 років. Напишіть нам — оформимо за згодою батьків.',
+    }, { status: 400 })
   }
 
   // Ставка зберігається у двох виглядах:
@@ -72,16 +91,18 @@ export async function POST(req: NextRequest) {
             bank_name = $6,
             payout_recipient = $7,
             pen_name = $8,
-            postal_code = $9,
-            np_branch = $10,
-            is_fop = $11,
-            revenue_share = $12,
+            birth_date = $9,
+            postal_code = $10,
+            np_branch = $11,
+            is_fop = $12,
+            revenue_share = $13,
             requisites_updated_at = now()
-      where user_id = $13`,
+      where user_id = $14`,
     [
       fullName, rnokpp, address, phone, iban, bankName,
       (b.payoutRecipient ?? '')?.trim() || null,
       (b.penName ?? '')?.trim() || null,
+      birthDate,
       (b.postalCode ?? '')?.trim() || null,
       (b.npBranch ?? '')?.trim() || null,
       isFop, share, user.id,
