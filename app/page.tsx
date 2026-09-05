@@ -24,6 +24,7 @@ import PwaSection from './components/PwaSection'
 import ChannelsSection from './components/ChannelsSection'
 import SurveyPreviewSection from './components/SurveyPreviewSection'
 import EmailCapture from './components/EmailCapture'
+import AuthorsStrip from './components/AuthorsStrip'
 
 const FALLBACK_SERIES: SeriesCard[] = []
 
@@ -165,6 +166,9 @@ export default function HomePage() {
         <BonusSection />
 
         <PwaSection />      <ChannelsSection />
+
+        <AuthorsStrip limit={8} />
+
         <AuthorSection />
         <SurveyPreviewSection />
       </main>
