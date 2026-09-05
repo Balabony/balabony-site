@@ -20,10 +20,10 @@ export default function FairytalesSection() {
   const [tales, setTales] = useState<Fairytale[] | null>(null)
 
   useEffect(() => {
-    fetch('/api/stories?genre=' + encodeURIComponent('Казка') + '&limit=2')
+    fetch('/api/stories?genre=' + encodeURIComponent('Казка') + '&limit=3')
       .then(r => r.ok ? r.json() : Promise.reject())
       .then((rows: Fairytale[]) => {
-        if (Array.isArray(rows)) setTales(rows.slice(0, 2))
+        if (Array.isArray(rows)) setTales(rows.slice(0, 3))
         else setTales([])
       })
       .catch(() => setTales([]))
