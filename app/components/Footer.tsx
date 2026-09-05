@@ -395,6 +395,7 @@ export default function Footer() {
               { label: 'Подарунок',   href: '/gift'     },
               { label: 'Історії',     href: '/stories'  },
               { label: 'Тарифи',      href: '/#pricing' },
+              { label: 'Часті питання', href: '/faq'    },
             ].map(item => (
               <li key={item.label} style={{ marginBottom: 5 }}>
                 <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 14 }}>

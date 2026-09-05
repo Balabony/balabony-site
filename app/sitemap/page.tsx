@@ -36,6 +36,8 @@ const GROUPS: SitemapGroup[] = [
       { href: '/avtory',     label: 'Автори Балабонів',  note: 'Усі автори з опублікованими творами' },
       { href: '/demo',       label: 'Демо озвучення',    note: 'Тестовий голос' },
       { href: '/holosy',     label: 'Голоси платформи',  note: 'Озвучення на замовлення' },
+      { href: '/wolne-lektury', label: 'Wolne Lektury',  note: 'Львів і Галичина у вільних текстах' },
+      { href: '/reytyng',    label: 'Рейтинг',           note: 'Найпопулярніші твори' },
     ],
   },
   {
@@ -62,6 +64,7 @@ const GROUPS: SitemapGroup[] = [
       { href: '/#pricing', label: 'Передплата',  note: 'Тарифи й доступ до всіх історій' },
       { href: '/free', label: 'Безкоштовно',  note: 'Безкоштовний доступ' },
       { href: '/gift', label: 'Подарунок',    note: 'Подарункова підписка' },
+      { href: '/faq',  label: 'Часті питання', note: 'Відповіді про доступ, тарифи й пільги' },
     ],
   },
   {
