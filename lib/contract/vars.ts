@@ -17,6 +17,14 @@ export function fmtDate(iso: string | null): string {
   return `«${String(d.getDate()).padStart(2, '0')}» ${MONTHS[d.getMonth()]} ${d.getFullYear()} р.`
 }
 
+// Дата народження — «01.12.2005». Потрібна для п. 6.1-2 (повноліття автора).
+export function fmtBirthDate(iso: string | null): string {
+  if (!iso) return DASH
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return DASH
+  return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`
+}
+
 export type ContractRow = {
   number: string | null
   created_at: string | null
@@ -36,6 +44,7 @@ export function buildVars(
     DATE: fmtDate(contract.signed_at ?? contract.created_at),
     AUTHOR_NAME: prof.full_name || DASH,
     AUTHOR_RNOKPP: prof.rnokpp || DASH,
+    AUTHOR_BIRTHDATE: fmtBirthDate(prof.birth_date),
     AUTHOR_ADDRESS: prof.address || DASH,
     AUTHOR_PHONE: prof.phone || DASH,
     AUTHOR_EMAIL: email || DASH,
