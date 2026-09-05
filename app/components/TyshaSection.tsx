@@ -37,7 +37,7 @@ const STYLES = `
 .ts-teaser {
   font-size: 12.5px; line-height: 1.5; color: rgba(245,240,232,0.7); margin: 0;
   font-family: ${FONT}; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
-  overflow: hidden;
+  overflow: hidden; min-height: 57px;
 }
 @media (prefers-reduced-motion: reduce) {
   .ts-card, .ts-cover-img, .ts-title-text { transition: none; }

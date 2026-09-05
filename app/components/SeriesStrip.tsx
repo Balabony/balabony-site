@@ -175,7 +175,8 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
         .ss-img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
         .ss-info { padding: 12px 14px; flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
         .ss-teaser { font-size: 12px; line-height: 1.5; color: rgba(200,212,232,0.72); margin: 0;
-          font-family: ${FONT}; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+          font-family: ${FONT}; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+          min-height: 36px; }
         @media (max-width: 600px) {
           .ss-row { flex-direction: column; }
           .ss-cover { align-self: auto; padding: 8px 8px 0; }
