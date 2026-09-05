@@ -72,24 +72,16 @@ export default function EmailCapture() {
   }
 
   return (
-    <section style={{ padding: '28px 16px 48px' }}>
+    <section style={{ padding: '18px 16px 28px' }}>
       <div style={{
-        maxWidth: 720, margin: '0 auto',
+        maxWidth: 560, margin: '0 auto',
         background: `linear-gradient(135deg, ${NAVY} 0%, #0E1A2B 100%)`,
-        border: `1px solid ${GOLD}33`, borderRadius: 20,
-        padding: '36px 28px', textAlign: 'center', fontFamily: FONT,
+        border: `1px solid ${GOLD}33`, borderRadius: 16,
+        padding: '22px 24px', textAlign: 'center', fontFamily: FONT,
       }}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
-          <Sunflower />
-        </div>
-        <h2 style={{ fontSize: 24, fontWeight: 800, color: CREAM, margin: '0 0 10px' }}>
-          Не проґавте нову серію
+        <h2 style={{ fontSize: 20, fontWeight: 800, color: CREAM, margin: '0 0 16px' }}>
+          Не проґавте нові історії та серії
         </h2>
-        <p style={{ fontSize: 15, color: '#B5D4F4', lineHeight: 1.6, margin: '0 0 22px' }}>
-          Лишіть пошту — і ми гукнемо, щойно Дід&nbsp;Панас устругне щось новеньке.
-          А ще на вас чекають квести-загадки з балами за відповіді
-          та звістки про подарункові сертифікати. Жодного спаму — тільки найтепліше з&nbsp;Балабонів.
-        </p>
 
         {status === 'ok' ? (
           <div style={{
