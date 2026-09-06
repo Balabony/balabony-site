@@ -38,6 +38,21 @@ const CHANNELS = ['email', 'phone', 'viber', 'telegram', 'paper', 'form', 'other
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://balabony.com').replace(/\/+$/, '')
 
+/**
+ * Знімає назву поля, випадково скопійовану разом зі значенням.
+ *
+ * Реальний випадок: в імені автора опинилося «Ім'я: Ірина Агафонова-Ясінська».
+ * Профіль створився, твори прив'язалися, але сторінка автора віддавала 404 —
+ * slug рахується з display_name, і префікс його ламав. Автор про це не
+ * дізнається: у нього просто «не працює посилання».
+ */
+function stripFieldLabel(value: string): string {
+  return value
+    .replace(/^\s*(ім['ʼ’]я|імя|назва|автор|пошта|email|псевдонім)\s*:\s*/iu, '')
+    .trim()
+}
+
+
 export async function POST(req: NextRequest) {
   if (!isAdmin(req)) {
     return NextResponse.json({ ok: false, error: 'Немає доступу' }, { status: 403 })
@@ -50,13 +65,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Невірний запит' }, { status: 400 })
   }
 
-  const fullName = (body.fullName ?? '').trim()
+  const fullName = stripFieldLabel((body.fullName ?? '').trim())
   // Адресу зводимо до того самого вигляду, який дає сторінка входу. Інакше
   // акаунт створюється на «leonid.opiy@», а /login шукає «leonidopiy@», не
   // знаходить і заводить автору другий, порожній кабінет.
   const emailRaw = (body.email ?? '').trim().toLowerCase()
   const email = normalizeEmail(emailRaw)
-  const penName = (body.penName ?? '').trim()
+  const penName = stripFieldLabel((body.penName ?? '').trim())
   const isFop = body.isFop === true
   const channel = (body.consentChannel ?? 'other').trim()
   const note = (body.consentNote ?? '').trim()
