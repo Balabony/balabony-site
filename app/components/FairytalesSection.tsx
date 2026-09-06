@@ -1,5 +1,6 @@
 ﻿'use client'
 
+import SectionHead from './SectionHead'
 import { useEffect, useState } from 'react'
 
 interface Fairytale {
@@ -37,15 +38,13 @@ export default function FairytalesSection() {
   return (
     <section style={{ background: 'var(--dark)', padding: '16px 5% 24px' }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ borderLeft: `3px solid ${GOLD}`, paddingLeft: 14, marginBottom: 22 }}>
-          <div style={{ fontSize: 19, fontWeight: 800, color: '#fff', fontFamily: FONT, lineHeight: 1.2 }}>
-            Казки
-          </div>
-          <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.65)', fontStyle: 'italic', fontFamily: FONT, lineHeight: 1.35, marginTop: 5 }}>
-            Українські казки
-          </div>
-        </div>
+        <SectionHead
+          kicker="Для дітей"
+          title="Казки"
+          subtitle="Українські казки"
+          href="/fairytales"
+          linkLabel="Усі казки"
+        />
 
         {/* Картки */}
         <div style={{
@@ -114,27 +113,6 @@ export default function FairytalesSection() {
           ))}
         </div>
 
-        {/* Усі казки */}
-        <div style={{ textAlign: 'center', marginTop: 24 }}>
-          <a
-            href="/fairytales"
-            style={{
-              display: 'inline-block',
-              border: `2px solid ${GOLD}`,
-              color: GOLD,
-              background: 'transparent',
-              padding: '11px 30px',
-              borderRadius: 24,
-              fontSize: 15,
-              fontWeight: 700,
-              textDecoration: 'none',
-              fontFamily: FONT,
-              letterSpacing: 0.5,
-            }}
-          >
-            Усі казки →
-          </a>
-        </div>
       </div>
     </section>
   )

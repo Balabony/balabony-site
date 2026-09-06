@@ -1,5 +1,6 @@
 'use client'
 
+import SectionHead from './SectionHead'
 import CoverImage from './CoverImage'
 
 import { useTheme } from '../context/ThemeContext'
@@ -240,10 +241,13 @@ export default function FreshStoriesGrid({
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
         {showHeading && (
-          <div style={{ marginBottom: 26 }}>
-            <div className="fs-kicker" style={{ color: colors.fg }}>Нові надходження</div>
-            <div style={{ fontSize: 19, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.2 }}>Свіжі історії</div>
-          </div>
+          <SectionHead
+            kicker="Нові надходження"
+            title="Свіжі історії"
+            href="/stories"
+            linkLabel="Усі історії"
+            color={colors.fg}
+          />
         )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(275px, 100%), 1fr))', gap: 20, alignItems: 'stretch' }}>

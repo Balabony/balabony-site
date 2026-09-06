@@ -1,5 +1,6 @@
 ﻿'use client'
 
+import SectionHead from './SectionHead'
 import CoverImage from './CoverImage'
 
 import { useState } from 'react'
@@ -51,12 +52,15 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
     <section style={{ background: colors.bg, padding: '20px 0' }}>
       <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 20px' }}>
 
-        {/* Section header */}
-        <div style={{ borderLeft: `3px solid ${GOLD}`, paddingLeft: 14, marginBottom: 22 }}>
-          <div style={{ fontSize: 19, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.2 }}>Серіал «Балабони»</div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: GOLD, fontFamily: FONT, lineHeight: 1.35, marginTop: 5 }}>Назар Колодій</div>
-          <div style={{ fontSize: 12.5, color: colors.muted, fontStyle: 'italic', fontFamily: FONT, lineHeight: 1.35, marginTop: 1 }}>Сільські байки</div>
-        </div>
+        <SectionHead
+          kicker="Назар Колодій"
+          title="Серіал «Балабони»"
+          subtitle="Сільські байки"
+          href="/episodes"
+          linkLabel="Усі серії"
+          color={colors.fg}
+          subColor={colors.muted}
+        />
 
         {/* Cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

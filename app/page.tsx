@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import Header from './components/Header'
 import Hero from './components/Hero'
 import FreeBanner from './components/FreeBanner'
@@ -34,7 +33,6 @@ const FALLBACK_SERIES: SeriesCard[] = []
 // схвалені історії читачів з /api/stories. Інакше секція прихована.
 const SAMPLE_STORIES: Story[] = []
 
-const viewAllLinkStyle: React.CSSProperties = { display: 'inline-block', color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 15, fontWeight: 600, fontFamily: "'Montserrat', sans-serif", textTransform: 'uppercase', letterSpacing: '0.04em' }
 
 const doorsWrapStyle: React.CSSProperties = { maxWidth: 1100, margin: '0 auto', padding: '4px 20px 24px', display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }
 
@@ -48,7 +46,6 @@ const doorSubStyle: React.CSSProperties = { fontSize: 'clamp(10px, 2.8vw, 12px)'
 
 const badge18Style: React.CSSProperties = { background: '#e0484d', color: '#FFF8EE', fontSize: 10, padding: '1px 5px', borderRadius: 3, verticalAlign: 2 }
 
-const viewAllWrapperStyle: React.CSSProperties = { maxWidth: 1100, margin: '0 auto', padding: '16px 20px', textAlign: 'center' }
 
 export default function HomePage() {
   const [seriesData,   setSeriesData]   = useState<SeriesCard[]>(FALLBACK_SERIES)
@@ -131,16 +128,10 @@ export default function HomePage() {
 
       <div id="series"><SeriesStrip series={seriesData} /></div>
 
-      <div style={viewAllWrapperStyle}>
-        <Link href="/episodes" style={viewAllLinkStyle}>Усі серії →</Link>
-      </div>
 
       {freshStories.length > 0 && (
         <div id="stories-fresh">
           <FreshStoriesGrid stories={freshStories} />
-          <div style={viewAllWrapperStyle}>
-            <Link href="/stories" style={viewAllLinkStyle}>Усі історії →</Link>
-          </div>
         </div>
       )}
 

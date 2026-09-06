@@ -1,5 +1,6 @@
 'use client'
 
+import SectionHead from './SectionHead'
 import CoverImage from './CoverImage'
 
 import { useEffect, useState } from 'react'
@@ -94,11 +95,16 @@ export default function TyshaSection(
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
 
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
-        <div style={{ marginBottom: 16 }}>
-          <div className="ts-kicker">Авторські серіали · 18+</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: colors.fg, fontFamily: FONT, lineHeight: 1.15 }}>ТИША</div>
-          <div style={{ fontSize: 17, fontStyle: 'italic', color: isNight ? '#c9d6e8' : '#1a3a6b', fontFamily: "'Georgia', serif", margin: '6px 0 2px' }}>Історія, яку чуєш серцем</div>
-        </div>
+        <SectionHead
+          kicker="Авторські серіали"
+          adult
+          title="Тиша"
+          subtitle="Історія, яку чуєш серцем"
+          href={showAllLink ? '/tysha' : undefined}
+          linkLabel={showAllLink ? 'Усі серії' : undefined}
+          color={colors.fg}
+          subColor={isNight ? '#c9d6e8' : '#1a3a6b'}
+        />
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 100%), 1fr))', gap: 14, alignItems: 'stretch' }}>
           {items.map((ep) => (
@@ -154,16 +160,6 @@ export default function TyshaSection(
           ))}
         </div>
 
-        {showAllLink && (
-          <div style={{ textAlign: 'center', marginTop: 20 }}>
-            <Link
-              href="/tysha"
-              style={{ display: 'inline-block', color: AMBER, textDecoration: 'none', fontSize: 15, fontWeight: 700, fontFamily: FONT, textTransform: 'uppercase', letterSpacing: '0.04em' }}
-            >
-              Усі серії →
-            </Link>
-          </div>
-        )}
       </div>
     </section>
   )
