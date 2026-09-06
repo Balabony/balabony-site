@@ -102,6 +102,8 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
   // Поки не показуємо — лишаємо порожній якір, інакше спостерігачу нема за чим стежити
   if (!step) return <div ref={anchor} aria-hidden="true" style={{ height: 1 }} />
 
+  // reader-card: у денній темі колонка стає світлим аркушем, а ця картка
+  // з власним світлим текстом лишається темною — інакше вона зникає.
   const wrap: React.CSSProperties = {
     marginTop: 30, padding: '18px 20px', borderRadius: 14,
     background: 'rgba(239,159,39,0.07)', border: '1px solid rgba(239,159,39,0.28)',
@@ -138,7 +140,7 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
 
   if (step === 'done') {
     return (
-      <div style={wrap}>
+      <div className="reader-card" style={wrap}>
         <p style={{ ...question, margin: 0 }}>Дякуємо!</p>
         <p style={{ fontSize: 14, color: 'rgba(242,245,249,0.68)', margin: '6px 0 0' }}>
           Ваша відповідь допомагає нам вибирати, що публікувати далі.
@@ -149,7 +151,7 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
 
   if (step === 'liked') {
     return (
-      <div style={wrap}>
+      <div className="reader-card" style={wrap}>
         <p style={question}>Як вам ця історія?</p>
         <div style={rowTight}>
           {[['yes', 'Сподобалась'], ['ok', 'Нормально'], ['no', 'Не зайшла']].map(([k, label]) => (
@@ -169,7 +171,7 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
 
   if (step === 'genre') {
     return (
-      <div style={wrap}>
+      <div className="reader-card" style={wrap}>
         <p style={question}>Що вам цікаво читати далі?</p>
         <div style={row}>
           {GENRES.map(([k, label]) => (
@@ -198,7 +200,7 @@ export default function ReaderPulse({ contentId }: { contentId?: string | null }
   }
 
   return (
-    <div style={wrap}>
+    <div className="reader-card" style={wrap}>
       <p style={question}>Скільки вам років?</p>
       <div style={row}>
         {AGES.map(([k, label]) => (

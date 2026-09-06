@@ -61,6 +61,7 @@ export default function StoryEmailCapture({ slug }: { slug: string }) {
 
   return (
     <section
+      className="reader-card"
       aria-labelledby="story-email-title"
       style={{
         marginTop: 36,

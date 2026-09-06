@@ -61,22 +61,27 @@ html[data-reader-theme='day'] {
   --r-gold: #8a5200; /* контраст 5.3:1 — золото на кремовому не проходить 4.5 */
 }
 
-html[data-reader-theme='day'] .reader-body {
+/* Уся колонка читання стає світлим аркушем: крихти, заголовок, автор,
+   зачин, текст. Один контейнер — тому не треба вгадувати кольори окремих
+   елементів, досить задати колір усьому всередині. */
+html[data-reader-theme='day'] .reader-col {
   background: var(--r-bg) !important;
   color: var(--r-fg) !important;
-  padding: 28px 24px !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35) !important;
 }
 
-/* Усе, що всередині аркуша, — темним. Тут перелік кольорів уже не потрібен:
-   область обмежена одним контейнером, і чужих блоків у ній немає. */
-html[data-reader-theme='day'] .reader-body :is(p, li, blockquote, em, i, span, div):not(.speaker-name) {
+/* Виняток — картки з власним світлим текстом (підписка, оцінка історії).
+   На світлому аркуші вони б зникли, тому лишаються темними. Саме через них
+   попередній підхід і не працював: у проєкті 91 різний світлий колір, і
+   перелічувати їх усі безглуздо. Тут виняток один, за класом. */
+html[data-reader-theme='day'] .reader-col :not(.reader-card):not(.reader-card *):not(.speaker-name) {
   color: var(--r-fg) !important;
 }
 
-html[data-reader-theme='day'] .reader-body :is(strong, b):not(.speaker-name) {
-  color: var(--r-fg) !important;
+html[data-reader-theme='day'] .reader-card {
+  background: #101f36 !important;
+  border-radius: 16px !important;
 }
 
 /* Імена мовців лишаються акцентом, але темнішим відтінком золота */
@@ -84,8 +89,8 @@ html[data-reader-theme='day'] .reader-body .speaker-name {
   color: var(--r-gold) !important;
 }
 
-/* Лід: на темному тлі його виділяв білий колір, на світлому кольори
-   зрівнялись — тому вагу піднімаємо з 500 до 600. */
+/* Лід: на темному тлі його виділяв білий колір, тут кольори зрівнялись,
+   тому вагу піднімаємо з 500 до 600. */
 html[data-reader-theme='day'] .reader-body p.lead {
   font-weight: 600 !important;
 }

@@ -186,7 +186,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         </div>
       )}
 
-            <div style={{ maxWidth: 720, margin: '0 auto', padding: story.cover_url ? '20px 20px 80px' : '60px 20px 80px' }}>
+            <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: story.cover_url ? '20px 20px 80px' : '60px 20px 80px' }}>
 
         {/* Хлібні крихти — заміна старого back link */}
         <div style={{ marginTop: 24 }}>

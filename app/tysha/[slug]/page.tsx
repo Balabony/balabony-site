@@ -261,7 +261,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
       <TyshaProgressTracker storyId={ep.id} storyTitle={ep.title} locked={locked} />
 
       {/* Шапка-банер */}
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '28px 20px 8px' }}>
+      <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '28px 20px 8px' }}>
         {/* Верхній рядок: назад ліворуч, 18+ праворуч — без накладання */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <Link href="/" style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.55)', textDecoration: 'none' }}>← На головну</Link>
@@ -314,7 +314,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
 
       {/* Текст серії — формат як у Балабонів. Замкнена серія: тізер + пейвол. */}
       {locked ? (
-        <article className="reader-body" style={{ maxWidth: 720, margin: '0 auto', padding: '22px 20px 8px' }}>
+        <article className="reader-body reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '22px 20px 8px' }}>
           <div style={{ position: 'relative', maxHeight: 460, overflow: 'hidden' }}>
             <div dangerouslySetInnerHTML={{ __html: formatTyshaText(visibleBody) }} />
             <div aria-hidden style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 180, background: `linear-gradient(to bottom, transparent, ${NAVY_DEEP})`, pointerEvents: 'none' }} />
@@ -337,7 +337,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
           </div>
         </article>
       ) : (
-        <article className="reader-body" style={{ maxWidth: 720, margin: '0 auto', padding: '22px 20px 40px' }}>
+        <article className="reader-body reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '22px 20px 40px' }}>
           <div dangerouslySetInnerHTML={{ __html: formatTyshaText(body) }} />
         </article>
       )}
@@ -358,14 +358,14 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
 
       {/* Три питання тому, хто дочитав серію цілком */}
       {!locked && (
-        <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px' }}>
+        <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px' }}>
           <ReaderPulse contentId={ep.id} />
         </div>
       )}
 
       {/* Наступна серія */}
       {next && !locked && (
-        <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px 48px' }}>
+        <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px 48px' }}>
           <Link href={`/tysha/${next.slug}`} id="tysha-next-link" style={{ display: 'block', padding: 16, borderRadius: 12, background: '#0f1e3a', border: `1.5px solid ${AMBER}`, textDecoration: 'none' }}>
             <div style={{ fontSize: 11, color: 'rgba(245,240,232,0.5)', marginBottom: 4 }}>Наступна серія →</div>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--r-gold, #ef9f27)' }}>{next.title}</div>
