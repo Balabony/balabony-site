@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { GENRES, isGenre } from '@/lib/genres'
+import { GENRES, isGenre, normalizeGenre } from '@/lib/genres'
 import { toPlainText } from '@/lib/plain-text'
 
 const SAFETY = [
@@ -114,33 +114,55 @@ export async function POST(req: NextRequest) {
 
     const prompt = buildPrompt(row.title ?? '', sample)
     let done = false
+    // Що саме відповіла модель, коли відповідь не лягла в перелік. Без цього
+    // редактор бачив глухе «не дала відповіді» й не міг зрозуміти причину.
+    let lastRaw = ''
+    let lastErr = ''
 
     for (const model of MODELS) {
       try {
         const answer = await askModel(apiKey, model, prompt)
-        const genre = typeof answer.genre === 'string' ? answer.genre.trim() : ''
-        if (!isGenre(genre)) {
-          // Модель вигадала жанр поза переліком — пробуємо наступну.
+        const said = typeof answer.genre === 'string' ? answer.genre.trim() : ''
+
+        // Спершу точний збіг, далі — приведення синонімів. Модель часто
+        // відповідає формою («Оповідання») або старою назвою («Психологічна
+        // проза»); normalizeGenre знає ці відповідності, і відкидати такі
+        // відповіді як помилкові було б втратою готового результату.
+        const genre = isGenre(said) ? said : normalizeGenre(said)
+
+        if (!genre) {
+          if (said) lastRaw = said
           continue
         }
+
         results.push({
           id: row.id,
           genre,
           confidence: Math.max(0, Math.min(100, Number(answer.confidence) || 0)),
-          why: typeof answer.why === 'string' ? answer.why.slice(0, 60) : '',
+          // Якщо жанр довелося приводити до канону, показуємо це редакторові.
+          why: (isGenre(said) ? '' : `(${said}) `) +
+               (typeof answer.why === 'string' ? answer.why.slice(0, 60) : ''),
         })
         done = true
         break
       } catch (err) {
-        if (isBlocked(err)) continue
-        results.push({ id: row.id, genre: null, confidence: 0, why: '', error: err instanceof Error ? err.message : 'Помилка' })
+        const msg = err instanceof Error ? err.message : 'Помилка'
+        if (isBlocked(err)) { lastErr = 'заблоковано перевіркою вмісту'; continue }
+        if (/not found|404|unsupported/i.test(msg)) { lastErr = `модель ${model} недоступна`; continue }
+        if (err instanceof SyntaxError) { lastErr = 'відповідь не JSON'; continue }
+        results.push({ id: row.id, genre: null, confidence: 0, why: '', error: msg })
         done = true
         break
       }
     }
 
     if (!done) {
-      results.push({ id: row.id, genre: null, confidence: 0, why: '', error: 'Модель не дала відповіді' })
+      const why = lastRaw
+        ? `Модель каже «${lastRaw}» — такого жанру немає в переліку`
+        : lastErr
+          ? `Не вдалося: ${lastErr}`
+          : 'Модель не дала відповіді'
+      results.push({ id: row.id, genre: null, confidence: 0, why: '', error: why })
     }
   }
 
