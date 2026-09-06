@@ -12,6 +12,7 @@ import TyshaProgressTracker from '@/app/components/TyshaProgressTracker'
 import TyshaAgeGate from '@/app/components/TyshaAgeGate'
 import { leadCssDeclarations } from '@/lib/reader-typography'
 import { toExcerpt, toPlainText } from '@/lib/plain-text'
+import ReaderSettings from '@/app/components/ReaderSettings'
 
 const GOLD = '#ef9f27'
 const AMBER = '#FFB347'
@@ -47,7 +48,7 @@ function formatTyshaText(raw: string): string {
       if (m && isSpeakerLabel(m[1])) {
         const speaker = m[1]
         const rest = trimmed.slice(m[0].length)
-        return `<p class="speaker"><strong style="color:${GOLD};font-weight:700">${escHtml(speaker)}:</strong> ${escHtml(rest)}</p>`
+        return `<p class="speaker"><strong class="speaker-name" style="color:${GOLD};font-weight:700">${escHtml(speaker)}:</strong> ${escHtml(rest)}</p>`
       }
       return `<p class="narrative">${escHtml(trimmed)}</p>`
     }).join('')
@@ -232,7 +233,16 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
   const prevRecap = await getPrevTyshaRecap(ep.episode_number, isAdmin)
 
   return (
-    <div style={{ minHeight: '100dvh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT }}>
+    <div
+      className="reader-root"
+      style={{
+        minHeight: '100dvh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT,
+        // Базові величини саме цієї читалки: кегль 17 і сериф Georgia.
+        // Діють, поки читач сам не обрав інший шрифт.
+        ['--r-base' as string]: `${BODY_FONT_SIZE}px`,
+        ['--r-base-ff' as string]: "'Georgia', serif",
+      } as React.CSSProperties}
+    >
       <TyshaAgeGate />
       <ReadTracker slug={ep.slug} />
       <TyshaProgressTracker storyId={ep.id} storyTitle={ep.title} locked={locked} />
@@ -244,7 +254,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
           <Link href="/" style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.55)', textDecoration: 'none' }}>← На головну</Link>
           <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: '#e0484d', padding: '3px 8px', borderRadius: 6, flexShrink: 0 }}>18+</span>
         </div>
-        <span style={{ display: 'inline-block', marginTop: 12, fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD, background: 'rgba(239,159,39,0.14)', border: '1px solid rgba(239,159,39,0.5)', padding: '4px 9px', borderRadius: 4 }}>
+        <span style={{ display: 'inline-block', marginTop: 12, fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--r-gold, #ef9f27)', background: 'rgba(239,159,39,0.14)', border: '1px solid rgba(239,159,39,0.5)', padding: '4px 9px', borderRadius: 4 }}>
           Авторський серіал
         </span>
         <h1 style={{ fontSize: 26, fontWeight: 800, color: '#fff', margin: '10px 0 5px', lineHeight: 1.2 }}>{ep.title}</h1>
@@ -291,7 +301,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
 
       {/* Текст серії — формат як у Балабонів. Замкнена серія: тізер + пейвол. */}
       {locked ? (
-        <article style={{ maxWidth: 720, margin: '0 auto', padding: '22px 20px 8px' }}>
+        <article className="reader-body" style={{ maxWidth: 720, margin: '0 auto', padding: '22px 20px 8px' }}>
           <div style={{ position: 'relative', maxHeight: 460, overflow: 'hidden' }}>
             <div dangerouslySetInnerHTML={{ __html: formatTyshaText(visibleBody) }} />
             <div aria-hidden style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 180, background: `linear-gradient(to bottom, transparent, ${NAVY_DEEP})`, pointerEvents: 'none' }} />
@@ -314,7 +324,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
           </div>
         </article>
       ) : (
-        <article style={{ maxWidth: 720, margin: '0 auto', padding: '22px 20px 40px' }}>
+        <article className="reader-body" style={{ maxWidth: 720, margin: '0 auto', padding: '22px 20px 40px' }}>
           <div dangerouslySetInnerHTML={{ __html: formatTyshaText(body) }} />
         </article>
       )}
@@ -345,11 +355,13 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
         <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px 48px' }}>
           <Link href={`/tysha/${next.slug}`} id="tysha-next-link" style={{ display: 'block', padding: 16, borderRadius: 12, background: '#0f1e3a', border: `1.5px solid ${AMBER}`, textDecoration: 'none' }}>
             <div style={{ fontSize: 11, color: 'rgba(245,240,232,0.5)', marginBottom: 4 }}>Наступна серія →</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: GOLD }}>{next.title}</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--r-gold, #ef9f27)' }}>{next.title}</div>
             {ep.next_teaser && <div style={{ fontSize: 13, color: 'rgba(245,240,232,0.7)', marginTop: 6 }}>{ep.next_teaser}</div>}
           </Link>
         </div>
       )}
+      {/* Шрифт, розмір літер, день/ніч */}
+      <ReaderSettings />
     </div>
   )
 }

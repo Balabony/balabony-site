@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import GoogleAnalytics from './components/GoogleAnalytics'
 import './globals.css'
+import './reader.css'
 import UpdateBanner from './components/UpdateBanner'
 import AnalyticsTracker from './components/AnalyticsTracker'
 import ServiceWorkerRegistration from './components/ServiceWorkerRegistration'
@@ -65,6 +66,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-title" content="Balabony" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <link rel="shortcut icon" href="/icon-192.png" />
+        {/* Налаштування читалки — до першого малювання, щоб не блимала
+            нічна тема при переході між сторінками. Той самий ключ, що й
+            у app/components/ReaderSettings.tsx. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var p=JSON.parse(localStorage.getItem('balabony_reader_v1')||'{}');var d=document.documentElement;if(p.theme)d.setAttribute('data-reader-theme',p.theme);if(p.font)d.setAttribute('data-reader-font',p.font);if(p.scale)d.style.setProperty('--r-scale',String(p.scale));}catch(e){}})()",
+          }}
+        />
       </head>
       <body>
         <A11yApplier />

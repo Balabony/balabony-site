@@ -12,6 +12,7 @@ import StoryEmailCapture from '@/app/components/StoryEmailCapture'
 import { toPlainText, toExcerpt } from '@/lib/plain-text'
 import { leadInlineStyle } from '@/lib/reader-typography'
 import { authorSlug } from '@/lib/author-slug'
+import ReaderSettings from '@/app/components/ReaderSettings'
 
 // Базовий кегль тексту історії — має збігатися зі стилем <article> нижче.
 const BODY_FONT_SIZE = 18
@@ -157,7 +158,14 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
     : ''
 
   return (
-    <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT }}>
+    <div
+      className="reader-root"
+      style={{
+        minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT,
+        // Базовий кегль саме цієї читалки — від нього рахується масштаб.
+        ['--r-base' as string]: `${BODY_FONT_SIZE}px`,
+      } as React.CSSProperties}
+    >
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -179,7 +187,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         {/* Header */}
         <div style={{ marginBottom: 36 }}>
           {/* Genre tag */}
-          <span style={{ fontSize: 11, fontWeight: 700, color: GOLD, background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 20, padding: '3px 10px', textTransform: 'capitalize', fontFamily: FONT, letterSpacing: 0.4 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--r-gold, #ef9f27)', background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 20, padding: '3px 10px', textTransform: 'capitalize', fontFamily: FONT, letterSpacing: 0.4 }}>
             {story.genre}
           </span>
 
@@ -190,7 +198,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
           {/* Meta row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: GOLD, fontFamily: FONT }}>{story.author_name}</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--r-gold, #ef9f27)', fontFamily: FONT }}>{story.author_name}</span>
             <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--on-dark-muted)', fontFamily: FONT }}>{date}</span>
             <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--on-dark-muted)', fontFamily: FONT }}>{wordCount} слів · ~{readMin} хв</span>
           </div>
@@ -203,14 +211,14 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         {story.is_adult ? (
           <AgeGate>
             <article
-              className="story-body"
+              className="story-body reader-body"
               style={{ fontSize: 18, lineHeight: 1.9, color: '#dde6f0', fontFamily: FONT, wordBreak: 'break-word' }}
               dangerouslySetInnerHTML={{ __html: toStoryHtml(body, story.images ?? []) }}
             />
           </AgeGate>
         ) : (
           <article
-            className="story-body"
+            className="story-body reader-body"
             style={{ fontSize: 18, lineHeight: 1.9, color: '#dde6f0', fontFamily: FONT, wordBreak: 'break-word' }}
             dangerouslySetInnerHTML={{ __html: toStoryHtml(body, story.images ?? []) }}
           />
@@ -243,7 +251,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
           </div>
           <a
             href={isFairytale ? '/fairytales' : '/'}
-            style={{ fontSize: 13, fontWeight: 700, color: GOLD, background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 10, padding: '8px 18px', textDecoration: 'none', fontFamily: FONT }}
+            style={{ fontSize: 13, fontWeight: 700, color: 'var(--r-gold, #ef9f27)', background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 10, padding: '8px 18px', textDecoration: 'none', fontFamily: FONT }}
           >
             {isFairytale ? 'Більше казок →' : 'Більше історій →'}
           </a>
@@ -253,6 +261,9 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
       {/* Аудіоплеєр: показує плеєр, якщо audio_status='ready', інакше «у розробці» */}
       <AudioPlayer audioUrl={story.audio_url} audioStatus={story.audio_status} title={story.title} contentId={story.id} />
+
+      {/* Шрифт, розмір літер, день/ніч */}
+      <ReaderSettings />
     </div>
   )
 }
@@ -278,7 +289,7 @@ function renderParaInner(p: string): string {
     const words = name.trim().split(/\s+/)
     if (words.length <= 3) {
       const rest = p.slice(m[0].length)
-      return `<strong style="color:${GOLD};font-weight:700">${escapeChars(name)}:</strong> ${escapeChars(rest)}`
+      return `<strong class="speaker-name" style="color:${GOLD};font-weight:700">${escapeChars(name)}:</strong> ${escapeChars(rest)}`
     }
   }
   return escapeChars(p)
@@ -325,7 +336,7 @@ function toStoryHtml(raw: string, images: string[] = []): string {
     // другий акцент поруч перевантажив би рядок.
     const isLead = i === 0 && !SPEAKER_RE.test(p)
     const style = isLead ? LEAD : 'margin:0 0 14px 0'
-    html += `<p style="${style}">${renderParaInner(p)}</p>`
+    html += `<p${isLead ? ' class="lead"' : ''} style="${style}">${renderParaInner(p)}</p>`
     const here = insertAfter.get(i)
     if (here) here.forEach(u => { html += imgTag(u) })
   })

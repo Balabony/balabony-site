@@ -16,6 +16,7 @@ import StoryEmailCapture from '@/app/components/StoryEmailCapture'
 import AudioPlayer from '@/app/components/AudioPlayer'
 import { leadCssDeclarations } from '@/lib/reader-typography'
 import { toExcerpt, toPlainText } from '@/lib/plain-text'
+import ReaderSettings from '@/app/components/ReaderSettings'
 
 const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
@@ -260,7 +261,14 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
     : ''
 
   return (
-    <div style={{ minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT }}>
+    <div
+      className="reader-root"
+      style={{
+        minHeight: '100vh', background: NAVY_DEEP, color: '#f5f0e8', fontFamily: FONT,
+        // Базовий кегль саме цієї читалки — від нього рахується масштаб.
+        ['--r-base' as string]: `${BODY_FONT_SIZE}px`,
+      } as React.CSSProperties}
+    >
 <StreakTracker />
 <ReadTracker slug={episode.slug} />
 
@@ -279,18 +287,18 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         </div>
 
         <div style={{ marginBottom: 36 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: GOLD, background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 20, padding: '3px 10px', textTransform: 'capitalize', fontFamily: FONT, letterSpacing: 0.4 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--r-gold, #ef9f27)', background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 20, padding: '3px 10px', textTransform: 'capitalize', fontFamily: FONT, letterSpacing: 0.4 }}>
             Сезон {episode.season_number} · Серія {episode.episode_number}
           </span>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: '#f5f0e8', lineHeight: 1.25, margin: '14px 0 10px', fontFamily: FONT }}>
             {episode.title}
           </h1>
           <div style={{ fontSize: 13.5, lineHeight: 1.4, margin: '0 0 12px', fontFamily: FONT }}>
-            <span style={{ fontWeight: 700, color: GOLD }}>Назар Колодій</span>
+            <span style={{ fontWeight: 700, color: 'var(--r-gold, #ef9f27)' }}>Назар Колодій</span>
             <span style={{ color: 'var(--on-dark-muted)', fontStyle: 'italic' }}> · Кумедні історії з українського села</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: GOLD, fontFamily: FONT }}>Балабони</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--r-gold, #ef9f27)', fontFamily: FONT }}>Балабони</span>
             {date && <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--on-dark-muted)', fontFamily: FONT }}>{date}</span>}
             <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--on-dark-muted)', fontFamily: FONT }}>{wordCount} слів · ~{readMin} хв</span>
           </div>
@@ -385,13 +393,16 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           <div style={{ fontSize: 13, color: 'var(--on-dark-muted)', fontFamily: FONT }}>
             Сезон {episode.season_number} · Серія {episode.episode_number}
           </div>
-          <a href="/" style={{ fontSize: 13, fontWeight: 700, color: GOLD, background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 10, padding: '8px 18px', textDecoration: 'none', fontFamily: FONT }}>Більше епізодів →</a>
+          <a href="/" style={{ fontSize: 13, fontWeight: 700, color: 'var(--r-gold, #ef9f27)', background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 10, padding: '8px 18px', textDecoration: 'none', fontFamily: FONT }}>Більше епізодів →</a>
         </div>
 
       </div>
 
       {/* Аудіоплеєр: показує плеєр, якщо audio_status='ready', інакше «у розробці» */}
       <AudioPlayer audioUrl={episode.audio_url} audioStatus={episode.audio_status} title={episode.title} contentId={episode.id} slug={episode.slug} />
+
+      {/* Шрифт, розмір літер, день/ніч */}
+      <ReaderSettings />
     </div>
   )
 }
@@ -430,7 +441,7 @@ function formatEpisodeText(raw: string): string {
       if (match) {
         const speaker = match[1]
         const rest = trimmed.slice(match[0].length)
-        return `<p class="speaker"><strong style="color:${GOLD};font-weight:700">${escapeHtmlChars(speaker)}:</strong> ${escapeHtmlChars(rest)}</p>`
+        return `<p class="speaker"><strong class="speaker-name" style="color:${GOLD};font-weight:700">${escapeHtmlChars(speaker)}:</strong> ${escapeHtmlChars(rest)}</p>`
       }
       return `<p class="narrative">${escapeHtmlChars(trimmed)}</p>`
     }).join('')

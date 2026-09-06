@@ -45,6 +45,7 @@ export default function EpisodeBody({ html, fontFamily }: Props) {
     <>
       <article
         ref={articleRef}
+        className="reader-body"
         style={{
           fontSize: 16,
           lineHeight: 1.9,
