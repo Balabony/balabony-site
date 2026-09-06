@@ -81,14 +81,25 @@ async function realBoards(): Promise<Board[]> {
     .select('content_id, completed, read_date')
     .gte('read_date', sinceStr)
 
-  const { data: works } = await db
-    .from('content')
-    .select('id, title, slug, author_name, published_at')
-    .eq('status', 'published')
+  // Supabase віддає щонайбільше 1000 рядків за запит і робить це мовчки.
+  // Опублікованих творів уже понад тисячу, тож без пагінації частина
+  // просто зникала з рейтингу — без помилки, без сліду в логах.
+  const works: { id: string; title: string; slug: string; author_name: string; published_at: string | null }[] = []
+  const PAGE = 1000
+  for (let from = 0; from < 100_000; from += PAGE) {
+    const { data, error } = await db
+      .from('content')
+      .select('id, title, slug, author_name, published_at')
+      .eq('status', 'published')
+      .range(from, from + PAGE - 1)
+    if (error || !data) break
+    works.push(...(data as typeof works))
+    if (data.length < PAGE) break
+  }
 
   const list = (reads ?? []) as ReadRow[]
   const byId = new Map(
-    (works ?? []).map((w) => [
+    works.map((w) => [
       String(w.id),
       {
         title: (w.title as string) ?? '',
