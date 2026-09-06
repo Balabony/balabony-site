@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { isAdminRequest } from '@/lib/require-admin'
 
 // =============================================================================
 // КАТАЛОГ ПОЗ (22 існуючі. Коли додасте нові — допишіть сюди.)
@@ -199,6 +200,12 @@ ${textExcerpt}`
 // ENDPOINT
 // =============================================================================
 export async function POST(req: NextRequest) {
+  // Роут викликає платні зовнішні моделі, тому доступний лише адмінові.
+  // Раніше був відкритий: будь-хто ззовні міг палити бюджет генерацій.
+  if (!(await isAdminRequest())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const body = await req.json().catch(() => ({}))
     const dryRun: boolean = body?.dryRun === true

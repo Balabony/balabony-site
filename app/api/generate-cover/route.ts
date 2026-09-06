@@ -6,6 +6,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { GoogleGenerativeAI, type GenerationConfig } from '@google/generative-ai'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { applyGoldenFrame } from '@/lib/golden-frame'
+import { isAdminRequest } from '@/lib/require-admin'
 
 // SDK-тип не має responseModalities/imageConfig — розширюємо локально
 // (так само, як у /api/admin/tysha-trio-gemini).
@@ -464,6 +465,12 @@ async function generateWithGemini(opts: {
 }
 
 export async function POST(req: NextRequest) {
+  // Роут викликає платні зовнішні моделі, тому доступний лише адмінові.
+  // Раніше був відкритий: будь-хто ззовні міг палити бюджет генерацій.
+  if (!(await isAdminRequest())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const body = await req.json()
     const { seriesId, title, description } = body
