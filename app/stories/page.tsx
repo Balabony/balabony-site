@@ -9,6 +9,13 @@ import StoriesPaged from '../components/StoriesPaged'
 import Breadcrumbs from '../components/Breadcrumbs'
 import { toExcerpt } from '@/lib/plain-text'
 
+/**
+ * Сторінка перебудовується сама з бази, без деплою: перший відвідувач після
+ * закінчення терміну отримує стару версію, Next.js у фоні збирає свіжу.
+ * Нові твори авторів зʼявляються протягом чверті години.
+ */
+export const revalidate = 900
+
 export const metadata: Metadata = {
   title: 'Історії читачів — Балабони',
   description: 'Реальні історії читачів Балабонів: казки, життєві історії, особисті спогади. Українською мовою.',
@@ -61,16 +68,28 @@ function resolveGenre(raw?: string | string[]): string | null {
   return GENRE_ALIASES[normalize(trimmed)] ?? trimmed
 }
 
+/** Дата, за якою твір стає в чергу показу. approved_at заповнений не всюди
+ *  (твори, додані повз редакторський потік, лишаються з порожнім полем і
+ *  провалюються в кінець списку), тому беремо першу наявну з трьох. */
+function sortDate(s: { published_at: string | null; approved_at: string | null; created_at: string }): number {
+  return new Date(s.published_at ?? s.approved_at ?? s.created_at).getTime()
+}
+
 async function getStories(): Promise<Story[]> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('slug, title, author_name, genre, preview_text, cover_url, cover_position, duration_minutes, category, approved_at, is_adult')
+    .select('slug, title, author_name, genre, preview_text, cover_url, cover_position, duration_minutes, category, published_at, approved_at, created_at, is_adult')
     .eq('type', 'story')
     .in('status', ['approved', 'published'])
-    .order('approved_at', { ascending: false })
   if (error || !data) return []
-  return (data as (StoryRow & { approved_at: string })[]).map((s) => ({
+  const rows = data as (StoryRow & {
+    published_at: string | null
+    approved_at: string | null
+    created_at: string
+  })[]
+  rows.sort((a, b) => sortDate(b) - sortDate(a))
+  return rows.map((s) => ({
     id: s.slug,
     title: s.title,
     author: s.author_name,
