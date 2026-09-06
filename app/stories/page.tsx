@@ -8,6 +8,8 @@ import type { Story } from '../components/FreshStoriesGrid'
 import StoriesPaged from '../components/StoriesPaged'
 import Breadcrumbs from '../components/Breadcrumbs'
 import { toExcerpt } from '@/lib/plain-text'
+import { redirect } from 'next/navigation'
+import { normalizeGenre, GENRE_PAGES } from '@/lib/genres'
 
 /**
  * Сторінка перебудовується сама з бази, без деплою: перший відвідувач після
@@ -112,6 +114,12 @@ export default async function StoriesPage({
   searchParams: Promise<{ genre?: string | string[] }>
 }) {
   const { genre } = await searchParams
+
+  // Старі посилання з параметром ведемо на власну сторінку жанру. Дві адреси
+  // з однаковим вмістом ділять між собою вагу в пошуку, тож лишаємо одну.
+  const canonicalGenre = normalizeGenre(Array.isArray(genre) ? genre[0] : genre)
+  if (canonicalGenre) redirect(`/stories/zhanr/${GENRE_PAGES[canonicalGenre].slug}`)
+
   const activeGenre = resolveGenre(genre)
 
   const allStories = await getStories()

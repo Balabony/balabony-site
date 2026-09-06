@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { GENRE_PAGES, isGenre } from '@/lib/genres'
 
 /**
  * Рядок жанрів на головній.
@@ -59,7 +60,7 @@ export default function GenreChips() {
         {genres.map(({ genre, count }) => (
           <Link
             key={genre}
-            href={`/stories?genre=${encodeURIComponent(genre)}`}
+            href={isGenre(genre) ? `/stories/zhanr/${GENRE_PAGES[genre].slug}` : `/stories?genre=${encodeURIComponent(genre)}`}
             style={{
               fontSize: 15,
               fontWeight: 700,

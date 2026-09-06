@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { authorSlug } from '@/lib/author-slug'
 import { REYTYNG_DEMO } from '@/lib/reytyng'
+import { GENRES, GENRE_PAGES } from '@/lib/genres'
 
 const BASE_URL = 'https://balabony.com'
 
@@ -41,6 +42,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: `${BASE_URL}`,                       lastModified: now, changeFrequency: 'daily',   priority: 1.0 },
     { url: `${BASE_URL}/stories`,               lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
+    // Сторінки жанрів. Їх дев'ять і вони незмінні, тому перелічуємо статично:
+    // саме через них пошук знаходить розділи на кшталт «смішні історії».
+    ...GENRES.map((g) => ({
+      url: `${BASE_URL}/stories/zhanr/${GENRE_PAGES[g].slug}`,
+      lastModified: now,
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    })),
     { url: `${BASE_URL}/episodes`,              lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
     { url: `${BASE_URL}/tysha`,                 lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
     { url: `${BASE_URL}/fairytales`,            lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
