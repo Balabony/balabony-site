@@ -66,22 +66,41 @@ export default function AuthorRequisites({ initial }: Props) {
     setForm(f => ({ ...f, [k]: v }))
   }
 
+  /**
+   * Перевірка перед збереженням.
+   *
+   * Повідомлення навмисно називають конкретне поле й дають приклад. Раніше
+   * форма писала «Впишіть прізвище, імʼя та по батькові повністю» — авторка
+   * заповнила всі банківські реквізити, отримала цей рядок і вирішила, що не
+   * зберігаються саме вони. У базі 26 профілів із двослівними іменами, тобто
+   * на цьому спіткнеться кожен четвертий.
+   */
   function validate(): string | null {
     const name = (form.full_name ?? '').trim()
-    if (name.split(/\s+/).length < 3) return 'Впишіть прізвище, імʼя та по батькові повністю.'
+    const parts = name ? name.split(/\s+/) : []
+    if (parts.length === 0) return 'Поле «Прізвище, імʼя, по батькові»: впишіть повне імʼя. Наприклад: Пуляєва Людмила Іванівна.'
+    if (parts.length < 3) {
+      return `Поле «Прізвище, імʼя, по батькові»: бракує по батькові — воно потрібне для договору. Зараз вписано «${name}», а треба на зразок «${parts[0]} ${parts[1] ?? 'Імʼя'} Іванівна».`
+    }
     const rnokpp = (form.rnokpp ?? '').replace(/\D/g, '')
-    if (rnokpp.length !== 10) return 'РНОКПП має містити 10 цифр.'
+    if (rnokpp.length !== 10) return `Поле «РНОКПП»: потрібно рівно 10 цифр, зараз ${rnokpp.length}.`
     const iban = (form.payout_iban ?? '').replace(/\s/g, '').toUpperCase()
-    if (!/^UA\d{27}$/.test(iban)) return 'IBAN має починатися з UA і містити 29 символів.'
+    if (!/^UA\d{27}$/.test(iban)) return 'Поле «IBAN»: рахунок починається з UA і має 29 символів. Пробіли можна лишати.'
     const bd = (form.birth_date ?? '').trim()
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(bd)) return 'Впишіть дату народження.'
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(bd)) return 'Поле «Дата народження»: оберіть дату. Вона потрібна для договору.'
     const born = new Date(bd)
-    if (isNaN(born.getTime())) return 'Невірна дата народження.'
+    if (isNaN(born.getTime())) return 'Поле «Дата народження»: така дата не існує.'
     const eighteen = new Date(born.getFullYear() + 18, born.getMonth(), born.getDate())
     if (eighteen > new Date()) return 'Договір укладається з особами, які досягли 18 років. Напишіть нам — оформимо за згодою батьків.'
-    if ((form.phone ?? '').replace(/\D/g, '').length < 10) return 'Впишіть номер телефону.'
-    if (!(form.address ?? '').trim()) return 'Впишіть адресу.'
-    if (!(form.bank_name ?? '').trim()) return 'Впишіть назву банку.'
+    if ((form.phone ?? '').replace(/\D/g, '').length < 10) return 'Поле «Телефон»: впишіть номер повністю, 10 цифр.'
+    if (!(form.address ?? '').trim()) return 'Поле «Адреса»: впишіть адресу для листування.'
+    // Назву банку не перевіряємо на вміст: платіж іде за IBAN, а назва
+    // довідкова. Спроба вимагати слово «банк» відсікла б клієнтів ПУМБ і
+    // будь-якої установи з назвою без цього слова — заблокувати людину
+    // помилково гірше, ніж пропустити неточність у довідковому полі.
+    if (!(form.bank_name ?? '').trim()) {
+      return 'Поле «Назва банку»: оберіть банк кнопкою під полем — ПриватБанк, Ощадбанк, monobank — або впишіть назву своєї установи.'
+    }
     return null
   }
 
@@ -234,7 +253,23 @@ export default function AuthorRequisites({ initial }: Props) {
           <Field label="Одержувач платежу (якщо відрізняється)" value={form.payout_recipient ?? ''} onChange={v => set('payout_recipient', v)} placeholder="Необовʼязково" />
           <Field label="Псевдонім для публікації" value={form.pen_name ?? ''} onChange={v => set('pen_name', v)} placeholder="Необовʼязково" />
 
-          {err && <p style={{ color: '#b91c1c', fontSize: '0.88rem', margin: '0 0 10px' }}>{err}</p>}
+          {err && (
+            <p
+              role="alert"
+              style={{
+                color: '#7f1d1d',
+                background: '#fee2e2',
+                border: '1px solid #fca5a5',
+                borderRadius: 8,
+                fontSize: '0.95rem',
+                lineHeight: 1.5,
+                padding: '11px 14px',
+                margin: '0 0 12px',
+              }}
+            >
+              {err}
+            </p>
+          )}
 
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
             <button type="button" onClick={save} disabled={busy} style={primaryBtn}>
