@@ -202,10 +202,13 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
         {/* Header */}
         <div style={{ marginBottom: 36 }}>
-          {/* Genre tag */}
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--r-gold, #ef9f27)', background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 20, padding: '3px 10px', textTransform: 'capitalize', fontFamily: FONT, letterSpacing: 0.4 }}>
-            {story.genre}
-          </span>
+          {/* Жанр. Умова обов'язкова: у частини творів поле порожнє, і бейдж
+              малювався як безглуздий порожній кружечок над заголовком. */}
+          {story.genre?.trim() && (
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--r-gold, #ef9f27)', background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 20, padding: '3px 10px', textTransform: 'capitalize', fontFamily: FONT, letterSpacing: 0.4 }}>
+              {story.genre}
+            </span>
+          )}
 
           {/* Title */}
           <h1 style={{ fontSize: 28, fontWeight: 800, color: '#f5f0e8', lineHeight: 1.25, margin: '14px 0 10px', fontFamily: FONT }}>
