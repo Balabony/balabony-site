@@ -124,6 +124,66 @@ export interface Story {
  * одразу згори, і будь-який більший відступ зрізає маківку. Хто налаштований
  * вручну в /admin/cover-position — не зачеплений.
  */
+/**
+ * Чи є в твору справжня обкладинка.
+ *
+ * Сторінки підставляють '/og-image.jpg' замість порожнього cover_url — це
+ * загальний банер сайту, на якому написано «караоке · ігри · аудіо». Нічого
+ * з цього ще немає, тому показувати його як обкладинку твору не можна:
+ * читач бачить обіцянку функцій, яких не існує. Плюс банер широкий (1200×630),
+ * а картка вузька — від слова «Balabony» лишалося «alabony».
+ */
+function hasRealCover(src: string | null | undefined): boolean {
+  if (!src) return false
+  return !src.includes('og-image')
+}
+
+/**
+ * Заміна обкладинки для творів без картинки: тло у кольорах бренду,
+ * назва твору й автор текстом. Нічого не обіцяє й не обрізається.
+ */
+function CoverPlaceholder({ title, author }: { title: string; author?: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: 'absolute',
+        inset: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 10,
+        padding: '18px 16px',
+        textAlign: 'center',
+        background: 'linear-gradient(150deg, #14253B 0%, #0E1A2B 60%, #16294a 100%)',
+      }}
+    >
+      <div
+        style={{
+          fontFamily: FONT,
+          fontSize: 15,
+          fontWeight: 700,
+          lineHeight: 1.35,
+          color: '#FFF8EE',
+          display: '-webkit-box',
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        }}
+      >
+        {title}
+      </div>
+      {author && (
+        <div style={{ fontFamily: FONT, fontSize: 11, fontWeight: 600, color: GOLD, letterSpacing: 0.3 }}>
+          {author}
+        </div>
+      )}
+      <div style={{ width: 34, height: 2, borderRadius: 2, background: 'rgba(239,159,39,0.55)' }} />
+    </div>
+  )
+}
+
 const DEFAULT_POSITION = '50% 10%'
 
 function getCoverStyle(coverPosition: string | undefined): React.CSSProperties {
@@ -205,14 +265,18 @@ export default function FreshStoriesGrid({
             >
               <div style={{ padding: 8, flexShrink: 0 }}>
                 <div style={{ position: 'relative', width: '100%', height: 200, overflow: 'hidden', background: '#000', borderRadius: 8 }}>
-                  <CoverImage
-                    mode="fill"
-                    src={story.coverUrl}
-                    alt={story.title}
-                    sizes="(max-width: 700px) 100vw, 320px"
-                    className="fs-cover-img"
-                    style={getCoverStyle(story.coverPosition)}
-                  />
+                  {hasRealCover(story.coverUrl) ? (
+                    <CoverImage
+                      mode="fill"
+                      src={story.coverUrl}
+                      alt={story.title}
+                      sizes="(max-width: 700px) 100vw, 320px"
+                      className="fs-cover-img"
+                      style={getCoverStyle(story.coverPosition)}
+                    />
+                  ) : (
+                    <CoverPlaceholder title={story.title} author={story.author} />
+                  )}
                   {story.isAdult && (
                     <div style={{ position: 'absolute', top: 8, right: 8, background: '#e0484d', color: '#fff', fontSize: 12, fontWeight: 800, padding: '3px 8px', borderRadius: 6, letterSpacing: 0.5, fontFamily: FONT, lineHeight: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>18+</div>
                   )}
