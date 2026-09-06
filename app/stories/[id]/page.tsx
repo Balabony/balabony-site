@@ -76,7 +76,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       locale:      'uk_UA',
       title:       `${story.title} — ${story.author_name}`,
       description: desc,
-      images:      [{ url: ogImage, width: 1200, height: 630, alt: story.title }],
+      // Розмір навмисно не вказуємо: ogImage — це або обкладинка твору
+      // (квадрат 1:1, такий формат потрібен подкаст-стрічці), або запасна
+      // картинка 1200×630. Жорстко заявлені 1200×630 брехали в першому
+      // випадку, і соцмережі обрізали зображення по-своєму. Без розміру
+      // вони визначають його самі й показують правильно.
+      images:      [{ url: ogImage, alt: story.title }],
     },
     twitter: {
       card:        'summary_large_image',
@@ -170,7 +175,18 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-            <div style={{ maxWidth: 720, margin: '0 auto', padding: story.cover_url ? '0 20px 80px' : '60px 20px 80px' }}>
+
+      {/* Обкладинка не показувалася зовсім: відступ під неї в контейнері нижче
+          був, а самої картинки — ні. Показуємо так само, як у серіях і «Тиші»:
+          у власному співвідношенні, без обрізання. */}
+      {story.cover_url && (
+        <div style={{ position: 'relative', maxWidth: 460, margin: '14px auto 0', aspectRatio: '1 / 1', overflow: 'hidden', borderRadius: 4 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={story.cover_url} alt={story.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        </div>
+      )}
+
+            <div style={{ maxWidth: 720, margin: '0 auto', padding: story.cover_url ? '20px 20px 80px' : '60px 20px 80px' }}>
 
         {/* Хлібні крихти — заміна старого back link */}
         <div style={{ marginTop: 24 }}>

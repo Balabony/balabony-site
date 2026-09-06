@@ -155,7 +155,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       locale:      'uk_UA',
       title:       ogTitle,
       description: desc,
-      images:      [{ url: ogImage, width: 1200, height: 630, alt: episode.title }],
+      // Розмір навмисно не вказуємо: ogImage — це або обкладинка твору
+      // (квадрат 1:1, такий формат потрібен подкаст-стрічці), або запасна
+      // картинка 1200×630. Жорстко заявлені 1200×630 брехали в першому
+      // випадку, і соцмережі обрізали зображення по-своєму. Без розміру
+      // вони визначають його самі й показують правильно.
+      images:      [{ url: ogImage, alt: episode.title }],
     },
     twitter: {
       card:        'summary_large_image',
@@ -273,15 +278,19 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
 <StreakTracker />
 <ReadTracker slug={episode.slug} />
 
+      {/* Обкладинки «Балабонів» генеруються квадратними (1:1). Раніше вони
+          показувалися в смузі 720 × 260 — з квадрата лишалася вузька стрічка
+          посередині, і портретам зрізало голову зверху та підборіддя знизу.
+          Тепер співвідношення показу збігається зі співвідношенням генерації,
+          як це вже було зроблено в «Тиші». Обрізання немає взагалі. */}
       {episode.cover_url && (
-        <div style={{ position: 'relative', maxWidth: 720, margin: '0 auto', height: 'clamp(150px, 30vh, 260px)', overflow: 'hidden' }}>
+        <div style={{ position: 'relative', maxWidth: 460, margin: '14px auto 0', aspectRatio: '1 / 1', overflow: 'hidden', borderRadius: 4 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={episode.cover_url} alt={episode.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%', display: 'block' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #0a1628 0%, rgba(10,22,40,0.4) 60%, transparent 100%)' }} />
+          <img src={episode.cover_url} alt={episode.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         </div>
       )}
 
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: episode.cover_url ? '0 20px 80px' : '60px 20px 80px' }}>
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: episode.cover_url ? '20px 20px 80px' : '60px 20px 80px' }}>
 
         <div style={{ marginTop: 24 }}>
           <Breadcrumbs items={[{ label: 'Серії', href: '/episodes' }, { label: episode.title }]} />
