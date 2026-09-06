@@ -61,30 +61,28 @@ html[data-reader-theme='day'] {
   --r-gold: #8a5200; /* контраст 5.3:1 — золото на кремовому не проходить 4.5 */
 }
 
-/* Уся колонка читання стає світлим аркушем: крихти, заголовок, автор,
-   зачин, текст. Один контейнер — тому не треба вгадувати кольори окремих
-   елементів, досить задати колір усьому всередині. */
-html[data-reader-theme='day'] .reader-col {
+/* Світлим стає ТІЛЬКИ текст твору, не вся колонка.
+   Пробували інакше — робили світлою всю колонку разом із крихтами,
+   заголовком і блоками під текстом. На телефоні це розпалося на три
+   окремі світлі прямокутники з чорними щілинами між ними: у колонці є
+   картки з власним темним тлом, і вони розривають аркуш. Тому аркуш —
+   один, і в ньому лише текст. */
+html[data-reader-theme='day'] .reader-body {
   background: var(--r-bg) !important;
   color: var(--r-fg) !important;
+  padding: 28px 24px !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35) !important;
 }
 
-/* Виняток — картки з власним світлим текстом (підписка, оцінка історії).
-   На світлому аркуші вони б зникли, тому лишаються темними. Саме через них
-   попередній підхід і не працював: у проєкті 91 різний світлий колір, і
-   перелічувати їх усі безглуздо. Тут виняток один, за класом. */
-html[data-reader-theme='day'] .reader-col :not(.reader-card):not(.reader-card *):not(.speaker-name) {
+/* Усередині аркуша перелік кольорів не потрібен: область обмежена одним
+   контейнером, чужих блоків у ній немає. Саме через 91 різний світлий
+   колір у проєкті точкове перефарбовування не працювало. */
+html[data-reader-theme='day'] .reader-body :is(p, li, blockquote, em, i, span, strong, b):not(.speaker-name) {
   color: var(--r-fg) !important;
 }
 
-html[data-reader-theme='day'] .reader-card {
-  background: #101f36 !important;
-  border-radius: 16px !important;
-}
-
-/* Імена мовців лишаються акцентом, але темнішим відтінком золота */
+/* Імена мовців лишаються акцентом, темнішим відтінком золота */
 html[data-reader-theme='day'] .reader-body .speaker-name {
   color: var(--r-gold) !important;
 }
@@ -95,9 +93,11 @@ html[data-reader-theme='day'] .reader-body p.lead {
   font-weight: 600 !important;
 }
 
-/* Затемнення над пейволом згасало в темний колір — на світлому аркуші
-   це виглядало як брудна пляма внизу тізера. */
-html[data-reader-theme='day'] .reader-body [style*='transparent, #0a1628'] {
+/* Затемнення над пейволом. Селектор навмисно без .reader-body: цей градієнт
+   лежить ПОРУЧ із текстом, як накладка поверх нього, а не всередині. Тому
+   правило з прив'язкою до аркуша його не ловило, і на світлому тлі внизу
+   тізера залишалася чорна пляма. */
+html[data-reader-theme='day'] [style*='transparent, #0a1628'] {
   background: linear-gradient(to bottom, transparent, var(--r-bg)) !important;
 }
 

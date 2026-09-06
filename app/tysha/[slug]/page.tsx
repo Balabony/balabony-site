@@ -366,7 +366,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
       {/* Наступна серія */}
       {next && !locked && (
         <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px 48px' }}>
-          <Link href={`/tysha/${next.slug}`} id="tysha-next-link reader-card" style={{ display: 'block', padding: 16, borderRadius: 12, background: '#0f1e3a', border: `1.5px solid ${AMBER}`, textDecoration: 'none' }}>
+          <Link href={`/tysha/${next.slug}`} id="tysha-next-link" className="reader-card" style={{ display: 'block', padding: 16, borderRadius: 12, background: '#0f1e3a', border: `1.5px solid ${AMBER}`, textDecoration: 'none' }}>
             <div style={{ fontSize: 11, color: 'rgba(245,240,232,0.5)', marginBottom: 4 }}>Наступна серія →</div>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--r-gold, #ef9f27)' }}>{next.title}</div>
             {ep.next_teaser && <div style={{ fontSize: 13, color: 'rgba(245,240,232,0.7)', marginTop: 6 }}>{ep.next_teaser}</div>}
