@@ -139,10 +139,13 @@ function hasRealCover(src: string | null | undefined): boolean {
 }
 
 /**
- * Заміна обкладинки для творів без картинки: тло у кольорах бренду,
- * назва твору й автор текстом. Нічого не обіцяє й не обрізається.
+ * Заміна обкладинки для творів без картинки.
+ *
+ * Назва й автор у картці вже підписані нижче, тому в самому прямокутнику
+ * тексту немає — інакше все дублюється двічі поспіль і читається як помилка
+ * верстки. Лишається спокійне тло в кольорах бренду.
  */
-function CoverPlaceholder({ title, author }: { title: string; author?: string }) {
+function CoverPlaceholder() {
   return (
     <div
       aria-hidden="true"
@@ -150,36 +153,24 @@ function CoverPlaceholder({ title, author }: { title: string; author?: string })
         position: 'absolute',
         inset: 0,
         display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 10,
-        padding: '18px 16px',
-        textAlign: 'center',
         background: 'linear-gradient(150deg, #14253B 0%, #0E1A2B 60%, #16294a 100%)',
       }}
     >
       <div
         style={{
-          fontFamily: FONT,
-          fontSize: 15,
-          fontWeight: 700,
-          lineHeight: 1.35,
-          color: '#FFF8EE',
-          display: '-webkit-box',
-          WebkitLineClamp: 3,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
+          width: 46,
+          height: 46,
+          borderRadius: '50%',
+          border: '1.5px solid rgba(239,159,39,0.42)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
-        {title}
+        <div style={{ width: 20, height: 2, borderRadius: 2, background: 'rgba(239,159,39,0.62)' }} />
       </div>
-      {author && (
-        <div style={{ fontFamily: FONT, fontSize: 11, fontWeight: 600, color: GOLD, letterSpacing: 0.3 }}>
-          {author}
-        </div>
-      )}
-      <div style={{ width: 34, height: 2, borderRadius: 2, background: 'rgba(239,159,39,0.55)' }} />
     </div>
   )
 }
@@ -275,7 +266,7 @@ export default function FreshStoriesGrid({
                       style={getCoverStyle(story.coverPosition)}
                     />
                   ) : (
-                    <CoverPlaceholder title={story.title} author={story.author} />
+                    <CoverPlaceholder />
                   )}
                   {story.isAdult && (
                     <div style={{ position: 'absolute', top: 8, right: 8, background: '#e0484d', color: '#fff', fontSize: 12, fontWeight: 800, padding: '3px 8px', borderRadius: 6, letterSpacing: 0.5, fontFamily: FONT, lineHeight: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>18+</div>
