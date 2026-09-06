@@ -72,6 +72,15 @@ html[data-reader-theme='day'] .reader-root :is(h1, h2, h3, h4, strong):not(.spea
   color: var(--r-fg) !important;
 }
 
+/* Тіло тексту — правилом по класу, а не по кольору.
+   Лід (перший абзац) заданий білим трьома різними способами: інлайном у
+   /stories, тегом <style> усередині HTML у /episodes і /tysha. Перелічувати
+   кольори тут марно — перекриваємо самі елементи. */
+html[data-reader-theme='day'] .reader-root .reader-body,
+html[data-reader-theme='day'] .reader-root .reader-body :is(p, li, blockquote, em, i, span):not(.speaker-name) {
+  color: var(--r-fg) !important;
+}
+
 /* Інлайнові світлі кольори читалок. Ці значення в коді вживаються
    ТІЛЬКИ як color, ніколи як фон — перевірено ґрепом, тому селектор
    за атрибутом безпечний. */
