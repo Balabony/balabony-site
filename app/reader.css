@@ -41,8 +41,7 @@ html[data-reader-font='system'] { --r-ff: system-ui, -apple-system, 'Segoe UI', 
 
 /* Лід (зачин) лишається трохи більшим за решту — але відносно, а не
    на фіксовані +2px, інакше при масштабі 1.5 стрибок би зник. */
-.reader-body p.lead,
-.reader-body .scene-first p.narrative:first-child {
+.reader-body p.lead {
   font-size: calc(var(--r-base, 17px) * var(--r-scale, 1) * 1.12) !important;
 }
 
@@ -84,8 +83,7 @@ html[data-reader-theme='day'] .reader-root .reader-body :is(p, li, blockquote, e
 /* Лід у денній темі: на темному тлі його виділяв білий колір, тут кольори
    зрівнялись — тому вагу піднімаємо з 500 до 600. У нічній лишаємо як було,
    інакше вийде подвійний акцент. */
-html[data-reader-theme='day'] .reader-root .reader-body p.lead,
-html[data-reader-theme='day'] .reader-root .reader-body .scene-first p.narrative:first-child {
+html[data-reader-theme='day'] .reader-root .reader-body p.lead {
   font-weight: 600 !important;
 }
 

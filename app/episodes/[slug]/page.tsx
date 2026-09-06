@@ -14,7 +14,7 @@ import ReadTracker from '@/app/components/ReadTracker'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
 import StoryEmailCapture from '@/app/components/StoryEmailCapture'
 import AudioPlayer from '@/app/components/AudioPlayer'
-import { leadCssDeclarations } from '@/lib/reader-typography'
+import { leadCssDeclarations, fitsLead } from '@/lib/reader-typography'
 import { toExcerpt, toPlainText } from '@/lib/plain-text'
 import ReaderSettings from '@/app/components/ReaderSettings'
 
@@ -433,6 +433,14 @@ function escapeHtmlChars(str: string): string {
 
 function formatEpisodeText(raw: string): string {
   const scenes = raw.split(/\n{2,}/)
+  // Перший абзац нарації першої сцени — кандидат у лід. Якщо він задовгий,
+  // правило ліду просто не додаємо, і абзац лишається звичайним.
+  const firstNarrative = (scenes[0] ?? '')
+    .split(/\n/)
+    .map(x => x.trim())
+    .filter(x => x.length > 0)
+    .find(x => !SPEAKER_REGEX.test(x))
+  const leadAllowed = firstNarrative !== undefined && fitsLead(firstNarrative)
   const renderedScenes = scenes.map((scene, sceneIdx) => {
     const paragraphs = scene.split(/\n/).filter(p => p.trim().length > 0)
     const renderedParagraphs = paragraphs.map(p => {
@@ -443,7 +451,10 @@ function formatEpisodeText(raw: string): string {
         const rest = trimmed.slice(match[0].length)
         return `<p class="speaker"><strong class="speaker-name" style="color:${GOLD};font-weight:700">${escapeHtmlChars(speaker)}:</strong> ${escapeHtmlChars(rest)}</p>`
       }
-      return `<p class="narrative">${escapeHtmlChars(trimmed)}</p>`
+      // Лід позначаємо класом, а не селектором :first-child: клас читає ще й
+      // app/reader.css, і без нього задовгий абзац усе одно ставав би лідом.
+      const isLead = leadAllowed && sceneIdx === 0 && trimmed === firstNarrative
+      return `<p class="narrative${isLead ? ' lead' : ''}">${escapeHtmlChars(trimmed)}</p>`
     }).join('')
     const sceneClass = sceneIdx === 0 ? 'scene scene-first' : 'scene'
     return `<div class="${sceneClass}">${renderedParagraphs}</div>`
@@ -451,6 +462,6 @@ function formatEpisodeText(raw: string): string {
   // Лід: перший абзац нарації трохи більший і світліший — око чіпляється за
   // початок. На репліки («Панас: …») не поширюється: там уже є золоте імʼя,
   // другий акцент поруч перевантажив би рядок.
-  const styles = `<style>.scene{margin-top:28px}.scene-first{margin-top:0}.scene p{margin:0 0 14px 0}.scene p:last-child{margin-bottom:0}.speaker{padding-left:0}.narrative{}.scene-first p.narrative:first-child{${leadCssDeclarations(BODY_FONT_SIZE)}}</style>`
+  const styles = `<style>.scene{margin-top:28px}.scene-first{margin-top:0}.scene p{margin:0 0 14px 0}.scene p:last-child{margin-bottom:0}.speaker{padding-left:0}.narrative{}${leadAllowed ? `.scene p.lead{${leadCssDeclarations(BODY_FONT_SIZE)}}` : ''}</style>`
   return styles + renderedScenes
 }

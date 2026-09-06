@@ -10,7 +10,7 @@ import AgeGate from '@/app/components/AgeGate'
 import AudioPlayer from '@/app/components/AudioPlayer'
 import StoryEmailCapture from '@/app/components/StoryEmailCapture'
 import { toPlainText, toExcerpt } from '@/lib/plain-text'
-import { leadInlineStyle } from '@/lib/reader-typography'
+import { leadInlineStyle, fitsLead } from '@/lib/reader-typography'
 import { authorSlug } from '@/lib/author-slug'
 import ReaderSettings from '@/app/components/ReaderSettings'
 
@@ -334,7 +334,8 @@ function toStoryHtml(raw: string, images: string[] = []): string {
   paras.forEach((p, i) => {
     // На репліку («Панас: …») лід не ставимо: там уже є золоте імʼя,
     // другий акцент поруч перевантажив би рядок.
-    const isLead = i === 0 && !SPEAKER_RE.test(p)
+    // Довгий перший абзац лідом не робимо — див. LEAD_MAX_CHARS.
+    const isLead = i === 0 && !SPEAKER_RE.test(p) && fitsLead(p)
     const style = isLead ? LEAD : 'margin:0 0 14px 0'
     html += `<p${isLead ? ' class="lead"' : ''} style="${style}">${renderParaInner(p)}</p>`
     const here = insertAfter.get(i)

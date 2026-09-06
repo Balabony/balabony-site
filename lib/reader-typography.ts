@@ -48,3 +48,16 @@ export function leadInlineStyle(baseFontSizePx: number): string {
     `font-weight:${LEAD_WEIGHT}`,
   ].join(';')}`
 }
+
+/**
+ * Максимальна довжина першого абзацу, який ще має сенс подавати лідом.
+ * Понад це — зачин перестає бути зачином: збільшений і напівжирний текст
+ * на пів екрана читається як помилка верстки, а не як акцент. Такий абзац
+ * лишаємо звичайним. Поріг приблизно дорівнює пʼятьом рядкам на десктопі.
+ */
+export const LEAD_MAX_CHARS = 400
+
+/** Чи годиться цей абзац на лід за довжиною. */
+export function fitsLead(paragraph: string): boolean {
+  return paragraph.trim().length <= LEAD_MAX_CHARS
+}

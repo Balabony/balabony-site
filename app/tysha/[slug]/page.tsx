@@ -10,7 +10,7 @@ import StoryReadTracker from '@/app/components/StoryReadTracker'
 import ReaderPulse from '@/app/components/ReaderPulse'
 import TyshaProgressTracker from '@/app/components/TyshaProgressTracker'
 import TyshaAgeGate from '@/app/components/TyshaAgeGate'
-import { leadCssDeclarations } from '@/lib/reader-typography'
+import { leadCssDeclarations, fitsLead } from '@/lib/reader-typography'
 import { toExcerpt, toPlainText } from '@/lib/plain-text'
 import ReaderSettings from '@/app/components/ReaderSettings'
 
@@ -39,6 +39,16 @@ function isSpeakerLabel(label: string): boolean {
 function formatTyshaText(raw: string): string {
   const cleaned = raw.replace(/^[ \t]*\*[ \t]*\*[ \t]*\*[ \t]*$/gm, '') // прибрати * * *
   const scenes = cleaned.split(/\n{2,}/)
+  // Задовгий перший абзац лідом не подаємо — див. LEAD_MAX_CHARS.
+  const firstNarrative = (scenes[0] ?? '')
+    .split(/\n/)
+    .map(x => x.trim())
+    .filter(x => x.length > 0)
+    .find(x => {
+      const m = x.match(/^([^:]{1,40}):\s/)
+      return !(m && isSpeakerLabel(m[1]))
+    })
+  const leadAllowed = firstNarrative !== undefined && fitsLead(firstNarrative)
   const rendered = scenes.map((scene, sceneIdx) => {
     const paragraphs = scene.split(/\n/).filter((p) => p.trim().length > 0)
     if (paragraphs.length === 0) return ''
@@ -50,14 +60,17 @@ function formatTyshaText(raw: string): string {
         const rest = trimmed.slice(m[0].length)
         return `<p class="speaker"><strong class="speaker-name" style="color:${GOLD};font-weight:700">${escHtml(speaker)}:</strong> ${escHtml(rest)}</p>`
       }
-      return `<p class="narrative">${escHtml(trimmed)}</p>`
+      // Лід позначаємо класом, а не селектором :first-child: клас читає ще й
+      // app/reader.css, і без нього задовгий абзац усе одно ставав би лідом.
+      const isLead = leadAllowed && sceneIdx === 0 && trimmed === firstNarrative
+      return `<p class="narrative${isLead ? ' lead' : ''}">${escHtml(trimmed)}</p>`
     }).join('')
     return `<div class="scene${sceneIdx === 0 ? ' scene-first' : ''}">${inner}</div>`
   }).join('')
   // Лід: перший абзац нарації більший і світліший. Розмір задано в px, бо
   // .scene p тут уже має свій 17px — відносна одиниця рахувалась би від
   // батька, не від цього значення.
-  const styles = `<style>.scene{margin-top:28px}.scene-first{margin-top:0}.scene p{margin:0 0 16px 0;font-size:${BODY_FONT_SIZE}px;line-height:1.75;font-family:'Georgia',serif}.scene p:last-child{margin-bottom:0}.scene-first p.narrative:first-child{${leadCssDeclarations(BODY_FONT_SIZE)}}</style>`
+  const styles = `<style>.scene{margin-top:28px}.scene-first{margin-top:0}.scene p{margin:0 0 16px 0;font-size:${BODY_FONT_SIZE}px;line-height:1.75;font-family:'Georgia',serif}.scene p:last-child{margin-bottom:0}${leadAllowed ? `.scene p.lead{${leadCssDeclarations(BODY_FONT_SIZE)}}` : ''}</style>`
   return styles + rendered
 }
 
