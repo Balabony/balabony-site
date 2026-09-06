@@ -46,71 +46,54 @@ html[data-reader-font='system'] { --r-ff: system-ui, -apple-system, 'Segoe UI', 
 }
 
 /* ---------- День ----------
-   Контраст перевірено: #1c2333 на #f7f4ee — 13:1; акцент #8a5200 на
-   тому ж тлі — 5.3:1. Обидва проходять поріг 4.5:1. */
+   ВАЖЛИВО про задум. Спершу денна тема перефарбовувала всю сторінку — і це
+   не спрацювало: у проєкті 91 різний світлий колір тексту, і кожен блок поза
+   читалкою (підписка, оцінка, банери) залишався світлим на світлому. Латати
+   перелік кольорів безглуздо, щоразу вилізає новий.
+
+   Тому тема міняє тільки АРКУШ ІЗ ТЕКСТОМ: світлий прямокутник посеред
+   темної сторінки, як у читалках книжок. Усе інше лишається темним — і
+   читабельним, бо його ніхто не чіпає. Один клас, нуль здогадок про кольори.
+   ---------- */
 html[data-reader-theme='day'] {
   --r-bg: #f7f4ee;
-  --r-fg: #1c2333;
-  --r-muted: #4a5568;
-  --r-gold: #8a5200;
-  --r-rule: rgba(0, 0, 0, 0.14);
+  --r-fg: #1c2333;   /* контраст 13:1 */
+  --r-gold: #8a5200; /* контраст 5.3:1 — золото на кремовому не проходить 4.5 */
 }
 
-html[data-reader-theme='day'] .reader-root {
+html[data-reader-theme='day'] .reader-body {
   background: var(--r-bg) !important;
   color: var(--r-fg) !important;
-  --on-dark-muted: var(--r-muted);
+  padding: 28px 24px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35) !important;
 }
 
-/* Тло поза контейнером (overscroll, зона під футером) */
-html[data-reader-theme='day']:has(.reader-root) body {
-  background: var(--r-bg) !important;
-}
-
-html[data-reader-theme='day'] .reader-root :is(h1, h2, h3, h4, strong):not(.speaker-name) {
+/* Усе, що всередині аркуша, — темним. Тут перелік кольорів уже не потрібен:
+   область обмежена одним контейнером, і чужих блоків у ній немає. */
+html[data-reader-theme='day'] .reader-body :is(p, li, blockquote, em, i, span, div):not(.speaker-name) {
   color: var(--r-fg) !important;
 }
 
-/* Тіло тексту — правилом по класу, а не по кольору.
-   Лід (перший абзац) заданий білим трьома різними способами: інлайном у
-   /stories, тегом <style> усередині HTML у /episodes і /tysha. Перелічувати
-   кольори тут марно — перекриваємо самі елементи. */
-html[data-reader-theme='day'] .reader-root .reader-body,
-html[data-reader-theme='day'] .reader-root .reader-body :is(p, li, blockquote, em, i, span):not(.speaker-name) {
+html[data-reader-theme='day'] .reader-body :is(strong, b):not(.speaker-name) {
   color: var(--r-fg) !important;
 }
 
-/* Лід у денній темі: на темному тлі його виділяв білий колір, тут кольори
-   зрівнялись — тому вагу піднімаємо з 500 до 600. У нічній лишаємо як було,
-   інакше вийде подвійний акцент. */
-html[data-reader-theme='day'] .reader-root .reader-body p.lead {
+/* Імена мовців лишаються акцентом, але темнішим відтінком золота */
+html[data-reader-theme='day'] .reader-body .speaker-name {
+  color: var(--r-gold) !important;
+}
+
+/* Лід: на темному тлі його виділяв білий колір, на світлому кольори
+   зрівнялись — тому вагу піднімаємо з 500 до 600. */
+html[data-reader-theme='day'] .reader-body p.lead {
   font-weight: 600 !important;
 }
 
-/* Інлайнові світлі кольори читалок. Ці значення в коді вживаються
-   ТІЛЬКИ як color, ніколи як фон — перевірено ґрепом, тому селектор
-   за атрибутом безпечний. */
-html[data-reader-theme='day'] .reader-root :is(
-  [style*='#f5f0e8'],
-  [style*='#dde6f0'],
-  [style*='#d8d2c6'],
-  [style*='#c8d4e8'],
-  [style*='rgba(245,240,232']
-) {
-  color: var(--r-fg) !important;
-}
-
-/* Імена мовців: золото на світлому тлі не дає 4.5:1 */
-html .reader-root .reader-body .speaker-name { color: var(--r-gold) !important; }
-
-/* Затемнення над пейволом мусить згасати у колір теми, інакше на
-   світлому тлі знизу зʼявляється темна пляма. */
-html[data-reader-theme='day'] .reader-root [style*='transparent, #0a1628'] {
+/* Затемнення над пейволом згасало в темний колір — на світлому аркуші
+   це виглядало як брудна пляма внизу тізера. */
+html[data-reader-theme='day'] .reader-body [style*='transparent, #0a1628'] {
   background: linear-gradient(to bottom, transparent, var(--r-bg)) !important;
-}
-
-html[data-reader-theme='day'] .reader-root [style*='linear-gradient(to right'] {
-  background: var(--r-rule) !important;
 }
 
 /* ============================================================
@@ -137,11 +120,7 @@ html[data-reader-theme='day'] .reader-root [style*='linear-gradient(to right'] {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 .rs-fab:hover { background: rgba(239, 159, 39, 0.16); }
-html[data-reader-theme='day'] .rs-fab {
-  background: #ffffff;
-  color: var(--r-gold);
-  border-color: var(--r-gold);
-}
+
 
 .rs-backdrop {
   position: fixed;
@@ -177,11 +156,7 @@ html[data-reader-theme='day'] .rs-fab {
     border: 1px solid rgba(239, 159, 39, 0.4);
   }
 }
-html[data-reader-theme='day'] .rs-sheet {
-  background: #ffffff;
-  color: var(--r-fg);
-  border-color: var(--r-rule);
-}
+
 
 .rs-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .rs-title { font-size: 16px; font-weight: 800; margin: 0; }
