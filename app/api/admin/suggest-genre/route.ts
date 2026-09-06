@@ -23,8 +23,40 @@ const SAFETY = [
 
 const MODELS = ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-flash-latest', 'gemini-2.5-flash']
 
-/** Скільки тексту показувати моделі: жанр видно з початку, решта — марні витрати. */
-const SAMPLE_CHARS = 4000
+/**
+ * Скільки тексту показувати моделі.
+ *
+ * Було 4000 знаків суцільного початку — і Gemini масово відмовлявся працювати
+ * з поверненням RECITATION: довгий уривок авторської прози модель приймає за
+ * відтворення чужого тексту й блокує. Це не залежить від safetySettings, тому
+ * BLOCK_NONE не рятував. Блокувалися твори без жодного гострого вмісту —
+ * «Канікули в селі», «Кобила Райка».
+ *
+ * Розвʼязок: коротше й не суцільно. Три короткі шматки з різних місць твору
+ * дають моделі ту саму жанрову картину, але не складаються в цитату.
+ */
+const CHUNK_CHARS = 500
+const CHUNKS = 3
+
+/**
+ * Три уривки: зачин, середина, ближче до кінця.
+ *
+ * Зачин показує тон і місце дії, середина — що відбувається, кінець — чим
+ * розвʼязується. Для жанру цього досить: детектив видно з розслідування,
+ * казку з чарів, військову прозу з обставин.
+ */
+function sampleChunks(full: string): string {
+  const t = full.trim()
+  if (t.length <= CHUNK_CHARS * CHUNKS) return t
+
+  const parts: string[] = []
+  for (let i = 0; i < CHUNKS; i++) {
+    // Рівномірно по тексту; останній шматок не впритул до кінця.
+    const start = Math.floor((t.length - CHUNK_CHARS) * (i / (CHUNKS - 1)) * 0.9)
+    parts.push(t.slice(start, start + CHUNK_CHARS).trim())
+  }
+  return parts.join('\n\n[…]\n\n')
+}
 
 function checkAuth(req: NextRequest): boolean {
   return req.cookies.get('admin_session')?.value === process.env.ADMIN_PASSWORD
@@ -106,7 +138,7 @@ export async function POST(req: NextRequest) {
           ? row.corrected_text
           : row.text
 
-    const sample = toPlainText(source ?? '').slice(0, SAMPLE_CHARS)
+    const sample = sampleChunks(toPlainText(source ?? ''))
     if (!sample.trim()) {
       results.push({ id: row.id, genre: null, confidence: 0, why: '', error: 'Порожній текст' })
       continue
@@ -147,7 +179,13 @@ export async function POST(req: NextRequest) {
         break
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Помилка'
-        if (isBlocked(err)) { lastErr = 'заблоковано перевіркою вмісту'; continue }
+        if (isBlocked(err)) {
+          // Показуємо саме причину: RECITATION і SAFETY лікуються по-різному.
+          lastErr = /RECITATION/i.test(msg)
+            ? 'модель вважає текст цитатою (RECITATION)'
+            : `заблоковано: ${msg.slice(0, 90)}`
+          continue
+        }
         if (/not found|404|unsupported/i.test(msg)) { lastErr = `модель ${model} недоступна`; continue }
         if (err instanceof SyntaxError) { lastErr = 'відповідь не JSON'; continue }
         results.push({ id: row.id, genre: null, confidence: 0, why: '', error: msg })
