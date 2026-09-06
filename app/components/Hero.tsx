@@ -91,27 +91,7 @@ export default function Hero() {
               Історії для всієї родини
             </p>
 
-            <a
-              href="/episodes"
-              className="hero-cta"
-              style={{
-                display: 'inline-block',
-                background: '#EF9F27',
-                color: '#0E1A2B',
-                padding: '10px 22px',
-                borderRadius: 22,
-                fontSize: 14,
-                fontWeight: 600,
-                textDecoration: 'none',
-                border: '2px solid #FAC775',
-                fontFamily: "'Montserrat', sans-serif",
-                letterSpacing: 0.2,
-              }}
-            >
-              ЧИТАТИ
-            </a>
-
-            <div style={{ marginTop: 16 }}>
+            <div style={{ marginTop: 4 }}>
               <a
                 href="/accessibility"
                 style={{
@@ -141,19 +121,6 @@ export default function Hero() {
         </div>
       </div>
 
-      <style jsx>{`
-        .hero-cta {
-          animation: heroCtaBreath 2.5s ease-in-out infinite;
-        }
-        @keyframes heroCtaBreath {
-          0%, 100% {
-            box-shadow: 0 0 0 0 rgba(239, 159, 39, 0.4);
-          }
-          50% {
-            box-shadow: 0 0 0 10px rgba(239, 159, 39, 0);
-          }
-        }
-      `}</style>
     </>
   )
 }

@@ -15,6 +15,7 @@ import FairytalesSection from './components/FairytalesSection'
 import { ThemeProvider } from './context/ThemeContext'
 import SeriesStrip, { type SeriesCard } from './components/SeriesStrip'
 import FreshStoriesGrid, { type Story } from './components/FreshStoriesGrid'
+import KonkursyBanner from './components/KonkursyBanner'
 import TyshaSection from './components/TyshaSection'
 import InclusivitySection from './components/InclusivitySection'
 import BonusSection from './components/BonusSection'
@@ -108,9 +109,7 @@ export default function HomePage() {
     <ThemeProvider>
       <Header />
       <Hero />
-        <FreeBanner />
 
-      {/* Три двері — якорі до розділів */}
       <nav aria-label="Розділи" style={doorsWrapStyle}>
         <a href="#series" style={doorStyle}>
           <span style={doorTitleStyle}>ДІТЯМ</span>
@@ -125,6 +124,10 @@ export default function HomePage() {
           <span style={doorSubStyle}>воєнна драма</span>
         </a>
       </nav>
+
+      <FreeBanner />
+
+      <KonkursyBanner />
 
       <div id="series"><SeriesStrip series={seriesData} /></div>
 
