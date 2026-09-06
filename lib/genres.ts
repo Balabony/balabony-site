@@ -150,8 +150,8 @@ export const GENRE_PAGES: Record<Genre, { slug: string; title: string; descripti
   },
   'Казка': {
     slug: 'kazka',
-    title: 'Казки українською',
-    description: 'Українські казки для дітей — читайте онлайн безкоштовно.',
+    title: 'Казки для дітей',
+    description: 'Українські казки читати онлайн безкоштовно.',
   },
 }
 
