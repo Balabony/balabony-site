@@ -92,7 +92,7 @@ export default function AuthorsStrip({ limit = 8 }: { limit?: number }) {
         {authors.map(a => (
           <li key={a.slug} style={{ minWidth: 0 }}>
             <Link
-              href={`/avtory/${a.slug}`}
+              href={`/avtor/${a.slug}`}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
