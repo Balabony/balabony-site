@@ -1,6 +1,7 @@
 'use client'
 
 import EpisodeBody from './EpisodeBody'
+import { getTeaserHtml } from '@/lib/episode-teaser'
 
 const GOLD = '#ef9f27'
 const FREE_PER_SEASON = 1
@@ -16,49 +17,16 @@ interface Props {
   hasSub?:             boolean
   hasPremiumAccess?:   boolean
   globalEpisodeNumber?: number
+  /**
+   * Сервер уже вирішив, що серія замкнена, і надіслав у html лише тізер.
+   * Тоді компонент не має права показати текст як повний: у нього просто
+   * немає решти. Прапорець існує саме для цього — щоб клієнтський розрахунок
+   * доступу не «розблокував» уривок.
+   */
+  serverLocked?: boolean
 }
 
-// Бере перші ~10% параграфів як безкоштовний тізер.
-// Парсимо HTML простим способом — рахуємо <p ...>...</p>.
-function getTeaserHtml(html: string): string {
-  // Виокремлюємо <style>...</style> якщо є (треба залишити)
-  const styleMatch = html.match(/<style>[\s\S]*?<\/style>/)
-  const styles = styleMatch ? styleMatch[0] : ''
-  const withoutStyle = html.replace(/<style>[\s\S]*?<\/style>/, '')
-
-  // Знаходимо всі сцени
-  const sceneMatches = withoutStyle.match(/<div class="scene[^"]*">[\s\S]*?<\/div>/g)
-  if (!sceneMatches || sceneMatches.length === 0) return styles + withoutStyle
-
-  // Рахуємо загальну кількість параграфів у всіх сценах
-  const totalParagraphs = (withoutStyle.match(/<p /g) || []).length
-  const teaserParagraphs = Math.max(3, Math.ceil(totalParagraphs * 0.12))
-
-  // Збираємо тізер по сценах, доки не наберемо потрібну кількість параграфів
-  let collected = 0
-  const teaserScenes: string[] = []
-  for (const scene of sceneMatches) {
-    const paragraphsInScene = (scene.match(/<p /g) || []).length
-    if (collected + paragraphsInScene <= teaserParagraphs) {
-      teaserScenes.push(scene)
-      collected += paragraphsInScene
-    } else {
-      // Обрізаємо сцену до потрібної кількості параграфів
-      const need = teaserParagraphs - collected
-      if (need <= 0) break
-      const pMatches = scene.match(/<p [^>]*>[\s\S]*?<\/p>/g) || []
-      const sliced = pMatches.slice(0, need).join('')
-      // Зберігаємо обгортку <div class="scene...">
-      const openTag = scene.match(/<div class="scene[^"]*">/)?.[0] ?? '<div class="scene">'
-      teaserScenes.push(`${openTag}${sliced}</div>`)
-      break
-    }
-  }
-
-  return styles + teaserScenes.join('')
-}
-
-export default function EpisodePaywall({ html, fontFamily, seasonNumber, episodeNumber, bypass = false, isPremium = false, hasPick = false, hasSub = false, hasPremiumAccess = false, globalEpisodeNumber }: Props) {
+export default function EpisodePaywall({ html, fontFamily, seasonNumber, episodeNumber, serverLocked = false, bypass = false, isPremium = false, hasPick = false, hasSub = false, hasPremiumAccess = false, globalEpisodeNumber }: Props) {
   const scrollToPricing = () => {
     window.location.href = '/#pricing'
   }
@@ -88,8 +56,9 @@ export default function EpisodePaywall({ html, fontFamily, seasonNumber, episode
     }
   }
 
-  // Адмін (залогінений власник) читає все без paywall.
-  if (bypass) {
+  // Адмін (залогінений власник) читає все без paywall. Але якщо сервер уже
+  // обрізав текст, показувати нема чого — повного html у браузері немає.
+  if (bypass && !serverLocked) {
     return <EpisodeBody html={html} fontFamily={fontFamily} />
   }
 
@@ -98,16 +67,21 @@ export default function EpisodePaywall({ html, fontFamily, seasonNumber, episode
   // Бонусна (преміальна) серія — лише річна передплата або пільговий
   // статус. Будь-яка інша активна підписка (місячна, сімейна місячна)
   // її НЕ відкриває.
-  const isUnlocked = isPremium
-    ? hasPremiumAccess
-    : (hasSub || episodeNumber <= FREE_PER_SEASON || hasPick)
+  // serverLocked має пріоритет над будь-яким клієнтським розрахунком: сервер
+  // надіслав лише тізер, і «розблокувати» його на клієнті неможливо.
+  const isUnlocked = serverLocked
+    ? false
+    : isPremium
+      ? hasPremiumAccess
+      : (hasSub || episodeNumber <= FREE_PER_SEASON || hasPick)
   const isLocked = !isUnlocked
   if (!isLocked) {
     return <EpisodeBody html={html} fontFamily={fontFamily} />
   }
 
-  // Серія заблокована: показуємо тізер + paywall
-  const teaserHtml = getTeaserHtml(html)
+  // Серія заблокована: показуємо тізер + paywall. Якщо обрізав сервер —
+  // html уже є тізером, різати вдруге не треба.
+  const teaserHtml = serverLocked ? html : getTeaserHtml(html)
 
   return (
     <div style={{ position: 'relative' }}>

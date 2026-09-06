@@ -16,6 +16,7 @@ import StoryEmailCapture from '@/app/components/StoryEmailCapture'
 import AudioPlayer from '@/app/components/AudioPlayer'
 import { leadCssDeclarations, fitsLead } from '@/lib/reader-typography'
 import { toExcerpt, toPlainText } from '@/lib/plain-text'
+import { getTeaserHtml } from '@/lib/episode-teaser'
 import ReaderSettings from '@/app/components/ReaderSettings'
 
 const GOLD      = '#ef9f27'
@@ -330,7 +331,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           </div>
         )}
 
-<EpisodePaywall html={formatEpisodeText(body)} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={seasonPosition} bypass={isAdmin} isPremium={episode.is_premium} hasPick={hasPick} hasSub={hasSub} hasPremiumAccess={hasPremiumAccess} globalEpisodeNumber={episode.episode_number} />
+<EpisodePaywall html={isLocked ? getTeaserHtml(formatEpisodeText(body)) : formatEpisodeText(body)} serverLocked={isLocked} fontFamily={FONT} seasonNumber={episode.season_number} episodeNumber={seasonPosition} bypass={isAdmin} isPremium={episode.is_premium} hasPick={hasPick} hasSub={hasSub} hasPremiumAccess={hasPremiumAccess} globalEpisodeNumber={episode.episode_number} />
         {/* Облік прочитань за договором (п. 1.5). Замкнену серію не рахуємо
             взагалі: читач бачить тізер, а 70% обсягу тізера — це не 70%
             обсягу твору. Маркер стоїть під текстом — від нього трекер
