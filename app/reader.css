@@ -81,6 +81,14 @@ html[data-reader-theme='day'] .reader-root .reader-body :is(p, li, blockquote, e
   color: var(--r-fg) !important;
 }
 
+/* Лід у денній темі: на темному тлі його виділяв білий колір, тут кольори
+   зрівнялись — тому вагу піднімаємо з 500 до 600. У нічній лишаємо як було,
+   інакше вийде подвійний акцент. */
+html[data-reader-theme='day'] .reader-root .reader-body p.lead,
+html[data-reader-theme='day'] .reader-root .reader-body .scene-first p.narrative:first-child {
+  font-weight: 600 !important;
+}
+
 /* Інлайнові світлі кольори читалок. Ці значення в коді вживаються
    ТІЛЬКИ як color, ніколи як фон — перевірено ґрепом, тому селектор
    за атрибутом безпечний. */
