@@ -36,11 +36,13 @@ const viewAllLinkStyle: React.CSSProperties = { display: 'inline-block', color: 
 
 const doorsWrapStyle: React.CSSProperties = { maxWidth: 1100, margin: '0 auto', padding: '4px 20px 24px', display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }
 
-const doorStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, minWidth: 0, padding: '16px 6px', textAlign: 'center', borderRadius: 12, textDecoration: 'none', background: 'rgba(239,159,39,0.04)', border: '1px solid rgba(239,159,39,0.32)', fontFamily: "'Montserrat', sans-serif" }
+const doorStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, minWidth: 0, padding: '16px 4px', textAlign: 'center', borderRadius: 12, textDecoration: 'none', background: 'rgba(239,159,39,0.04)', border: '1px solid rgba(239,159,39,0.32)', fontFamily: "'Montserrat', sans-serif" }
 
-const doorTitleStyle: React.CSSProperties = { fontSize: 16, fontWeight: 700, color: 'var(--accent-gold-light, #FAC775)', letterSpacing: '0.05em', lineHeight: 1.2 }
+// Заголовок підлаштовується під ширину екрана: на вузьких телефонах
+// «ДОРОСЛИМ» при 16px виходило за межі картки.
+const doorTitleStyle: React.CSSProperties = { fontSize: 'clamp(12px, 3.4vw, 16px)', fontWeight: 700, color: 'var(--accent-gold-light, #FAC775)', letterSpacing: '0.02em', lineHeight: 1.2, whiteSpace: 'nowrap' }
 
-const doorSubStyle: React.CSSProperties = { fontSize: 12, color: '#C08A2E', lineHeight: 1.25 }
+const doorSubStyle: React.CSSProperties = { fontSize: 'clamp(10px, 2.8vw, 12px)', color: '#C08A2E', lineHeight: 1.25 }
 
 const badge18Style: React.CSSProperties = { background: '#e0484d', color: '#FFF8EE', fontSize: 10, padding: '1px 5px', borderRadius: 3, verticalAlign: 2 }
 
