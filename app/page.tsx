@@ -25,6 +25,7 @@ import ChannelsSection from './components/ChannelsSection'
 import SurveyPreviewSection from './components/SurveyPreviewSection'
 import EmailCapture from './components/EmailCapture'
 import AuthorsStrip from './components/AuthorsStrip'
+import GenreChips from './components/GenreChips'
 
 const FALLBACK_SERIES: SeriesCard[] = []
 
@@ -139,6 +140,10 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      {/* Жанри стоять після свіжих історій: спершу читач бачить нове,
+          потім може звузити пошук під настрій. */}
+      <GenreChips />
 
       <div id="fairytales"><FairytalesSection /></div>
 
