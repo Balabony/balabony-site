@@ -47,6 +47,65 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
 
   const V = buildVars(contract, prof, user.email ?? null, worksCount)
 
+  // Договір із прочерком у реквізитах сторони виглядає готовим, а насправді
+  // дефектний. Поле birth_date додали до профілю пізніше, ніж форму реквізитів,
+  // тому у частини авторів воно порожнє, хоч решта заповнена — і документ
+  // формувався з тире замість дати народження. Краще не дати згенерувати
+  // взагалі й сказати, чого бракує.
+  //
+  // Уже підписані договори показуємо як є: це історичний документ, і закривати
+  // до нього доступ не можна.
+  const missing = ([
+    ['full_name',   'прізвище, імʼя та по батькові'],
+    ['rnokpp',      'РНОКПП'],
+    ['birth_date',  'дата народження'],
+    ['address',     'адреса'],
+    ['phone',       'номер телефону'],
+    ['payout_iban', 'IBAN'],
+    ['bank_name',   'назва банку'],
+  ] as const)
+    .filter(([k]) => !String(prof[k] ?? '').trim())
+    .map(([, label]) => label)
+
+  if (!contract.signed_at && missing.length > 0) {
+    return (
+      <main style={{ background: '#ffffff', color: '#16202e', minHeight: '60vh', padding: '28px 18px 64px' }}>
+        <div style={{ maxWidth: 620, margin: '0 auto', fontFamily: 'Arial, Helvetica, sans-serif' }}>
+          <a
+            href="/author/dashboard"
+            style={{ fontSize: 14, color: '#2c3a52', textDecoration: 'none', border: '1px solid #ccd3de', borderRadius: 8, padding: '9px 16px', display: 'inline-block', marginBottom: 24 }}
+          >
+            ← Кабінет
+          </a>
+
+          <h1 style={{ fontSize: 21, margin: '0 0 14px', lineHeight: 1.3 }}>
+            Договір поки не сформовано
+          </h1>
+
+          <p style={{ fontSize: 15, lineHeight: 1.6, margin: '0 0 14px' }}>
+            У ваших реквізитах не заповнено {missing.length === 1 ? 'одне поле' : `${missing.length} поля`}.
+            Без нього договір вийшов би з прочерком, а такий документ не має сили.
+          </p>
+
+          <ul style={{ fontSize: 15, lineHeight: 1.7, margin: '0 0 20px', paddingLeft: 22 }}>
+            {missing.map((m) => <li key={m}>{m}</li>)}
+          </ul>
+
+          <p style={{ fontSize: 15, lineHeight: 1.6, margin: '0 0 22px' }}>
+            Допишіть у кабінеті — договір сформується одразу, нічого повторно робити не потрібно.
+          </p>
+
+          <a
+            href="/author/dashboard"
+            style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', background: '#14253B', textDecoration: 'none', borderRadius: 8, padding: '12px 22px', display: 'inline-block' }}
+          >
+            Заповнити реквізити
+          </a>
+        </div>
+      </main>
+    )
+  }
+
   // Контрольна сума поточної редакції: те саме обчислення, що й при підписанні.
   const currentHash = computeDocHash(V, works)
 
