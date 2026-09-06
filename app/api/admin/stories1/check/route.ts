@@ -1,7 +1,9 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
+// Список жанрів — один на весь проєкт, див. lib/genres.ts
+import { GENRE_OPTIONS as GENRES } from '@/lib/genres'
 
-const GENRES = ['Драма', 'Гумор', 'Казка', 'Детектив', 'Романтика', 'Трилер', 'Пригоди', 'Фантастика', 'Містика', 'Історична проза', 'Сімейна історія', 'Бойовик', 'Жахи', 'Психологія', 'Біографія', 'Життєві історії']
+
 const CATEGORIES = ['З життя', 'Містика', 'Любов', 'Воєнні', 'Історичні', 'Родинні', 'Гумор', 'Детектив', 'Психологічні', 'Дитячі']
 
 function checkAuth(req: NextRequest): boolean {

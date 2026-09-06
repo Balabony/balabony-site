@@ -1,16 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+// Список жанрів — один на весь проєкт, див. lib/genres.ts
+import { GENRE_OPTIONS as GENRES } from '@/lib/genres'
 
 const GOLD = '#ef9f27'
 const FONT = "'Montserrat', Arial, sans-serif"
 
-const GENRES = [
-  'Драма', 'Гумор', 'Казка', 'Детектив', 'Романтика',
-  'Трилер', 'Пригоди', 'Фантастика', 'Містика',
-  'Історична проза', 'Сімейна історія', 'Бойовик',
-  'Жахи', 'Психологія', 'Біографія',
-]
 
 interface Question {
   id: string
@@ -84,7 +80,7 @@ const QUESTIONS: Question[] = [
     id: 'genres',
     label: 'Які жанри подобаються?',
     type: 'checkbox',
-    options: GENRES,
+    options: [...GENRES],
     hasOther: true,
   },
   {

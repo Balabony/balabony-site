@@ -1,6 +1,8 @@
 ﻿'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+// Список жанрів — один на весь проєкт, див. lib/genres.ts
+import { GENRE_OPTIONS as GENRES } from '@/lib/genres'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
 const GOLD      = '#d0a355'
@@ -9,7 +11,7 @@ const NAVY_DEEP = '#0a1628'
 const VIOLET    = '#818cf8'
 const TEAL      = '#2dd4bf'
 
-const GENRES = ['Драма', 'Гумор', 'Казка', 'Детектив', 'Романтика', 'Трилер', 'Пригоди', 'Фантастика', 'Містика', 'Історична проза', 'Сімейна історія', 'Бойовик', 'Жахи', 'Психологія', 'Біографія', 'Життєві історії']
+
 const CATEGORIES = ['', 'З життя', 'Містика', 'Любов', 'Воєнні', 'Історичні', 'Родинні', 'Гумор', 'Детектив', 'Психологічні', 'Дитячі']
 
 const inputBase: React.CSSProperties = {

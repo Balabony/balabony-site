@@ -10,7 +10,8 @@ import { dbQuery } from '@/lib/db'
  */
 
 const LIKED = ['yes', 'ok', 'no']
-const GENRES = ['family', 'life', 'war', 'mystic', 'love', 'kids', 'humor']
+// Мусить збігатися зі списком у app/components/ReaderPulse.tsx
+const GENRES = ['life', 'family', 'love', 'war', 'drama', 'humor', 'mystic', 'detective', 'kids']
 const AGES = ['<18', '18-29', '30-44', '45-59', '60+']
 
 function pick(value: unknown, allowed: string[]): string | null {

@@ -6,6 +6,8 @@ import GeminiAnalyzer from '@/components/admin/GeminiAnalyzer'
 import type { AnalysisResult } from '@/components/admin/GeminiAnalyzer'
 import { analyzeEpisode } from '@/lib/episode-metrics'
 import EditorialTools from '@/components/admin/EditorialTools'
+// Список жанрів — один на весь проєкт, див. lib/genres.ts
+import { GENRE_OPTIONS as GENRES } from '@/lib/genres'
 
 const FONT       = "'Montserrat', Arial, sans-serif"
 const GOLD       = '#d0a355'
@@ -13,7 +15,7 @@ const NAVY       = '#0f1e3a'
 const NAVY_DEEP  = '#0a1628'
 const JAMENDO_ID = 'a4f04bbe'
 
-const GENRES = ['Казка', 'Оповідання', 'Детектив', 'Пригода', 'Романтика', 'Фантастика', 'Інше']
+
 
 // ── Канонічний стиль для автозаповнення поля «Стиль та контекст» ──────────────
 const STYLE_CTX = 'Тепла комедія характерів про живу українську мову. Двигун серії — зіткнення Панасових «інновацій» зі здоровим глуздом села. Дід Панас («Оце я вкляв!», синій блокнот), баба Ганя з ополоником («АНУ ЦИТЬ!»), Орися-«радіо», Мотря з картами, голова Григорій із синьою хусткою. Без сарказму й політичної злоби, без моралі в лоб. Композиція: гачок → основна частина (3–5 персонажів) → висновок. Останній рядок — «Приказка серії: …». Обсяг 9–10 хв (≈1350–1500 слів).'

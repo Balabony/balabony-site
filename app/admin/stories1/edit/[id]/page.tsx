@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Cropper, { Area, Point } from 'react-easy-crop'
+// Список жанрів — один на весь проєкт, див. lib/genres.ts
+import { GENRE_OPTIONS as GENRES } from '@/lib/genres'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
 const GOLD      = '#d0a355'
@@ -11,25 +13,6 @@ const NAVY_DEEP = '#0a1628'
 
 const CARD_ASPECT = 275 / 175
 
-// 16 жанрів, з великої букви
-const GENRES = [
-  'Драма',
-  'Гумор',
-  'Казка',
-  'Детектив',
-  'Романтика',
-  'Трилер',
-  'Пригоди',
-  'Фантастика',
-  'Містика',
-  'Історична проза',
-  'Сімейна історія',
-  'Бойовик',
-  'Жахи',
-  'Психологія',
-  'Біографія',
-  'Життєві історії',
-]
 
 const CATEGORIES = ['', 'З життя', 'Містика', 'Любов', 'Воєнні', 'Історичні', 'Родинні', 'Гумор', 'Детектив', 'Психологічні', 'Дитячі']
 
