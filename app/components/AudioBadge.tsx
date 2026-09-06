@@ -6,7 +6,6 @@ import React from 'react'
 
 const GOLD = '#EF9F27'
 const GOLD_SOFT = '#FAC775'
-const MUTED = '#9DB0C4'
 const FONT = "'Montserrat', Arial, sans-serif"
 
 export function AudioWaveIcon({
@@ -74,7 +73,14 @@ export default function AudioBadge({
   hasAudio: boolean
   size?: number
 }) {
-  const color = hasAudio ? GOLD : MUTED
+  // Без реального звуку мітки немає взагалі.
+  //
+  // Було «Аудіо скоро» на кожній серії — обіцянка без дати, яку видно на
+  // головній сторінці. Аудіо в розробці, коли воно зʼявиться — невідомо, і
+  // казати «скоро» тим часом означає обіцяти те, чого не можемо виконати.
+  if (!hasAudio) return null
+
+  const color = GOLD
   return (
     <span
       style={{
@@ -88,7 +94,7 @@ export default function AudioBadge({
       }}
     >
       <AudioWaveIcon size={size + 5} color={color} />
-      {hasAudio ? 'Аудіо доступно' : 'Аудіо скоро'}
+      Аудіо доступно
     </span>
   )
 }
