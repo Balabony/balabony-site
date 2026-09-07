@@ -14,6 +14,12 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
  *
  * Беремо лише те, що справді видно на сайті: approved або published —
  * той самий набір статусів, що й на публічних сторінках.
+ *
+ * І лише type='story' — авторські оповідання. Спершу рахувалося все підряд,
+ * разом із епізодами «Балабонів» і «Тиші», і виходило 1132 замість 994.
+ * Формально це теж історії, але читач під словом «історії» розуміє те, що
+ * бачить на картках, а не епізоди серіалів. Складати їх в одну цифру —
+ * саме той різновид правди, за який уже відмовляли.
  */
 
 const LIVE = ['approved', 'published']
@@ -37,6 +43,7 @@ export async function GET() {
       const { data, error } = await supabase
         .from('content')
         .select('author_name, created_at')
+        .eq('type', 'story')
         .in('status', LIVE)
         .range(from, from + PAGE - 1)
 
