@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   const db = getSupabaseAdmin()
 
-  const [surveys, pageViews, storyEvents, sessions, paywall, subs, revenue, acquisition] = await Promise.all([
+  const [surveys, pageViews, storyEvents, sessions, paywall, subs, revenue, acquisition, works] = await Promise.all([
     db.from('survey_responses')
       .select('*')
       .order('created_at', { ascending: false })
@@ -46,6 +46,15 @@ export async function GET(req: NextRequest) {
     db.from('user_acquisition')
       .select('user_id, utm_source, utm_medium, utm_campaign, referrer')
       .limit(20000),
+    // Жанр не зберігається в подіях читання, тому тягнемо довідник творів
+    // і зіставляємо вже на сторінці. Без цього «популярні жанри» рахувалися
+    // з анкет — тобто з того, що читачі про себе кажуть, а не з того,
+    // що вони насправді читають.
+    db.from('content')
+      .select('id, genre')
+      .eq('type', 'story')
+      .in('status', ['approved', 'published'])
+      .limit(5000),
   ])
 
   // Унікальні user_id активних підписників (той самий balabony_uid, що й у paywall_hits) —
@@ -63,5 +72,10 @@ export async function GET(req: NextRequest) {
     subscriber_ids: subscriberIds,
     revenue_events: revenue.data      ?? [],
     acquisition:    acquisition.data  ?? [],
+    genre_by_id:    Object.fromEntries(
+      ((works.data ?? []) as { id: string; genre: string | null }[])
+        .filter((w) => w.genre)
+        .map((w) => [w.id, w.genre as string]),
+    ),
   })
 }

@@ -36,6 +36,7 @@ interface AnalyticsData {
   subscriber_ids?: string[]
   revenue_events?: RevenueEvent[]
   acquisition?:   Acquisition[]
+  genre_by_id?:   Record<string, string>
 }
 
 // ─── Data helpers ─────────────────────────────────────────────────────────────
@@ -246,6 +247,114 @@ function buildChannels(acq: Acquisition[], revenue: RevenueEvent[]) {
 
 // ─── Chart components ─────────────────────────────────────────────────────────
 
+
+/**
+ * Поведінкова аналітика: не «що читачі кажуть у анкеті», а що вони роблять.
+ */
+
+/** Жанри за реальними прочитаннями, а не за відповідями в анкеті. */
+function realGenres(events: StoryEvent[], genreById: Record<string, string>): { name: string; value: number }[] {
+  const c: Record<string, number> = {}
+  events.filter(e => e.event_type === 'read' && e.story_id).forEach(e => {
+    const g = genreById[e.story_id as string]
+    if (!g) return
+    c[g] = (c[g] ?? 0) + 1
+  })
+  return Object.entries(c).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value)
+}
+
+/**
+ * Глибина читання: скільки з відкритих творів дочитали до кінця.
+ * 'open' пишеться при відкритті сторінки, 'read' — коли виконано умову
+ * зарахування прочитання. Різниця між ними і є відповіддю на питання,
+ * чи тексти втримують.
+ */
+function readDepth(events: StoryEvent[]) {
+  const opens = events.filter(e => e.event_type === 'open').length
+  const reads = events.filter(e => e.event_type === 'read').length
+  const rate = opens > 0 ? Math.round((reads / opens) * 100) : 0
+  return { opens, reads, rate }
+}
+
+/** Розподіл часу читання — показує, на якій хвилині втрачаємо читача. */
+function durationBuckets(events: StoryEvent[]): { name: string; value: number }[] {
+  const b = [
+    { name: 'до 1 хв', value: 0 },
+    { name: '1–3 хв', value: 0 },
+    { name: '3–7 хв', value: 0 },
+    { name: '7–15 хв', value: 0 },
+    { name: 'понад 15 хв', value: 0 },
+  ]
+  events.filter(e => e.duration_seconds).forEach(e => {
+    const m = (e.duration_seconds ?? 0) / 60
+    if (m < 1) b[0].value++
+    else if (m < 3) b[1].value++
+    else if (m < 7) b[2].value++
+    else if (m < 15) b[3].value++
+    else b[4].value++
+  })
+  return b.filter(x => x.value > 0)
+}
+
+/**
+ * Точки входу і виходу. Сесія — це session_id у page_views; перша сторінка
+ * за часом каже, звідки читач зайшов, остання — де він пішов. Друге
+ * важливіше: сторінка, на якій обривається більшість сесій, і є місцем,
+ * яке треба лагодити.
+ */
+function entryExitPages(views: PageView[]) {
+  const bySession: Record<string, PageView[]> = {}
+  views.filter(v => v.session_id && !isInternalPath(v.url)).forEach(v => {
+    const k = v.session_id as string
+    if (!bySession[k]) bySession[k] = []
+    bySession[k].push(v)
+  })
+
+  const entries: Record<string, number> = {}
+  const exits: Record<string, number> = {}
+  let single = 0
+  const sessions = Object.values(bySession)
+
+  sessions.forEach(list => {
+    const sorted = [...list].sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+    const first = pathOf(sorted[0].url)
+    const last = pathOf(sorted[sorted.length - 1].url)
+    entries[first] = (entries[first] ?? 0) + 1
+    exits[last] = (exits[last] ?? 0) + 1
+    if (sorted.length === 1) single++
+  })
+
+  const top = (o: Record<string, number>) =>
+    Object.entries(o).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 8)
+
+  return {
+    entries: top(entries),
+    exits: top(exits),
+    sessions: sessions.length,
+    bounceRate: sessions.length ? Math.round((single / sessions.length) * 100) : 0,
+    pagesPerSession: sessions.length
+      ? Math.round((sessions.reduce((s, l) => s + l.length, 0) / sessions.length) * 10) / 10
+      : 0,
+  }
+}
+
+/** Адреса без домену й параметрів — щоб однакові сторінки не двоїлися. */
+function pathOf(url: unknown): string {
+  const u = String(url ?? '')
+  try {
+    const p = u.startsWith('http') ? new URL(u).pathname : u.split('?')[0]
+    return p.length > 40 ? p.slice(0, 40) + '…' : (p || '/')
+  } catch {
+    return u.slice(0, 40)
+  }
+}
+
+/** Частки у відсотках — абсолютні числа без частки мало що кажуть. */
+function withShare(rows: { name: string; value: number }[]): { name: string; value: number; share: number }[] {
+  const total = rows.reduce((s, r) => s + r.value, 0)
+  return rows.map(r => ({ ...r, share: total ? Math.round((r.value / total) * 100) : 0 }))
+}
+
 const DarkTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) => {
   if (!active || !payload?.length) return null
   return (
@@ -355,6 +464,14 @@ export default function AnalyticsPage() {
   const acquisition   = data.acquisition ?? []
   const ch            = buildChannels(acquisition, revenueEvents)
 
+  // Поведінка читачів
+  const genreById   = data.genre_by_id ?? {}
+  const genresReal  = withShare(realGenres(story_events, genreById))
+  const depth       = readDepth(story_events)
+  const buckets     = durationBuckets(story_events)
+  const flow        = entryExitPages(page_views)
+  const chShare     = withShare(ch.users)
+
   return (
     <main style={{ minHeight: '100vh', background: '#0a1628', padding: '32px 24px 80px', fontFamily: FONT }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
@@ -404,6 +521,108 @@ export default function AnalyticsPage() {
             </ResponsiveContainer>
           </ChartCard>
         </div>
+
+        {/* ─── Поведінка читачів ─── */}
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
+          Поведінка читачів
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 16 }}>
+          <StatCard label="Відкрито творів" value={depth.opens} />
+          <StatCard label="Дочитано"        value={depth.reads} sub={`${depth.rate}% від відкритих`} />
+          <StatCard label="Сторінок за сесію" value={flow.pagesPerSession} />
+          <StatCard label="Пішли з першої"  value={`${flow.bounceRate}%`} sub={`${flow.sessions} сесій`} />
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16, marginBottom: 24 }}>
+          <ChartCard title="Жанри за реальними прочитаннями">
+            {genresReal.length === 0 ? (
+              <div style={{ color: '#94a3b8', fontSize: 13, padding: 20 }}>Прочитань ще немає</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={genresReal} layout="vertical" margin={{ left: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis type="number" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                  <YAxis type="category" dataKey="name" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} width={110} />
+                  <Tooltip content={<DarkTooltip />} />
+                  <Bar dataKey="value" fill="#22c55e" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </ChartCard>
+
+          <ChartCard title="Скільки часу читають">
+            {buckets.length === 0 ? (
+              <div style={{ color: '#94a3b8', fontSize: 13, padding: 20 }}>Даних ще немає</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={buckets}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="name" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                  <YAxis stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                  <Tooltip content={<DarkTooltip />} />
+                  <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </ChartCard>
+
+          <ChartCard title="Куди заходять (перша сторінка сесії)">
+            {flow.entries.length === 0 ? (
+              <div style={{ color: '#94a3b8', fontSize: 13, padding: 20 }}>Даних ще немає</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={flow.entries} layout="vertical" margin={{ left: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis type="number" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                  <YAxis type="category" dataKey="name" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 10 }} width={150} />
+                  <Tooltip content={<DarkTooltip />} />
+                  <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </ChartCard>
+
+          <ChartCard title="Звідки йдуть (остання сторінка сесії)">
+            {flow.exits.length === 0 ? (
+              <div style={{ color: '#94a3b8', fontSize: 13, padding: 20 }}>Даних ще немає</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={flow.exits} layout="vertical" margin={{ left: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis type="number" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                  <YAxis type="category" dataKey="name" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 10 }} width={150} />
+                  <Tooltip content={<DarkTooltip />} />
+                  <Bar dataKey="value" fill="#ef4444" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </ChartCard>
+        </div>
+
+        {/* Джерела трафіку у відсотках — абсолютні числа не показують,
+            наскільки Google переважає решту каналів. */}
+        {chShare.length > 0 && (
+          <div style={{ marginBottom: 24 }}>
+            <ChartCard title="Частка джерел трафіку" span2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {chShare.map((c) => (
+                  <div key={c.name} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 130, fontSize: 12, color: '#94a3b8', fontFamily: FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {c.name}
+                    </div>
+                    <div style={{ flex: 1, height: 18, background: 'rgba(255,255,255,0.05)', borderRadius: 4, overflow: 'hidden' }}>
+                      <div style={{ width: `${c.share}%`, height: '100%', background: GOLD, borderRadius: 4 }} />
+                    </div>
+                    <div style={{ width: 80, textAlign: 'right', fontSize: 12, color: '#f5f0e8', fontFamily: FONT }}>
+                      {c.share}% · {c.value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ChartCard>
+          </div>
+        )}
 
         {/* ─── Канали залучення ─── */}
         <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
