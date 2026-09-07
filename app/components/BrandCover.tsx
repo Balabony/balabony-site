@@ -11,8 +11,10 @@
  * не заміщуємо: фотографія на картці виразніша за типографіку.
  *
  * Композиція: біла обводка по краю, навійна смуга з логотипом угорі, назва
- * на жанровому кольорі, марка видання внизу. Обводка потрібна не для краси:
- * без неї кольорове поле зливається з тлом картки в каталозі. Ні автора, ні жанру на самій обкладинці немає — вони
+ * посередині, навійна смуга з підписом «БАЛАБОНИ» внизу. Обводка потрібна не
+ * для краси: без неї кольорове поле зливається з тлом картки в каталозі.
+ * Підпис білим на навії, а не кольором на кольорі — на золоті він інакше
+ * майже не читався. Ні автора, ні жанру на самій обкладинці немає — вони
  * стоять поруч, на картці каталогу, і дублювати їх ні до чого.
  *
  * Колір тексту рахується від яскравості тла, а не задається вручну: на
@@ -37,10 +39,18 @@ const GENRE_BG: Record<string, string> = {
 }
 const DEFAULT_BG = '#EF9F27'
 
-const W = 400
-const H = 600
-const BAND_H = 176
-const PAD = 14
+/**
+ * Два формати. Картки в каталозі мають широке гніздо (приблизно 3:2), а
+ * сторінка твору — високе. Одна вертикальна обкладинка на 400x600, вписана
+ * в широке гніздо, лишала чорні поля з боків і стискала назву до
+ * нечитабельного розміру. Тому пропорція задається знадвору.
+ */
+const SHAPE = {
+  wide: { W: 600, H: 400, BAND: 88, FOOT: 46, PAD: 10, LOGO: 62 },
+  tall: { W: 400, H: 600, BAND: 150, FOOT: 68, PAD: 14, LOGO: 92 },
+} as const
+
+export type CoverShape = keyof typeof SHAPE
 
 /** Яскравість за WCAG. Вище 0.55 — тло світле, текст навій. */
 function isLight(hex: string): boolean {
@@ -70,8 +80,14 @@ function wrap(title: string, size: number, maxWidth: number): string[] {
   return lines.slice(0, 5)
 }
 
-function fontSize(title: string): number {
+function fontSize(title: string, shape: CoverShape): number {
   const n = title.trim().length
+  if (shape === 'wide') {
+    if (n <= 20) return 58
+    if (n <= 34) return 50
+    if (n <= 50) return 42
+    return 34
+  }
   if (n <= 22) return 36
   if (n <= 40) return 32
   if (n <= 60) return 28
@@ -81,18 +97,23 @@ function fontSize(title: string): number {
 export default function BrandCover({
   title,
   genre,
+  shape = 'wide',
   className,
 }: {
   title: string
   genre?: string | null
+  shape?: CoverShape
   className?: string
 }) {
+  const { W, H, BAND, FOOT, PAD, LOGO } = SHAPE[shape]
   const bg = (genre && GENRE_BG[genre]) || DEFAULT_BG
   const ink = isLight(bg) ? NAVY : WHITE
-  const size = fontSize(title)
-  const lines = wrap(title, size, W - 90)
-  const lh = Math.round(size * 1.25)
-  const top = (PAD + BAND_H + H - PAD) / 2 + 24 - ((lines.length - 1) * lh) / 2
+  const fieldTop = PAD + BAND + 5
+  const fieldBottom = H - PAD - FOOT
+  const size = fontSize(title, shape)
+  const lines = wrap(title, size, W - 120)
+  const lh = Math.round(size * 1.16)
+  const top = (fieldTop + fieldBottom) / 2 - ((lines.length - 1) * lh) / 2 + lh / 4
 
   return (
     <svg
@@ -101,20 +122,29 @@ export default function BrandCover({
       className={className}
       role="img"
       aria-label={`Обкладинка: ${title}`}
+      preserveAspectRatio="xMidYMid slice"
       style={{ display: 'block', width: '100%', height: '100%' }}
     >
       <rect width={W} height={H} fill={WHITE} />
       <rect x={PAD} y={PAD} width={W - PAD * 2} height={H - PAD * 2} fill={bg} />
-      <rect x={PAD} y={PAD} width={W - PAD * 2} height={BAND_H} fill={NAVY} />
-      <rect x={PAD} y={PAD + BAND_H} width={W - PAD * 2} height="6" fill={CREAM} />
+      <rect x={PAD} y={PAD} width={W - PAD * 2} height={BAND} fill={NAVY} />
+      <rect x={PAD} y={PAD + BAND} width={W - PAD * 2} height="5" fill={CREAM} />
+      <rect x={PAD} y={fieldBottom} width={W - PAD * 2} height={FOOT} fill={NAVY} />
 
-      <circle cx={W / 2} cy="104" r="46" fill="none" stroke={DEFAULT_BG} strokeWidth="7" />
+      <circle
+        cx={W / 2}
+        cy={PAD + BAND / 2}
+        r={LOGO / 2}
+        fill="none"
+        stroke={DEFAULT_BG}
+        strokeWidth={LOGO / 13}
+      />
       <text
         x={W / 2}
-        y="132"
+        y={PAD + BAND / 2 + LOGO * 0.3}
         textAnchor="middle"
         fontFamily="Montserrat, Arial, sans-serif"
-        fontSize="62"
+        fontSize={LOGO * 0.68}
         fontWeight="700"
         fill={DEFAULT_BG}
       >
@@ -137,16 +167,15 @@ export default function BrandCover({
 
       <text
         x={W / 2}
-        y={H - 56}
+        y={fieldBottom + FOOT / 2 + 5}
         textAnchor="middle"
         fontFamily="Montserrat, Arial, sans-serif"
-        fontSize="11"
+        fontSize="15"
         fontWeight="700"
-        letterSpacing="3"
-        fill={ink}
-        opacity="0.75"
+        letterSpacing="5"
+        fill={WHITE}
       >
-        BALABONY
+        БАЛАБОНИ
       </text>
     </svg>
   )
