@@ -103,9 +103,16 @@ export function buildTeaser(text: string): string {
   return (lastSpace > 120 ? cut.slice(0, lastSpace) : cut) + '…'
 }
 
+/** Якщо тривалість не задана в базі — рахуємо орієнтовний час читання (~150 слів/хв). */
+function estimateMinutes(text?: string | null): number | undefined {
+  if (!text) return undefined
+  const words = text.trim().split(/\s+/).filter(Boolean).length
+  return words ? Math.max(1, Math.round(words / 150)) : undefined
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /** Рядок content → картка історії. Спільний формат для вітрини й казок. */
-function mapStory(s: any): HomeStory {
+export function mapStory(s: any): HomeStory {
   return {
     id:               s.id,
     title:            s.title,
@@ -117,7 +124,9 @@ function mapStory(s: any): HomeStory {
     teaser:           buildTeaser(pickPublishedText(s)),
     url:              `/stories/${s.slug ?? s.id}`,
     genre:            s.genre ?? undefined,
-    duration_minutes: s.duration_minutes ?? undefined,
+    // Час читання: у частини творів duration_minutes у базі порожній, і
+    // картка лишалася без тегу. Рахуємо з тексту так само, як для серій.
+    duration_minutes: s.duration_minutes ?? estimateMinutes(pickPublishedText(s)),
     category:         s.category ?? undefined,
     isAdult:          s.is_adult ?? false,
   }
@@ -146,13 +155,6 @@ export async function getFreshStories(limit = 6): Promise<HomeStory[]> {
     // Порожній масив ховає секцію — сторінка малюється без неї.
     return []
   }
-}
-
-/** Якщо тривалість не задана в базі — рахуємо орієнтовний час читання (~150 слів/хв). */
-function estimateMinutes(text?: string | null): number | undefined {
-  if (!text) return undefined
-  const words = text.trim().split(/\s+/).filter(Boolean).length
-  return words ? Math.max(1, Math.round(words / 150)) : undefined
 }
 
 /** Перші серії «Балабонів» для стрічки на головній. */

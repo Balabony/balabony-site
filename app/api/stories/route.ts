@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { pickPublishedText } from '@/lib/published-text'
-import { rotateDaily, buildTeaser } from '@/lib/home-data'
+import { rotateDaily, mapStory } from '@/lib/home-data'
 
 export async function GET(req: Request) {
   try {
@@ -47,21 +46,7 @@ export async function GET(req: Request) {
 
     const rows = rotate ? rotateDaily(data ?? [], limit) : (data ?? [])
 
-    const stories = rows.map(s => ({
-      id:               s.id,
-      title:            s.title,
-      author:           s.author_name,
-      coverUrl:         s.cover_url ?? '/og-image.jpg',
-      coverPosition:    s.cover_position ?? 'center',
-      tags:             [s.genre],
-      hasAudio:         false,
-      teaser:           buildTeaser(pickPublishedText(s)),
-      url:              `/stories/${s.slug ?? s.id}`,
-      genre:            s.genre ?? undefined,
-      duration_minutes: s.duration_minutes ?? undefined,
-      category:         s.category ?? undefined,
-      isAdult:          s.is_adult ?? false,
-    }))
+    const stories = rows.map(mapStory)
 
     // Кеш на межі мережі: відповідь віддається миттєво з кешу Vercel,
     // база опитується у фоні. Термін дорівнює кроку ротації — інакше
