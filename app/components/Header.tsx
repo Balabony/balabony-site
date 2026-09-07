@@ -106,6 +106,28 @@ export default function Header() {
       {/* Right controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, flexWrap: 'nowrap' }}>
 
+        {/* Пошук — видимий і на телефоні: без нього каталог гортають руками */}
+        <a
+          href="/search"
+          title="Пошук творів і авторів"
+          aria-label="Пошук творів і авторів"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 32, height: 32, borderRadius: 8,
+            border: '1px solid var(--border)',
+            color: 'var(--muted)',
+            background: 'transparent',
+            textDecoration: 'none',
+            flexShrink: 0,
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-3.5-3.5" />
+          </svg>
+        </a>
+
         {/* Free CTA — desktop only */}
         <a href="/free"
           className="header-free-cta baly-eye-hide-mobile"
