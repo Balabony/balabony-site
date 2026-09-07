@@ -64,11 +64,11 @@ export async function GET(req: Request) {
     }))
 
     // Кеш на межі мережі: відповідь віддається миттєво з кешу Vercel,
-    // база опитується у фоні раз на добу. Прибирає паузу на головній.
-    // У режимі ротації добірка й так змінюється лише раз на добу.
+    // база опитується у фоні. Термін дорівнює кроку ротації — інакше
+    // набір змінився б, а межа віддавала старий.
     return NextResponse.json(stories, {
       headers: rotate
-        ? { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800' }
+        ? { 'Cache-Control': 'public, s-maxage=10800, stale-while-revalidate=86400' }
         : {},
     })
   } catch {
@@ -78,7 +78,7 @@ export async function GET(req: Request) {
 
 type Row = { id: string; author_name: string | null; approved_at: string | null }
 
-// Щоденна ротація вітрини без випадковості.
+// Ротація вітрини раз на 3 години, без випадковості.
 //
 // 1. Лишаємо по одному твору на автора — інакше три поспіль від однієї людини
 //    (саме так виглядала стрічка до цієї зміни).
@@ -86,9 +86,14 @@ type Row = { id: string; author_name: string | null; approved_at: string | null 
 //    буває null, тому порівняння через рядок, а не через Date.
 // 3. Твори останніх 7 днів завжди стоять першими — розділ називається
 //    «Свіжі історії» і не повинен ховати новинку через ротацію.
-// 4. Решту крутимо вікном: номер доби × limit зі згортанням через кінець.
-//    При 100+ авторах це десятки днів поспіль без жодного повтору —
-//    гарантовано, а не ймовірно.
+// 4. Решту крутимо вікном: номер тригодинного відрізка × limit зі згортанням
+//    через кінець. При 100+ авторах це десятки днів поспіль без жодного
+//    повтору — гарантовано, а не ймовірно.
+//
+// Крок мусить збігатися з s-maxage нижче: інакше набір змінився, а межа
+// мережі ще добу віддає збережений.
+const ROTATION_STEP_MS = 3 * 60 * 60 * 1000
+
 function rotateDaily<T extends Row>(rows: T[], limit: number): T[] {
   const seen = new Set<string>()
   const unique: T[] = []
@@ -114,8 +119,8 @@ function rotateDaily<T extends Row>(rows: T[], limit: number): T[] {
   const need = limit - out.length
   if (need <= 0 || rest.length === 0) return out
 
-  const day = Math.floor(Date.now() / 86400000)
-  const start = ((day * limit) % rest.length + rest.length) % rest.length
+  const slot = Math.floor(Date.now() / ROTATION_STEP_MS)
+  const start = ((slot * limit) % rest.length + rest.length) % rest.length
   for (let i = 0; i < need; i++) {
     out.push(rest[(start + i) % rest.length])
   }
