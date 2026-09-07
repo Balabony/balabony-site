@@ -59,8 +59,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* display=optional, а не swap. Зі swap браузер малював текст
+            запасним шрифтом, потім підміняв на Lora/Montserrat і
+            перераховував висоту всього тексту — це давало CLS 0,948 із
+            1,131 (виміряно PageSpeed 08.09.2026). З optional шрифт має
+            ~100 мс; не встиг — сторінка лишається на запасному до кінця
+            цього завантаження і не смикається. З другого відкриття
+            шрифт береться з кешу й показується одразу. */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Lora:wght@400;600&family=Montserrat:wght@400;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Lora:wght@400;600&family=Montserrat:wght@400;600;700&display=optional"
           rel="stylesheet"
         />
         <meta name="apple-mobile-web-app-capable" content="yes" />
