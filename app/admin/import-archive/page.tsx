@@ -11,7 +11,20 @@ const FONT = "'Montserrat', Arial, sans-serif"
 
 const CHUNK = 20
 
-type Item = { title?: string; author?: string }
+type Item = { title?: string; author?: string; text?: string; source_id?: string; category?: string | null }
+
+/**
+ * Крім JSON приймаємо .docx — авторам простіше надіслати вордівський файл,
+ * ніж вивантаження архіву. Текст читається на сервері через /api/admin/parse-docx.
+ *
+ * Назва береться з першого непорожнього рядка, автор — з другого, якщо він
+ * короткий і схожий на ім'я. Обидва поля лишаються редагованими: у газетних
+ * файлах перший рядок часто набраний капслоком або містить рубрику.
+ */
+function looksLikeName(line: string): boolean {
+  const t = line.trim()
+  return t.length > 0 && t.length <= 60 && t.split(/\s+/).length <= 4
+}
 
 export default function ImportArchivePage() {
   const [items, setItems] = useState<Item[] | null>(null)
@@ -22,10 +35,46 @@ export default function ImportArchivePage() {
   const [failed, setFailed] = useState(0)
   const [log, setLog] = useState<string[]>([])
   const [err, setErr] = useState('')
+  const [title, setTitle] = useState('')
+  const [author, setAuthor] = useState('')
 
   const pick = async (f: File | null) => {
     setErr(''); setItems(null); setLog([]); setDone(0); setAdded(0); setSkipped(0)
+    setTitle(''); setAuthor('')
     if (!f) return
+
+    if (f.name.toLowerCase().endsWith('.docx')) {
+      setBusy(true)
+      try {
+        const fd = new FormData()
+        fd.append('file', f)
+        const res = await fetch('/api/admin/parse-docx', { method: 'POST', body: fd })
+        const d = (await res.json()) as { text?: string; error?: string }
+        if (!d.text) { setErr(d.error ?? 'Не вдалося прочитати файл'); return }
+
+        const lines = d.text.split('\n').map(l => l.trim()).filter(Boolean)
+        const guessTitle = lines[0] ?? f.name.replace(/\.docx$/i, '')
+        const hasAuthor = lines.length > 1 && looksLikeName(lines[1])
+        const guessAuthor = hasAuthor ? lines[1] : ''
+        const body = lines.slice(hasAuthor ? 2 : 1).join('\n\n')
+
+        setTitle(guessTitle)
+        setAuthor(guessAuthor)
+        setItems([{
+          source_id: `docx-${Date.now()}`,
+          title: guessTitle,
+          author: guessAuthor,
+          text: body,
+          category: null,
+        }])
+      } catch {
+        setErr('Не вдалося прочитати файл')
+      } finally {
+        setBusy(false)
+      }
+      return
+    }
+
     try {
       const parsed = JSON.parse(await f.text()) as Item[]
       if (!Array.isArray(parsed)) { setErr('У файлі має бути масив історій'); return }
@@ -37,10 +86,17 @@ export default function ImportArchivePage() {
 
   const run = async () => {
     if (!items) return
+    const payload = items.length === 1 && title
+      ? [{ ...items[0], title: title.trim(), author: author.trim() }]
+      : items
+    if (payload.length === 1 && !payload[0].author) {
+      setErr('Впишіть автора')
+      return
+    }
     setBusy(true); setLog([]); setDone(0); setAdded(0); setSkipped(0); setFailed(0)
     try {
-      for (let i = 0; i < items.length; i += CHUNK) {
-        const part = items.slice(i, i + CHUNK)
+      for (let i = 0; i < payload.length; i += CHUNK) {
+        const part = payload.slice(i, i + CHUNK)
         const res = await fetch('/api/admin/import-archive', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -55,7 +111,7 @@ export default function ImportArchivePage() {
         setAdded(p => p + (d.added ?? 0))
         setSkipped(p => p + (d.duplicates ?? d.skipped ?? 0))
         setFailed(p => p + (d.failed ?? 0))
-        setDone(Math.min(i + CHUNK, items.length))
+        setDone(Math.min(i + CHUNK, payload.length))
         if (d.problems?.length) setLog(p => [...p, ...(d.problems ?? [])].slice(0, 40))
       }
     } catch {
@@ -73,13 +129,14 @@ export default function ImportArchivePage() {
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
         <h1 style={{ fontSize: 26, fontWeight: 800, margin: '0 0 6px' }}>Імпорт архіву</h1>
         <p style={{ fontSize: 15, color: MUTED, lineHeight: 1.6, margin: '0 0 24px' }}>
-          Історії лягають чернетками з іменем автора. Повторний запуск дублів не створює.
+          Приймається JSON з масивом історій або один файл .docx. Історії лягають чернетками
+          з іменем автора. Повторний запуск дублів не створює.
         </p>
 
         <div style={{ background: NAVY, border: '1px solid rgba(143,163,196,0.22)', borderRadius: 12, padding: 20 }}>
           <input
             type="file"
-            accept=".json,application/json"
+            accept=".json,.docx,application/json"
             onChange={e => { void pick(e.target.files?.[0] ?? null) }}
             style={{
               display: 'block', width: '100%', boxSizing: 'border-box', fontSize: 14, color: CREAM,
@@ -88,7 +145,39 @@ export default function ImportArchivePage() {
             }}
           />
 
-          {items && (
+          {items && total === 1 && (
+            <div style={{ marginTop: 16, display: 'grid', gap: 10 }}>
+              <label style={{ fontSize: 13, color: MUTED }}>
+                Назва
+                <input
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  style={{
+                    display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 5,
+                    fontSize: 15, color: CREAM, background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(143,163,196,0.3)', borderRadius: 9,
+                    padding: '10px 12px', fontFamily: FONT,
+                  }}
+                />
+              </label>
+              <label style={{ fontSize: 13, color: MUTED }}>
+                Автор
+                <input
+                  value={author}
+                  onChange={e => setAuthor(e.target.value)}
+                  placeholder="Ім'я так, як воно стоятиме під твором"
+                  style={{
+                    display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 5,
+                    fontSize: 15, color: CREAM, background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(143,163,196,0.3)', borderRadius: 9,
+                    padding: '10px 12px', fontFamily: FONT,
+                  }}
+                />
+              </label>
+            </div>
+          )}
+
+          {items && total > 1 && (
             <p style={{ fontSize: 15, color: CREAM, margin: '14px 0 0' }}>
               У файлі <strong style={{ color: GOLD }}>{total}</strong> історій
             </p>
