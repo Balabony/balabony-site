@@ -13,6 +13,7 @@ import { toPlainText, toExcerpt } from '@/lib/plain-text'
 import { leadInlineStyle, fitsLead } from '@/lib/reader-typography'
 import { authorSlug } from '@/lib/author-slug'
 import ReaderSettings from '@/app/components/ReaderSettings'
+import RelatedStories from '@/app/components/RelatedStories'
 
 // Базовий кегль тексту історії — має збігатися зі стилем <article> нижче.
 const BODY_FONT_SIZE = 18
@@ -257,6 +258,11 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
         {/* Три питання тому, хто дочитав */}
         <ReaderPulse contentId={story.id} />
+
+        {/* Що читати далі: твори того самого автора і того самого жанру.
+            Раніше під текстом не було жодного посилання на інший твір —
+            ні для читача, ні для пошуковика. */}
+        <RelatedStories storyId={story.id} authorName={story.author_name} genre={story.genre} />
 
         {/* Поширення */}
         <div style={{ marginTop: 40 }}>

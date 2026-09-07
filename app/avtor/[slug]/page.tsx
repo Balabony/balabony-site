@@ -287,11 +287,36 @@ export default async function AuthorPage({
     : await getWorks({ authorName: name })
   const likesTotal = await getLikesTotal(ids)
 
+  // Розмітка автора для пошуковиків: без неї 104 сторінки авторів були для
+  // Google просто текстом. Person із переліком творів дає зв'язок «автор —
+  // його твори», якого сам HTML не показує.
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    mainEntity: {
+      '@type': 'Person',
+      name,
+      url: `https://balabony.com/avtor/${slug}`,
+      ...(profile?.avatar_url ? { image: profile.avatar_url } : {}),
+      ...(profile?.bio?.trim() ? { description: toExcerpt(profile.bio, 300) } : {}),
+      jobTitle: 'Письменник',
+      worksFor: {
+        '@type': 'Organization',
+        name: 'Балабони',
+        url: 'https://balabony.com',
+      },
+    },
+  }
+
   return (
     <ThemeProvider>
       <Header />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 20px' }}>
-        <Breadcrumbs items={[{ label: 'Автори', href: '/stories' }, { label: name }]} />
+        <Breadcrumbs items={[{ label: 'Автори', href: '/avtory' }, { label: name }]} />
 
         <header style={{ marginBottom: 28, display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
           {profile?.avatar_url && (
