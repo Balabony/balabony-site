@@ -237,7 +237,7 @@ export default function FreshStoriesGrid({
         )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(275px, 100%), 1fr))', gap: 20, alignItems: 'stretch' }}>
-          {stories.map(story => (
+          {stories.map((story, idx) => (
             <a
               key={story.id}
               href={`https://balabony.com${story.url}`}
@@ -254,6 +254,10 @@ export default function FreshStoriesGrid({
                       sizes="(max-width: 700px) 100vw, 320px"
                       className="fs-cover-img"
                       style={getCoverStyle(story.coverPosition)}
+                      // Перші дві картки — це те, що читач бачить одразу, і
+                      // саме вони визначають LCP. Без priority браузер вважає
+                      // їх звичайними й вантажить в останню чергу.
+                      priority={idx < 2}
                     />
                   ) : (
                     <CoverPlaceholder title={story.title} />
