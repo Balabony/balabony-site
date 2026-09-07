@@ -153,7 +153,7 @@ function hasRealCover(src: string | null | undefined): boolean {
 function CoverPlaceholder({ title, genre }: { title: string; genre?: string }) {
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
-      <BrandCover title={title} genre={genre} />
+      <BrandCover title={title} genre={genre} shape="wide" />
     </div>
   )
 }
