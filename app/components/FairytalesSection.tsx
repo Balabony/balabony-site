@@ -17,10 +17,13 @@ const GOLD = 'var(--accent-gold)'
 const CARD_BG = '#0f1e3a'
 const FONT = "'Montserrat', Arial, sans-serif"
 
-export default function FairytalesSection() {
-  const [tales, setTales] = useState<Fairytale[] | null>(null)
+export default function FairytalesSection({ initial }: { initial?: Fairytale[] } = {}) {
+  // Готові дані з сервера — щоб казки були в HTML, а не підвантажувалися
+  // вже в браузері (тоді пошуковик їх не бачив).
+  const [tales, setTales] = useState<Fairytale[] | null>(initial ?? null)
 
   useEffect(() => {
+    if (initial) return
     fetch('/api/stories?genre=' + encodeURIComponent('Казка') + '&limit=3')
       .then(r => r.ok ? r.json() : Promise.reject())
       .then((rows: Fairytale[]) => {
@@ -28,7 +31,7 @@ export default function FairytalesSection() {
         else setTales([])
       })
       .catch(() => setTales([]))
-  }, [])
+  }, [initial])
 
   // Поки вантажиться — нічого не показуємо (щоб не миготіло "Скоро")
   if (tales === null) return null

@@ -1,5 +1,5 @@
 import HomeClient from './HomeClient'
-import { getFreshStories, getHomeSeries } from '@/lib/home-data'
+import { getFairytales, getFreshStories, getHomeSeries, getTyshaItems } from '@/lib/home-data'
 
 /**
  * Головна тепер збирається на сервері.
@@ -14,10 +14,19 @@ import { getFreshStories, getHomeSeries } from '@/lib/home-data'
 export const revalidate = 10800
 
 export default async function HomePage() {
-  const [seriesData, freshStories] = await Promise.all([
+  const [seriesData, freshStories, fairytales, tyshaItems] = await Promise.all([
     getHomeSeries(3),
     getFreshStories(6),
+    getFairytales(3),
+    getTyshaItems(3),
   ])
 
-  return <HomeClient seriesData={seriesData} freshStories={freshStories} />
+  return (
+    <HomeClient
+      seriesData={seriesData}
+      freshStories={freshStories}
+      fairytales={fairytales}
+      tyshaItems={tyshaItems}
+    />
+  )
 }

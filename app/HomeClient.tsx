@@ -14,6 +14,7 @@ import FairytalesSection from './components/FairytalesSection'
 import { ThemeProvider } from './context/ThemeContext'
 import SeriesStrip, { type SeriesCard } from './components/SeriesStrip'
 import FreshStoriesGrid, { type Story } from './components/FreshStoriesGrid'
+import type { TyshaItem } from '@/lib/home-data'
 import KonkursyBanner from './components/KonkursyBanner'
 import TyshaSection from './components/TyshaSection'
 import InclusivitySection from './components/InclusivitySection'
@@ -51,9 +52,13 @@ const badge18Style: React.CSSProperties = { background: '#e0484d', color: '#FFF8
 export default function HomeClient({
   seriesData,
   freshStories,
+  fairytales,
+  tyshaItems,
 }: {
   seriesData: SeriesCard[]
   freshStories: Story[]
+  fairytales: Story[]
+  tyshaItems: TyshaItem[]
 }) {
 
   // Доскрол до якоря після того, як ліниві секції
@@ -117,9 +122,9 @@ export default function HomeClient({
           потім може звузити пошук під настрій. */}
       <GenreChips />
 
-      <div id="fairytales"><FairytalesSection /></div>
+      <div id="fairytales"><FairytalesSection initial={fairytales} /></div>
 
-      <div id="tysha"><TyshaSection limit={3} showAllLink /></div>
+      <div id="tysha"><TyshaSection limit={3} showAllLink initial={tyshaItems} /></div>
 
       <EmailCapture />
 

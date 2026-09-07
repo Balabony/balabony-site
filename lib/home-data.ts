@@ -1,6 +1,7 @@
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { toExcerpt } from '@/lib/plain-text'
 import { pickPublishedText } from '@/lib/published-text'
+import { readingMinutes } from '@/lib/readingTime'
 
 /**
  * Дані головної, зібрані на сервері.
@@ -100,6 +101,26 @@ export function buildTeaser(text: string): string {
   return (lastSpace > 120 ? cut.slice(0, lastSpace) : cut) + '…'
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/** Рядок content → картка історії. Спільний формат для вітрини й казок. */
+function mapStory(s: any): HomeStory {
+  return {
+    id:               s.id,
+    title:            s.title,
+    author:           s.author_name,
+    coverUrl:         s.cover_url ?? '/og-image.jpg',
+    coverPosition:    s.cover_position ?? 'center',
+    tags:             [s.genre].filter(Boolean),
+    hasAudio:         false,
+    teaser:           buildTeaser(pickPublishedText(s)),
+    url:              `/stories/${s.slug ?? s.id}`,
+    genre:            s.genre ?? undefined,
+    duration_minutes: s.duration_minutes ?? undefined,
+    category:         s.category ?? undefined,
+    isAdult:          s.is_adult ?? false,
+  }
+}
+
 /** Свіжі історії для головної: без казок, з ротацією, по одному твору на автора. */
 export async function getFreshStories(limit = 6): Promise<HomeStory[]> {
   try {
@@ -118,21 +139,7 @@ export async function getFreshStories(limit = 6): Promise<HomeStory[]> {
 
     if (error) throw error
 
-    return rotateDaily(data ?? [], limit).map(s => ({
-      id:               s.id,
-      title:            s.title,
-      author:           s.author_name,
-      coverUrl:         s.cover_url ?? '/og-image.jpg',
-      coverPosition:    s.cover_position ?? 'center',
-      tags:             [s.genre],
-      hasAudio:         false,
-      teaser:           buildTeaser(pickPublishedText(s)),
-      url:              `/stories/${s.slug ?? s.id}`,
-      genre:            s.genre ?? undefined,
-      duration_minutes: s.duration_minutes ?? undefined,
-      category:         s.category ?? undefined,
-      isAdult:          s.is_adult ?? false,
-    }))
+    return rotateDaily(data ?? [], limit).map(mapStory)
   } catch {
     // Порожній масив ховає секцію — сторінка малюється без неї.
     return []
@@ -174,6 +181,103 @@ export async function getHomeSeries(limit = 3): Promise<HomeSeries[]> {
       // Для Балабонів description — переказ зі спойлерами, у тизер його не пускаємо.
       teaser:   r.hook ?? r.short_script ?? undefined,
       durationMinutes: r.duration_minutes ?? estimateMinutes(r.text),
+    }))
+  } catch {
+    return []
+  }
+}
+
+/** Казки для головної. Той самий формат картки, що й у свіжих історій. */
+export async function getFairytales(limit = 3): Promise<HomeStory[]> {
+  try {
+    const supabase = getSupabaseAdmin()
+
+    const { data, error } = await supabase
+      .from('content')
+      .select('id, slug, title, author_name, genre, text, cover_url, cover_position, published_version, corrected_text, humanized_text, approved_at, duration_minutes, category, is_adult')
+      .eq('type', 'story')
+      .in('status', ['approved', 'published'])
+      .eq('genre', 'Казка')
+      .order('approved_at', { ascending: false, nullsFirst: false })
+      .limit(limit)
+
+    if (error) throw error
+
+    return (data ?? []).map(mapStory)
+  } catch {
+    return []
+  }
+}
+
+export type TyshaItem = {
+  id: string
+  number: number | null
+  season?: number | null
+  title: string
+  cover_url: string | null
+  cover_position?: string | null
+  has_audio: boolean
+  url: string
+  description: string | null
+  duration_minutes?: number
+  next_teaser?: string | null
+}
+
+/**
+ * Перше «чисте» речення: прибираємо рядки-репліки «Імʼя: …» і беремо
+ * оповідний початок. Той самий код використовує /api/tysha.
+ */
+export function makeExcerpt(text?: string | null, max = 160): string | null {
+  if (!text) return null
+  const clean = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .filter((l) => !/^[\p{Lu}][\p{L}'\u02bc\- ]{1,23}:\s/u.test(l))
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  const base = clean || text.replace(/\s+/g, ' ').trim()
+  if (base.length <= max) return base
+  const cut = base.slice(0, max)
+  const lastSpace = cut.lastIndexOf(' ')
+  return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).trim() + '\u2026'
+}
+
+/**
+ * Серії «Тиші»: published або scheduled, чий час уже настав — так планувальник
+ * публікує серію в заданий момент навіть на дешевому тарифі.
+ */
+export async function getTyshaItems(limit?: number): Promise<TyshaItem[]> {
+  try {
+    const nowIso = new Date().toISOString()
+    const supabase = getSupabaseAdmin()
+
+    let query = supabase
+      .from('content')
+      .select('slug, episode_number, season_number, title, cover_url, cover_position, audio_status, description, short_description, text, corrected_text, humanized_text, published_version, hook, next_teaser')
+      .eq('type', 'tysha')
+      .or(`status.eq.published,and(status.eq.scheduled,publish_at.lte.${nowIso})`)
+      .order('season_number', { ascending: true })
+      .order('episode_number', { ascending: true })
+
+    if (limit) query = query.limit(limit)
+
+    const { data, error } = await query
+    if (error) throw error
+
+    return (data ?? []).map((r) => ({
+      id: r.slug,
+      number: r.episode_number,
+      season: r.season_number,
+      title: r.title,
+      cover_url: r.cover_url,
+      cover_position: r.cover_position ?? null,
+      has_audio: r.audio_status === 'ready',
+      url: `/tysha/${r.slug}`,
+      description: r.hook ?? r.short_description ?? r.description ?? makeExcerpt(r.text) ?? null,
+      duration_minutes: readingMinutes(r) || undefined,
+      next_teaser: r.next_teaser ?? null,
     }))
   } catch {
     return []

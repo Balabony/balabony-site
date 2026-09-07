@@ -72,20 +72,23 @@ function cleanTitle(raw: string): string {
 }
 
 export default function TyshaSection(
-  { limit, showAllLink = false }: { limit?: number; showAllLink?: boolean } = {}
+  { limit, showAllLink = false, initial }: { limit?: number; showAllLink?: boolean; initial?: TyshaItem[] } = {}
 ) {
   const { colors, isNight } = useTheme()
-  const [items, setItems] = useState<TyshaItem[]>([])
-  const [loaded, setLoaded] = useState(false)
+  // Готові дані з сервера: без них рубрика вантажилася вже в браузері
+  // і не потрапляла в HTML для пошуковика.
+  const [items, setItems] = useState<TyshaItem[]>(initial ?? [])
+  const [loaded, setLoaded] = useState(Boolean(initial))
 
   useEffect(() => {
+    if (initial) return
     const url = limit ? `/api/tysha?limit=${limit}` : '/api/tysha'
     fetch(url)
       .then((r) => r.json())
       .then((d) => setItems(Array.isArray(d) ? d : []))
       .catch(() => setItems([]))
       .finally(() => setLoaded(true))
-  }, [limit])
+  }, [limit, initial])
 
   // Поки нема опублікованих серій — рубрику не показуємо взагалі.
   if (!loaded || items.length === 0) return null
