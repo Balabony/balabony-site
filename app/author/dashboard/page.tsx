@@ -470,11 +470,12 @@ export default async function AuthorDashboardPage() {
                     initialCover={coverById.get(s.content_id) ?? null}
                   />
 
+                  {['draft', 'approved', 'published'].includes(s.status) && (
+                    <EditDraftForm contentId={s.content_id} />
+                  )}
+
                   {s.status === 'draft' && (
-                    <>
-                      <EditDraftForm contentId={s.content_id} />
-                      <PublishWorkButton contentId={s.content_id} title={s.title} />
-                    </>
+                    <PublishWorkButton contentId={s.content_id} title={s.title} />
                   )}
 
                   <a
