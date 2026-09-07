@@ -5,6 +5,7 @@ import CoverImage from './CoverImage'
 
 import { useTheme } from '../context/ThemeContext'
 import { trackStoryEvent } from '@/lib/analytics'
+import BrandCover from './BrandCover'
 
 const GOLD = 'var(--accent-gold)'
 const AMBER = '#FFB347'
@@ -142,36 +143,17 @@ function hasRealCover(src: string | null | undefined): boolean {
 /**
  * Заміна обкладинки для творів без картинки.
  *
- * Назва й автор у картці вже підписані нижче, тому в самому прямокутнику
- * тексту немає — інакше все дублюється двічі поспіль і читається як помилка
- * верстки. Лишається спокійне тло в кольорах бренду.
+ * Раніше тут було спокійне навійне тло без тексту. Тепер малюється брендова
+ * обкладинка з назвою: порожній прямокутник нічого не давав читачеві, а
+ * назва на кольорі жанру читається і в стрічці, і в пошуку по сторінці.
+ *
+ * Ставиться ЛИШЕ там, де власної картинки немає. Наявні фотографії
+ * не заміщуємо — вони виразніші за типографіку.
  */
-function CoverPlaceholder() {
+function CoverPlaceholder({ title, genre }: { title: string; genre?: string }) {
   return (
-    <div
-      aria-hidden="true"
-      style={{
-        position: 'absolute',
-        inset: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(150deg, #14253B 0%, #0E1A2B 60%, #16294a 100%)',
-      }}
-    >
-      <div
-        style={{
-          width: 46,
-          height: 46,
-          borderRadius: '50%',
-          border: '1.5px solid rgba(239,159,39,0.42)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <div style={{ width: 20, height: 2, borderRadius: 2, background: 'rgba(239,159,39,0.62)' }} />
-      </div>
+    <div style={{ position: 'absolute', inset: 0 }}>
+      <BrandCover title={title} genre={genre} />
     </div>
   )
 }
@@ -270,7 +252,7 @@ export default function FreshStoriesGrid({
                       style={getCoverStyle(story.coverPosition)}
                     />
                   ) : (
-                    <CoverPlaceholder />
+                    <CoverPlaceholder title={story.title} genre={story.genre} />
                   )}
                   {story.isAdult && (
                     <div style={{ position: 'absolute', top: 8, right: 8, background: '#e0484d', color: '#fff', fontSize: 12, fontWeight: 800, padding: '3px 8px', borderRadius: 6, letterSpacing: 0.5, fontFamily: FONT, lineHeight: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>18+</div>
