@@ -135,7 +135,9 @@ export default async function StoriesPage({
     <ThemeProvider>
       <Header />
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 20px' }}>
-        <Breadcrumbs items={[{ label: heading }]} />
+        {/* У крихтах коротка форма: поруч із заголовком «Історії читачів»
+            той самий напис двічі виглядав як помилка. */}
+        <Breadcrumbs items={[{ label: activeGenre ? heading : 'Історії' }]} />
         <h1 style={{ fontFamily: '"Comfortaa", sans-serif', fontSize: 32, marginBottom: 24, color: 'var(--accent-gold)' }}>
           {heading}
         </h1>

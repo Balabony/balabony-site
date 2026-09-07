@@ -3,7 +3,6 @@ import { Suspense } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import AudioPlayer from '../components/AudioPlayer'
-import Breadcrumbs from '../components/Breadcrumbs'
 import { ThemeProvider } from '../context/ThemeContext'
 import SearchClient from '../components/SearchClient'
 
@@ -21,8 +20,6 @@ export default function SearchPage() {
     <ThemeProvider>
       <Header />
       <main style={{ maxWidth: 780, margin: '0 auto', padding: '32px 20px 80px' }}>
-        <Breadcrumbs items={[{ label: 'Пошук' }]} />
-
         <h1 style={{
           fontFamily: '"Comfortaa", sans-serif',
           fontSize: 32,

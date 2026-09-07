@@ -56,7 +56,14 @@ export default function GenreChips() {
         Оберіть, до чого лежить душа
       </p>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9 }}>
+      {/* Сітка, а не flex-wrap: чіпи різної довжини лягали драбинкою —
+          широкий жанр займав рядок сам, поруч лишалася порожнеча.
+          Рівні колонки шикують їх у стовпці незалежно від довжини назви. */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(min(160px, 100%), 1fr))',
+        gap: 9,
+      }}>
         {genres.map(({ genre, count }) => (
           <Link
             key={genre}
@@ -64,7 +71,7 @@ export default function GenreChips() {
             style={{
               fontSize: 15,
               fontWeight: 700,
-              padding: '10px 18px',
+              padding: '10px 12px',
               borderRadius: 22,
               background: 'rgba(239,159,39,0.16)',
               border: `1px solid ${GOLD}80`,
@@ -73,8 +80,10 @@ export default function GenreChips() {
               lineHeight: 1.2,
               // Палець дорослої людини: цілі нижче 44px промахуються.
               minHeight: 44,
-              display: 'inline-flex',
+              display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
             }}
           >
             {genre}
