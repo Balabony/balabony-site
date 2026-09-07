@@ -89,7 +89,7 @@ export default function AuthMenu() {
 
   if (user) {
     const href  = isAuthor ? '/author/dashboard' : '/profile'
-    const label = isAuthor ? 'Кабінет автора' : 'Профіль'
+    const label = isAuthor ? 'Кабінет' : 'Профіль'
     return (
       <a
         href={href}
