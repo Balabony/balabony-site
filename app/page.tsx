@@ -26,6 +26,7 @@ import SurveyPreviewSection from './components/SurveyPreviewSection'
 import EmailCapture from './components/EmailCapture'
 import AuthorsStrip from './components/AuthorsStrip'
 import GenreChips from './components/GenreChips'
+import FactsLine from './components/FactsLine'
 
 const FALLBACK_SERIES: SeriesCard[] = []
 
@@ -106,6 +107,8 @@ export default function HomePage() {
     <ThemeProvider>
       <Header />
       <Hero />
+
+      <FactsLine />
 
       <nav aria-label="Розділи" style={doorsWrapStyle}>
         <a href="#series" style={doorStyle}>

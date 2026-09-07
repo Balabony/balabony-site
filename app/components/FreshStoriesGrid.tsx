@@ -284,7 +284,7 @@ export default function FreshStoriesGrid({
                 </div>
                 <div
                   className="fs-title-text"
-                  style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.4, textTransform: 'uppercase', paddingLeft: 14 }}
+                  style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.4, paddingLeft: 14 }}
                 >
                   {story.title}
                 </div>

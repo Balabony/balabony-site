@@ -89,7 +89,6 @@ export default function FairytalesSection() {
                   color: '#FFFFFF',
                   fontFamily: FONT,
                   lineHeight: 1.4,
-                  textTransform: 'uppercase',
                 }}>
                   {t.title}
                 </div>
