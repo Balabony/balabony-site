@@ -26,18 +26,15 @@ const NAVY = '#0E1A2B'
 const CREAM = '#FFF8EE'
 const WHITE = '#FFFFFF'
 
-/** Тло за жанром. Незнайомий жанр і порожній — золото. */
-const GENRE_BG: Record<string, string> = {
-  'Життєві історії': '#EF9F27',
-  'Сімейна історія': '#D9A56A',
-  'Драма':           '#C98A4B',
-  'Про кохання':     '#D98B7A',
-  'Військова проза': '#9AA98C',
-  'Містика':         '#8E8CC4',
-  'Детектив':        '#8E8CC4',
-  'Казка':           '#5FA8A0',
-}
-const DEFAULT_BG = '#EF9F27'
+/**
+ * Тло завжди золоте.
+ *
+ * Спершу колір задавався жанром — військова проза оливкова, містика
+ * фіолетова. У каталозі це виглядало строкато: поруч стояли зелені, жовті й
+ * бузкові прямокутники, і замість серії одного видавництва виходив набір
+ * випадкових плиток. Одне золото читається як марка.
+ */
+const BG = '#EF9F27'
 
 /**
  * Два формати. Картки в каталозі мають широке гніздо (приблизно 3:2), а
@@ -51,16 +48,6 @@ const SHAPE = {
 } as const
 
 export type CoverShape = keyof typeof SHAPE
-
-/** Яскравість за WCAG. Вище 0.55 — тло світле, текст навій. */
-function isLight(hex: string): boolean {
-  const n = hex.replace('#', '')
-  const r = parseInt(n.slice(0, 2), 16) / 255
-  const g = parseInt(n.slice(2, 4), 16) / 255
-  const b = parseInt(n.slice(4, 6), 16) / 255
-  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
-  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b) > 0.55
-}
 
 /** Розбиття назви на рядки за середньою шириною знака Lora. */
 function wrap(title: string, size: number, maxWidth: number): string[] {
@@ -96,18 +83,15 @@ function fontSize(title: string, shape: CoverShape): number {
 
 export default function BrandCover({
   title,
-  genre,
   shape = 'wide',
   className,
 }: {
   title: string
-  genre?: string | null
   shape?: CoverShape
   className?: string
 }) {
   const { W, H, BAND, FOOT, PAD, LOGO } = SHAPE[shape]
-  const bg = (genre && GENRE_BG[genre]) || DEFAULT_BG
-  const ink = isLight(bg) ? NAVY : WHITE
+  const ink = NAVY
   const fieldTop = PAD + BAND + 5
   const fieldBottom = H - PAD - FOOT
   const size = fontSize(title, shape)
@@ -126,7 +110,7 @@ export default function BrandCover({
       style={{ display: 'block', width: '100%', height: '100%' }}
     >
       <rect width={W} height={H} fill={WHITE} />
-      <rect x={PAD} y={PAD} width={W - PAD * 2} height={H - PAD * 2} fill={bg} />
+      <rect x={PAD} y={PAD} width={W - PAD * 2} height={H - PAD * 2} fill={BG} />
       <rect x={PAD} y={PAD} width={W - PAD * 2} height={BAND} fill={NAVY} />
       <rect x={PAD} y={PAD + BAND} width={W - PAD * 2} height="5" fill={CREAM} />
       <rect x={PAD} y={fieldBottom} width={W - PAD * 2} height={FOOT} fill={NAVY} />
@@ -136,7 +120,7 @@ export default function BrandCover({
         cy={PAD + BAND / 2}
         r={LOGO / 2}
         fill="none"
-        stroke={DEFAULT_BG}
+        stroke={BG}
         strokeWidth={LOGO / 13}
       />
       <text
@@ -146,7 +130,7 @@ export default function BrandCover({
         fontFamily="Montserrat, Arial, sans-serif"
         fontSize={LOGO * 0.68}
         fontWeight="700"
-        fill={DEFAULT_BG}
+        fill={BG}
       >
         B
       </text>

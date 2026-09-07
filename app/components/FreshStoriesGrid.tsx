@@ -150,10 +150,10 @@ function hasRealCover(src: string | null | undefined): boolean {
  * Ставиться ЛИШЕ там, де власної картинки немає. Наявні фотографії
  * не заміщуємо — вони виразніші за типографіку.
  */
-function CoverPlaceholder({ title, genre }: { title: string; genre?: string }) {
+function CoverPlaceholder({ title }: { title: string }) {
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
-      <BrandCover title={title} genre={genre} shape="wide" />
+      <BrandCover title={title} shape="wide" />
     </div>
   )
 }
@@ -252,7 +252,7 @@ export default function FreshStoriesGrid({
                       style={getCoverStyle(story.coverPosition)}
                     />
                   ) : (
-                    <CoverPlaceholder title={story.title} genre={story.genre} />
+                    <CoverPlaceholder title={story.title} />
                   )}
                   {story.isAdult && (
                     <div style={{ position: 'absolute', top: 8, right: 8, background: '#e0484d', color: '#fff', fontSize: 12, fontWeight: 800, padding: '3px 8px', borderRadius: 6, letterSpacing: 0.5, fontFamily: FONT, lineHeight: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>18+</div>
