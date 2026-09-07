@@ -3,6 +3,7 @@ import { toExcerpt } from '@/lib/plain-text'
 import { pickPublishedText } from '@/lib/published-text'
 import { readingMinutes } from '@/lib/readingTime'
 import { GENRES } from '@/lib/genres'
+import { authorSlug } from '@/lib/author-slug'
 
 /**
  * Дані головної, зібрані на сервері.
@@ -363,5 +364,89 @@ export async function getSiteStats(): Promise<SiteStats> {
     return { works, authors: names.size, fresh }
   } catch {
     return { works: 0, authors: 0, fresh: 0 }
+  }
+}
+
+export type StripAuthor = { slug: string; name: string; avatar: string | null; initials: string }
+
+function initialsOf(name: string): string {
+  const parts = name.split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase()
+  return (parts[0].slice(0, 1) + parts[1].slice(0, 1)).toUpperCase()
+}
+
+/**
+ * Автори для рядка «Наші автори».
+ *
+ * Показуємо активних, не схованих перемикачем, із щонайменше одним
+ * опублікованим твором і з фотографією. Вимога фото свідома: рядок
+ * золотих кружечків з ініціалами виглядає порожньо, а так автор бачить,
+ * що фото виводить його на головну, і надсилає.
+ *
+ * Порядок — щоденна ротація зсувом вікна: детерміновано, тому всі
+ * відвідувачі за добу бачать однакове.
+ */
+export async function getStripAuthors(limit = 8): Promise<StripAuthor[]> {
+  const PAGE = 1000
+  try {
+    const supabase = getSupabaseAdmin()
+
+    const { data: profileData, error } = await supabase
+      .from('author_profiles')
+      .select('user_id, display_name, pen_name, avatar_url, hide_from_directory')
+      .eq('is_active', true)
+
+    if (error || !profileData) return []
+    const profiles = profileData as {
+      user_id: string
+      display_name: string | null
+      pen_name: string | null
+      avatar_url: string | null
+      hide_from_directory: boolean | null
+    }[]
+
+    // Автори, у яких є хоч один опублікований твір. Сторінками:
+    // Supabase мовчки віддає максимум 1000 рядків.
+    const withWorks = new Set<string>()
+    for (let from = 0; from < 10000; from += PAGE) {
+      const { data, error: wErr } = await supabase
+        .from('content')
+        .select('author_id')
+        .eq('type', 'story')
+        .in('status', ['approved', 'published'])
+        .not('author_id', 'is', null)
+        .range(from, from + PAGE - 1)
+      if (wErr || !data || data.length === 0) break
+      for (const r of data as { author_id: string | null }[]) {
+        if (r.author_id) withWorks.add(r.author_id)
+      }
+      if (data.length < PAGE) break
+    }
+
+    const all: StripAuthor[] = []
+    for (const p of profiles) {
+      if (p.hide_from_directory) continue
+      if (!withWorks.has(p.user_id)) continue
+      if (!p.avatar_url?.trim()) continue
+      const name = p.pen_name?.trim() || p.display_name?.trim() || ''
+      if (!name) continue
+      all.push({ slug: authorSlug(name), name, avatar: p.avatar_url, initials: initialsOf(name) })
+    }
+
+    if (all.length === 0) return []
+
+    // Стабільний порядок, щоб зсув був передбачуваний.
+    all.sort((a, b) => (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0))
+
+    const day = Math.floor(Date.now() / 86400000)
+    const start = ((day * limit) % all.length + all.length) % all.length
+    const out: StripAuthor[] = []
+    for (let i = 0; i < Math.min(limit, all.length); i++) {
+      out.push(all[(start + i) % all.length])
+    }
+    return out
+  } catch {
+    return []
   }
 }

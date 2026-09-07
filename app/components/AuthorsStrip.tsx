@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 /**
- * Рядок «Наші автори» на головній. Клієнтський: app/page.tsx має 'use client',
- * тому дані беремо через /api/authors, а не напряму з бази.
+ * Рядок «Наші автори» на головній. Дані приходять пропсом із серверної
+ * сторінки; без нього компонент тягне їх сам через /api/authors.
  *
  * Поки список порожній, секція не рендериться взагалі — це прибирає стрибок
  * висоти й порожній заголовок, якщо запит не вдався.
@@ -18,17 +18,20 @@ const CREAM = '#FFF8EE'
 
 type Author = { slug: string; name: string; avatar: string | null; initials: string }
 
-export default function AuthorsStrip({ limit = 8 }: { limit?: number }) {
-  const [authors, setAuthors] = useState<Author[]>([])
+export default function AuthorsStrip({ limit = 8, initial }: { limit?: number; initial?: Author[] }) {
+  // Готовий список із сервера: інакше посилання на сторінки авторів
+  // з'являлися лише в браузері й були невидимі для пошуковика.
+  const [authors, setAuthors] = useState<Author[]>(initial ?? [])
 
   useEffect(() => {
+    if (initial) return
     fetch(`/api/authors?limit=${limit}`)
       .then(r => (r.ok ? r.json() : Promise.reject()))
       .then((rows: Author[]) => {
         if (Array.isArray(rows) && rows.length > 0) setAuthors(rows)
       })
       .catch(() => {})
-  }, [limit])
+  }, [limit, initial])
 
   if (authors.length === 0) return null
 

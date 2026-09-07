@@ -14,7 +14,7 @@ import FairytalesSection from './components/FairytalesSection'
 import { ThemeProvider } from './context/ThemeContext'
 import SeriesStrip, { type SeriesCard } from './components/SeriesStrip'
 import FreshStoriesGrid, { type Story } from './components/FreshStoriesGrid'
-import type { TyshaItem, GenreCount, SiteStats } from '@/lib/home-data'
+import type { TyshaItem, GenreCount, SiteStats, StripAuthor } from '@/lib/home-data'
 import KonkursyBanner from './components/KonkursyBanner'
 import TyshaSection from './components/TyshaSection'
 import InclusivitySection from './components/InclusivitySection'
@@ -56,6 +56,7 @@ export default function HomeClient({
   tyshaItems,
   genreCounts,
   stats,
+  authors,
 }: {
   seriesData: SeriesCard[]
   freshStories: Story[]
@@ -63,6 +64,7 @@ export default function HomeClient({
   tyshaItems: TyshaItem[]
   genreCounts: GenreCount[]
   stats: SiteStats
+  authors: StripAuthor[]
 }) {
 
   // Доскрол до якоря після того, як ліниві секції
@@ -155,7 +157,7 @@ export default function HomeClient({
 
         <PwaSection />      <ChannelsSection />
 
-        <AuthorsStrip limit={8} />
+        <AuthorsStrip limit={8} initial={authors} />
 
         <AuthorSection />
         <SurveyPreviewSection />

@@ -5,6 +5,7 @@ import {
   getGenreCounts,
   getHomeSeries,
   getSiteStats,
+  getStripAuthors,
   getTyshaItems,
 } from '@/lib/home-data'
 
@@ -21,13 +22,15 @@ import {
 export const revalidate = 10800
 
 export default async function HomePage() {
-  const [seriesData, freshStories, fairytales, tyshaItems, genreCounts, stats] = await Promise.all([
+  const [seriesData, freshStories, fairytales, tyshaItems, genreCounts, stats, authors] =
+    await Promise.all([
     getHomeSeries(3),
     getFreshStories(6),
     getFairytales(3),
     getTyshaItems(3),
     getGenreCounts(),
     getSiteStats(),
+    getStripAuthors(8),
   ])
 
   return (
@@ -38,6 +41,7 @@ export default async function HomePage() {
       tyshaItems={tyshaItems}
       genreCounts={genreCounts}
       stats={stats}
+      authors={authors}
     />
   )
 }
