@@ -1,4 +1,5 @@
 import HomeClient from './HomeClient'
+import HomeJsonLd from './components/HomeJsonLd'
 import {
   getFairytales,
   getFreshStories,
@@ -34,14 +35,17 @@ export default async function HomePage() {
   ])
 
   return (
-    <HomeClient
-      seriesData={seriesData}
-      freshStories={freshStories}
-      fairytales={fairytales}
-      tyshaItems={tyshaItems}
-      genreCounts={genreCounts}
-      stats={stats}
-      authors={authors}
-    />
+    <>
+      <HomeJsonLd />
+      <HomeClient
+        seriesData={seriesData}
+        freshStories={freshStories}
+        fairytales={fairytales}
+        tyshaItems={tyshaItems}
+        genreCounts={genreCounts}
+        stats={stats}
+        authors={authors}
+      />
+    </>
   )
 }

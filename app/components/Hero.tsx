@@ -65,7 +65,12 @@ export default function Hero() {
 
           {/* Заголовок + підрядок + CTA */}
           <div style={{ textAlign: 'center' }}>
-            <h1
+            {/* Гасло лишається головним візуально, але заголовком першого
+                рівня для пошуковика служить рядок нижче: «Читай українське»
+                ніхто не шукає, а «українські історії, казки й серіали» —
+                шукають щодня. */}
+            <div
+              role="presentation"
               style={{
                 fontFamily: "'Lora', serif",
                 fontSize: 'clamp(32px, 7vw, 56px)',
@@ -77,19 +82,20 @@ export default function Hero() {
               }}
             >
               Читай українське
-            </h1>
+            </div>
 
-            <p
+            <h1
               style={{
                 fontSize: 'clamp(15px, 2.2vw, 18px)',
+                fontWeight: 400,
                 color: '#B5D4F4',
                 margin: '0 0 26px',
                 lineHeight: 1.5,
                 fontFamily: "'Montserrat', sans-serif",
               }}
             >
-              Історії для всієї родини
-            </p>
+              Українські історії, казки й серіали — читати та слухати онлайн
+            </h1>
 
             <div style={{ marginTop: 4 }}>
               <a

@@ -27,7 +27,8 @@ export default function robots(): MetadataRoute.Robots {
           '/contact?topic=error', // звіти про помилки — не для індексації
         ],
       },
-      // GPTBot — забороняємо тренування ШІ-моделей на нашому контенті
+      // Тренувальні боти — забороняємо: на текстах наших авторів
+      // моделі не тренують. Це узгоджено з авторським договором.
       {
         userAgent: 'GPTBot',
         disallow: '/',
@@ -44,6 +45,18 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: 'Google-Extended',
         disallow: '/',
       },
+      // Цитувальні боти — дозволяємо явно. Вони нічого не тренують:
+      // шукають відповідь на питання читача і ведуть його до нас із
+      // посиланням на джерело. Заборонити їх означало б зникнути з
+      // відповідей ШІ-помічників, куди люди дедалі частіше йдуть
+      // замість пошуку. Дозвіл прописано окремим правилом, щоб при
+      // наступній правці його не змели разом із тренувальними.
+      { userAgent: 'OAI-SearchBot',   allow: '/' },
+      { userAgent: 'ChatGPT-User',    allow: '/' },
+      { userAgent: 'Claude-SearchBot', allow: '/' },
+      { userAgent: 'Claude-User',     allow: '/' },
+      { userAgent: 'PerplexityBot',   allow: '/' },
+      { userAgent: 'Perplexity-User', allow: '/' },
     ],
     sitemap: `${BASE_URL}/sitemap.xml`,
     host: BASE_URL,
