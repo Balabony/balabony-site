@@ -149,8 +149,11 @@ export default function Header() {
           Безкоштовно
         </a>
 
-        {/* Language switcher — links to /support with corresponding lang */}
-        <div style={{ display: 'flex', gap: 2 }}>
+        {/* Language switcher — links to /support with corresponding lang.
+            На телефоні сховано: UA веде на головну (дублює логотип), а EN/DE
+            є у футері — іноземний донор приходить за прямим посиланням,
+            а не гортає шапку. Місце потрібніше пошуку й кабінету. */}
+        <div className="baly-eye-hide-mobile" style={{ display: 'flex', gap: 2 }}>
           <a
             href="/"
             title="Українська · головна"
