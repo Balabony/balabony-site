@@ -1,5 +1,12 @@
 import HomeClient from './HomeClient'
-import { getFairytales, getFreshStories, getHomeSeries, getTyshaItems } from '@/lib/home-data'
+import {
+  getFairytales,
+  getFreshStories,
+  getGenreCounts,
+  getHomeSeries,
+  getSiteStats,
+  getTyshaItems,
+} from '@/lib/home-data'
 
 /**
  * Головна тепер збирається на сервері.
@@ -14,11 +21,13 @@ import { getFairytales, getFreshStories, getHomeSeries, getTyshaItems } from '@/
 export const revalidate = 10800
 
 export default async function HomePage() {
-  const [seriesData, freshStories, fairytales, tyshaItems] = await Promise.all([
+  const [seriesData, freshStories, fairytales, tyshaItems, genreCounts, stats] = await Promise.all([
     getHomeSeries(3),
     getFreshStories(6),
     getFairytales(3),
     getTyshaItems(3),
+    getGenreCounts(),
+    getSiteStats(),
   ])
 
   return (
@@ -27,6 +36,8 @@ export default async function HomePage() {
       freshStories={freshStories}
       fairytales={fairytales}
       tyshaItems={tyshaItems}
+      genreCounts={genreCounts}
+      stats={stats}
     />
   )
 }

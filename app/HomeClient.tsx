@@ -14,7 +14,7 @@ import FairytalesSection from './components/FairytalesSection'
 import { ThemeProvider } from './context/ThemeContext'
 import SeriesStrip, { type SeriesCard } from './components/SeriesStrip'
 import FreshStoriesGrid, { type Story } from './components/FreshStoriesGrid'
-import type { TyshaItem } from '@/lib/home-data'
+import type { TyshaItem, GenreCount, SiteStats } from '@/lib/home-data'
 import KonkursyBanner from './components/KonkursyBanner'
 import TyshaSection from './components/TyshaSection'
 import InclusivitySection from './components/InclusivitySection'
@@ -54,11 +54,15 @@ export default function HomeClient({
   freshStories,
   fairytales,
   tyshaItems,
+  genreCounts,
+  stats,
 }: {
   seriesData: SeriesCard[]
   freshStories: Story[]
   fairytales: Story[]
   tyshaItems: TyshaItem[]
+  genreCounts: GenreCount[]
+  stats: SiteStats
 }) {
 
   // Доскрол до якоря після того, як ліниві секції
@@ -88,7 +92,7 @@ export default function HomeClient({
       <Header />
       <Hero />
 
-      <FactsLine />
+      <FactsLine initial={stats} />
 
       <nav aria-label="Розділи" style={doorsWrapStyle}>
         <a href="#series" style={doorStyle}>
@@ -120,7 +124,7 @@ export default function HomeClient({
 
       {/* Жанри стоять після свіжих історій: спершу читач бачить нове,
           потім може звузити пошук під настрій. */}
-      <GenreChips />
+      <GenreChips initial={genreCounts} />
 
       <div id="fairytales"><FairytalesSection initial={fairytales} /></div>
 

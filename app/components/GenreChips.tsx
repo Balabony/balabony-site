@@ -25,10 +25,13 @@ interface GenreCount {
   count: number
 }
 
-export default function GenreChips() {
-  const [genres, setGenres] = useState<GenreCount[]>([])
+export default function GenreChips({ initial }: { initial?: GenreCount[] } = {}) {
+  // Готовий перелік із сервера: інакше дев'ять посилань на сторінки жанрів
+  // з'являлися лише в браузері, і пошуковик по них не переходив.
+  const [genres, setGenres] = useState<GenreCount[]>(initial ?? [])
 
   useEffect(() => {
+    if (initial) return
     fetch('/api/genres/counts')
       .then((r) => (r.ok ? r.json() : null))
       .then((d: { genres?: GenreCount[] } | null) => {
@@ -37,7 +40,7 @@ export default function GenreChips() {
       .catch(() => {
         /* мовчки: рядок жанрів не критичний для сторінки */
       })
-  }, [])
+  }, [initial])
 
   if (genres.length === 0) return null
 

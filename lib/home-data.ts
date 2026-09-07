@@ -2,6 +2,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { toExcerpt } from '@/lib/plain-text'
 import { pickPublishedText } from '@/lib/published-text'
 import { readingMinutes } from '@/lib/readingTime'
+import { GENRES } from '@/lib/genres'
 
 /**
  * Дані головної, зібрані на сервері.
@@ -281,5 +282,86 @@ export async function getTyshaItems(limit?: number): Promise<TyshaItem[]> {
     }))
   } catch {
     return []
+  }
+}
+
+export type GenreCount = { genre: string; count: number }
+
+/**
+ * Кількість опублікованих історій у кожному жанрі.
+ *
+ * Жанр без жодного твору у відповідь не потрапляє: читач, який натиснув
+ * «Детектив» і побачив порожньо, більше не натисне нічого.
+ *
+ * Рахуємо запитами count по кожному жанру, а не вибіркою всіх творів:
+ * рядків уже понад тисячу, і тягнути їх заради дев'яти чисел марно.
+ */
+export async function getGenreCounts(): Promise<GenreCount[]> {
+  try {
+    const db = getSupabaseAdmin()
+
+    const counts = await Promise.all(
+      GENRES.map(async (genre) => {
+        const { count } = await db
+          .from('content')
+          .select('id', { count: 'exact', head: true })
+          .eq('type', 'story')
+          .in('status', ['approved', 'published'])
+          .eq('genre', genre)
+        return { genre, count: count ?? 0 }
+      }),
+    )
+
+    return counts.filter((g) => g.count > 0)
+  } catch {
+    return []
+  }
+}
+
+export type SiteStats = { works: number; authors: number; fresh: number }
+
+/**
+ * Числа для рядка фактів під гаслом.
+ *
+ * Авторів рахуємо за підписом (author_name), а не за профілями: більшість
+ * творів прийшла з газет від людей без кабінету, і рахунок профілів
+ * применшив би вчетверо. Лише type='story' — епізоди серіалів читач
+ * історіями не називає.
+ */
+export async function getSiteStats(): Promise<SiteStats> {
+  const PAGE = 1000
+  try {
+    const supabase = getSupabaseAdmin()
+
+    let works = 0
+    const names = new Set<string>()
+    let fresh = 0
+    const since = new Date(Date.now() - 30 * 86400000).toISOString()
+
+    // Сторінками: Supabase мовчки віддає максимум 1000 рядків, і без цього
+    // всі числа завмерли б на тисячі.
+    for (let from = 0; from < 100_000; from += PAGE) {
+      const { data, error } = await supabase
+        .from('content')
+        .select('author_name, created_at')
+        .eq('type', 'story')
+        .in('status', ['approved', 'published'])
+        .range(from, from + PAGE - 1)
+
+      if (error || !data) break
+
+      for (const r of data as { author_name: string | null; created_at: string | null }[]) {
+        works++
+        const n = (r.author_name ?? '').trim()
+        if (n) names.add(n.toLowerCase())
+        if (r.created_at && r.created_at >= since) fresh++
+      }
+
+      if (data.length < PAGE) break
+    }
+
+    return { works, authors: names.size, fresh }
+  } catch {
+    return { works: 0, authors: 0, fresh: 0 }
   }
 }

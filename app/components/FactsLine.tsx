@@ -25,17 +25,19 @@ function plural(n: number, one: string, few: string, many: string): string {
   return many
 }
 
-export default function FactsLine() {
-  const [s, setS] = useState<Stats | null>(null)
+export default function FactsLine({ initial }: { initial?: Stats } = {}) {
+  // Готові числа з сервера — щоб рядок фактів був у HTML одразу.
+  const [s, setS] = useState<Stats | null>(initial && initial.works > 0 ? initial : null)
 
   useEffect(() => {
+    if (initial) return
     fetch('/api/stats')
       .then(r => (r.ok ? r.json() : Promise.reject()))
       .then((d: Stats) => {
         if (d && d.works > 0) setS(d)
       })
       .catch(() => {})
-  }, [])
+  }, [initial])
 
   if (!s) return null
 

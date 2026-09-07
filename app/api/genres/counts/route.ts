@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { GENRES } from '@/lib/genres'
+import { getGenreCounts } from '@/lib/home-data'
 
 /**
  * Кількість опублікованих історій у кожному жанрі.
@@ -18,22 +17,9 @@ import { GENRES } from '@/lib/genres'
 export const revalidate = 900
 
 export async function GET() {
-  const db = getSupabaseAdmin()
-
-  const counts = await Promise.all(
-    GENRES.map(async (genre) => {
-      const { count } = await db
-        .from('content')
-        .select('id', { count: 'exact', head: true })
-        .eq('type', 'story')
-        .in('status', ['approved', 'published'])
-        .eq('genre', genre)
-      return { genre, count: count ?? 0 }
-    }),
-  )
-
+  const genres = await getGenreCounts()
   return NextResponse.json(
-    { genres: counts.filter((g) => g.count > 0) },
+    { genres },
     { headers: { 'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=1800' } },
   )
 }
