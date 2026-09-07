@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { toExcerpt } from '@/lib/plain-text'
 import { pickPublishedText } from '@/lib/published-text'
+import { rotateDaily, buildTeaser } from '@/lib/home-data'
 
 export async function GET(req: Request) {
   try {
@@ -74,63 +74,4 @@ export async function GET(req: Request) {
   } catch {
     return NextResponse.json([], { status: 500 })
   }
-}
-
-type Row = { id: string; author_name: string | null; approved_at: string | null }
-
-// Ротація вітрини раз на 3 години, без випадковості.
-//
-// 1. Лишаємо по одному твору на автора — інакше три поспіль від однієї людини
-//    (саме так виглядала стрічка до цієї зміни).
-// 2. Сортуємо стабільно: свіжіші вперед, id як запасний ключ. approved_at
-//    буває null, тому порівняння через рядок, а не через Date.
-// 3. Твори останніх 7 днів завжди стоять першими — розділ називається
-//    «Свіжі історії» і не повинен ховати новинку через ротацію.
-// 4. Решту крутимо вікном: номер тригодинного відрізка × limit зі згортанням
-//    через кінець. При 100+ авторах це десятки днів поспіль без жодного
-//    повтору — гарантовано, а не ймовірно.
-//
-// Крок мусить збігатися з s-maxage нижче: інакше набір змінився, а межа
-// мережі ще добу віддає збережений.
-const ROTATION_STEP_MS = 3 * 60 * 60 * 1000
-
-function rotateDaily<T extends Row>(rows: T[], limit: number): T[] {
-  const seen = new Set<string>()
-  const unique: T[] = []
-  for (const r of rows) {
-    const key = (r.author_name ?? r.id).trim().toLowerCase()
-    if (seen.has(key)) continue
-    seen.add(key)
-    unique.push(r)
-  }
-
-  unique.sort((a, b) => {
-    const av = a.approved_at ?? ''
-    const bv = b.approved_at ?? ''
-    if (av !== bv) return av < bv ? 1 : -1
-    return a.id < b.id ? -1 : 1
-  })
-
-  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
-  const fresh = unique.filter(r => r.approved_at !== null && Date.parse(r.approved_at) >= weekAgo)
-  const rest  = unique.filter(r => !(r.approved_at !== null && Date.parse(r.approved_at) >= weekAgo))
-
-  const out = fresh.slice(0, limit)
-  const need = limit - out.length
-  if (need <= 0 || rest.length === 0) return out
-
-  const slot = Math.floor(Date.now() / ROTATION_STEP_MS)
-  const start = ((slot * limit) % rest.length + rest.length) % rest.length
-  for (let i = 0; i < need; i++) {
-    out.push(rest[(start + i) % rest.length])
-  }
-  return out
-}
-
-function buildTeaser(text: string): string {
-  const stripped = toExcerpt(text, 100000)
-  if (stripped.length <= 200) return stripped
-  const cut = stripped.slice(0, 200)
-  const lastSpace = cut.lastIndexOf(' ')
-  return (lastSpace > 120 ? cut.slice(0, lastSpace) : cut) + '…'
 }

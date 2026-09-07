@@ -1,0 +1,170 @@
+'use client'
+
+import { useEffect } from 'react'
+import Header from './components/Header'
+import Hero from './components/Hero'
+import FreeBanner from './components/FreeBanner'
+import HowItWorks from './components/HowItWorks'
+import PricingSection from './components/PricingSection'
+import FAQ from './components/FAQ'
+import AudioPlayer from './components/AudioPlayer'
+import DemoAudioPlayer from './components/DemoAudioPlayer'
+import Footer from './components/Footer'
+import FairytalesSection from './components/FairytalesSection'
+import { ThemeProvider } from './context/ThemeContext'
+import SeriesStrip, { type SeriesCard } from './components/SeriesStrip'
+import FreshStoriesGrid, { type Story } from './components/FreshStoriesGrid'
+import KonkursyBanner from './components/KonkursyBanner'
+import TyshaSection from './components/TyshaSection'
+import InclusivitySection from './components/InclusivitySection'
+import BonusSection from './components/BonusSection'
+import AuthorSection from './components/AuthorSection'
+import AboutBalabonySection from './components/AboutBalabonySection'
+import PwaSection from './components/PwaSection'
+import ChannelsSection from './components/ChannelsSection'
+import SurveyPreviewSection from './components/SurveyPreviewSection'
+import EmailCapture from './components/EmailCapture'
+import AuthorsStrip from './components/AuthorsStrip'
+import GenreChips from './components/GenreChips'
+import FactsLine from './components/FactsLine'
+
+
+
+const doorsWrapStyle: React.CSSProperties = { maxWidth: 1100, margin: '0 auto', padding: '4px 20px 24px', display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }
+
+const doorStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, minWidth: 0, padding: '16px 4px', textAlign: 'center', borderRadius: 12, textDecoration: 'none', background: 'rgba(239,159,39,0.04)', border: '1px solid rgba(239,159,39,0.32)', fontFamily: "'Montserrat', sans-serif" }
+
+// Заголовок підлаштовується під ширину екрана: на вузьких телефонах
+// «ДОРОСЛИМ» при 16px виходило за межі картки.
+const doorTitleStyle: React.CSSProperties = { fontSize: 'clamp(12px, 3.4vw, 16px)', fontWeight: 700, color: 'var(--accent-gold-light, #FAC775)', letterSpacing: '0.02em', lineHeight: 1.2, whiteSpace: 'nowrap' }
+
+const doorSubStyle: React.CSSProperties = { fontSize: 'clamp(10px, 2.8vw, 12px)', color: '#C08A2E', lineHeight: 1.25 }
+
+const badge18Style: React.CSSProperties = { background: '#e0484d', color: '#FFF8EE', fontSize: 10, padding: '1px 5px', borderRadius: 3, verticalAlign: 2 }
+
+
+/**
+ * Головна. Дані приходять готовими із серверної сторінки (app/page.tsx):
+ * раніше вони тягнулися fetch'ем у браузері, і Google діставалася порожня
+ * оболонка без назв, авторів і тизерів.
+ */
+export default function HomeClient({
+  seriesData,
+  freshStories,
+}: {
+  seriesData: SeriesCard[]
+  freshStories: Story[]
+}) {
+
+  // Доскрол до якоря після того, як ліниві секції
+  // встигнуть домонтуватися і вплинути на висоту сторінки. Без цього
+  // нативний скрол браузера зупиняється на старій позиції #pricing,
+  // яка з'їжджає вниз після підвантаження контенту вище.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const hash = window.location.hash
+    if (!hash || hash.length < 2) return
+
+    const scrollToHash = () => {
+      const el = document.getElementById(hash.slice(1))
+      if (!el) return
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      el.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth', block: 'start' })
+    }
+
+    // Дві спроби: коротка (на випадок швидкого рендеру) і довша (для лінивого контенту)
+    const t1 = setTimeout(scrollToHash, 300)
+    const t2 = setTimeout(scrollToHash, 900)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [])
+
+  return (
+    <ThemeProvider>
+      <Header />
+      <Hero />
+
+      <FactsLine />
+
+      <nav aria-label="Розділи" style={doorsWrapStyle}>
+        <a href="#series" style={doorStyle}>
+          <span style={doorTitleStyle}>ДІТЯМ</span>
+          <span style={doorSubStyle}>казки й Балабони</span>
+        </a>
+        <a href="#stories-fresh" style={doorStyle}>
+          <span style={doorTitleStyle}>ДОРОСЛИМ</span>
+          <span style={doorSubStyle}>історії авторів</span>
+        </a>
+        <a href="#tysha" style={doorStyle}>
+          <span style={doorTitleStyle}>ТИША <span style={badge18Style}>18+</span></span>
+          <span style={doorSubStyle}>воєнна драма</span>
+        </a>
+      </nav>
+
+      <FreeBanner />
+
+      <KonkursyBanner />
+
+      <div id="series"><SeriesStrip series={seriesData} /></div>
+
+
+      {freshStories.length > 0 && (
+        <div id="stories-fresh">
+          <FreshStoriesGrid stories={freshStories} />
+        </div>
+      )}
+
+      {/* Жанри стоять після свіжих історій: спершу читач бачить нове,
+          потім може звузити пошук під настрій. */}
+      <GenreChips />
+
+      <div id="fairytales"><FairytalesSection /></div>
+
+      <div id="tysha"><TyshaSection limit={3} showAllLink /></div>
+
+      <EmailCapture />
+
+      <div style={{ display: 'block' }}>
+        <HowItWorks />
+      </div>
+
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 0' }}>
+        <AboutBalabonySection />
+        <InclusivitySection />
+      </div>
+
+      <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 0' }}>
+
+        <div style={{ display: 'block' }}>
+          <PricingSection />
+        </div>
+
+        <div style={{ display: 'block' }}>
+          <FAQ limit={5} showAllLink />
+        </div>
+
+        <BonusSection />
+
+        <PwaSection />      <ChannelsSection />
+
+        <AuthorsStrip limit={8} />
+
+        <AuthorSection />
+        <SurveyPreviewSection />
+      </main>
+
+      <div style={{ background: '#FFF8EE', padding: '20px 0' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto', padding: '0 20px' }}>
+          <DemoAudioPlayer
+            src="/audio/balabony_seria1_demo.mp3"
+            badge="Демо"
+            caption="Озвучення серії"
+            title="«Панас і 5G на вишні»"
+          />
+        </div>
+      </div>
+
+      <Footer />
+      <AudioPlayer />
+    </ThemeProvider>
+  )
+}
