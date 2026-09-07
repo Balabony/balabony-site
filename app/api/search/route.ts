@@ -41,6 +41,7 @@ type WorkRow = {
 }
 
 type ProfileRow = {
+  user_id: string
   display_name: string | null
   pen_name: string | null
   avatar_url: string | null
@@ -71,7 +72,7 @@ export async function GET(req: Request) {
         .limit(80),
       supabase
         .from('author_profiles')
-        .select('display_name, pen_name, avatar_url, hide_from_directory')
+        .select('user_id, display_name, pen_name, avatar_url, hide_from_directory')
         .eq('is_active', true)
         .or(`display_name.ilike.${pattern},pen_name.ilike.${pattern}`)
         .limit(30),
@@ -98,11 +99,30 @@ export async function GET(req: Request) {
 
     // Автори з кабінетами. Ім'я й slug рахуємо так само, як на /avtory,
     // інакше посилання приведе на 404.
+    const profiles = ((profilesRes.data ?? []) as ProfileRow[]).filter(
+      (p) => !p.hide_from_directory,
+    )
+
+    // Профіль без жодного опублікованого твору веде на порожню сторінку —
+    // /avtory таких не показує, і пошук не має. Кабінетів із самими
+    // чернетками у нас багато, тож перевірка не зайва.
+    const withWorks = new Set<string>()
+    if (profiles.length > 0) {
+      const { data: owned } = await supabase
+        .from('content')
+        .select('author_id')
+        .in('author_id', profiles.map((p) => p.user_id))
+        .in('status', ['approved', 'published'])
+      for (const r of ((owned ?? []) as { author_id: string | null }[])) {
+        if (r.author_id) withWorks.add(r.author_id)
+      }
+    }
+
     const authors: { name: string; slug: string; avatar: string | null }[] = []
     const taken = new Set<string>()
 
-    for (const p of ((profilesRes.data ?? []) as ProfileRow[])) {
-      if (p.hide_from_directory) continue
+    for (const p of profiles) {
+      if (!withWorks.has(p.user_id)) continue
       const name = p.pen_name?.trim() || p.display_name?.trim() || ''
       const slug = authorSlug(name)
       if (!name || !slug || taken.has(slug)) continue
