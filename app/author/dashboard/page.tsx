@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import NarrationOrderForm from '@/app/components/NarrationOrderForm'
+import EditDraftForm from '@/app/components/EditDraftForm'
 import AuthorContracts, { type ContractRow } from '@/app/components/AuthorContracts'
 import AuthorRequisites, { type Requisites } from '@/app/components/AuthorRequisites'
 import AuthorSurvey, { type Feedback } from '@/app/components/AuthorSurvey'
@@ -470,7 +471,10 @@ export default async function AuthorDashboardPage() {
                   />
 
                   {s.status === 'draft' && (
-                    <PublishWorkButton contentId={s.content_id} title={s.title} />
+                    <>
+                      <EditDraftForm contentId={s.content_id} />
+                      <PublishWorkButton contentId={s.content_id} title={s.title} />
+                    </>
                   )}
 
                   <a
