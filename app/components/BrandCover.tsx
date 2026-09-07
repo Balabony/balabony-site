@@ -43,8 +43,8 @@ const BG = '#EF9F27'
  * нечитабельного розміру. Тому пропорція задається знадвору.
  */
 const SHAPE = {
-  wide: { W: 600, H: 400, BAND: 88, FOOT: 46, PAD: 10, LOGO: 62 },
-  tall: { W: 400, H: 600, BAND: 150, FOOT: 68, PAD: 14, LOGO: 92 },
+  wide: { W: 600, H: 400, BAND: 62, FOOT: 34, PAD: 8, LOGO: 44 },
+  tall: { W: 400, H: 600, BAND: 120, FOOT: 56, PAD: 12, LOGO: 76 },
 } as const
 
 export type CoverShape = keyof typeof SHAPE
@@ -70,10 +70,10 @@ function wrap(title: string, size: number, maxWidth: number): string[] {
 function fontSize(title: string, shape: CoverShape): number {
   const n = title.trim().length
   if (shape === 'wide') {
-    if (n <= 20) return 58
-    if (n <= 34) return 50
-    if (n <= 50) return 42
-    return 34
+    if (n <= 20) return 62
+    if (n <= 34) return 54
+    if (n <= 50) return 46
+    return 38
   }
   if (n <= 22) return 36
   if (n <= 40) return 32
@@ -154,9 +154,9 @@ export default function BrandCover({
         y={fieldBottom + FOOT / 2 + 5}
         textAnchor="middle"
         fontFamily="Montserrat, Arial, sans-serif"
-        fontSize="15"
+        fontSize="13"
         fontWeight="700"
-        letterSpacing="5"
+        letterSpacing="4"
         fill={WHITE}
       >
         БАЛАБОНИ

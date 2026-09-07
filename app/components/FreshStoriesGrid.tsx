@@ -149,6 +149,10 @@ function hasRealCover(src: string | null | undefined): boolean {
  *
  * Ставиться ЛИШЕ там, де власної картинки немає. Наявні фотографії
  * не заміщуємо — вони виразніші за типографіку.
+ *
+ * Коли обкладинка брендова, назву під карткою не повторюємо: вона вже
+ * написана великим кеглем на самій обкладинці, і двічі поспіль читається
+ * як помилка верстки.
  */
 function CoverPlaceholder({ title }: { title: string }) {
   return (
@@ -264,12 +268,14 @@ export default function FreshStoriesGrid({
                 <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, fontFamily: FONT, letterSpacing: 0.3 }}>
                   {story.author}
                 </div>
-                <div
-                  className="fs-title-text"
-                  style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.4, paddingLeft: 14 }}
-                >
-                  {story.title}
-                </div>
+                {hasRealCover(story.coverUrl) && (
+                  <div
+                    className="fs-title-text"
+                    style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, lineHeight: 1.4, paddingLeft: 14 }}
+                  >
+                    {story.title}
+                  </div>
+                )}
                 <p className="fs-teaser">
                   {cleanTeaser(story.teaser)}
                 </p>
