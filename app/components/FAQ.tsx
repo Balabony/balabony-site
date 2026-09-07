@@ -7,7 +7,11 @@
  * Розміщується на /pricing і /free.
  */
 
-const ITEMS: { q: string; a: React.ReactNode }[] = [
+/**
+ * `plain` потрібен лише там, де відповідь містить розмітку: у структуровані
+ * дані можна віддати тільки текст. Там, де `a` вже рядок, дубль зайвий.
+ */
+const ITEMS: { q: string; a: React.ReactNode; plain?: string }[] = [
   {
     q: 'Що я отримаю безкоштовно?',
     a: 'По дві серії з кожного сезону Балабонів — без реєстрації. Сім будь-яких історій на твій вибір. Сім днів повного доступу до всього, крім закритих серій.',
@@ -29,6 +33,7 @@ const ITEMS: { q: string; a: React.ReactNode }[] = [
         Усе для людей, які люблять живу українську мову.
       </>
     ),
+    plain: 'Балабони — українська платформа історій. Тут понад дев’ятсот творів від українських авторів: казки для дітей, життєві історії, серіал «Балабони» про вигадане село і воєнна драма «Тиша» для дорослих. Аудіоформат у розробці. Усе для людей, які люблять живу українську мову.',
   },
   {
     q: 'Скільки коштує підписка?',
@@ -54,6 +59,7 @@ const ITEMS: { q: string; a: React.ReactNode }[] = [
         власну ціну, яку ти готовий платити — ми розглянемо можливість додаткової знижки для тебе. Балабони мають бути доступні кожному.
       </>
     ),
+    plain: 'Напиши редакції на nazar@balabony.com власну ціну, яку ти готовий платити — ми розглянемо можливість додаткової знижки для тебе. Балабони мають бути доступні кожному.',
   },
   {
     q: 'Що буде, коли закінчиться сім днів?',
@@ -87,7 +93,28 @@ const ITEMS: { q: string; a: React.ReactNode }[] = [
 
 export default function FAQ({ limit, showAllLink }: { limit?: number; showAllLink?: boolean } = {}) {
   const items = typeof limit === 'number' ? ITEMS.slice(0, limit) : ITEMS
+
+  // Розмітка FAQPage дає відповіді просто у видачі Google. Складається саме
+  // з показаних питань: якщо розмітка ширша за видимий текст, Google вважає
+  // це обманом і знімає розширений вигляд узагалі.
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((it) => ({
+      '@type': 'Question',
+      name: it.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: it.plain ?? (typeof it.a === 'string' ? it.a : ''),
+      },
+    })).filter((q) => q.acceptedAnswer.text.length > 0),
+  }
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
     <section
       id="faq"
       className="faq-shell"
@@ -273,5 +300,6 @@ export default function FAQ({ limit, showAllLink }: { limit?: number; showAllLin
         }
       `}</style>
     </section>
+    </>
   )
 }
