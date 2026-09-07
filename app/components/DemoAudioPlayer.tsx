@@ -194,7 +194,12 @@ export default function DemoAudioPlayer({ src, badge, caption, title = 'Ауді
       <audio
         ref={audioRef}
         src={src}
-        preload="metadata"
+        // preload="none", а не "metadata": Chrome не міг визначити тривалість
+        // із заголовка цього mp3 і тягнув увесь файл — 4 968 КіБ, 57% ваги
+        // головної сторінки, ще до того, як хтось натиснув «Відтворити».
+        // Тепер нічого не завантажується до першого кліку; тривалість
+        // показується як «--:--» і підставляється після старту.
+        preload="none"
         aria-label={title}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
