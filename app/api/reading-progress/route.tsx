@@ -33,7 +33,7 @@ type Body = {
 }
 
 type Row = {
-  content_id: string
+  content_id: string | null
   slug: string
   title: string | null
   path: string
@@ -61,10 +61,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false }, { status: 400 })
   }
 
-  const contentId = (b.contentId ?? '').trim()
-  const slug = (b.slug ?? '').trim()
+  // Ключ — slug: API епізодів віддає slug і номери сезону/серії, але не uuid.
+  // content_id лишається необов'язковим — для творів, де він під рукою.
+  const slug = (b.slug ?? '').trim().slice(0, 200)
   const path = (b.path ?? '').trim()
-  if (!UUID_RE.test(contentId) || slug === '' || !path.startsWith('/')) {
+  const rawContentId = (b.contentId ?? '').trim()
+  const contentId = UUID_RE.test(rawContentId) ? rawContentId : null
+  if (slug === '' || !path.startsWith('/')) {
     return NextResponse.json({ ok: false }, { status: 400 })
   }
 
@@ -78,8 +81,8 @@ export async function POST(req: NextRequest) {
       `insert into reading_progress
          (user_id, content_id, slug, title, path, position_px, percent, updated_at)
        values ($1, $2, $3, $4, $5, $6, $7, now())
-       on conflict (user_id, content_id) do update
-         set slug = excluded.slug,
+       on conflict (user_id, slug) do update
+         set content_id = coalesce(excluded.content_id, reading_progress.content_id),
              title = excluded.title,
              path = excluded.path,
              position_px = excluded.position_px,
@@ -97,7 +100,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url)
-  const one = (url.searchParams.get('contentId') ?? '').trim()
+  const one = (url.searchParams.get('slug') ?? '').trim().slice(0, 200)
   const rawLimit = Number(url.searchParams.get('limit'))
   const limit = Math.max(1, Math.min(12, Number.isFinite(rawLimit) ? rawLimit : 3))
 
@@ -105,11 +108,10 @@ export async function GET(req: NextRequest) {
     const userId = await resolveUserId()
 
     if (one !== '') {
-      if (!UUID_RE.test(one)) return NextResponse.json({ item: null })
       const res = await dbQuery(
         `select content_id, slug, title, path, position_px, percent, updated_at
            from reading_progress
-          where user_id = $1 and content_id = $2`,
+          where user_id = $1 and slug = $2`,
         [userId, one],
       )
       const row = (res.rows as Row[])[0] ?? null
