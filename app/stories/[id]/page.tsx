@@ -12,6 +12,7 @@ import AudioPlayer from '@/app/components/AudioPlayer'
 import StoryEmailCapture from '@/app/components/StoryEmailCapture'
 import { toPlainText, toExcerpt } from '@/lib/plain-text'
 import { leadInlineStyle, fitsLead } from '@/lib/reader-typography'
+import Link from 'next/link'
 import { authorSlug } from '@/lib/author-slug'
 import ReaderSettings from '@/app/components/ReaderSettings'
 import RelatedStories from '@/app/components/RelatedStories'
@@ -219,7 +220,16 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
           {/* Meta row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--r-gold, #ef9f27)', fontFamily: FONT }}>{story.author_name}</span>
+            {/* Ім'я автора — посилання на його сторінку. Було звичайним
+                текстом: 990 творів не вели на ~50 сторінок авторів, і Google
+                не мав чим до них дійти. Сторінка /avtor/[slug] працює і для
+                авторів без заведеного профілю (пошук за author_name). */}
+            <Link
+              href={`/avtor/${authorSlug(story.author_name)}`}
+              style={{ fontSize: 15, fontWeight: 700, color: 'var(--r-gold, #ef9f27)', fontFamily: FONT, textDecoration: 'none', borderBottom: '1px solid rgba(239,159,39,0.35)' }}
+            >
+              {story.author_name}
+            </Link>
             <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--on-dark-muted)', fontFamily: FONT }}>{date}</span>
             <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--on-dark-muted)', fontFamily: FONT }}>{wordCount} слів · ~{readMin} хв</span>
           </div>

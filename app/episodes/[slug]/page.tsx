@@ -11,6 +11,7 @@ import EpisodeCliffhanger from '@/app/components/EpisodeCliffhanger'
 import ReaderPulse from '@/app/components/ReaderPulse'
 import StreakTracker from '@/app/components/StreakTracker'
 import ReadTracker from '@/app/components/ReadTracker'
+import Link from 'next/link'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
 import ReadingPosition from '@/app/components/ReadingPosition'
 import StoryEmailCapture from '@/app/components/StoryEmailCapture'
@@ -87,6 +88,7 @@ async function getNextEpisode(season: number, episode: number): Promise<NextRow 
 }
 
 interface PrevRecapRow {
+  slug:           string
   title:          string
   season_number:  number
   episode_number: number
@@ -123,7 +125,7 @@ async function getPrevEpisode(season: number, episode: number): Promise<PrevReca
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('title, season_number, episode_number, recap')
+    .select('slug, title, season_number, episode_number, recap')
     .eq('type', 'balabony')
     .eq('status', 'published')
     .or(`season_number.lt.${season},and(season_number.eq.${season},episode_number.lt.${episode})`)
@@ -338,6 +340,29 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
             }}>
               {prevRecap.recap}
             </p>
+          </div>
+        )}
+
+        {/* Посилання назад по ланцюгу серій. Раніше попередня серія
+            завантажувалась лише заради переказу, а сама лишалась без
+            посилання: пройти сто серій можна було тільки вперед — і читачеві,
+            і пошуковому роботу. */}
+        {prevEp && (
+          <div style={{ marginBottom: 28 }}>
+            <Link
+              href={`/episodes/${prevEp.slug}`}
+              style={{
+                display: 'inline-block',
+                fontSize: 14,
+                fontWeight: 600,
+                color: GOLD,
+                fontFamily: FONT,
+                textDecoration: 'none',
+                borderBottom: `1px solid ${GOLD}55`,
+              }}
+            >
+              ← Попередня серія: {prevEp.title}
+            </Link>
           </div>
         )}
 
