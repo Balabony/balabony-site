@@ -9,6 +9,13 @@ import Breadcrumbs from '@/app/components/Breadcrumbs'
 /**
  * Рейтинги творів.
  *
+ * У добірки входять ЛИШЕ окремі твори (type = 'story'). Серіали винесені
+ * окремим блоком і в змаганні не беруть участі — не через авторство, а тому
+ * що формат дає системну перевагу: серіал це сотня сторінок із наскрізними
+ * читачами, окреме оповідання — одна. У спільному списку сто епізодів завжди
+ * переважили б сто різних оповідань, і рейтинг перестав би показувати те,
+ * заради чого існує: що читають серед творів різних авторів.
+ *
  * Свідомо БЕЗ цифр. При наших числах (72 прочитання за місяць на 1132
  * опублікованих творах) підпис «прочитань: 3» показував би не те, що варте
  * уваги, а те, як мало нас читають. Порядок у списку каже все потрібне.
@@ -52,6 +59,7 @@ async function getMostRead(limit = 12): Promise<Item[]> {
          join content c on c.id = r.content_id
         where r.completed = true
           and c.status in ('approved', 'published')
+          and c.type = 'story'
         group by c.slug, c.title, c.author_name, c.type
         order by count(*) desc, max(r.read_at) desc
         limit $1`,
@@ -71,6 +79,7 @@ async function getMostLiked(limit = 12): Promise<Item[]> {
          from content_likes l
          join content c on c.id = l.content_id
         where c.status in ('approved', 'published')
+          and c.type = 'story'
         group by c.slug, c.title, c.author_name, c.type
         order by count(*) desc
         limit $1`,
@@ -90,6 +99,7 @@ async function getNewNoticed(limit = 12): Promise<Item[]> {
          from content c
          join article_reads r on r.content_id = c.id and r.completed = true
         where c.status in ('approved', 'published')
+          and c.type = 'story'
           and coalesce(c.approved_at, c.created_at) > now() - interval '90 days'
         group by c.slug, c.title, c.author_name, c.type, c.approved_at, c.created_at
         order by coalesce(c.approved_at, c.created_at) desc
@@ -225,7 +235,7 @@ export default async function TopPage() {
         ) : (
           <>
             <Board
-              title="Найчитаніше"
+              title="Найчитаніші історії"
               note="Твори, які читачі дочитували до кінця найчастіше."
               items={mostRead}
             />
@@ -239,6 +249,64 @@ export default async function TopPage() {
               note="Свіжі твори, які вже знайшли своїх читачів."
               items={newNoticed}
             />
+
+            {/* Серіали — не рейтинг, а навігація: їх усього два. */}
+            <section>
+              <h2
+                style={{
+                  fontFamily: "'Comfortaa', sans-serif",
+                  fontSize: 'clamp(17px, 4.4vw, 21px)',
+                  fontWeight: 700,
+                  color: '#FAC775',
+                  margin: '0 0 4px',
+                }}
+              >
+                Серіали
+              </h2>
+              <p style={{ fontSize: 13, color: MUTED, margin: '0 0 14px', fontFamily: FONT }}>
+                Довгі історії, що виходять серіями.
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+                <Link
+                  href="/episodes"
+                  style={{
+                    display: 'block',
+                    padding: '16px 18px',
+                    borderRadius: 12,
+                    border: '1px solid rgba(239,159,39,0.32)',
+                    background: 'rgba(239,159,39,0.06)',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <span style={{ display: 'block', fontFamily: FONT, fontSize: 16, fontWeight: 700, color: CREAM }}>
+                    Балабони
+                  </span>
+                  <span style={{ display: 'block', fontFamily: FONT, fontSize: 13, color: MUTED, marginTop: 4 }}>
+                    Кумедні історії з українського села
+                  </span>
+                </Link>
+
+                <Link
+                  href="/tysha"
+                  style={{
+                    display: 'block',
+                    padding: '16px 18px',
+                    borderRadius: 12,
+                    border: '1px solid rgba(239,159,39,0.32)',
+                    background: 'rgba(239,159,39,0.06)',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <span style={{ display: 'block', fontFamily: FONT, fontSize: 16, fontWeight: 700, color: CREAM }}>
+                    Тиша
+                  </span>
+                  <span style={{ display: 'block', fontFamily: FONT, fontSize: 13, color: MUTED, marginTop: 4 }}>
+                    Історія, яку чуєш серцем
+                  </span>
+                </Link>
+              </div>
+            </section>
           </>
         )}
       </main>
