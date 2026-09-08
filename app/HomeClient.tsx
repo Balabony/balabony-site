@@ -28,6 +28,7 @@ import EmailCapture from './components/EmailCapture'
 import AuthorsStrip from './components/AuthorsStrip'
 import GenreChips from './components/GenreChips'
 import FactsLine from './components/FactsLine'
+import ContinueReading from './components/ContinueReading'
 
 
 
@@ -114,6 +115,10 @@ export default function HomeClient({
       <FreeBanner />
 
       <KonkursyBanner />
+
+      {/* Недочитане цим читачем. Стоїть нижче першого екрана: список
+          приходить із сервера вже після відкриття сторінки. */}
+      <ContinueReading />
 
       <div id="series"><SeriesStrip series={seriesData} /></div>
 
