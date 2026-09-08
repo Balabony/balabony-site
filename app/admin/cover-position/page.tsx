@@ -48,13 +48,30 @@ const DEFAULT_FRAME: Frame = { scale: 100, x: 0, y: 0 }
  * 1% запасу з кожного боку — саме на стільки й можна рухати. Інакше з-під фото
  * вилазить чорна смуга.
  */
+/**
+ * Найбільший припустимий зсув у відсотках при заданому масштабі.
+ *
+ * ВАЖЛИВО про множник. У `transform: translate(x%) scale(s)` відсоток
+ * рахується від розміру елемента, а масштабування застосовується ПІСЛЯ —
+ * тобто справжній зсув дорівнює x × s. Запас із кожного боку становить
+ * (s − 1) / 2 висоти рамки, тож припустимий x = 50 × (s − 100) / s.
+ *
+ * Раніше тут стояло (scale − 100) / 2: при наближенні 300% воно дозволяло
+ * зсув 100%, який на екрані перетворювався на 300% — фото від'їжджало так,
+ * що обличчя виходило за кадр, а з-під нього лізло порожнє тло.
+ */
 function maxOffset(scale: number): number {
-  return Math.max(0, (scale - 100) / 2)
+  if (scale <= 100) return 0
+  return Math.max(0, (50 * (scale - 100)) / scale)
 }
 
-/** Масштаб, за якого такий зсув стає можливим. */
+/** Масштаб, за якого такий зсув стає можливим (обернене до maxOffset). */
 function scaleFor(x: number, y: number): number {
-  return 100 + 2 * Math.max(Math.abs(x), Math.abs(y))
+  const need = Math.max(Math.abs(x), Math.abs(y))
+  if (need <= 0) return 100
+  // з need = 50 (s − 100) / s  →  s = 5000 / (50 − need)
+  if (need >= 50) return 300
+  return Math.min(300, 5000 / (50 - need))
 }
 
 /** Не даємо кадру виїхати за межі фото. */
@@ -400,6 +417,48 @@ export default function CoverPositionPage() {
             </div>
             <div style={{ textAlign: 'center', fontSize: 12, color: MUTED, marginTop: 8 }}>
               Тягніть фото мишею просто в рамці
+            </div>
+
+            {/* Як цей самий кадр виглядатиме на сайті. Обкладинка живе в
+                різних пропорціях: у списку — майже квадрат, у блоці
+                «Далі буде» — широкий банер. Кадр, гарний в одній рамці,
+                у другій може відрізати обличчя, тож показуємо обидві
+                одразу й наживо. */}
+            <div style={{ marginTop: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 }}>
+                Як виглядатиме на сайті
+              </div>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{
+                    position: 'relative', width: 160, aspectRatio: '275 / 200',
+                    overflow: 'hidden', background: '#000', borderRadius: 8,
+                    border: `1px solid ${LINE}`,
+                  }}>
+                    {active.cover_url && (
+                      <img src={active.cover_url} alt="" draggable={false} style={frameStyle(frame)} />
+                    )}
+                  </div>
+                  <div style={{ fontSize: 11, color: MUTED, marginTop: 5, textAlign: 'center' }}>
+                    Картка в списку
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{
+                    position: 'relative', width: 220, aspectRatio: '16 / 9',
+                    overflow: 'hidden', background: '#000', borderRadius: 8,
+                    border: `1px solid ${LINE}`,
+                  }}>
+                    {active.cover_url && (
+                      <img src={active.cover_url} alt="" draggable={false} style={frameStyle(frame)} />
+                    )}
+                  </div>
+                  <div style={{ fontSize: 11, color: MUTED, marginTop: 5, textAlign: 'center' }}>
+                    Банер «Далі буде»
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div style={{ marginTop: 18, display: 'grid', gap: 14 }}>

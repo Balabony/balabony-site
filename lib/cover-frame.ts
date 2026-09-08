@@ -34,10 +34,12 @@ export function coverStyle(
   const m = coverPosition.match(/scale:(-?\d+)\s+x:(-?\d+)\s+y:(-?\d+)/)
   if (m) {
     const scale = Math.max(100, Math.min(400, parseInt(m[1], 10)))
-    // Зсувати можна лише на те, наскільки фото більше за рамку: кожні зайві
-    // 2% масштабу дають 1% запасу з боку. Інакше з-під фото вилазить чорна
-    // смуга — саме це й ловимо тут, щоб криве значення не псувало картку.
-    const limit = Math.max(0, (scale - 100) / 2)
+    // Найбільший припустимий зсув. У `translate(x%) scale(s)` відсоток
+    // рахується від розміру елемента, а масштабування йде ПІСЛЯ, тож
+    // справжній зсув дорівнює x × s. Запас із боку — (s − 1) / 2, отже
+    // x = 50 × (s − 100) / s. Стара формула (scale − 100) / 2 давала втричі
+    // більше при наближенні 300%: обличчя виїжджало за кадр.
+    const limit = scale <= 100 ? 0 : Math.max(0, (50 * (scale - 100)) / scale)
     const tx = Math.max(-limit, Math.min(limit, parseInt(m[2], 10)))
     const ty = Math.max(-limit, Math.min(limit, parseInt(m[3], 10)))
     return {
