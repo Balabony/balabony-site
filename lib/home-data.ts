@@ -152,14 +152,26 @@ export function mapStory(s: any): HomeStory {
   }
 }
 
-/** Свіжі історії для головної: без казок, з ротацією, по одному твору на автора. */
+/**
+ * Свіжі історії для головної: без казок, з ротацією, по одному твору на автора.
+ *
+ * Запит РОЗБИТО НА ДВА, і це принципово. Раніше тягнули 500 рядків одразу
+ * з трьома повними текстовими колонками (text, corrected_text, humanized_text),
+ * щоб показати шість карток і взяти з кожної по 200 символів на тизер. Сервер
+ * качав із Supabase усі тексти бібліотеки на кожен рендер головної — звідси
+ * FCP і Speed Index, які вперлися в 5,9 с (вимір 08.09.2026).
+ *
+ * Тепер: спершу легкий запит (лише id, author_name, approved_at) — рівно ті
+ * поля, які потрібні rotateDaily; потім повні дані тільки для обраних шести.
+ */
 export async function getFreshStories(limit = 6): Promise<HomeStory[]> {
   try {
     const supabase = getSupabaseAdmin()
 
-    const { data, error } = await supabase
+    // Крок 1 — легкий запит для ротації.
+    const { data: light, error: lightErr } = await supabase
       .from('content')
-      .select('id, slug, title, author_name, genre, text, cover_url, cover_position, published_version, corrected_text, humanized_text, approved_at, duration_minutes, category, is_adult')
+      .select('id, author_name, approved_at')
       .eq('type', 'story')
       .in('status', ['approved', 'published'])
       // NULL != 'Казка' у SQL дає NULL, тому .neq() мовчки викидає історії
@@ -168,9 +180,26 @@ export async function getFreshStories(limit = 6): Promise<HomeStory[]> {
       .order('approved_at', { ascending: false, nullsFirst: false })
       .limit(500)
 
-    if (error) throw error
+    if (lightErr) throw lightErr
 
-    return rotateDaily(data ?? [], limit).map(mapStory)
+    const picked = rotateDaily(light ?? [], limit)
+    if (picked.length === 0) return []
+
+    // Крок 2 — повні дані лише для обраних.
+    const ids = picked.map(r => r.id)
+    const { data: full, error: fullErr } = await supabase
+      .from('content')
+      .select('id, slug, title, author_name, genre, text, cover_url, cover_position, published_version, corrected_text, humanized_text, approved_at, duration_minutes, category, is_adult')
+      .in('id', ids)
+
+    if (fullErr) throw fullErr
+
+    // .in() не гарантує порядок — відновлюємо той, який дала ротація.
+    const byId = new Map((full ?? []).map(r => [r.id, r]))
+    return ids
+      .map(id => byId.get(id))
+      .filter((r): r is NonNullable<typeof r> => Boolean(r))
+      .map(mapStory)
   } catch {
     // Порожній масив ховає секцію — сторінка малюється без неї.
     return []
