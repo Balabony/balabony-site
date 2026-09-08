@@ -138,9 +138,14 @@ export default async function ProfilePage() {
             <div style={{
               padding: '0.5rem 0.75rem',
               background: 'rgba(255,248,238,0.07)',
+              // Колір задаємо явно: успадкований лишався темним і код ставав
+              // невидимим на темному тлі.
+              color: '#FFF8EE',
+              border: '1px solid rgba(255,248,238,0.14)',
               borderRadius: '6px',
               fontFamily: 'monospace',
               fontSize: '1rem',
+              letterSpacing: '0.06em',
               display: 'inline-block',
             }}>
               {profile.referral_code}

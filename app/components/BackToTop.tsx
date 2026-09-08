@@ -57,12 +57,16 @@ export default function BackToTop({ gold = '#ef9f27' }: { gold?: string }) {
       }}
       style={{
         position: 'fixed',
-        right: 16,
-        bottom: 'calc(env(safe-area-inset-bottom, 0px) + 128px)',
-        zIndex: 65,
-        width: 44,
-        height: 44,
-        borderRadius: '50%',
+        right: 14,
+        // Кнопка «Аа» (.rs-fab у reader.css) стоїть на
+        // calc(var(--bb-offset, 56px) + 92px) і має висоту 48px. Стаємо рівно
+        // над нею: той самий оффсет плюс її висота і проміжок. Раніше тут
+        // було фіксовані 128px, і кнопки накладалися.
+        bottom: 'calc(var(--bb-offset, 56px) + 92px + 48px + 10px)',
+        zIndex: 184,
+        width: 48,
+        height: 48,
+        borderRadius: 14,
         border: `1px solid ${gold}66`,
         background: 'rgba(10, 22, 40, 0.92)',
         color: gold,
