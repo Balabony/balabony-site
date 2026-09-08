@@ -30,6 +30,7 @@ export default function robots(): MetadataRoute.Robots {
           '/author/dashboard',
           '/author/contract',
           '/contact?topic=error', // звіти про помилки — не для індексації
+          '/offline', // заглушка service worker'а, у пошуку не потрібна
         ],
       },
       // Тренувальні боти — забороняємо: на текстах наших авторів
