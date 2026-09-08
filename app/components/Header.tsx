@@ -79,6 +79,7 @@ export default function Header() {
           {[
             { label: 'Історії', href: '/stories' },
             { label: 'Серії', href: '/episodes' },
+            { label: 'Що читають', href: '/top' },
             { label: 'Передплата', href: '/#pricing' },
             { label: 'Підтримати проєкт', href: '/support' },
           ].map((item) => (
