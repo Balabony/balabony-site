@@ -11,8 +11,22 @@ export default function ServiceWorkerRegistration() {
       window.dispatchEvent(new CustomEvent('sw-update'))
     }
 
+    // 08.09.2026. Чи керував сторінкою воркер УЖЕ на момент завантаження.
+    //
+    // На першому візиті контролера немає: install → activate → clients.claim()
+    // у sw.js відбуваються одразу, claim() спричиняє controllerchange, і
+    // безумовний reload нижче перезавантажував сторінку посеред завантаження.
+    // Наслідок — усе качалося двічі: обкладинки з Supabase, чанки Next,
+    // gtag. У PageSpeed це давало подвійну вагу і LCP 7,5 с, бо він завжди
+    // приходить із чистим профілем, тобто завжди без контролера.
+    //
+    // Перезавантажувати треба лише коли воркер СПРАВДІ оновився — тобто
+    // старий контролер був і його замінив новий.
+    const hadController = !!navigator.serviceWorker.controller
+
     let reloading = false
     const onControllerChange = () => {
+      if (!hadController) return
       if (reloading) return
       reloading = true
       window.location.reload()
