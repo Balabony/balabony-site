@@ -24,6 +24,11 @@ export default function robots(): MetadataRoute.Robots {
           '/api/',
           '/login',
           '/profile',
+          // 08.09.2026: кабінет автора був відкритий ботам. Потрапити туди
+          // без сесії не можна, але адреси осідали в індексі як порожні
+          // сторінки, а /author/contract — це ще й текст договору.
+          '/author/dashboard',
+          '/author/contract',
           '/contact?topic=error', // звіти про помилки — не для індексації
         ],
       },
