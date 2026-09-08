@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import GoogleAds from '@/app/components/GoogleAds';
 
 /**
  * Сторінка підтримки /support — v6
@@ -229,6 +230,9 @@ Verwendungszweck: ${PURPOSE_EN}`,
 
   return (
     <>
+      {/* Рекламний тег Ads потрібен саме тут — на копіюванні реквізитів
+          спрацьовує конверсія. На решті сайту він не вантажиться. */}
+      <GoogleAds />
       <style jsx global>{`
         html[data-support-theme="default"] .support-page {
           --sup-bg: #0f172a;

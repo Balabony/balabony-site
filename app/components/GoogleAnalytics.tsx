@@ -3,7 +3,12 @@
 import Script from 'next/script'
 
 const GA_ID = 'G-NTQKS1MZZD'
-const ADS_ID = 'AW-16967022103'
+
+// Рекламний тег Google Ads (AW-...) тут БІЛЬШЕ НЕ ПІДКЛЮЧАЄТЬСЯ.
+// Він тягнув окремий скрипт на 192,5 КіБ на кожній сторінці сайту заради
+// однієї конверсії на /support. Тепер живе в GoogleAds.tsx і монтується
+// точково. Якщо додасте нову конверсію Ads — не повертайте рядок сюди,
+// а підключіть <GoogleAds /> на потрібній сторінці.
 
 export default function GoogleAnalytics() {
   return (
@@ -27,7 +32,6 @@ export default function GoogleAnalytics() {
           });
           gtag('js', new Date());
           gtag('config', '${GA_ID}');
-          gtag('config', '${ADS_ID}');
         `}
       </Script>
     </>
