@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ShareButtons from '@/app/components/ShareButtons'
 import BookmarkButton from '@/app/components/BookmarkButton'
+import FollowAuthorButton from '@/app/components/FollowAuthorButton'
 import ReaderPulse from '@/app/components/ReaderPulse'
 import LikeButton from '@/app/components/LikeButton'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
@@ -31,6 +32,7 @@ interface StoryRow {
   id:                string
   title:             string
   author_name:       string
+  author_id:         string | null
   genre:             string
   text:              string
   corrected_text:    string | null
@@ -51,7 +53,7 @@ async function getStory(id: string): Promise<StoryRow | null> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('id, slug, title, author_name, genre, text, corrected_text, humanized_text, published_version, cover_url, images, is_adult, is_free, is_premium, approved_at, updated_at, audio_url, audio_status')
+    .select('id, slug, title, author_name, author_id, genre, text, corrected_text, humanized_text, published_version, cover_url, images, is_adult, is_free, is_premium, approved_at, updated_at, audio_url, audio_status')
     .eq('type', 'story')
     .eq('slug', id)
     .in('status', ['approved', 'published'])
@@ -285,8 +287,12 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         <RelatedStories storyId={story.id} authorName={story.author_name} genre={story.genre} />
 
         {/* Зберегти й поширити — поруч, одразу після тексту й схожих творів. */}
-        <div style={{ marginTop: 40 }}>
+        {/* Зберегти й підписатися — там, де читач щойно дочитав.
+            Кнопка стеження досі жила лише на сторінці автора, тобто той,
+            кому щойно сподобався твір, мусив здогадатися перейти туди. */}
+        <div style={{ marginTop: 40, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <BookmarkButton slug={id} title={story.title} path={`/stories/${id}`} />
+          {story.author_id && <FollowAuthorButton authorUserId={story.author_id} />}
         </div>
 
         {/* Поширення */}
