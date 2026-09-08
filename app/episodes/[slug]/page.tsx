@@ -69,6 +69,7 @@ async function getEpisode(slug: string): Promise<EpisodeRow | null> {
 interface NextRow {
   slug:           string
   title:          string
+  cover_position: string | null
   season_number:  number
   episode_number: number
   is_premium:        boolean
@@ -79,7 +80,7 @@ async function getNextEpisode(season: number, episode: number): Promise<NextRow 
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('slug, title, season_number, episode_number, cover_url')
+    .select('slug, title, season_number, episode_number, cover_url, cover_position')
     .eq('type', 'balabony')
     .eq('status', 'published')
     .or(`season_number.gt.${season},and(season_number.eq.${season},episode_number.gt.${episode})`)
@@ -434,6 +435,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
                 number:      nextEp?.episode_number ?? episode.episode_number + 1,
                 teaser:      episode.next_teaser ?? '',
                 coverUrl:    nextEp?.cover_url ?? undefined,
+                coverPosition: nextEp?.cover_position ?? undefined,
                 releaseDate: episode.next_release_date ?? undefined,
                 readUrl:     nextEp ? `/episodes/${nextEp.slug}` : undefined,
               } : undefined}

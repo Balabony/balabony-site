@@ -11,6 +11,8 @@ export interface NextEpisode {
   number: number
   teaser: string            // інтрига наступної серії, без спойлера
   coverUrl?: string
+  /** Кадрування обкладинки з адмінки /admin/cover-position. */
+  coverPosition?: string
   releaseDate?: string      // ISO-дата релізу; якщо в майбутньому — показуємо відлік
   readUrl?: string          // якщо серія вже доступна
 }
@@ -81,6 +83,9 @@ function plural(n: number, one: string, few: string, many: string): string {
 
 export default function EpisodeCliffhanger({ hook, next, allSeriesUrl = '/series' }: EpisodeCliffhangerProps) {
   const { colors } = useTheme()
+  // Нічна тема визначається за кольором тексту: у ThemeContext
+  // night.fg = '#FFFFFF', day.fg = '#081420'.
+  const isNight = colors.fg === '#FFFFFF'
   const { ready, left } = useCountdown(next?.releaseDate)
 
   const cardStyle: React.CSSProperties = {
@@ -120,10 +125,22 @@ export default function EpisodeCliffhanger({ hook, next, allSeriesUrl = '/series
 
           <div style={kicker}>Далі буде…</div>
 
+          {/* Гачок навмисно НЕ чисто білий і не вагою 800 на нічній темі.
+              #FFFFFF вагою 800 по тлу #081420 дає ореол: контури літер
+              розсвічуються, і великий напис здається розмитим — читачі
+              описують це як «літери пливуть». Тепліший відтінок, вага 700
+              і більший міжрядковий прибирають ефект, не втрачаючи акценту.
+              На денній темі текст темний по світлому, там ореолу немає. */}
           {hook && (
             <p style={{
-              fontSize: 20, fontWeight: 800, color: colors.fg, fontFamily: FONT,
-              lineHeight: 1.4, margin: '0 0 20px', wordBreak: 'break-word',
+              fontSize: 20,
+              fontWeight: isNight ? 700 : 800,
+              color: isNight ? '#F2EDE4' : colors.fg,
+              fontFamily: FONT,
+              lineHeight: 1.55,
+              letterSpacing: isNight ? '0.005em' : undefined,
+              margin: '0 0 20px',
+              wordBreak: 'break-word',
             }}>
               {hook}
             </p>
@@ -143,10 +160,12 @@ export default function EpisodeCliffhanger({ hook, next, allSeriesUrl = '/series
                     alt={`Сезон ${next.season} · Серія ${next.number}`}
                     style={{
                       width: '100%', height: '100%', objectFit: 'cover',
-                      // Вертикальні обкладинки в рамці 16:9 обрізались згори
-                      // й знизу порівну — голова персонажа відлітала. Прив'язка
-                      // до верху лишає обличчя в кадрі на будь-яких пропорціях.
-                      objectPosition: 'center top',
+                      // Кадрування беремо те, яке виставлене в адмінці
+                      // /admin/cover-position — так само, як це робить
+                      // TyshaSection. Жорстке 'center top' тут стояло під
+                      // вертикальні обкладинки й з'їдало низ горизонтальних:
+                      // обличчя опинялося не в центрі рамки.
+                      objectPosition: next.coverPosition || 'center top',
                       display: 'block',
                       filter: hasFutureRelease ? 'saturate(0.85)' : 'none',
                     }}
