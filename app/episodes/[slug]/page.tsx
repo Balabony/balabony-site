@@ -307,7 +307,10 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
             {episode.title}
           </h1>
           <div style={{ fontSize: 13.5, lineHeight: 1.4, margin: '0 0 12px', fontFamily: FONT }}>
-            <span style={{ fontWeight: 700, color: 'var(--r-gold, #ef9f27)' }}>Назар Колодій</span>
+            {/* Псевдонім веде на сторінку автора: 205 творів обох серіалів
+                записані в базі під цим іменем, тож /avtor/nazar-kolodii
+                існує. Було звичайним текстом — сотня серій нікуди не вела. */}
+            <Link href="/avtor/nazar-kolodii" style={{ fontWeight: 700, color: 'var(--r-gold, #ef9f27)', textDecoration: 'none', borderBottom: '1px solid rgba(239,159,39,0.35)' }}>Назар Колодій</Link>
             <span style={{ color: 'var(--on-dark-muted)', fontStyle: 'italic' }}> · Кумедні історії з українського села</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>

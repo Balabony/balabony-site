@@ -273,7 +273,8 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
         </span>
         <h1 style={{ fontSize: 26, fontWeight: 800, color: '#fff', margin: '10px 0 5px', lineHeight: 1.2 }}>{ep.title}</h1>
         <div style={{ fontSize: 13, lineHeight: 1.4 }}>
-          <span style={{ fontWeight: 700, color: GOLD }}>Назар Колодій</span>
+          {/* Посилання на сторінку автора — див. коментар на сторінці серії. */}
+          <Link href="/avtor/nazar-kolodii" style={{ fontWeight: 700, color: GOLD, textDecoration: 'none', borderBottom: `1px solid ${GOLD}55` }}>Назар Колодій</Link>
           <span style={{ color: 'rgba(245,240,232,0.55)', fontStyle: 'italic' }}> · Історія, яку чуєш серцем</span>
         </div>
         {(() => {
