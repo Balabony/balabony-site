@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import MyLibrary from '@/app/components/MyLibrary'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import LogoutButton from './LogoutButton'
 import { dbQuery } from '@/lib/db'
@@ -82,6 +83,9 @@ export default async function ProfilePage() {
             </div>
           </a>
         )}
+
+        {/* Збережене й недочитане — те, по що читач найчастіше сюди й заходить. */}
+        <MyLibrary />
 
         <div style={{ marginBottom: '1.5rem' }}>
           <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>
