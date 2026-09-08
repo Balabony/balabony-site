@@ -44,20 +44,22 @@ export default async function ProfilePage() {
     <main style={{
       minHeight: '100vh',
       padding: '2rem 1rem',
-      background: '#fef3c7',
+      background: 'linear-gradient(180deg, #0a1628 0%, #0f1f3a 100%)',
     }}>
       <div style={{
         maxWidth: '640px',
         margin: '0 auto',
-        background: 'white',
+        background: '#0D1B2A',
+        border: '1px solid rgba(239,159,39,0.22)',
         padding: '2.5rem',
         borderRadius: '12px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
       }}>
         <h1 style={{
           fontSize: '1.75rem',
           marginBottom: '1.5rem',
-          color: '#1f2937',
+          color: '#FFF8EE',
+          fontFamily: "'Comfortaa', sans-serif",
         }}>
           Мій профіль
         </h1>
@@ -69,16 +71,16 @@ export default async function ProfilePage() {
               display: 'block',
               marginBottom: '1.75rem',
               padding: '1rem 1.15rem',
-              background: '#fff7e6',
-              border: '2px solid #ef9f27',
+              background: 'rgba(239,159,39,0.10)',
+              border: '1px solid rgba(239,159,39,0.55)',
               borderRadius: '10px',
               textDecoration: 'none',
             }}
           >
-            <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#92400e' }}>
+            <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#FAC775' }}>
               Кабінет автора →
             </div>
-            <div style={{ fontSize: '0.92rem', color: '#7c4a12', marginTop: '0.35rem', lineHeight: 1.5 }}>
+            <div style={{ fontSize: '0.92rem', color: '#C7BFB2', marginTop: '0.35rem', lineHeight: 1.5 }}>
               Ваші твори, статистика прочитань, договір і реквізити для виплат.
             </div>
           </a>
@@ -88,24 +90,24 @@ export default async function ProfilePage() {
         <MyLibrary />
 
         <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+          <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginBottom: '0.25rem' }}>
             Email
           </div>
-          <div style={{ fontSize: '1rem', color: '#1f2937', fontWeight: 500 }}>
+          <div style={{ fontSize: '1rem', color: '#FFF8EE', fontWeight: 500 }}>
             {user.email}
           </div>
         </div>
 
         <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+          <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginBottom: '0.25rem' }}>
             Підписка
           </div>
           {hasSubscription ? (
             <div style={{
               padding: '0.75rem 1rem',
-              background: '#d1fae5',
+              background: 'rgba(125,219,160,0.12)',
               borderRadius: '8px',
-              color: '#065f46',
+              color: '#7ddba0',
             }}>
               <strong>Активна:</strong> {profile.subscription_tier || 'базова'}
               <br />
@@ -116,12 +118,12 @@ export default async function ProfilePage() {
           ) : (
             <div style={{
               padding: '0.75rem 1rem',
-              background: '#fef3c7',
+              background: 'rgba(239,159,39,0.12)',
               borderRadius: '8px',
-              color: '#92400e',
+              color: '#FAC775',
             }}>
               Немає активної підписки.{' '}
-              <a href="/" style={{ color: '#b45309', textDecoration: 'underline' }}>
+              <a href="/" style={{ color: '#FAC775', textDecoration: 'underline' }}>
                 Обрати план
               </a>
             </div>
@@ -130,12 +132,12 @@ export default async function ProfilePage() {
 
         {profile?.referral_code && (
           <div style={{ marginBottom: '1.5rem' }}>
-            <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+            <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginBottom: '0.25rem' }}>
               Реферальний код
             </div>
             <div style={{
               padding: '0.5rem 0.75rem',
-              background: '#f3f4f6',
+              background: 'rgba(255,248,238,0.07)',
               borderRadius: '6px',
               fontFamily: 'monospace',
               fontSize: '1rem',
@@ -148,10 +150,10 @@ export default async function ProfilePage() {
 
         {profile?.bonus_points > 0 && (
           <div style={{ marginBottom: '1.5rem' }}>
-            <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+            <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginBottom: '0.25rem' }}>
               Бонусні бали
             </div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1f2937' }}>
+            <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#FFF8EE' }}>
               {profile.bonus_points}
             </div>
           </div>
@@ -164,8 +166,8 @@ export default async function ProfilePage() {
               display: 'inline-block',
               padding: '0.65rem 1.25rem',
               borderRadius: '8px',
-              background: '#fef3c7',
-              color: '#92400e',
+              background: 'rgba(239,159,39,0.12)',
+              color: '#FAC775',
               textDecoration: 'none',
               fontWeight: 600,
               marginBottom: '1.25rem',
