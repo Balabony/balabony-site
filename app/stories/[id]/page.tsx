@@ -7,6 +7,7 @@ import ReaderPulse from '@/app/components/ReaderPulse'
 import LikeButton from '@/app/components/LikeButton'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
 import ReadingPosition from '@/app/components/ReadingPosition'
+import ReadingProgressBar from '@/app/components/ReadingProgressBar'
 import AgeGate from '@/app/components/AgeGate'
 import AudioPlayer from '@/app/components/AudioPlayer'
 import StoryEmailCapture from '@/app/components/StoryEmailCapture'
@@ -258,6 +259,8 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         {/* Облік прочитання — база для винагороди автора. Маркер кінця тексту
             має стояти саме тут, одразу під статтею. */}
         <StoryReadTracker contentId={story.id} slug={id} title={story.title} charCount={charCount} />
+        <ReadingProgressBar />
+
         {/* Позиція читання: де людина спинилася минулого разу. */}
         <ReadingPosition slug={id} title={story.title} path={`/stories/${id}`} contentId={story.id} />
 

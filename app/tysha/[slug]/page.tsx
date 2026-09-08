@@ -8,6 +8,8 @@ import Link from 'next/link'
 import ReadTracker from '@/app/components/ReadTracker'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
 import ReadingPosition from '@/app/components/ReadingPosition'
+import ReadingProgressBar from '@/app/components/ReadingProgressBar'
+import ReaderKeyboardNav from '@/app/components/ReaderKeyboardNav'
 import ReaderPulse from '@/app/components/ReaderPulse'
 import TyshaProgressTracker from '@/app/components/TyshaProgressTracker'
 import TyshaAgeGate from '@/app/components/TyshaAgeGate'
@@ -155,13 +157,19 @@ async function getNextEpisode(episode: number | null, isAdmin: boolean): Promise
 
 // Recap ПОПЕРЕДНЬОЇ серії — для блоку «Що було раніше».
 // На 1-й серії повертає null (нема попередньої) → блок ховається.
-async function getPrevTyshaRecap(episode: number | null, isAdmin: boolean): Promise<string | null> {
+/** Попередня серія: slug для посилання назад і переказ, якщо він є.
+    Раніше поверталися тільки слова переказу, тож ланцюг «Тиші» вів лише
+    вперед — ні читачеві, ні пошуковому роботу не було чим повернутися. */
+async function getPrevTysha(
+  episode: number | null,
+  isAdmin: boolean,
+): Promise<{ slug: string; title: string; recap: string | null } | null> {
   if (episode == null) return null
   const supabase = getSupabaseAdmin()
   const nowIso = new Date().toISOString()
   let q = supabase
     .from('content')
-    .select('recap, status, publish_at')
+    .select('slug, title, recap, status, publish_at')
     .eq('type', 'tysha')
     .lt('episode_number', episode)
     .order('episode_number', { ascending: false })
@@ -169,8 +177,10 @@ async function getPrevTyshaRecap(episode: number | null, isAdmin: boolean): Prom
   if (!isAdmin) q = q.or(`status.eq.published,and(status.eq.scheduled,publish_at.lte.${nowIso})`)
   const { data } = await q
   if (!data || data.length === 0) return null
-  const recap = (data[0].recap as string | null)?.trim()
-  return recap ? recap : null
+  const row = data[0] as { slug: string; title: string; recap: string | null }
+  if (!row.slug) return null
+  const recap = row.recap?.trim()
+  return { slug: row.slug, title: row.title, recap: recap ? recap : null }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -244,7 +254,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
     (ep.is_premium ? hasPremiumAccess : hasSub)
   const locked = !isUnlocked
   const visibleBody = locked ? buildTeaser(body) : body
-  const prevRecap = await getPrevTyshaRecap(ep.episode_number, isAdmin)
+  const prev = await getPrevTysha(ep.episode_number, isAdmin)
 
   return (
     <div
@@ -301,16 +311,27 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
       )}
 
       {/* Що було раніше — recap попередньої серії */}
-      {prevRecap && (
+      {prev?.recap && (
         <div style={{ maxWidth: 720, margin: '20px auto 0', padding: '0 20px' }}>
           <div style={{ padding: '18px 20px', background: `${GOLD}0f`, border: `1px solid ${GOLD}33`, borderRadius: 12, borderLeft: `3px solid ${GOLD}` }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 }}>
               Що було раніше
             </div>
             <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: '#d8d2c6', fontStyle: 'italic' }}>
-              {prevRecap}
+              {prev.recap}
             </p>
           </div>
+        </div>
+      )}
+
+      {prev && (
+        <div style={{ maxWidth: 720, margin: '16px auto 0', padding: '0 20px' }}>
+          <Link
+            href={`/tysha/${prev.slug}`}
+            style={{ display: 'inline-block', fontSize: 14, fontWeight: 600, color: GOLD, textDecoration: 'none', borderBottom: `1px solid ${GOLD}55` }}
+          >
+            ← Попередня серія: {prev.title}
+          </Link>
         </div>
       )}
 
@@ -357,6 +378,12 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
           analytics={false}
         />
       )}
+
+      {!locked && <ReadingProgressBar />}
+      <ReaderKeyboardNav
+        prevUrl={prev ? `/tysha/${prev.slug}` : undefined}
+        nextUrl={next ? `/tysha/${next.slug}` : undefined}
+      />
 
       {/* Позиція читання. Тільки для відкритої серії: у замкненій
           показано лише тізер, повертати читача нікуди. */}

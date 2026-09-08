@@ -14,6 +14,8 @@ import ReadTracker from '@/app/components/ReadTracker'
 import Link from 'next/link'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
 import ReadingPosition from '@/app/components/ReadingPosition'
+import ReadingProgressBar from '@/app/components/ReadingProgressBar'
+import ReaderKeyboardNav from '@/app/components/ReaderKeyboardNav'
 import StoryEmailCapture from '@/app/components/StoryEmailCapture'
 import AudioPlayer from '@/app/components/AudioPlayer'
 import { leadCssDeclarations, fitsLead } from '@/lib/reader-typography'
@@ -384,6 +386,13 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
             analytics={false}
           />
         )}
+
+        {/* Смужка прогресу вгорі й стрілки ← → між серіями. */}
+        {!isLocked && <ReadingProgressBar />}
+        <ReaderKeyboardNav
+          prevUrl={prevEp ? `/episodes/${prevEp.slug}` : undefined}
+          nextUrl={nextEp ? `/episodes/${nextEp.slug}` : undefined}
+        />
 
         {/* Позиція читання. Тільки для відкритої серії: у замкненій читач
             бачить тізер, і повертати його «туди, де спинився» немає куди. */}
