@@ -63,10 +63,12 @@ export default function ReadingProgressBar() {
         top: 0,
         left: 0,
         right: 0,
-        height: 3,
+        height: 5,
         zIndex: 70,
         pointerEvents: 'none',
-        background: 'transparent',
+        // Ледь помітна доріжка: видно і пройдений шлях, і скільки лишилося.
+        // Три пікселі без тла на темній шапці читач просто не помічав.
+        background: 'rgba(255, 248, 238, 0.10)',
       }}
     >
       <div

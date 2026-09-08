@@ -16,6 +16,7 @@ import StoryReadTracker from '@/app/components/StoryReadTracker'
 import ReadingPosition from '@/app/components/ReadingPosition'
 import ReadingProgressBar from '@/app/components/ReadingProgressBar'
 import ReaderKeyboardNav from '@/app/components/ReaderKeyboardNav'
+import EpisodeNav from '@/app/components/EpisodeNav'
 import StoryEmailCapture from '@/app/components/StoryEmailCapture'
 import AudioPlayer from '@/app/components/AudioPlayer'
 import { leadCssDeclarations, fitsLead } from '@/lib/reader-typography'
@@ -67,6 +68,7 @@ async function getEpisode(slug: string): Promise<EpisodeRow | null> {
 
 interface NextRow {
   slug:           string
+  title:          string
   season_number:  number
   episode_number: number
   is_premium:        boolean
@@ -77,7 +79,7 @@ async function getNextEpisode(season: number, episode: number): Promise<NextRow 
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('slug, season_number, episode_number, cover_url')
+    .select('slug, title, season_number, episode_number, cover_url')
     .eq('type', 'balabony')
     .eq('status', 'published')
     .or(`season_number.gt.${season},and(season_number.eq.${season},episode_number.gt.${episode})`)
@@ -386,6 +388,14 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
             analytics={false}
           />
         )}
+
+        {/* Видимий перехід між серіями — головний спосіб на телефоні. */}
+        <EpisodeNav
+          prevUrl={prevEp ? `/episodes/${prevEp.slug}` : undefined}
+          prevTitle={prevEp?.title}
+          nextUrl={nextEp ? `/episodes/${nextEp.slug}` : undefined}
+          nextTitle={nextEp?.title}
+        />
 
         {/* Смужка прогресу вгорі й стрілки ← → між серіями. */}
         {!isLocked && <ReadingProgressBar />}

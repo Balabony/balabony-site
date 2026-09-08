@@ -10,6 +10,7 @@ import StoryReadTracker from '@/app/components/StoryReadTracker'
 import ReadingPosition from '@/app/components/ReadingPosition'
 import ReadingProgressBar from '@/app/components/ReadingProgressBar'
 import ReaderKeyboardNav from '@/app/components/ReaderKeyboardNav'
+import EpisodeNav from '@/app/components/EpisodeNav'
 import ReaderPulse from '@/app/components/ReaderPulse'
 import TyshaProgressTracker from '@/app/components/TyshaProgressTracker'
 import TyshaAgeGate from '@/app/components/TyshaAgeGate'
@@ -378,6 +379,14 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
           analytics={false}
         />
       )}
+
+      <EpisodeNav
+        prevUrl={prev ? `/tysha/${prev.slug}` : undefined}
+        prevTitle={prev?.title}
+        nextUrl={next ? `/tysha/${next.slug}` : undefined}
+        nextTitle={next?.title}
+        gold={GOLD}
+      />
 
       {!locked && <ReadingProgressBar />}
       <ReaderKeyboardNav
