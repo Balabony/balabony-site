@@ -25,10 +25,14 @@ export const revalidate = 10800
 export default async function HomePage() {
   const [seriesData, freshStories, fairytales, tyshaItems, genreCounts, stats, authors] =
     await Promise.all([
-    getHomeSeries(3),
-    getFreshStories(6),
+    // Баланс головної, рішення 09.09.2026: серіали автора платформи забирали
+    // більшу частину екрана — три великі картки «Балабонів» плюс три «Тиші»
+    // проти шести дрібних карток творів п'ятдесяти авторів. Серіалів по дві,
+    // історій дев'ять: місце віддано тим, хто пише для платформи.
+    getHomeSeries(2),
+    getFreshStories(9),
     getFairytales(3),
-    getTyshaItems(3),
+    getTyshaItems(2),
     getGenreCounts(),
     getSiteStats(),
     getStripAuthors(8),

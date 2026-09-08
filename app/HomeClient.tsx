@@ -135,7 +135,7 @@ export default function HomeClient({
 
       <div id="fairytales"><FairytalesSection initial={fairytales} /></div>
 
-      <div id="tysha"><TyshaSection limit={3} showAllLink initial={tyshaItems} /></div>
+      <div id="tysha"><TyshaSection limit={2} showAllLink initial={tyshaItems} /></div>
 
       <EmailCapture />
 
