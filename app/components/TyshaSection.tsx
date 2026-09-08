@@ -110,7 +110,11 @@ export default function TyshaSection(
           subColor={isNight ? '#c9d6e8' : '#1a3a6b'}
         />
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 100%), 1fr))', gap: 14, alignItems: 'stretch' }}>
+        {/* auto-FIT, не auto-fill: fill лишає порожні колонки під ширину
+            екрана, і коли карток стало дві замість трьох, праворуч зяяла
+            діра. fit згортає порожні треки, тож дві картки рівно ділять
+            ширину. */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 14, alignItems: 'stretch' }}>
           {items.map((ep) => (
             <a
               key={ep.id}
