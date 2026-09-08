@@ -124,6 +124,28 @@ export default function ReadingPosition({
     }
   }, [slug, title, path, contentId])
 
+  // Плашка не має висіти вічно: якщо читач її проігнорував і гортає далі,
+  // вона зникає сама. 12 секунд — щоб устигла прочитати людина, яка читає
+  // повільно, і щоб не заважала тому, хто вже занурився в текст.
+  useEffect(() => {
+    if (resumeTo === null) return
+
+    const hide = () => setResumeTo(null)
+    const t = setTimeout(hide, 12_000)
+
+    // Перший же відчутний рух сторінкою — читач вирішив читати спочатку.
+    const startY = window.scrollY
+    const onScroll = () => {
+      if (Math.abs(window.scrollY - startY) > 400) hide()
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+
+    return () => {
+      clearTimeout(t)
+      window.removeEventListener('scroll', onScroll)
+    }
+  }, [resumeTo])
+
   function goToSaved() {
     const article = findArticle()
     if (!article || resumeTo === null) {
@@ -147,7 +169,8 @@ export default function ReadingPosition({
           style={{
             position: 'fixed',
             left: '50%',
-            bottom: 84,
+            // Над нижньою панеллю сайту, щоб не накривати заголовок твору.
+            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 108px)',
             transform: 'translateX(-50%)',
             zIndex: 60,
             display: 'flex',
@@ -162,8 +185,21 @@ export default function ReadingPosition({
             color: '#FFF8EE',
             fontFamily: "'Montserrat', sans-serif",
             fontSize: 14,
+            animation: 'balabony-resume-in 220ms ease-out both',
           }}
         >
+          <style>{`
+            @keyframes balabony-resume-in {
+              from { opacity: 0; transform: translate(-50%, 12px); }
+              to   { opacity: 1; transform: translate(-50%, 0); }
+            }
+            @media (prefers-reduced-motion: reduce) {
+              @keyframes balabony-resume-in {
+                from { opacity: 1; transform: translate(-50%, 0); }
+                to   { opacity: 1; transform: translate(-50%, 0); }
+              }
+            }
+          `}</style>
           <span>Ви вже читали цей текст</span>
           <button
             type="button"
