@@ -12,6 +12,7 @@ import ReaderPulse from '@/app/components/ReaderPulse'
 import StreakTracker from '@/app/components/StreakTracker'
 import ReadTracker from '@/app/components/ReadTracker'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
+import ReadingPosition from '@/app/components/ReadingPosition'
 import StoryEmailCapture from '@/app/components/StoryEmailCapture'
 import AudioPlayer from '@/app/components/AudioPlayer'
 import { leadCssDeclarations, fitsLead } from '@/lib/reader-typography'
@@ -353,6 +354,17 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
             charCount={body.length}
             promo={isPromoEpisode}
             analytics={false}
+          />
+        )}
+
+        {/* Позиція читання. Тільки для відкритої серії: у замкненій читач
+            бачить тізер, і повертати його «туди, де спинився» немає куди. */}
+        {!isLocked && (
+          <ReadingPosition
+            slug={episode.slug}
+            title={episode.title}
+            path={`/episodes/${episode.slug}`}
+            contentId={episode.id}
           />
         )}
 
