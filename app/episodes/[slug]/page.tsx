@@ -16,6 +16,7 @@ import Link from 'next/link'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
 import ReadingPosition from '@/app/components/ReadingPosition'
 import ReadingProgressBar from '@/app/components/ReadingProgressBar'
+import BackToTop from '@/app/components/BackToTop'
 import ReaderKeyboardNav from '@/app/components/ReaderKeyboardNav'
 import EpisodeNav from '@/app/components/EpisodeNav'
 import StoryEmailCapture from '@/app/components/StoryEmailCapture'
@@ -401,6 +402,8 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
 
         {/* Смужка прогресу вгорі й стрілки ← → між серіями. */}
         {!isLocked && <ReadingProgressBar />}
+        {!isLocked && <BackToTop />}
+
         <ReaderKeyboardNav
           prevUrl={prevEp ? `/episodes/${prevEp.slug}` : undefined}
           nextUrl={nextEp ? `/episodes/${nextEp.slug}` : undefined}

@@ -9,6 +9,7 @@ import ReadTracker from '@/app/components/ReadTracker'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
 import ReadingPosition from '@/app/components/ReadingPosition'
 import ReadingProgressBar from '@/app/components/ReadingProgressBar'
+import BackToTop from '@/app/components/BackToTop'
 import ReaderKeyboardNav from '@/app/components/ReaderKeyboardNav'
 import EpisodeNav from '@/app/components/EpisodeNav'
 import ReaderPulse from '@/app/components/ReaderPulse'
@@ -389,6 +390,8 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
       />
 
       {!locked && <ReadingProgressBar />}
+      {!locked && <BackToTop gold={GOLD} />}
+
       <ReaderKeyboardNav
         prevUrl={prev ? `/tysha/${prev.slug}` : undefined}
         nextUrl={next ? `/tysha/${next.slug}` : undefined}
