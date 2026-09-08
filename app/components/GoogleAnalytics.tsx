@@ -10,14 +10,25 @@ const GA_ID = 'G-NTQKS1MZZD'
 // точково. Якщо додасте нову конверсію Ads — не повертайте рядок сюди,
 // а підключіть <GoogleAds /> на потрібній сторінці.
 
+// 08.09.2026: strategy змінено з afterInteractive на lazyOnload.
+// Після усунення подвійного завантаження сторінки TBT показав справжнє
+// значення 1 040 мс, і 404 мс з нього — це виконання gtag. afterInteractive
+// запускає його одразу після гідрації, тобто просто у вікні вимірювання
+// TBT і в момент, коли основний потік і так зайнятий. lazyOnload відкладає
+// до події load.
+//
+// Ціна: відвідувач, який пішов у перші секунди, до аналітики не потрапить.
+// Для наших обсягів трафіку це прийнятно; якщо колись знадобиться точний
+// підрахунок відмов — повертати afterInteractive і платити балами.
+
 export default function GoogleAnalytics() {
   return (
     <>
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-        strategy="afterInteractive"
+        strategy="lazyOnload"
       />
-      <Script id="google-analytics" strategy="afterInteractive">
+      <Script id="google-analytics" strategy="lazyOnload">
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
