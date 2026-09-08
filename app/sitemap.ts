@@ -158,6 +158,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .in('status', ['approved', 'published'])
       .limit(5000)
 
+    // Автори БЕЗ заведеного профілю: їхні твори записані лише за іменем,
+    // author_id порожній. Сторінка /avtor/[slug] для них працює — вона
+    // шукає за author_name — але в карту сайту вони не потрапляли, і Google
+    // про сімдесят робочих сторінок просто не знав.
+    const { data: plainWorks } = await supabase
+      .from('content')
+      .select('author_name')
+      .is('author_id', null)
+      .not('author_name', 'is', null)
+      .in('status', ['approved', 'published'])
+      .limit(5000)
+
     if (profiles && works) {
       const withWorks = new Set(
         (works as { author_id: string | null }[])
@@ -188,6 +200,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           lastModified: now,
           changeFrequency: 'weekly' as const,
           priority: 0.7,
+        })
+      }
+
+      for (const w of (plainWorks ?? []) as { author_name: string | null }[]) {
+        const name = (w.author_name ?? '').trim()
+        if (!name) continue
+
+        const slug = authorSlug(name)
+        if (!slug || seen.has(slug)) continue
+        seen.add(slug)
+
+        authorPages.push({
+          url: `${BASE_URL}/avtor/${slug}`,
+          lastModified: now,
+          changeFrequency: 'weekly' as const,
+          priority: 0.6,
         })
       }
     }
