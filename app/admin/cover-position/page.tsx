@@ -10,6 +10,7 @@
 // у полі cover_position. Те саме значення читає картка на сайті.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { parseFocus, focusToValue, focusStyle, clampFocus, DEFAULT_FOCUS, type Focus } from '@/lib/cover-frame'
 
 const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
@@ -37,81 +38,10 @@ type Row = {
   type: string
 }
 
-type Frame = { scale: number; x: number; y: number }
-
-const DEFAULT_FRAME: Frame = { scale: 100, x: 0, y: 0 }
-
-/**
- * Скільки відсотків можна зсунути кадр, не оголивши краю.
- *
- * Фото заповнює рамку рівно при масштабі 100%. Кожні зайві 2% масштабу дають
- * 1% запасу з кожного боку — саме на стільки й можна рухати. Інакше з-під фото
- * вилазить чорна смуга.
- */
-/**
- * Найбільший припустимий зсув у відсотках при заданому масштабі.
- *
- * ВАЖЛИВО про множник. У `transform: translate(x%) scale(s)` відсоток
- * рахується від розміру елемента, а масштабування застосовується ПІСЛЯ —
- * тобто справжній зсув дорівнює x × s. Запас із кожного боку становить
- * (s − 1) / 2 висоти рамки, тож припустимий x = 50 × (s − 100) / s.
- *
- * Раніше тут стояло (scale − 100) / 2: при наближенні 300% воно дозволяло
- * зсув 100%, який на екрані перетворювався на 300% — фото від'їжджало так,
- * що обличчя виходило за кадр, а з-під нього лізло порожнє тло.
- */
-function maxOffset(scale: number): number {
-  if (scale <= 100) return 0
-  return Math.max(0, (50 * (scale - 100)) / scale)
-}
-
-/** Масштаб, за якого такий зсув стає можливим (обернене до maxOffset). */
-function scaleFor(x: number, y: number): number {
-  const need = Math.max(Math.abs(x), Math.abs(y))
-  if (need <= 0) return 100
-  // з need = 50 (s − 100) / s  →  s = 5000 / (50 − need)
-  if (need >= 50) return 300
-  return Math.min(300, 5000 / (50 - need))
-}
-
-/** Не даємо кадру виїхати за межі фото. */
-function clampFrame(f: Frame): Frame {
-  const scale = Math.max(100, Math.min(300, Math.round(f.scale)))
-  const m = maxOffset(scale)
-  return {
-    scale,
-    x: Math.round(Math.max(-m, Math.min(m, f.x))),
-    y: Math.round(Math.max(-m, Math.min(m, f.y))),
-  }
-}
-
-/** «scale:120 x:-10 y:-25» → об’єкт. Старі значення («center», «50% 20%») — до замовчування. */
-function parseFrame(value: string | null): Frame {
-  if (!value) return DEFAULT_FRAME
-  const m = value.match(/scale:(-?\d+)\s+x:(-?\d+)\s+y:(-?\d+)/)
-  if (!m) return DEFAULT_FRAME
-  return clampFrame({
-    scale: parseInt(m[1], 10),
-    x:     parseInt(m[2], 10),
-    y:     parseInt(m[3], 10),
-  })
-}
-
-function frameToValue(f: Frame): string {
-  if (f.scale === 100 && f.x === 0 && f.y === 0) return 'center'
-  return `scale:${Math.round(f.scale)} x:${Math.round(f.x)} y:${Math.round(f.y)}`
-}
-
-function frameStyle(f: Frame): React.CSSProperties {
-  return {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    transform: `translate(${f.x}%, ${f.y}%) scale(${f.scale / 100})`,
-    transformOrigin: 'center center',
-    display: 'block',
-  }
-}
+/* Кадрування живе в lib/cover-frame: точка фокуса (x, y) плюс необовʼязкове
+   наближення. Стара модель рухала фото від центру через transform, і зсув був
+   можливий ЛИШЕ в межах запасу від наближення — при 100% кадр не рухався
+   взагалі, тож високо розташоване обличчя дістати було неможливо. */
 
 export default function CoverPositionPage() {
   const [rows, setRows]       = useState<Row[]>([])
@@ -123,7 +53,7 @@ export default function CoverPositionPage() {
   const [type, setType]       = useState('story')
 
   const [active, setActive]   = useState<Row | null>(null)
-  const [frame, setFrame]     = useState<Frame>(DEFAULT_FRAME)
+  const [frame, setFrame]     = useState<Focus>(DEFAULT_FOCUS)
   const [saving, setSaving]   = useState(false)
   const [note, setNote]       = useState('')
   const [uploading, setUploading] = useState(false)
@@ -131,7 +61,7 @@ export default function CoverPositionPage() {
   const [urlInput, setUrlInput]   = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const dragRef = useRef<{ startX: number; startY: number; base: Frame } | null>(null)
+  const dragRef = useRef<{ startX: number; startY: number; base: Focus } | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -181,7 +111,7 @@ export default function CoverPositionPage() {
 
   function open(row: Row) {
     setActive(row)
-    setFrame(parseFrame(row.cover_position))
+    setFrame(parseFocus(row.cover_position))
     setNote('')
   }
 
@@ -194,18 +124,11 @@ export default function CoverPositionPage() {
   function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
     const d = dragRef.current
     if (!d) return
+    // Тягнемо фото — точка фокуса йде В ПРОТИЛЕЖНИЙ бік: посунув фото вниз,
+    // отже в кадрі лишається його верхня частина.
     const dx = ((e.clientX - d.startX) / FRAME_W) * 100
     const dy = ((e.clientY - d.startY) / FRAME_H) * 100
-    const wantX = d.base.x + dx
-    const wantY = d.base.y + dy
-    // Якщо запасу бракує — збільшуємо фото рівно настільки, щоб зсув став
-    // можливим. Так кадр іде за курсором, а порожнеча не зʼявляється.
-    const needed = scaleFor(wantX, wantY)
-    setFrame(clampFrame({
-      scale: Math.max(d.base.scale, needed),
-      x: wantX,
-      y: wantY,
-    }))
+    setFrame(clampFocus({ x: d.base.x - dx, y: d.base.y - dy, scale: d.base.scale }))
   }
   function onPointerUp() { dragRef.current = null }
 
@@ -226,7 +149,7 @@ export default function CoverPositionPage() {
       const fresh = j.cover_url
       setRows(prev => prev.map(x => (x.id === active.id ? { ...x, cover_url: fresh, cover_position: 'center' } : x)))
       setActive(prev => (prev ? { ...prev, cover_url: fresh, cover_position: 'center' } : prev))
-      setFrame(DEFAULT_FRAME)
+      setFrame(DEFAULT_FOCUS)
       setUrlInput('')
       if (fileRef.current) fileRef.current.value = ''
       setNote('Фото замінено')
@@ -260,7 +183,7 @@ export default function CoverPositionPage() {
     setSaving(true)
     setNote('')
     try {
-      const value = frameToValue(frame)
+      const value = focusToValue(frame)
       const r = await fetch(`/api/admin/content/${active.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -332,7 +255,7 @@ export default function CoverPositionPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(275px, 100%), 1fr))', gap: 16 }}>
           {rows.map(row => {
-            const f = parseFrame(row.cover_position)
+            const f = parseFocus(row.cover_position)
             const tuned = Boolean(row.cover_position && row.cover_position !== 'center')
             return (
               <button
@@ -344,7 +267,7 @@ export default function CoverPositionPage() {
                 }}
               >
                 <div style={{ position: 'relative', width: '100%', height: FRAME_H, overflow: 'hidden', background: '#000', borderRadius: 8 }}>
-                  {row.cover_url && <img src={row.cover_url} alt="" style={frameStyle(f)} />}
+                  {row.cover_url && <img src={row.cover_url} alt="" style={focusStyle(f)} />}
                   <span style={{
                     position: 'absolute', top: 8, left: 8, fontSize: 11, fontWeight: 700,
                     padding: '3px 8px', borderRadius: 6, lineHeight: 1,
@@ -413,7 +336,7 @@ export default function CoverPositionPage() {
                 boxShadow: `0 0 0 1px ${LINE}`,
               }}
             >
-              {active.cover_url && <img src={active.cover_url} alt="" draggable={false} style={frameStyle(frame)} />}
+              {active.cover_url && <img src={active.cover_url} alt="" draggable={false} style={focusStyle(frame)} />}
             </div>
             <div style={{ textAlign: 'center', fontSize: 12, color: MUTED, marginTop: 8 }}>
               Тягніть фото мишею просто в рамці
@@ -436,7 +359,7 @@ export default function CoverPositionPage() {
                     border: `1px solid ${LINE}`,
                   }}>
                     {active.cover_url && (
-                      <img src={active.cover_url} alt="" draggable={false} style={frameStyle(frame)} />
+                      <img src={active.cover_url} alt="" draggable={false} style={focusStyle(frame)} />
                     )}
                   </div>
                   <div style={{ fontSize: 11, color: MUTED, marginTop: 5, textAlign: 'center' }}>
@@ -451,7 +374,7 @@ export default function CoverPositionPage() {
                     border: `1px solid ${LINE}`,
                   }}>
                     {active.cover_url && (
-                      <img src={active.cover_url} alt="" draggable={false} style={frameStyle(frame)} />
+                      <img src={active.cover_url} alt="" draggable={false} style={focusStyle(frame)} />
                     )}
                   </div>
                   <div style={{ fontSize: 11, color: MUTED, marginTop: 5, textAlign: 'center' }}>
@@ -463,43 +386,40 @@ export default function CoverPositionPage() {
 
             <div style={{ marginTop: 18, display: 'grid', gap: 14 }}>
               <label style={{ display: 'grid', gap: 6 }}>
+                <span style={{ fontSize: 12.5, color: MUTED }}>
+                  Що тримати в кадрі: вгору / вниз — {frame.y}%
+                </span>
+                <input
+                  type="range" min={0} max={100} step={1} value={frame.y}
+                  onChange={e => setFrame(clampFocus({ ...frame, y: Number(e.target.value) }))}
+                  style={{ width: '100%', accentColor: GOLD }}
+                />
+                <span style={{ fontSize: 11.5, color: MUTED }}>
+                  0% — верх фото (обличчя), 100% — низ. Наближення для цього не потрібне.
+                </span>
+              </label>
+
+              <label style={{ display: 'grid', gap: 6 }}>
+                <span style={{ fontSize: 12.5, color: MUTED }}>
+                  Ліворуч / праворуч — {frame.x}%
+                </span>
+                <input
+                  type="range" min={0} max={100} step={1} value={frame.x}
+                  onChange={e => setFrame(clampFocus({ ...frame, x: Number(e.target.value) }))}
+                  style={{ width: '100%', accentColor: GOLD }}
+                />
+              </label>
+
+              <label style={{ display: 'grid', gap: 6 }}>
                 <span style={{ fontSize: 12.5, color: MUTED }}>Наближення — {frame.scale}%</span>
                 <input
                   type="range" min={100} max={300} step={1} value={frame.scale}
-                  onChange={e => setFrame(clampFrame({ ...frame, scale: Number(e.target.value) }))}
+                  onChange={e => setFrame(clampFocus({ ...frame, scale: Number(e.target.value) }))}
                   style={{ width: '100%', accentColor: GOLD }}
                 />
-                {frame.scale === 100 && (
-                  <span style={{ fontSize: 11.5, color: MUTED }}>
-                    Щоб рухати кадр, спершу трохи наблизьте фото — інакше рухати нема куди.
-                  </span>
-                )}
-              </label>
-              <label style={{ display: 'grid', gap: 6, opacity: maxOffset(frame.scale) === 0 ? 0.45 : 1 }}>
-                <span style={{ fontSize: 12.5, color: MUTED }}>Ліворуч / праворуч — {frame.x}%</span>
-                <input
-                  type="range"
-                  min={-Math.round(maxOffset(frame.scale))}
-                  max={Math.round(maxOffset(frame.scale))}
-                  step={1}
-                  value={frame.x}
-                  disabled={maxOffset(frame.scale) === 0}
-                  onChange={e => setFrame(clampFrame({ ...frame, x: Number(e.target.value) }))}
-                  style={{ width: '100%', accentColor: GOLD }}
-                />
-              </label>
-              <label style={{ display: 'grid', gap: 6, opacity: maxOffset(frame.scale) === 0 ? 0.45 : 1 }}>
-                <span style={{ fontSize: 12.5, color: MUTED }}>Вгору / вниз — {frame.y}%</span>
-                <input
-                  type="range"
-                  min={-Math.round(maxOffset(frame.scale))}
-                  max={Math.round(maxOffset(frame.scale))}
-                  step={1}
-                  value={frame.y}
-                  disabled={maxOffset(frame.scale) === 0}
-                  onChange={e => setFrame(clampFrame({ ...frame, y: Number(e.target.value) }))}
-                  style={{ width: '100%', accentColor: GOLD }}
-                />
+                <span style={{ fontSize: 11.5, color: MUTED }}>
+                  Необовʼязкове. Збільшує фото навколо обраної точки.
+                </span>
               </label>
             </div>
 
@@ -544,7 +464,7 @@ export default function CoverPositionPage() {
             </div>
 
             <div style={{ fontSize: 12, color: MUTED, marginTop: 14, fontFamily: 'monospace' }}>
-              {frameToValue(frame)}
+              {focusToValue(frame)}
             </div>
 
             {note && (
@@ -557,7 +477,7 @@ export default function CoverPositionPage() {
               <button onClick={save} disabled={saving} style={{ ...btnMain, opacity: saving ? 0.6 : 1 }}>
                 {saving ? 'Зберігаю…' : 'Зберегти кадр'}
               </button>
-              <button onClick={() => setFrame(DEFAULT_FRAME)} style={btn}>Скинути</button>
+              <button onClick={() => setFrame(DEFAULT_FOCUS)} style={btn}>Скинути</button>
               {active.slug && (
                 <a
                   href={`https://balabony.com/stories/${active.slug}`}
