@@ -48,8 +48,22 @@ export type HomeSeries = {
 
 type Row = { id: string; author_name: string | null; approved_at: string | null }
 
-/** Крок ротації вітрини. Мусить збігатися з s-maxage у /api/stories. */
-export const ROTATION_STEP_MS = 3 * 60 * 60 * 1000
+/**
+ * Крок ротації вітрини — 12 годин, тобто набір змінюється двічі на добу.
+ * Межі відрізків рахуються від епохи, тож зміна припадає на 00:00 і 12:00 UTC
+ * (03:00 і 15:00 за київським часом).
+ *
+ * Кеш (s-maxage у /api/stories, revalidate на головній) лишається 3 години —
+ * він має бути НЕ БІЛЬШИЙ за крок ротації, інакше зміна не буде видна вчасно.
+ * Коротший кеш також дає новому твору потрапити на сайт швидше.
+ */
+export const ROTATION_STEP_MS = 12 * 60 * 60 * 1000
+
+/**
+ * Скільки перших карток закріплено за найновішими творами.
+ * 0 = крутяться всі, без винятків (рішення Богдана 08.09.2026).
+ */
+export const PINNED_FRESH = 0
 
 /**
  * Ротація вітрини без випадковості.
@@ -57,10 +71,14 @@ export const ROTATION_STEP_MS = 3 * 60 * 60 * 1000
  * 1. Лишаємо по одному твору на автора — інакше три поспіль від однієї людини.
  * 2. Сортуємо стабільно: свіжіші вперед, id як запасний ключ. approved_at
  *    буває null, тому порівняння через рядок, а не через Date.
- * 3. Твори останніх 7 днів завжди стоять першими — розділ називається
- *    «Свіжі історії» і не повинен ховати новинку через ротацію.
- * 4. Решту крутимо вікном: номер тригодинного відрізка × limit зі згортанням
- *    через кінець.
+ * 3. Перші PINNED_FRESH карток закріплені за найновішими творами. Зараз 0 —
+ *    крутяться всі.
+ * 4. Крутимо вікном: номер дванадцятигодинного відрізка зі згортанням через
+ *    кінець. У пулі — ВЕСЬ масив, і свіже, і давнє.
+ *
+ * Так було до 08.09.2026: першими ставили всі твори за останні 7 днів, і якщо
+ * їх набиралося шість, ротація не спрацьовувала взагалі — головна замерзала
+ * на тиждень. Богдан це побачив: дві історії стояли кілька днів поспіль.
  */
 export function rotateDaily<T extends Row>(rows: T[], limit: number): T[] {
   const seen = new Set<string>()
@@ -83,14 +101,16 @@ export function rotateDaily<T extends Row>(rows: T[], limit: number): T[] {
   const fresh = unique.filter(r => r.approved_at !== null && Date.parse(r.approved_at) >= weekAgo)
   const rest  = unique.filter(r => !(r.approved_at !== null && Date.parse(r.approved_at) >= weekAgo))
 
-  const out = fresh.slice(0, limit)
-  const need = limit - out.length
-  if (need <= 0 || rest.length === 0) return out
+  const out  = fresh.slice(0, PINNED_FRESH)
+  const pool = [...fresh.slice(PINNED_FRESH), ...rest]
 
-  const slot = Math.floor(Date.now() / ROTATION_STEP_MS)
-  const start = ((slot * limit) % rest.length + rest.length) % rest.length
-  for (let i = 0; i < need; i++) {
-    out.push(rest[(start + i) % rest.length])
+  const need = limit - out.length
+  if (need <= 0 || pool.length === 0) return out.slice(0, limit)
+
+  const slot  = Math.floor(Date.now() / ROTATION_STEP_MS)
+  const start = ((slot * need) % pool.length + pool.length) % pool.length
+  for (let i = 0; i < need && i < pool.length; i++) {
+    out.push(pool[(start + i) % pool.length])
   }
   return out
 }
