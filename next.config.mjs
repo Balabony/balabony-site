@@ -52,6 +52,20 @@ const nextConfig = {
       },
     ],
   },
+  // Спадок старих посилань: чотири серії «Тиші» (tysha-s1e02/16/19/24)
+  // Google досі стукає за адресою /stories/tysha-s1eNN, хоча в коді вони
+  // давно живуть на /tysha/. У Search Console це чотири з тридцяти однієї
+  // помилки «Не знайдено (404)». Постійний редирект передає вагу старої
+  // адреси новій — на відміну від простого 404.
+  async redirects() {
+    return [
+      {
+        source: '/stories/:slug(tysha-s1e\\d+)',
+        destination: '/tysha/:slug',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       {
