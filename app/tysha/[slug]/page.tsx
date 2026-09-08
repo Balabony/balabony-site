@@ -7,6 +7,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import ReadTracker from '@/app/components/ReadTracker'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
+import ReadingPosition from '@/app/components/ReadingPosition'
 import ReaderPulse from '@/app/components/ReaderPulse'
 import TyshaProgressTracker from '@/app/components/TyshaProgressTracker'
 import TyshaAgeGate from '@/app/components/TyshaAgeGate'
@@ -353,6 +354,17 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
           charCount={body.length}
           promo={epNum <= FREE_EPISODES}
           analytics={false}
+        />
+      )}
+
+      {/* Позиція читання. Тільки для відкритої серії: у замкненій
+          показано лише тізер, повертати читача нікуди. */}
+      {!locked && (
+        <ReadingPosition
+          slug={ep.slug}
+          title={ep.title}
+          path={`/tysha/${ep.slug}`}
+          contentId={ep.id}
         />
       )}
 
