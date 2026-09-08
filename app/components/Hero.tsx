@@ -94,7 +94,7 @@ export default function Hero() {
                 fontFamily: "'Montserrat', sans-serif",
               }}
             >
-              Українські історії, казки й серіали — читати та слухати онлайн
+              Українські історії, казки й серіали — читати онлайн. Аудіо — незабаром
             </h1>
 
             <div style={{ marginTop: 4 }}>
