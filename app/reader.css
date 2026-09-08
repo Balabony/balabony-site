@@ -246,3 +246,23 @@ html[data-reader-theme='day'] [style*='transparent, #0a1628'] {
 @media print {
   .rs-fab, .rs-sheet, .rs-backdrop { display: none !important; }
 }
+
+
+/* ---------- Ширина рядка й міжрядковий ----------
+   Обидва діють ЛИШЕ коли читач сам обрав: типове значення не пишеться
+   в атрибут, і кожна читалка зберігає власну верстку (історії 720px,
+   «Тиша» свою). !important потрібен, бо ширина колонки задана інлайном
+   на самій сторінці.
+
+   Навіщо: при масштабі 130-150% рядок на всю ширину екрана виснажує —
+   око не знаходить початок наступного рядка. Це найчастіша скарга
+   читачів, які збільшують текст. */
+html[data-reader-width='narrow'] .reader-col { max-width: 560px !important; }
+html[data-reader-width='wide']   .reader-col { max-width: 900px !important; }
+
+html[data-reader-leading='roomy'] .reader-body,
+html[data-reader-leading='roomy'] .reader-body p,
+html[data-reader-leading='roomy'] .reader-body li,
+html[data-reader-leading='roomy'] .reader-body blockquote {
+  line-height: 1.95 !important;
+}

@@ -24,20 +24,44 @@ const READER_KEY = 'balabony_reader_v1'
 
 type Theme = 'night' | 'day'
 type Font = 'default' | 'serif' | 'system'
+type Width = 'default' | 'narrow' | 'wide'
+type Leading = 'default' | 'roomy'
 
 interface Prefs {
   theme: Theme
   font: Font
   scale: number
+  width: Width
+  leading: Leading
 }
 
-const DEFAULTS: Prefs = { theme: 'night', font: 'default', scale: 1 }
+const DEFAULTS: Prefs = {
+  theme: 'night',
+  font: 'default',
+  scale: 1,
+  width: 'default',
+  leading: 'default',
+}
 
 const SCALES = [0.9, 1, 1.15, 1.3, 1.5]
 
 const THEMES: { id: Theme; label: string }[] = [
   { id: 'night', label: '🌙 Ніч' },
   { id: 'day', label: '☀️ День' },
+]
+
+/* Ширина рядка. При великому кеглі рядок на всю ширину екрана виснажує:
+   око губить початок наступного рядка. «Вузько» дає ту саму довжину рядка,
+   що й у книжці. */
+const WIDTHS: { id: Width; label: string; hint: string }[] = [
+  { id: 'narrow', label: 'Вузько', hint: 'коротший рядок, як у книжці' },
+  { id: 'default', label: 'Звично', hint: 'ширина за замовчуванням' },
+  { id: 'wide', label: 'Широко', hint: 'довший рядок' },
+]
+
+const LEADINGS: { id: Leading; label: string; hint: string }[] = [
+  { id: 'default', label: 'Звичний', hint: 'міжрядковий за замовчуванням' },
+  { id: 'roomy', label: 'Просторий', hint: 'більше повітря між рядками' },
 ]
 
 const FONTS: { id: Font; label: string; hint: string }[] = [
@@ -72,6 +96,12 @@ function apply(p: Prefs) {
 
   if (p.scale === DEFAULTS.scale) d.style.removeProperty('--r-scale')
   else d.style.setProperty('--r-scale', String(p.scale))
+
+  if (p.width === DEFAULTS.width) d.removeAttribute('data-reader-width')
+  else d.setAttribute('data-reader-width', p.width)
+
+  if (p.leading === DEFAULTS.leading) d.removeAttribute('data-reader-leading')
+  else d.setAttribute('data-reader-leading', p.leading)
 }
 
 /** У сховище лягає тільки те, що читач змінив — так само, як у apply(). */
@@ -237,6 +267,42 @@ export default function ReaderSettings() {
                 >
                   А+
                 </button>
+              </div>
+            </div>
+
+            <div className="rs-group">
+              <span className="rs-legend">Ширина рядка</span>
+              <div className="rs-row">
+                {WIDTHS.map(w => (
+                  <button
+                    key={w.id}
+                    type="button"
+                    className="rs-btn"
+                    aria-pressed={prefs.width === w.id}
+                    aria-label={`Ширина рядка: ${w.label} — ${w.hint}`}
+                    onClick={() => set({ width: w.id }, `Ширина рядка: ${w.label}`)}
+                  >
+                    {w.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="rs-group">
+              <span className="rs-legend">Міжрядковий</span>
+              <div className="rs-row">
+                {LEADINGS.map(l => (
+                  <button
+                    key={l.id}
+                    type="button"
+                    className="rs-btn"
+                    aria-pressed={prefs.leading === l.id}
+                    aria-label={`Міжрядковий інтервал: ${l.label} — ${l.hint}`}
+                    onClick={() => set({ leading: l.id }, `Міжрядковий: ${l.label}`)}
+                  >
+                    {l.label}
+                  </button>
+                ))}
               </div>
             </div>
 
