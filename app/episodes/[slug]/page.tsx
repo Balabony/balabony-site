@@ -300,7 +300,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--r-gold, #ef9f27)', background: `${GOLD}18`, border: `1px solid ${GOLD}44`, borderRadius: 20, padding: '3px 10px', textTransform: 'capitalize', fontFamily: FONT, letterSpacing: 0.4 }}>
             Сезон {episode.season_number} · Серія {episode.episode_number}
           </span>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: '#f5f0e8', lineHeight: 1.25, margin: '14px 0 10px', fontFamily: FONT }}>
+          <h1 style={{ fontSize: 'clamp(22px, 5.5vw, 28px)', fontWeight: 800, color: '#f5f0e8', lineHeight: 1.25, margin: '14px 0 10px', fontFamily: FONT, textWrap: 'balance' }}>
             {episode.title}
           </h1>
           <div style={{ fontSize: 13.5, lineHeight: 1.4, margin: '0 0 12px', fontFamily: FONT }}>

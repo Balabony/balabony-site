@@ -212,7 +212,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
           )}
 
           {/* Title */}
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: '#f5f0e8', lineHeight: 1.25, margin: '14px 0 10px', fontFamily: FONT }}>
+          <h1 style={{ fontSize: 'clamp(22px, 5.5vw, 28px)', fontWeight: 800, color: '#f5f0e8', lineHeight: 1.25, margin: '14px 0 10px', fontFamily: FONT, textWrap: 'balance' }}>
             {story.title}
           </h1>
 
