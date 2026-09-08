@@ -1,6 +1,7 @@
 'use client'
 
 import SectionHead from './SectionHead'
+import { coverStyle } from '@/lib/cover-frame'
 import CoverImage from './CoverImage'
 
 import { useTheme } from '../context/ThemeContext'
@@ -164,31 +165,9 @@ function CoverPlaceholder({ title }: { title: string }) {
 
 const DEFAULT_POSITION = '50% 10%'
 
+/** Розбір кадрування живе в lib/cover-frame — ним користуються всі картки. */
 function getCoverStyle(coverPosition: string | undefined): React.CSSProperties {
-  if (!coverPosition || coverPosition === 'center') {
-    return { objectPosition: DEFAULT_POSITION }
-  }
-
-  const transformM = coverPosition.match(/scale:(-?\d+)\s+x:(-?\d+)\s+y:(-?\d+)/)
-  if (transformM) {
-    const scale = Math.max(100, Math.min(400, parseInt(transformM[1], 10)))
-    // Зсувати можна лише на те, наскільки фото більше за рамку: кожні зайві
-    // 2% масштабу дають 1% запасу з боку. Інакше з-під фото вилазить чорна
-    // смуга — саме це й ловимо тут, щоб криве значення не псувало картку.
-    const limit = Math.max(0, (scale - 100) / 2)
-    const tx    = Math.max(-limit, Math.min(limit, parseInt(transformM[2], 10)))
-    const ty    = Math.max(-limit, Math.min(limit, parseInt(transformM[3], 10)))
-    return {
-      transform: `translate(${tx}%, ${ty}%) scale(${scale / 100})`,
-      transformOrigin: 'center center',
-    }
-  }
-
-  if (/^\s*[\d.]+%/.test(coverPosition) || /^(left|right|center|top|bottom)/.test(coverPosition)) {
-    return { objectPosition: coverPosition }
-  }
-
-  return { objectPosition: DEFAULT_POSITION }
+  return coverStyle(coverPosition, DEFAULT_POSITION)
 }
 
 /**

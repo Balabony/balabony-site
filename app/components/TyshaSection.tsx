@@ -1,6 +1,7 @@
 'use client'
 
 import SectionHead from './SectionHead'
+import { coverStyle } from '@/lib/cover-frame'
 import CoverImage from './CoverImage'
 
 import { useEffect, useState } from 'react'
@@ -125,7 +126,7 @@ export default function TyshaSection(
                       src={ep.cover_url}
                       alt={ep.title}
                       sizes="(max-width: 700px) 100vw, 320px"
-                      style={{ objectPosition: ep.cover_position || 'center 40%' }}
+                      style={coverStyle(ep.cover_position, 'center 40%')}
                       hideOnError
                       className="ts-cover-img"
                     />

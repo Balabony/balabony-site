@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { coverStyle } from '@/lib/cover-frame'
 import { useTheme } from '../context/ThemeContext'
 
 const GOLD = 'var(--accent-gold)'
@@ -160,12 +161,10 @@ export default function EpisodeCliffhanger({ hook, next, allSeriesUrl = '/series
                     alt={`Сезон ${next.season} · Серія ${next.number}`}
                     style={{
                       width: '100%', height: '100%', objectFit: 'cover',
-                      // Кадрування беремо те, яке виставлене в адмінці
-                      // /admin/cover-position — так само, як це робить
-                      // TyshaSection. Жорстке 'center top' тут стояло під
-                      // вертикальні обкладинки й з'їдало низ горизонтальних:
-                      // обличчя опинялося не в центрі рамки.
-                      objectPosition: next.coverPosition || 'center top',
+                      // Кадрування з адмінки. coverStyle розуміє обидва
+                      // формати поля cover_position: і CSS ('top', 'center 40%'),
+                      // і рамку з перетягуванням ('scale:130 x:-4 y:6').
+                      ...coverStyle(next.coverPosition, 'center top'),
                       display: 'block',
                       filter: hasFutureRelease ? 'saturate(0.85)' : 'none',
                     }}
