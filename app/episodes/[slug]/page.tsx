@@ -19,6 +19,7 @@ import ReadingProgressBar from '@/app/components/ReadingProgressBar'
 import BackToTop from '@/app/components/BackToTop'
 import ReaderKeyboardNav from '@/app/components/ReaderKeyboardNav'
 import EpisodeNav from '@/app/components/EpisodeNav'
+import SeasonToc from '@/app/components/SeasonToc'
 import StoryEmailCapture from '@/app/components/StoryEmailCapture'
 import AudioPlayer from '@/app/components/AudioPlayer'
 import { leadCssDeclarations, fitsLead } from '@/lib/reader-typography'
@@ -76,6 +77,24 @@ interface NextRow {
   episode_number: number
   is_premium:        boolean
   cover_url:      string | null
+}
+
+/** Усі опубліковані серії сезону — для змісту на сторінці. */
+async function getSeasonEpisodes(season: number): Promise<{ slug: string; title: string; number: number }[]> {
+  const supabase = getSupabaseAdmin()
+  const { data, error } = await supabase
+    .from('content')
+    .select('slug, title, episode_number')
+    .eq('type', 'balabony')
+    .eq('status', 'published')
+    .eq('season_number', season)
+    .order('episode_number', { ascending: true })
+    .limit(200)
+
+  if (error || !data) return []
+  return (data as { slug: string; title: string; episode_number: number }[])
+    .filter(r => r.slug)
+    .map(r => ({ slug: r.slug, title: r.title, number: r.episode_number }))
 }
 
 async function getNextEpisode(season: number, episode: number): Promise<NextRow | null> {
@@ -248,6 +267,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
   const nextEp = await getNextEpisode(episode.season_number, episode.episode_number)
   const seasonPosition = await positionInSeason(episode.season_number, episode.episode_number)
   const prevEp = await getPrevEpisode(episode.season_number, episode.episode_number)
+  const seasonEpisodes = await getSeasonEpisodes(episode.season_number)
   const prevRecap = prevEp?.recap?.trim() ? prevEp : null
 
   const v    = episode.published_version ?? 'original'
@@ -391,6 +411,13 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
             analytics={false}
           />
         )}
+
+        {/* Зміст сезону: увесь список під рукою, без повернення в каталог. */}
+        <SeasonToc
+          items={seasonEpisodes}
+          currentSlug={episode.slug}
+          heading={`Сезон ${episode.season_number}`}
+        />
 
         {/* Видимий перехід між серіями — головний спосіб на телефоні. */}
         <EpisodeNav
