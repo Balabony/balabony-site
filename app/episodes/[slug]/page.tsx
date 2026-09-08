@@ -7,6 +7,7 @@ import type { Metadata } from 'next'
 import EpisodePaywall from './EpisodePaywall'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ShareButtons from '@/app/components/ShareButtons'
+import BookmarkButton from '@/app/components/BookmarkButton'
 import EpisodeCliffhanger from '@/app/components/EpisodeCliffhanger'
 import ReaderPulse from '@/app/components/ReaderPulse'
 import StreakTracker from '@/app/components/StreakTracker'
@@ -457,6 +458,10 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         )}
 
         <div style={{ marginTop: 40 }}>
+          <BookmarkButton slug={episode.slug} title={episode.title} path={`/episodes/${episode.slug}`} />
+        </div>
+
+        <div style={{ marginTop: 20 }}>
           <ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} storyId={episode.id} season={episode.season_number} />
         </div>
 

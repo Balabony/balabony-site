@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { Metadata } from 'next'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ShareButtons from '@/app/components/ShareButtons'
+import BookmarkButton from '@/app/components/BookmarkButton'
 import ReaderPulse from '@/app/components/ReaderPulse'
 import LikeButton from '@/app/components/LikeButton'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
@@ -280,8 +281,13 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
             ні для читача, ні для пошуковика. */}
         <RelatedStories storyId={story.id} authorName={story.author_name} genre={story.genre} />
 
-        {/* Поширення */}
+        {/* Зберегти й поширити — поруч, одразу після тексту й схожих творів. */}
         <div style={{ marginTop: 40 }}>
+          <BookmarkButton slug={id} title={story.title} path={`/stories/${id}`} />
+        </div>
+
+        {/* Поширення */}
+        <div style={{ marginTop: 20 }}>
           <ShareButtons url={`https://balabony.com/stories/${id}`} title={story.title} storyId={story.id} />
         </div>
 
