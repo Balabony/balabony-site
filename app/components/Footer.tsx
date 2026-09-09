@@ -65,11 +65,11 @@ const READ_LINKS = [
 // Посилання ведуть не на головну, а на /vstanovyty: «Safari PWA» саме по собі
 // читачеві нічого не каже, потрібні три кроки.
 const PLATFORMS = [
-  { label: 'Web (браузер)',            href: '/',            soon: false },
-  { label: 'iPhone і iPad',            href: '/vstanovyty',  soon: false },
-  { label: 'Android',                  href: '/vstanovyty',  soon: false },
-  { label: 'Telegram-бот',             href: null,           soon: true  },
-  { label: 'Smart TV',                 href: null,           soon: true  },
+  { label: 'Web (браузер)',            href: '/',            soon: false, badge: null },
+  { label: 'iPhone і iPad',            href: '/vstanovyty',  soon: false, badge: 'Встановити' },
+  { label: 'Android',                  href: '/vstanovyty',  soon: false, badge: 'Встановити' },
+  { label: 'Telegram-бот',             href: null,           soon: true,  badge: null },
+  { label: 'Smart TV',                 href: null,           soon: true,  badge: null },
 ]
 
 
@@ -246,6 +246,24 @@ export default function Footer() {
                   }}>
                     Скоро
                   </span>
+                )}
+                {/* 09.09.2026: активна плашка тим самим розміром і формою, що
+                    «Скоро», але залита золотом. Без неї рядки «iPhone і iPad» та
+                    «Android» після зняття «Скоро» виглядали як звичайний сірий
+                    текст, і читач не бачив ні що це готове, ні куди тиснути. */}
+                {item.badge && (
+                  <a href={item.href ?? '/vstanovyty'} style={{
+                    fontSize: 10, fontWeight: 700, letterSpacing: '0.3px',
+                    padding: '2px 7px', borderRadius: 999,
+                    background: 'var(--accent-gold)',
+                    color: '#0a1628',
+                    border: '1px solid var(--accent-gold)',
+                    fontFamily: "'Montserrat', sans-serif",
+                    textTransform: 'uppercase',
+                    textDecoration: 'none',
+                  }}>
+                    {item.badge}
+                  </a>
                 )}
               </li>
             ))}

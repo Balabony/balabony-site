@@ -78,7 +78,7 @@ export default function InstallPage() {
     <main
       style={{
         minHeight: '100vh',
-        padding: '2.5rem 1.25rem 3.5rem',
+        padding: '2.5rem 1.25rem calc(88px + env(safe-area-inset-bottom, 0px))',
         background: 'linear-gradient(180deg, #0a1628 0%, #0f1f3a 100%)',
         fontFamily: "'Montserrat', sans-serif",
         color: CREAM,
