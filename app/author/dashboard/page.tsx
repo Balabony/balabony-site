@@ -284,7 +284,7 @@ export default async function AuthorDashboardPage() {
     contracts = []
   }
 
-  const totalViews = stories.reduce((s, x) => s + (x.views_count || 0), 0)
+  const totalCompleted = stories.reduce((s, x) => s + (x.reads_completed || 0), 0)
   const totalReads = stories.reduce((s, x) => s + (x.reads_total || 0), 0)
   // На сайті твір видно за статусом approved або published — публічні сторінки
   // беруть обидва (.in('status', ['approved','published'])). Рахуємо так само,
@@ -479,7 +479,7 @@ export default async function AuthorDashboardPage() {
         {/* Зведення */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
           <div style={card}><div style={statNum}>{published}</div><div style={statLabel}>опубліковано історій</div></div>
-          <div style={card}><div style={statNum}>{totalViews}</div><div style={statLabel}>переглядів усього</div></div>
+          <div style={card}><div style={statNum}>{totalCompleted}</div><div style={statLabel}>дочитали до кінця</div></div>
           <div style={card}><div style={statNum}>{totalReads}</div><div style={statLabel}>прочитань</div></div>
           <div style={card}><div style={statNum}>{followers}</div><div style={statLabel}>читачів стежать</div></div>
           <div style={{ ...card, background: BRAND.amber }}>
@@ -544,8 +544,18 @@ export default async function AuthorDashboardPage() {
                     </span>
                   </div>
                   <div style={{ display: 'flex', gap: '1.1rem', flexWrap: 'wrap', marginTop: 8, fontSize: '0.88rem', color: '#b9c6db' }}>
-                    <span>Перегляди: <strong style={{ color: BRAND.ink }}>{s.views_count}</strong></span>
+                    {/* «Перегляди» прибрано 09.09.2026.
+
+                        Показник рахувався клієнтським трекером (`/api/analytics/track`,
+                        подія open/read_start, унікальні сесії) і працював уривками: на
+                        весь сайт максимум 30 переглядів, тоді як на одній серії 119
+                        прочитань. Поруч із «Прочитаннями», за якими рахується
+                        винагорода, це виглядало як помилка в грошах. Замість нього —
+                        «Дочитали», яке в базі вже є (reads_completed) і яке автору
+                        справді цікаве. Сам лічильник не чіпали: він лишається в базі
+                        й в аналітиці. */}
                     <span>Прочитань: <strong style={{ color: BRAND.ink }}>{s.reads_total}</strong></span>
+                    <span>Дочитали: <strong style={{ color: BRAND.ink }}>{s.reads_completed}</strong></span>
                     <span>Дочитування: <strong style={{ color: BRAND.ink }}>{s.avg_read_percentage}%</strong></span>
                   </div>
                   <AuthorCoverUpload
