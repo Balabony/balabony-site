@@ -35,6 +35,10 @@ export default function VoiceVoteButton({ contentId }: { contentId: string }) {
   const [s, setS] = useState<State | null>(null)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
+  // Чи показувати посилання «як заробити бали». Саме посилання, а не фразу:
+  // «бали дає читання і запрошення друзів» нічого не пояснює людині, яка
+  // не знає, де це робиться.
+  const [showHow, setShowHow] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -64,12 +68,14 @@ export default function VoiceVoteButton({ contentId }: { contentId: string }) {
       return
     }
     if ((s.balance ?? 0) < cost) {
-      setMsg(`Потрібно ${cost} балів, у вас ${s.balance ?? 0}. Бали дає читання і запрошення друзів.`)
+      setMsg(`Потрібно ${cost} балів, у вас ${s.balance ?? 0}.`)
+      setShowHow(true)
       return
     }
 
     setBusy(true)
     setMsg('')
+    setShowHow(false)
     try {
       const r = await fetch('/api/voice-vote', {
         method: 'POST',
@@ -134,6 +140,14 @@ export default function VoiceVoteButton({ contentId }: { contentId: string }) {
           }}
         >
           {msg}
+          {showHow && (
+            <>
+              {' '}
+              <a href="/#bonusy" style={{ color: '#FAC775', fontWeight: 600 }}>
+                Як заробити бали
+              </a>
+            </>
+          )}
         </span>
       )}
     </span>

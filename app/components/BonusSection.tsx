@@ -95,8 +95,12 @@ export default function BonusSection() {
       .catch(() => {})
   }, [])
 
+  // id="bonusy" потрібен, щоб на цей блок можна було послатися ззовні:
+  // кнопка голосування за озвучення на сторінці твору веде сюди, коли
+  // читачеві бракує балів, — інакше «бали дає читання» лишається порожньою
+  // фразою, з якої незрозуміло, де ті бали брати.
   return (
-    <section className="bn-section">
+    <section className="bn-section" id="bonusy">
 
       <div className="bn-header">
         <div className="bn-header-icon">
