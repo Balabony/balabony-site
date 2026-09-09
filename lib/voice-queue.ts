@@ -84,6 +84,57 @@ export async function getCandidates(limit = 24): Promise<QueueRow[]> {
   }
 }
 
+export interface AuthorRow {
+  author_name: string
+  works: number
+}
+
+/**
+ * Усі автори, у яких є що озвучувати.
+ *
+ * Перша версія показувала 24 найсвіжіші твори — і сторінку займали три твори
+ * поспіль від одного автора, бо він заливався останнім. Читач бачив не вибір,
+ * а чиюсь добірку, а проголосувати за твір, опублікований раніше, не міг
+ * узагалі. Тому вибір іде від автора: спершу ім'я, потім його твори.
+ */
+export async function getAuthors(): Promise<AuthorRow[]> {
+  try {
+    const r = await dbQuery(
+      `select c.author_name, count(*)::int as works
+         from content c
+        where c.status = 'published'
+          and c.type = 'story'
+          and c.author_name is not null
+          and (c.audio_status is null or c.audio_status::text <> 'ready')
+        group by c.author_name
+        order by c.author_name`,
+    )
+    return r.rows as AuthorRow[]
+  } catch {
+    return []
+  }
+}
+
+/** Твори одного автора — з поточною кількістю голосів. */
+export async function getWorksByAuthor(authorName: string): Promise<QueueRow[]> {
+  try {
+    const r = await dbQuery(
+      `select c.id::text, c.title, c.slug, c.type, c.author_name,
+              (select count(*) from voice_votes v where v.content_id = c.id)::int as votes
+         from content c
+        where c.status = 'published'
+          and c.type = 'story'
+          and c.author_name = $1
+          and (c.audio_status is null or c.audio_status::text <> 'ready')
+        order by c.title`,
+      [authorName],
+    )
+    return r.rows as QueueRow[]
+  } catch {
+    return []
+  }
+}
+
 /** За що вже проголосував цей читач. */
 export async function getMyVotes(userId: string): Promise<string[]> {
   try {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
-import { castVote, getQueue, getMyVotes, getCandidates } from '@/lib/voice-queue'
+import { castVote, getQueue, getMyVotes, getAuthors, getWorksByAuthor } from '@/lib/voice-queue'
 import { getBalance } from '@/lib/points'
 
 /**
@@ -13,17 +13,26 @@ import { getBalance } from '@/lib/points'
 
 export const runtime = 'nodejs'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [queue, candidates] = await Promise.all([getQueue(20), getCandidates(24)])
+  // ?author=… віддає твори одного автора; без параметра — черга і список авторів.
+  const author = req.nextUrl.searchParams.get('author')
+
+  if (author) {
+    const works = await getWorksByAuthor(author)
+    const mine = user ? await getMyVotes(user.id) : []
+    return NextResponse.json({ ok: true, works, mine })
+  }
+
+  const [queue, authors] = await Promise.all([getQueue(20), getAuthors()])
   if (!user) {
-    return NextResponse.json({ ok: true, authorized: false, queue, candidates, mine: [], balance: 0 })
+    return NextResponse.json({ ok: true, authorized: false, queue, authors, mine: [], balance: 0 })
   }
 
   const [mine, balance] = await Promise.all([getMyVotes(user.id), getBalance(user.id)])
-  return NextResponse.json({ ok: true, authorized: true, queue, candidates, mine, balance })
+  return NextResponse.json({ ok: true, authorized: true, queue, authors, mine, balance })
 }
 
 export async function POST(req: NextRequest) {

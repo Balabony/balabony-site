@@ -31,7 +31,10 @@ export default function VoiceQueue({ cost }: { cost: number }) {
   const [authorized, setAuthorized] = useState(false)
   const [balance, setBalance] = useState(0)
   const [queue, setQueue] = useState<Row[]>([])
-  const [candidates, setCandidates] = useState<Row[]>([])
+  const [authors, setAuthors] = useState<{ author_name: string; works: number }[]>([])
+  const [picked, setPicked] = useState('')
+  const [works, setWorks] = useState<Row[]>([])
+  const [loadingWorks, setLoadingWorks] = useState(false)
   const [mine, setMine] = useState<string[]>([])
   const [busy, setBusy] = useState('')
   const [note, setNote] = useState('')
@@ -41,12 +44,12 @@ export default function VoiceQueue({ cost }: { cost: number }) {
       const r = await fetch('/api/voice-vote')
       const d = await r.json() as {
         authorized?: boolean; balance?: number
-        queue?: Row[]; candidates?: Row[]; mine?: string[]
+        queue?: Row[]; authors?: { author_name: string; works: number }[]; mine?: string[]
       }
       setAuthorized(Boolean(d.authorized))
       setBalance(d.balance ?? 0)
       setQueue(d.queue ?? [])
-      setCandidates(d.candidates ?? [])
+      setAuthors(d.authors ?? [])
       setMine(d.mine ?? [])
     } catch {
       setNote('Не вдалося завантажити чергу.')
@@ -56,6 +59,23 @@ export default function VoiceQueue({ cost }: { cost: number }) {
   }, [])
 
   useEffect(() => { void load() }, [load])
+
+  // Твори обраного автора вантажимо окремим запитом: у каталозі 510 творів,
+  // віддавати їх усі одним списком на телефон немає сенсу.
+  const loadWorks = useCallback(async (name: string) => {
+    if (!name) { setWorks([]); return }
+    setLoadingWorks(true)
+    try {
+      const r = await fetch(`/api/voice-vote?author=${encodeURIComponent(name)}`)
+      const d = await r.json() as { works?: Row[]; mine?: string[] }
+      setWorks(d.works ?? [])
+      if (d.mine) setMine(d.mine)
+    } catch {
+      setNote('Не вдалося завантажити твори автора.')
+    } finally {
+      setLoadingWorks(false)
+    }
+  }, [])
 
   const vote = async (id: string) => {
     setBusy(id); setNote('')
@@ -69,6 +89,7 @@ export default function VoiceQueue({ cost }: { cost: number }) {
       if (!d.ok) { setNote(d.error ?? 'Не вдалося зарахувати голос.'); return }
       setBalance(d.balance ?? balance - cost)
       await load()
+      if (picked) await loadWorks(picked)
     } catch {
       setNote('Не вдалося звʼязатися з сайтом.')
     } finally {
@@ -165,11 +186,30 @@ export default function VoiceQueue({ cost }: { cost: number }) {
       )}
 
       <h2 style={{ color: GOLD, fontSize: '1.2rem', margin: '28px 0 12px' }}>
-        {queue.length > 0 ? 'Інші твори' : 'За що можна проголосувати'}
+        Знайти твір
       </h2>
-      {candidates
-        .filter(c => !queue.some(q => q.id === c.id))
-        .map(r => renderRow(r))}
+      <p style={{ color: MUTED, fontSize: '0.9rem', lineHeight: 1.6, margin: '0 0 10px' }}>
+        Оберіть автора — і побачите всі його історії, які ще не озвучені.
+      </p>
+      <select
+        value={picked}
+        onChange={e => { setPicked(e.target.value); void loadWorks(e.target.value) }}
+        style={{
+          width: '100%', padding: '11px 12px', borderRadius: 9, marginBottom: 16,
+          border: `1px solid ${LINE}`, background: '#0a1628', color: CREAM,
+          fontSize: 16, fontFamily: 'inherit', outline: 'none',
+        }}
+      >
+        <option value="">— оберіть автора —</option>
+        {authors.map(a => (
+          <option key={a.author_name} value={a.author_name}>
+            {a.author_name} ({a.works})
+          </option>
+        ))}
+      </select>
+
+      {loadingWorks && <p style={{ color: MUTED }}>Завантажуємо…</p>}
+      {!loadingWorks && works.map(r => renderRow(r))}
     </div>
   )
 }

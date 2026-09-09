@@ -47,7 +47,8 @@ export default function Page() {
         </p>
 
         <p style={{ color: TEXT, lineHeight: 1.75, marginBottom: '2rem' }}>
-          Про самі голоси, якими читатимемо, — на сторінці{' '}
+          Оберіть автора зі списку — і побачите всі його історії. Про самі голоси,
+          якими читатимемо, — на сторінці{' '}
           <Link href="/holosy" style={{ color: GOLD }}>Голоси платформи</Link>.
         </p>
 
