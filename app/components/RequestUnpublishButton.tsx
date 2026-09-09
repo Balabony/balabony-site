@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { workPath } from '@/lib/rss'
 
 /**
  * «Попросити зняти з публікації» — для опублікованого твору.
@@ -25,10 +26,12 @@ export default function RequestUnpublishButton({
   contentId,
   title,
   slug,
+  type,
 }: {
   contentId: string
   title: string
   slug?: string | null
+  type?: string | null
 }) {
   const [asking, setAsking] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -49,7 +52,9 @@ export default function RequestUnpublishButton({
           // за назвою: назви бувають однакові в різних авторів.
           body:
             `Прошу зняти з публікації твір «${title}».\n` +
-            (slug ? `Адреса: /stories/${slug}\n` : '') +
+            // Шлях залежить від типу: серії «Балабонів» живуть на /episodes/,
+            // «Тиша» — на /tysha/. Жорсткий /stories/ давав у листі 404.
+            (slug ? `Адреса: ${workPath(type ?? null, slug)}\n` : '') +
             `ID: ${contentId}`,
         }),
       })

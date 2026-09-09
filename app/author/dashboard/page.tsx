@@ -656,6 +656,7 @@ export default async function AuthorDashboardPage() {
                       contentId={s.content_id}
                       title={s.title}
                       slug={s.slug}
+                      type={s.type}
                     />
                   )}
 
