@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getOrCreateAnonUserId } from '@/lib/anon-user'
+import { resolveReaderId } from '@/lib/reader-id'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { awardPoints, POINTS } from '@/lib/points'
 
@@ -31,7 +31,7 @@ interface StreakRow {
 
 export async function GET() {
   try {
-    const userId = await getOrCreateAnonUserId()
+    const userId = await resolveReaderId()
     const supabase = getSupabaseAdmin()
     const { data } = await supabase
       .from('user_streaks')
@@ -66,7 +66,7 @@ export async function GET() {
 
 export async function POST() {
   try {
-    const userId = await getOrCreateAnonUserId()
+    const userId = await resolveReaderId()
     const supabase = getSupabaseAdmin()
     const today = todayKyiv()
     await awardPoints(userId, 'streak', today, POINTS.streak)

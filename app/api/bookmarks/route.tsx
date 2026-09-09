@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
-import { getOrCreateAnonUserId } from '@/lib/anon-user'
+import { resolveReaderId } from '@/lib/reader-id'
 import { dbQuery } from '@/lib/db'
 
 /**
@@ -31,17 +31,6 @@ type Row = {
   created_at: string
 }
 
-async function resolveUserId(): Promise<string> {
-  try {
-    const supabase = await createSupabaseServerClient()
-    const { data } = await supabase.auth.getUser()
-    if (data?.user?.id) return data.user.id
-  } catch {
-    // не залогінений — падаємо на анонімний id
-  }
-  return getOrCreateAnonUserId()
-}
-
 export async function POST(req: NextRequest) {
   let b: Body
   try {
@@ -58,7 +47,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const userId = await resolveUserId()
+    const userId = await resolveReaderId()
 
     if (b.saved === false) {
       await dbQuery(
@@ -90,7 +79,7 @@ export async function GET(req: NextRequest) {
   const limit = Math.max(1, Math.min(100, Number.isFinite(rawLimit) ? rawLimit : 50))
 
   try {
-    const userId = await resolveUserId()
+    const userId = await resolveReaderId()
 
     // Питання про один твір: чи стоїть закладка (для стану кнопки).
     if (one !== '') {

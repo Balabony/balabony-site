@@ -3,6 +3,8 @@ import MyLibrary from '@/app/components/MyLibrary'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import LogoutButton from './LogoutButton'
 import { dbQuery } from '@/lib/db'
+import { getBalance } from '@/lib/points'
+import { levelFromReads } from '@/lib/levels'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,6 +23,22 @@ export default async function ProfilePage() {
     .single()
 
   const hasSubscription = profile?.subscription_until && new Date(profile.subscription_until) > new Date()
+
+  // Бали й прочитані серії. Обидва запити не критичні: якщо не вдалися,
+  // показуємо нулі, а не ламаємо сторінку.
+  const balance = await getBalance(user.id)
+
+  let totalReads = 0
+  try {
+    const r = await dbQuery(
+      `select count(*)::int as n from user_episode_reads where user_id = $1`,
+      [user.id],
+    )
+    totalReads = (r.rows[0] as { n: number } | undefined)?.n ?? 0
+  } catch {
+    // лишаємо 0
+  }
+  const level = levelFromReads(totalReads)
 
   // Чи має ця людина кабінет автора. Раніше сюди потрапляли й автори — і не
   // мали звідси жодного шляху до своїх творів, бо кабінет живе за іншою
@@ -153,16 +171,38 @@ export default async function ProfilePage() {
           </div>
         )}
 
-        {profile?.bonus_points > 0 && (
-          <div style={{ marginBottom: '1.5rem' }}>
-            <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginBottom: '0.25rem' }}>
-              Бонусні бали
-            </div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#FFF8EE' }}>
-              {profile.bonus_points}
-            </div>
+        {/* Бали й рівень.
+
+            Раніше тут стояла колонка `users.bonus_points`, у яку не пише ЖОДЕН
+            роут: бали живуть у `point_events`, а рівень рахується з
+            `user_episode_reads`. Читач із півсотнею балів бачив порожнє місце
+            й робив висновок, що система не працює. Тепер обидва числа беремо
+            з тих самих джерел, що й решта сайту. */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginBottom: '0.25rem' }}>
+            Бали
           </div>
-        )}
+          <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#FFF8EE' }}>
+            {balance}
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginTop: '0.35rem', lineHeight: 1.6 }}>
+            Нараховуємо за прочитану серію, за читання кілька днів поспіль,
+            за відгук і за пройдене опитування.
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginBottom: '0.25rem' }}>
+            Рівень
+          </div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#FAC775' }}>
+            {level.current.title}
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginTop: '0.35rem' }}>
+            Прочитано серій: {totalReads}
+            {level.next && ` · до рівня «${level.next.title}» лишилося ${level.next.min - totalReads}`}
+          </div>
+        </div>
 
         <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid #e5e7eb' }}>
           <a

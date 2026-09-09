@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getOrCreateAnonUserId } from '@/lib/anon-user'
+import { resolveReaderId } from '@/lib/reader-id'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 
@@ -89,7 +89,7 @@ function kyivToday(): string {
 
 export async function POST(req: Request) {
   try {
-    const userId = await getOrCreateAnonUserId()
+    const userId = await resolveReaderId()
     const body = await req.json().catch(() => ({}))
 
     const contentId = typeof body?.contentId === 'string' ? body.contentId : ''

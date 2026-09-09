@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
-import { getOrCreateAnonUserId } from '@/lib/anon-user'
+import { resolveReaderId } from '@/lib/reader-id'
 import { dbQuery } from '@/lib/db'
 
 /**
@@ -42,17 +42,6 @@ type Row = {
   updated_at: string
 }
 
-async function resolveUserId(): Promise<string> {
-  try {
-    const supabase = await createSupabaseServerClient()
-    const { data } = await supabase.auth.getUser()
-    if (data?.user?.id) return data.user.id
-  } catch {
-    // не залогінений або сесія не читається — падаємо на анонімний id
-  }
-  return getOrCreateAnonUserId()
-}
-
 export async function POST(req: NextRequest) {
   let b: Body
   try {
@@ -88,7 +77,7 @@ export async function POST(req: NextRequest) {
              position_px = excluded.position_px,
              percent = excluded.percent,
              updated_at = now()`,
-      [await resolveUserId(), contentId, slug, title, path, positionPx, percent],
+      [await resolveReaderId(), contentId, slug, title, path, positionPx, percent],
     )
   } catch {
     // Прогрес не критичний: якщо база не відповіла, читання не ламаємо.
@@ -105,7 +94,7 @@ export async function GET(req: NextRequest) {
   const limit = Math.max(1, Math.min(12, Number.isFinite(rawLimit) ? rawLimit : 3))
 
   try {
-    const userId = await resolveUserId()
+    const userId = await resolveReaderId()
 
     if (one !== '') {
       const res = await dbQuery(

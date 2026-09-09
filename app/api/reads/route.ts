@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getOrCreateAnonUserId } from '@/lib/anon-user'
+import { resolveReaderId } from '@/lib/reader-id'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { awardPoints, POINTS } from '@/lib/points'
 
@@ -14,7 +14,7 @@ async function countReads(userId: string): Promise<number> {
 
 export async function GET() {
   try {
-    const userId = await getOrCreateAnonUserId()
+    const userId = await resolveReaderId()
     return NextResponse.json({ total: await countReads(userId) })
   } catch {
     return NextResponse.json({ total: 0 })
@@ -23,7 +23,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const userId = await getOrCreateAnonUserId()
+    const userId = await resolveReaderId()
     const body = await req.json().catch(() => ({}))
     const slug = body?.slug
     if (!slug || typeof slug !== 'string') {

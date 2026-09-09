@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { getOrCreateAnonUserId } from '@/lib/anon-user'
+import { resolveReaderId } from '@/lib/reader-id'
 import { awardPoints, POINTS } from '@/lib/points'
 
 export async function POST(req: NextRequest) {
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Бали за опитування: одноразово (ref='once').
-    const uid = await getOrCreateAnonUserId()
+    const uid = await resolveReaderId()
     await awardPoints(uid, 'survey', 'once', POINTS.survey)
 
     return NextResponse.json({ ok: true })
