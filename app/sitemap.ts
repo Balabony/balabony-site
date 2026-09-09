@@ -56,6 +56,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/top`,                   lastModified: now, changeFrequency: 'daily',   priority: 0.8 },
     { url: `${BASE_URL}/avtory`,                lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
     { url: `${BASE_URL}/konkursy`,              lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
+    // Подача творів. Окрема адреса, бо автор шукає її пошуком («як подати твір
+    // на конкурс»), а не лише переходом зі сторінки конкурсів.
+    { url: `${BASE_URL}/konkursy/podaty`,       lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/support`,               lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE_URL}/about`,                 lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/games`,                 lastModified: now, changeFrequency: 'weekly',  priority: 0.7 },
