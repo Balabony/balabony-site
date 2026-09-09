@@ -137,11 +137,16 @@ export default function AuthorSection() {
           align-items: center;
           justify-content: center;
           margin-bottom: 16px;
+          /* Тінь перенесено сюди з .as-feather: на анімованому елементі
+             браузер перемальовував drop-shadow кожен кадр, безкінечно.
+             Контейнер нерухомий — тінь рахується один раз. Вигляд той самий,
+             тільки тінь більше не хитається разом із пером. */
+          filter: drop-shadow(0 4px 12px rgba(239,159,39,0.35));
         }
         .as-feather {
           transform-origin: 22px 76px;
           animation: asFeatherWrite 3s ease-in-out infinite;
-          filter: drop-shadow(0 4px 12px rgba(239,159,39,0.35));
+          will-change: transform;
         }
         .as-eyebrow {
           font-size: 11px;
