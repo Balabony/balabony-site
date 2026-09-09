@@ -224,14 +224,24 @@ export default function ContestSubmitForm() {
             type="file"
             multiple={contest.episodes > 1}
             accept=".docx,.txt"
-            onChange={e => setFiles(Array.from(e.target.files ?? []))}
+            // Сортуємо ТУТ ЖЕ, тим самим правилом, що на сервері: автор має
+            // бачити той порядок, у якому серії справді ляжуть у заявку.
+            // Порядок, у якому файли віддає браузер, не гарантований —
+            // тест 09.09.2026 дав три файли задом наперед.
+            onChange={e =>
+              setFiles(
+                (Array.from(e.target.files ?? []) as File[]).sort((a, b) =>
+                  new Intl.Collator('uk', { numeric: true, sensitivity: 'base' }).compare(a.name, b.name),
+                ),
+              )
+            }
             style={{ ...field, padding: '9px 10px' }}
           />
 
           {files.length > 0 && (
             <p style={{ color: BRAND.muted, fontSize: '0.85rem', margin: '0 0 12px' }}>
-              Вибрано {files.length}: {files.map(f => f.name).join(', ')}.
-              {' '}Порядок серій — за порядком у цьому переліку.
+              Серії ляжуть у такому порядку:{' '}
+              {files.map((f, i) => `${i + 1}. ${f.name}`).join('; ')}.
             </p>
           )}
 
@@ -239,6 +249,12 @@ export default function ContestSubmitForm() {
             Обсяг кожної серії — {contest.minWords}–{contest.maxWords} слів. Якщо файл не
             вкладається, заявка не зберігається зовсім: ми покажемо, який саме файл і скільки
             в ньому слів.
+          </p>
+
+          <p style={{ color: BRAND.muted, fontSize: '0.82rem', lineHeight: 1.6, margin: '0 0 14px' }}>
+            <strong style={{ color: '#f5f0e8' }}>Пронумеруйте файли</strong> — серії шикуються
+            за назвою файлу: «01 Хвіртка.docx», «02 Суха земля.docx». Так порядок буде саме
+            той, який ви задумали, а не той, у якому файли підхопить браузер.
           </p>
 
           <button

@@ -132,7 +132,24 @@ export async function POST(req: NextRequest) {
   const annotation = String(form.get('annotation') ?? '').trim().slice(0, 1500)
   const genre = String(form.get('genre') ?? '').trim().slice(0, 100)
 
-  const files = form.getAll('files').filter((f): f is File => f instanceof File && f.size > 0)
+  // Порядок серій.
+  //
+  // Тест 09.09.2026 показав, що покладатися на порядок, у якому браузер
+  // віддає прикріплені файли, не можна: три файли пішли в базу задом наперед
+  // (seria_3 стала першою серією). Залежить від того, як їх виділили в
+  // діалозі вибору, і не гарантовано нічим.
+  //
+  // Для конкурсу серіалів це найгірша з можливих поломок: автор надсилає
+  // десять частин, читач отримує їх у зворотному порядку, і помітять це вже
+  // після публікації.
+  //
+  // Тому шикуємо за іменем файлу натуральним порядком — числа порівнюємо як
+  // числа, інакше «Частина 10» стає між першою і другою.
+  const collator = new Intl.Collator('uk', { numeric: true, sensitivity: 'base' })
+  const files = form.getAll('files')
+    .filter((f): f is File => f instanceof File && f.size > 0)
+    .sort((a, b) => collator.compare(a.name, b.name))
+
   if (files.length === 0) {
     return NextResponse.json({ ok: false, error: 'Прикріпіть хоча б один файл' }, { status: 400 })
   }
