@@ -41,7 +41,9 @@ export async function getQueue(limit = 20): Promise<QueueRow[]> {
          from voice_votes v
          join content c on c.id = v.content_id
         where c.status = 'published'
-          and coalesce(c.audio_status, '') <> 'ready'
+          -- audio_status це ENUM: порожній рядок у coalesce валить запит
+          -- помилкою 22P02, тому порівнюємо через ::text і окремо ловимо null.
+          and (c.audio_status is null or c.audio_status::text <> 'ready')
         group by c.id, c.title, c.slug, c.type, c.author_name
         order by votes desc, c.title
         limit $1`,
@@ -69,7 +71,9 @@ export async function getCandidates(limit = 24): Promise<QueueRow[]> {
          from content c
         where c.status = 'published'
           and c.type = 'story'
-          and coalesce(c.audio_status, '') <> 'ready'
+          -- audio_status це ENUM: порожній рядок у coalesce валить запит
+          -- помилкою 22P02, тому порівнюємо через ::text і окремо ловимо null.
+          and (c.audio_status is null or c.audio_status::text <> 'ready')
         order by c.created_at desc
         limit $1`,
       [limit],
