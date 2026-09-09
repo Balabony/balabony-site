@@ -13,6 +13,7 @@ import AuthorProfileEditor from '@/app/components/AuthorProfileEditor'
 import { dbQuery } from '@/lib/db'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import PublishWorkButton from '@/app/components/PublishWorkButton'
+import AddWorkForm from '@/app/components/AddWorkForm'
 
 export const dynamic = 'force-dynamic'
 
@@ -381,6 +382,11 @@ export default async function AuthorDashboardPage() {
             </a>
           </div>
         )}
+
+        {/* Додати свою історію. Стоїть перед чергою на озвучення: автори
+            питали, чи можна залити старі твори, і до 09.09.2026 зробити це
+            самостійно було неможливо. */}
+        <AddWorkForm />
 
         {/* Черга на озвучення.
 
