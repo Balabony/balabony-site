@@ -16,6 +16,7 @@ import PublishWorkButton from '@/app/components/PublishWorkButton'
 import AddWorkForm from '@/app/components/AddWorkForm'
 import WorksFilter from '@/app/components/WorksFilter'
 import DeleteDraftButton from '@/app/components/DeleteDraftButton'
+import RequestUnpublishButton from '@/app/components/RequestUnpublishButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -645,6 +646,17 @@ export default async function AuthorDashboardPage() {
                       ззовні: зняти його з публікації — розмова з редакцією. */}
                   {s.status === 'draft' && (
                     <DeleteDraftButton contentId={s.content_id} title={s.title} />
+                  )}
+
+                  {/* Опублікований твір автор зняти не може — але й шукати
+                      пошту редакції не мусить: кнопка надсилає звернення
+                      через /api/author/message. */}
+                  {s.status === 'published' && (
+                    <RequestUnpublishButton
+                      contentId={s.content_id}
+                      title={s.title}
+                      slug={s.slug}
+                    />
                   )}
 
                   <a
