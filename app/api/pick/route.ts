@@ -7,7 +7,12 @@
  *   - SERIES: user picks up to 2 episodes per season (4 seasons × 2 = 8 total max)
  *   - STORIES: user picks up to 7 stories from the entire catalog
  *   - Picks are idempotent: re-picking the same content is a no-op (alreadyPicked: true)
- *   - User identity = HttpOnly cookie (balabony_uid, UUID v4, 1 year)
+ *   - Ідентифікатор: акаунт, якщо читач увійшов, інакше HttpOnly cookie
+ *     balabony_uid (див. lib/reader-id.ts). До 09.09.2026 був ЛИШЕ cookie —
+ *     через це очищення cookie давало залогіненому читачеві ліміт наново, а
+ *     на другому пристрої він починав з нуля. Витрачені picks переносяться на
+ *     акаунт при вході (mergeAnonInto), тому перемикання нікому нічого не
+ *     роздає.
  *
  * Routes:
  *   GET  /api/pick           → all picks for current user
@@ -24,7 +29,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { getOrCreateAnonUserId } from '@/lib/anon-user'
+import { resolveReaderId } from '@/lib/reader-id'
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -101,7 +106,7 @@ function seasonMatchesContentId(season: number, contentId: number): boolean {
 
 export async function GET() {
   try {
-    const userId = await getOrCreateAnonUserId()
+    const userId = await resolveReaderId()
     const supabase = getSupabaseAdmin()
 
     // Check active subscription (frontend uses this to mark all episodes
@@ -258,7 +263,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Identity + DB
-    const userId = await getOrCreateAnonUserId()
+    const userId = await resolveReaderId()
     const supabase = getSupabaseAdmin()
 
     // ── Subscribers bypass picks entirely: they have unlimited access via

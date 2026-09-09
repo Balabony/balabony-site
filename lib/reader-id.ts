@@ -52,10 +52,11 @@ export async function peekAnonId(): Promise<string | null> {
  * потім вийде і читатиме гостем, вона нічого не втратить, а дублікати
  * відсіються унікальними ключами.
  *
- * Свідомо НЕ переносимо `user_free_picks`: до них прив'язана межа
- * безкоштовних творів, і /api/pick досі працює з анонімним id. Перенести
- * зараз означало б обнулити лічильник у браузері — тобто роздати
- * безкоштовні твори наново.
+ * Переносимо і `user_free_picks` з `referral_bonuses` — разом із переходом
+ * /api/pick на цей же ідентифікатор. Порядок важливий: спершу копіюємо
+ * витрачені безкоштовні твори на акаунт, і лише тому перемикання не роздає
+ * їх наново. Побічний виграш: очищення cookie більше не обнуляє ліміт
+ * залогіненому читачеві.
  */
 export async function mergeAnonInto(userId: string): Promise<void> {
   const anon = await peekAnonId()
@@ -83,5 +84,31 @@ export async function mergeAnonInto(userId: string): Promise<void> {
     )
   } catch {
     // те саме: бали не критичний шлях
+  }
+
+  // Витрачені безкоштовні твори. Помилку тут ковтати НЕ можна мовчки:
+  // якщо не перенести, читач отримає ліміт наново. Тому лише логуємо.
+  try {
+    await dbQuery(
+      `insert into user_free_picks (user_id, content_type, season, content_id)
+       select $1, content_type, season, content_id
+         from user_free_picks where user_id = $2
+       on conflict do nothing`,
+      [userId, anon],
+    )
+  } catch (e) {
+    console.error('[mergeAnonInto] free_picks', (e as Error)?.message)
+  }
+
+  try {
+    await dbQuery(
+      `insert into referral_bonuses (user_id, story_id, season, channel)
+       select $1, story_id, season, channel
+         from referral_bonuses where user_id = $2
+       on conflict do nothing`,
+      [userId, anon],
+    )
+  } catch (e) {
+    console.error('[mergeAnonInto] referral_bonuses', (e as Error)?.message)
   }
 }

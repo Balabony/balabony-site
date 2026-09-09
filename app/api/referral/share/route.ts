@@ -16,7 +16,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { getOrCreateAnonUserId } from '@/lib/anon-user'
+import { resolveReaderId } from '@/lib/reader-id'
 
 const MAX_STORY_BONUSES = 5            // free-story bonuses, total
 const MAX_SERIES_BONUSES_PER_SEASON = 3 // free-series bonuses, per season
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'missing story_id' }, { status: 400 })
     }
 
-    const userId = await getOrCreateAnonUserId()
+    const userId = await resolveReaderId()
     const db = getSupabaseAdmin()
 
     // Count existing bonuses in the relevant bucket:
