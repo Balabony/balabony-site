@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { GENRE_OPTIONS } from '@/lib/genres'
+import AuthorCoverUpload from './AuthorCoverUpload'
 
 /**
  * «Додати свою історію» в кабінеті автора.
@@ -46,7 +47,9 @@ export default function AddWorkForm() {
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [done, setDone] = useState(false)
+  // id щойно створеної історії — щоб одразу тут запропонувати обкладинку,
+  // а не відсилати автора шукати твір у переліку внизу сторінки.
+  const [newId, setNewId] = useState('')
 
   async function submit() {
     if (busy) return
@@ -58,9 +61,9 @@ export default function AddWorkForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, genre, text }),
       })
-      const d = (await res.json()) as { ok?: boolean; error?: string }
-      if (d?.ok) {
-        setDone(true)
+      const d = (await res.json()) as { ok?: boolean; error?: string; id?: string }
+      if (d?.ok && d.id) {
+        setNewId(d.id)
       } else {
         setError(d?.error ?? 'Не вдалося зберегти. Спробуйте ще раз.')
       }
@@ -71,7 +74,7 @@ export default function AddWorkForm() {
     }
   }
 
-  if (done) {
+  if (newId) {
     return (
       <div style={{
         marginBottom: '1.5rem', padding: '1rem 1.25rem', borderRadius: 12,
@@ -79,22 +82,37 @@ export default function AddWorkForm() {
         fontFamily: FONT,
       }}>
         <div style={{ color: '#f5f0e8', fontWeight: 700, marginBottom: 6 }}>
-          Історію збережено як чернетку
+          «{title}» збережено як чернетку
         </div>
-        <div style={{ color: '#e8eef7', fontSize: '0.92rem', lineHeight: 1.7, marginBottom: 12 }}>
-          Вона вже у вашому переліку творів нижче. Там додайте до неї обкладинку, а коли
-          все влаштує — натисніть «Опублікувати». Доти твір не бачить ніхто, крім вас.
+        <div style={{ color: '#e8eef7', fontSize: '0.92rem', lineHeight: 1.7, marginBottom: 6 }}>
+          Тепер додайте обкладинку — історія з обкладинкою помітніша в списку.
+          Коли все влаштує, натисніть «Опублікувати» біля твору в переліку нижче.
+          Доти його не бачить ніхто, крім вас.
         </div>
+
+        {/* Формати називаємо прямо: автор не має відкривати файловий діалог,
+            щоб дізнатися, що приймається. Значення звірені з
+            app/api/author/cover/route.ts — при розходженні правити ТАМ і тут. */}
+        <div style={{ fontSize: '0.85rem', color: '#8fa3c4', lineHeight: 1.6, marginBottom: 4 }}>
+          Приймаємо JPG, PNG або WebP, до 8 МБ. Фото з телефона підходить —
+          завелике зображення зменшиться саме.
+        </div>
+
+        {/* Той самий компонент, що й біля кожного твору в переліку: другої
+            реалізації завантаження файлу не заводимо. */}
+        <AuthorCoverUpload contentId={newId} initialCover={null} />
+
         <button
           type="button"
-          onClick={() => { setDone(false); setTitle(''); setGenre(''); setText(''); setOpen(true) }}
+          onClick={() => { setNewId(''); setTitle(''); setGenre(''); setText(''); setOpen(true) }}
           style={{
+            marginTop: 14,
             fontFamily: FONT, fontSize: '0.88rem', fontWeight: 700, color: AMBER,
             background: 'transparent', border: '1px solid rgba(239,159,39,0.45)',
             borderRadius: 8, padding: '8px 14px', cursor: 'pointer',
           }}
         >
-          Додати ще одну
+          Додати ще одну історію
         </button>
       </div>
     )
