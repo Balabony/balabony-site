@@ -53,6 +53,10 @@ const READ_LINKS = [
   { label: 'Серіал «Тиша» 18+', href: '/tysha' },
   { label: 'Історії читачів',   href: '/stories' },
   { label: 'Казки',             href: '/fairytales' },
+  // Розділи, зроблені 09.09.2026: без посилання в підвалі їх ніхто не знайде.
+  { label: 'Дитячі оповідання', href: '/stories/zhanr/dytiachi-opovidannia' },
+  { label: 'Що читають',        href: '/top' },
+  { label: 'Черга на озвучення', href: '/cherga' },
   { label: 'Ігри для мозку',    href: '/games' },
   { label: 'Автори Балабонів',  href: '/avtory' },
 ]
@@ -68,8 +72,11 @@ const PLATFORMS = [
   { label: 'Web (браузер)',            href: '/',            soon: false, badge: null },
   { label: 'iPhone і iPad',            href: '/vstanovyty',  soon: false, badge: 'Встановити' },
   { label: 'Android',                  href: '/vstanovyty',  soon: false, badge: 'Встановити' },
-  { label: 'Telegram-бот',             href: null,           soon: true,  badge: null },
-  { label: 'Smart TV',                 href: null,           soon: true,  badge: null },
+  // Telegram-бот і Smart TV прибрано 09.09.2026. Бот існує лише як webhook,
+  // що віддає chat_id і пише «передай бабусі» — до читання відношення не має;
+  // по Smart TV не зроблено нічого. Плашка «Скоро» без жодних робіт — це
+  // обіцянка, яку ми не збиралися виконувати найближчим часом. Повернемо
+  // рядок тоді, коли буде що показати.
 ]
 
 
