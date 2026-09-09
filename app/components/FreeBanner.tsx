@@ -35,9 +35,6 @@ export default function FreeBanner() {
           overflow: 'hidden',
         }}
       >
-        {/* Shimmer-блік */}
-        <span className="free-banner__shimmer" aria-hidden="true" />
-
         {/* Домик (HomeIcon в стилі Breadcrumbs.tsx) */}
         <span className="free-banner__icon" aria-hidden="true">
           <svg

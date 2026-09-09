@@ -196,15 +196,6 @@ body, body * {
    означало перекомпонування першого екрана вже після завантаження скриптів.
    Перенесено 08.09.2026, коли CLS стояв на 0,532. */
 
-        @keyframes free-banner-shimmer {
-          0%,
-          100% {
-            left: -50%;
-          }
-          50% {
-            left: 100%;
-          }
-        }
         @keyframes free-banner-float {
           0%,
           100% {
@@ -222,21 +213,6 @@ body, body * {
           50% {
             box-shadow: 0 0 22px rgba(240, 165, 0, 0.65);
           }
-        }
-        .free-banner__shimmer {
-          position: absolute;
-          top: 0;
-          left: -50%;
-          width: 50%;
-          height: 100%;
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(240, 165, 0, 0.15),
-            transparent
-          );
-          animation: free-banner-shimmer 4s ease-in-out infinite;
-          pointer-events: none;
         }
         .free-banner__icon {
           flex-shrink: 0;
@@ -268,7 +244,6 @@ body, body * {
           letter-spacing: 0.02em;
         }
         @media (prefers-reduced-motion: reduce) {
-          .free-banner__shimmer,
           .free-banner__icon,
           .free-banner__cta {
             animation: none;
