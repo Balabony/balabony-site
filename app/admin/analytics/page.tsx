@@ -586,7 +586,10 @@ export default function AnalyticsPage() {
                   {rev5.weak.map(w => (
                     <div key={w.title} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 13, color: '#e8eef7' }}>
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.title}</span>
-                      <span style={{ flex: 'none', color: w.avg < 3 ? '#f87171' : GOLD, fontWeight: 700 }}>
+                      {/* Увагу привертаємо золотим, не червоним: у бренді
+                          Balabony червоного немає. Слабкий твір — яскравим
+                          золотим, решта — приглушеним. */}
+                      <span style={{ flex: 'none', color: w.avg < 3 ? GOLD : '#8899bb', fontWeight: 700 }}>
                         {w.avg} з 5 · {w.n}
                       </span>
                     </div>
@@ -603,7 +606,7 @@ export default function AnalyticsPage() {
               ) : (
                 <div style={{ display: 'grid', gap: 12 }}>
                   {rev5.withText.map((r, i) => (
-                    <div key={i} style={{ borderLeft: `2px solid ${r.rating <= 2 ? '#f87171' : GOLD}`, paddingLeft: 12 }}>
+                    <div key={i} style={{ borderLeft: `2px solid ${r.rating <= 2 ? GOLD : 'rgba(255,255,255,0.15)'}`, paddingLeft: 12 }}>
                       <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginBottom: 3 }}>
                         {(data.title_by_id ?? {})[r.content_id] ?? r.content_id.slice(0, 8)}
                         {' · '}

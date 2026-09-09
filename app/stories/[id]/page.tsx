@@ -8,7 +8,6 @@ import FollowAuthorButton from '@/app/components/FollowAuthorButton'
 import VoiceVoteButton from '@/app/components/VoiceVoteButton'
 import ReviewButton from '@/app/components/ReviewButton'
 import ReaderPulse from '@/app/components/ReaderPulse'
-import LikeButton from '@/app/components/LikeButton'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
 import ReadingPosition from '@/app/components/ReadingPosition'
 import ReadingProgressBar from '@/app/components/ReadingProgressBar'
@@ -272,8 +271,18 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         {/* Позиція читання: де людина спинилася минулого разу. */}
         <ReadingPosition slug={id} title={story.title} path={`/stories/${id}`} contentId={story.id} />
 
-        {/* Вподобання: найпростіша дія, тому стоїть першою під текстом. */}
-        <LikeButton contentId={story.id} />
+        {/* Відгук — на місці колишньої кнопки «Подобається».
+            Рішення Богдана 09.09.2026: дві кнопки поруч дублювали одну дію
+            («сподобалось» і «як тобі?»), а відгук дає більше — оцінку і текст,
+            який бачить редакція. Місце найпомітніше на сторінці, тому кнопка
+            стоїть першою під текстом. */}
+        <ReviewButton
+          contentId={story.id}
+          contentType="story"
+          authorId={story.author_id ?? undefined}
+          authorName={story.author_name ?? undefined}
+          contentTitle={story.title}
+        />
 
         {/* Збір пошти. Стоїть саме тут — після тексту й лайку, до опитування:
             читач із газети по QR потрапляє одразу сюди, і це єдина точка,
@@ -299,16 +308,6 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
               лише через список авторів на /cherga — тобто читач, який щойно
               дочитав, кнопки не бачив, а бали витрачати було нікуди. */}
           <VoiceVoteButton contentId={story.id} />
-          {/* Відгук. Механіка існувала з початку, але ReviewModal ніде не
-              викликався — залишити відгук було фізично неможливо, і в базі
-              за весь час нуль відгуків. */}
-          <ReviewButton
-            contentId={story.id}
-            contentType="story"
-            authorId={story.author_id ?? undefined}
-            authorName={story.author_name ?? undefined}
-            contentTitle={story.title}
-          />
         </div>
 
         {/* Поширення */}

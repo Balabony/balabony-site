@@ -172,7 +172,7 @@ export default function ReviewModal({
             />
 
             {error && (
-              <div style={{ fontSize: 13, color: '#f87171', marginBottom: 12, background: 'rgba(239,68,68,0.1)', borderRadius: 8, padding: '8px 12px' }}>
+              <div style={{ fontSize: 13, color: GOLD, marginBottom: 12, background: 'rgba(239,159,39,0.12)', border: '1px solid rgba(239,159,39,0.35)', borderRadius: 8, padding: '8px 12px' }}>
                 {error}
               </div>
             )}
