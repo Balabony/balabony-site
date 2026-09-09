@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   const db = getSupabaseAdmin()
 
-  const [surveys, pageViews, storyEvents, sessions, paywall, subs, revenue, acquisition, works] = await Promise.all([
+  const [surveys, pageViews, storyEvents, sessions, paywall, subs, revenue, acquisition, works, reviews] = await Promise.all([
     db.from('survey_responses')
       .select('*')
       .order('created_at', { ascending: false })
@@ -51,9 +51,16 @@ export async function GET(req: NextRequest) {
     // з анкет — тобто з того, що читачі про себе кажуть, а не з того,
     // що вони насправді читають.
     db.from('content')
-      .select('id, genre')
+      .select('id, genre, title')
       .eq('type', 'story')
       .in('status', ['approved', 'published'])
+      .limit(5000),
+    // Відгуки. Додано 09.09.2026: механіка існувала з самого початку, але
+    // ReviewModal ніде не викликався — залишити відгук було неможливо, і
+    // аналітика про відгуки не знала взагалі.
+    db.from('reviews')
+      .select('content_type, content_id, rating, comment, created_at')
+      .order('created_at', { ascending: false })
       .limit(5000),
   ])
 
@@ -72,10 +79,17 @@ export async function GET(req: NextRequest) {
     subscriber_ids: subscriberIds,
     revenue_events: revenue.data      ?? [],
     acquisition:    acquisition.data  ?? [],
+    reviews:        reviews.data      ?? [],
     genre_by_id:    Object.fromEntries(
       ((works.data ?? []) as { id: string; genre: string | null }[])
         .filter((w) => w.genre)
         .map((w) => [w.id, w.genre as string]),
+    ),
+    // Назви творів — щоб у блоці відгуків стояла назва, а не uuid.
+    title_by_id:    Object.fromEntries(
+      ((works.data ?? []) as { id: string; title: string | null }[])
+        .filter((w) => w.title)
+        .map((w) => [w.id, w.title as string]),
     ),
   })
 }

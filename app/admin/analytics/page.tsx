@@ -37,6 +37,16 @@ interface AnalyticsData {
   revenue_events?: RevenueEvent[]
   acquisition?:   Acquisition[]
   genre_by_id?:   Record<string, string>
+  reviews?:       ReviewRow[]
+  title_by_id?:   Record<string, string>
+}
+
+interface ReviewRow {
+  content_type: string
+  content_id:   string
+  rating:       number
+  comment:      string | null
+  created_at:   string
 }
 
 // ─── Data helpers ─────────────────────────────────────────────────────────────
@@ -375,6 +385,53 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
   )
 }
 
+// Підписи оцінок — ті самі, що бачить читач у вікні відгуку.
+const RATING_LABELS = ['Не зайшло', 'Нормально', 'Добре', 'Дуже добре', 'Чудово']
+
+/**
+ * Відгуки для аналітики.
+ *
+ * Показуємо не лише середню: одна низька оцінка нічого не означає (читач міг
+ * просто не любити жанр), а от твір із середньою 2,1 при восьми відгуках —
+ * це вже сигнал редакції. Тому поруч із середньою йде розподіл по оцінках
+ * і найсвіжіші коментарі з текстом.
+ */
+function buildReviews(rows: ReviewRow[], titleById: Record<string, string>) {
+  const total = rows.length
+  const sum = rows.reduce((a, r) => a + (r.rating || 0), 0)
+  const avg = total ? Math.round((sum / total) * 10) / 10 : 0
+
+  const dist = [1, 2, 3, 4, 5].map(n => ({
+    name: `${n} · ${RATING_LABELS[n - 1]}`,
+    value: rows.filter(r => r.rating === n).length,
+  }))
+
+  // Твори з трьома і більше відгуками, найгірші зверху: саме там може ховатися
+  // системна проблема, а не смак однієї людини.
+  const byWork: Record<string, { sum: number; n: number }> = {}
+  for (const r of rows) {
+    const k = r.content_id
+    if (!byWork[k]) byWork[k] = { sum: 0, n: 0 }
+    byWork[k].sum += r.rating || 0
+    byWork[k].n += 1
+  }
+  const weak = Object.entries(byWork)
+    .filter(([, v]) => v.n >= 3)
+    .map(([id, v]) => ({
+      title: titleById[id] ?? id.slice(0, 8),
+      avg: Math.round((v.sum / v.n) * 10) / 10,
+      n: v.n,
+    }))
+    .sort((a, b) => a.avg - b.avg)
+    .slice(0, 8)
+
+  const withText = rows.filter(r => (r.comment ?? '').trim().length > 0).slice(0, 12)
+
+  const low = rows.filter(r => r.rating <= 2).length
+
+  return { total, avg, dist, weak, withText, low }
+}
+
 function ChartCard({ title, children, span2 }: { title: string; children: React.ReactNode; span2?: boolean }) {
   return (
     <div style={{ background: '#0f1e3a', border: '1px solid rgba(208, 163, 85,0.25)', borderRadius: 14, padding: '20px 20px 16px', gridColumn: span2 ? 'span 2' : undefined }}>
@@ -433,6 +490,8 @@ export default function AnalyticsPage() {
   if (!data) return null
 
   const { surveys, page_views, story_events } = data
+  const reviewRows = data.reviews ?? []
+  const rev5 = buildReviews(reviewRows, data.title_by_id ?? {})
 
   const ageData      = countBy(surveys as Record<string, unknown>[], 'age')
   const genderData   = countBy(surveys as Record<string, unknown>[], 'gender')
@@ -485,6 +544,79 @@ export default function AnalyticsPage() {
           <StatCard label="Шерингів"       value={totalShares} />
           <StatCard label="Сер. читання"   value={avgDur ? `${Math.floor(avgDur / 60)}хв ${avgDur % 60}с` : '—'} />
         </div>
+
+        {/* ─── Відгуки ───
+             Додано 09.09.2026. Механіка відгуків існувала з початку, але
+             вікно ніде не викликалося — за весь час нуль відгуків, і
+             аналітика про них не знала взагалі. */}
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
+          Відгуки
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 16 }}>
+          <StatCard label="Усього відгуків" value={rev5.total} />
+          <StatCard
+            label="Середня оцінка"
+            value={rev5.total ? `${rev5.avg} з 5` : '—'}
+            sub={rev5.total ? RATING_LABELS[Math.round(rev5.avg) - 1] : undefined}
+          />
+          <StatCard label="З коментарем" value={rev5.withText.length} />
+          <StatCard label="Низьких (1–2)" value={rev5.low} />
+        </div>
+
+        {rev5.total > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16, marginBottom: 24 }}>
+            <ChartCard title="Розподіл оцінок">
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={rev5.dist} layout="vertical" margin={{ left: 90 }}>
+                  <XAxis type="number" stroke="rgba(255,255,255,0.35)" fontSize={11} allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" stroke="rgba(255,255,255,0.35)" fontSize={11} width={90} />
+                  <Tooltip contentStyle={{ background: '#0a1628', border: '1px solid rgba(208,163,85,0.3)', borderRadius: 8, fontSize: 12 }} />
+                  <Bar dataKey="value" fill={GOLD} radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+
+            <ChartCard title="Слабкі місця (від 3 відгуків)">
+              {rev5.weak.length === 0 ? (
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', padding: '20px 0' }}>
+                  Поки жоден твір не має трьох відгуків — рано робити висновки.
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {rev5.weak.map(w => (
+                    <div key={w.title} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 13, color: '#e8eef7' }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.title}</span>
+                      <span style={{ flex: 'none', color: w.avg < 3 ? '#f87171' : GOLD, fontWeight: 700 }}>
+                        {w.avg} з 5 · {w.n}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ChartCard>
+
+            <ChartCard title="Останні коментарі" span2>
+              {rev5.withText.length === 0 ? (
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>
+                  Оцінки є, а написаних коментарів ще немає.
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gap: 12 }}>
+                  {rev5.withText.map((r, i) => (
+                    <div key={i} style={{ borderLeft: `2px solid ${r.rating <= 2 ? '#f87171' : GOLD}`, paddingLeft: 12 }}>
+                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginBottom: 3 }}>
+                        {(data.title_by_id ?? {})[r.content_id] ?? r.content_id.slice(0, 8)}
+                        {' · '}
+                        {r.rating} з 5 · {RATING_LABELS[r.rating - 1] ?? ''}
+                      </div>
+                      <div style={{ fontSize: 13.5, color: '#e8eef7', lineHeight: 1.6 }}>{r.comment}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ChartCard>
+          </div>
+        )}
 
         {/* ─── Гроші ─── */}
         <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
