@@ -89,8 +89,11 @@ export default function BookmarkButton({
         transition: 'background 140ms ease, border-color 140ms ease',
       }}
     >
+      {/* Зірки прибрано з усього сайту 09.09.2026 (рішення Богдана).
+          Значок тут нічого не додавав: слово «Збережено» саме по собі
+          зрозуміліше, ніж зафарбована зірка. */}
       <span aria-hidden="true" style={{ fontSize: 15, lineHeight: 1 }}>
-        {isOn ? '★' : '☆'}
+        {isOn ? '✓' : '+'}
       </span>
       {isOn ? 'Збережено' : 'Зберегти'}
     </button>

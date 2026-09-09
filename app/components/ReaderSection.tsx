@@ -622,7 +622,7 @@ export default function ReaderSection() {
                   ].filter(Boolean).join(' · ')}
                 >
                   <span>{ep}</span>
-                  {isFree && <span style={{ marginLeft: 2 }}>★</span>}
+                  {isFree && <span style={{ marginLeft: 2 }}>•</span>}
                   {isBkm && (
                     <span style={{
                       position: 'absolute',

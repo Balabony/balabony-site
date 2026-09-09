@@ -18,10 +18,13 @@ interface Review {
   created_at: string
 }
 
+// Підписи ті самі, що бачить читач у вікні відгуку (ReviewModal).
+const RATING_LABELS = ['Не зайшло', 'Нормально', 'Добре', 'Дуже добре', 'Чудово']
+
 function Stars({ n }: { n: number }) {
   return (
-    <span style={{ color: GOLD, fontSize: 18, letterSpacing: 1 }}>
-      {'★'.repeat(n)}{'☆'.repeat(5 - n)}
+    <span style={{ color: GOLD, fontSize: 14, fontWeight: 700 }}>
+      {n} з 5{RATING_LABELS[n - 1] ? ` · ${RATING_LABELS[n - 1]}` : ''}
     </span>
   )
 }
@@ -101,7 +104,7 @@ export default function AdminReviewsPage() {
             { label: 'Всього відгуків',   value: allReviews.length },
             { label: 'Серій',             value: allReviews.filter(r => r.content_type === 'series').length },
             { label: 'Авторських історій', value: allReviews.filter(r => r.content_type === 'story').length },
-            { label: 'Середній рейтинг',  value: avgRating + (avgRating !== '—' ? ' ★' : '') },
+            { label: 'Середній рейтинг',  value: avgRating + (avgRating !== '—' ? ' з 5' : '') },
           ].map(s => (
             <div key={s.label} style={{ background: NAVY, borderRadius: 12, padding: '14px 20px', border: '0.5px solid rgba(255,255,255,0.07)', minWidth: 140 }}>
               <div style={{ fontSize: 22, fontWeight: 700, color: GOLD }}>{s.value}</div>

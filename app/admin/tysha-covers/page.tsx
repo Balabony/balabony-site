@@ -312,7 +312,7 @@ export default function TyshaCoversPage() {
           <input value={trioScene} onChange={e => setTrioScene(e.target.value)} placeholder="опис сцени (англ., необов'язково; напр. standing in a schoolyard)" style={{ ...input, marginBottom: 12 }} />
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button onClick={genGemini} disabled={busy === 'gemini'} style={btn('#c98a2e', busy !== 'gemini')}>
-              {busy === 'gemini' ? 'Gemini малює…' : 'Трійця разом (Gemini, твої обличчя) ★'}
+              {busy === 'gemini' ? 'Gemini малює…' : 'Трійця разом (Gemini, твої обличчя) — раджу'}
             </button>
             <button onClick={genCollage} disabled={busy === 'collage'} style={btn('#2f5f4a', busy !== 'collage')}>
               {busy === 'collage' ? 'Збираю колаж…' : 'Колаж (склейка фото)'}
@@ -322,7 +322,7 @@ export default function TyshaCoversPage() {
             </button>
           </div>
           <p style={{ fontSize: 11, opacity: 0.55, marginTop: 8, lineHeight: 1.5 }}>
-            <b>Gemini ★</b> — зводить твої 3 фото в один теплий кадр «друзі разом», обличчя твої (раджу це).
+            <b>Gemini</b> — зводить твої 3 фото в один теплий кадр «друзі разом», обличчя твої (раджу це).
             <b> Колаж</b> — механічна склейка. <b>FLUX.2</b> — мальоване, обличчя лише схожі.
             Опис сцени діє на Gemini і FLUX.2.
           </p>
@@ -368,7 +368,7 @@ export default function TyshaCoversPage() {
           </div>
           <input value={warScene} onChange={e => setWarScene(e.target.value)} placeholder="опис воєнної сцени (англ.), або обери пресет вище" style={{ ...input, marginBottom: 12 }} />
           <button onClick={genWarSolo} disabled={busy === 'war'} style={btn('#a06a2c', busy !== 'war')}>
-            {busy === 'war' ? 'Gemini малює…' : 'Згенерувати Максима-воїна ★'}
+            {busy === 'war' ? 'Gemini малює…' : 'Згенерувати Максима-воїна'}
           </button>
         </section>
 

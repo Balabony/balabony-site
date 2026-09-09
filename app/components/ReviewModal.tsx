@@ -13,6 +13,9 @@ export interface ReviewModalProps {
   onSaved?: () => void
 }
 
+// Підписи оцінок. Порядок = 1..5, індекс у масиві + 1.
+const RATING_LABELS = ['Не зайшло', 'Нормально', 'Добре', 'Дуже добре', 'Чудово'] as const
+
 const FONT = "'Montserrat', Arial, sans-serif"
 const GOLD = '#FFB800'
 const NAVY = '#0f1e3a'
@@ -32,7 +35,6 @@ export default function ReviewModal({
   contentType, contentId, authorId, authorName, contentTitle, onClose, onSaved,
 }: ReviewModalProps) {
   const [rating,  setRating]  = useState(0)
-  const [hovered, setHovered] = useState(0)
   const [comment, setComment] = useState('')
   const [loading, setLoading] = useState(false)
   const [done,    setDone]    = useState(false)
@@ -95,7 +97,7 @@ export default function ReviewModal({
 
         {done ? (
           <div style={{ padding: '20px 0' }}>
-            <div style={{ fontSize: 52, marginBottom: 12 }}>🌟</div>
+            <div style={{ fontSize: 52, marginBottom: 12, color: '#4ade80' }}>✓</div>
             <div style={{ fontSize: 20, fontWeight: 700, color: '#4ade80' }}>Дякуємо за відгук!</div>
             <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginTop: 8 }}>Ваша думка важлива для нас</div>
           </div>
@@ -118,30 +120,42 @@ export default function ReviewModal({
             )}
             {!authorName && <div style={{ marginBottom: 20 }} />}
 
-            {/* Stars */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 20 }}>
-              {[1, 2, 3, 4, 5].map(star => (
-                <button
-                  key={star}
-                  onClick={() => setRating(star)}
-                  onMouseEnter={() => setHovered(star)}
-                  onMouseLeave={() => setHovered(0)}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer', padding: 2,
-                    fontSize: 42, lineHeight: 1,
-                    color: star <= (hovered || rating) ? GOLD : 'rgba(255,255,255,0.18)',
-                    transition: 'color 0.1s, transform 0.1s',
-                    transform: star <= (hovered || rating) ? 'scale(1.15)' : 'scale(1)',
-                  }}
-                >★</button>
-              ))}
+            {/* Оцінка словами.
+                Зірки прибрано 09.09.2026 на прохання Богдана. Слова кращі не
+                лише через асоціації: читачеві не треба здогадуватися, що
+                означає третя позначка з п'яти, а екранний читач озвучує
+                «Добре» замість «зірка, зірка, зірка». Аудиторія платформи —
+                літні люди й читачі з порушеннями зору. */}
+            <div style={{
+              display: 'flex', justifyContent: 'center', flexWrap: 'wrap',
+              gap: 8, marginBottom: 20,
+            }}>
+              {RATING_LABELS.map((label, i) => {
+                const value = i + 1
+                const active = rating === value
+                return (
+                  <button
+                    key={label}
+                    onClick={() => setRating(value)}
+                    aria-pressed={active}
+                    style={{
+                      background: active ? 'rgba(239,159,39,0.18)' : 'rgba(255,255,255,0.05)',
+                      border: `1px solid ${active ? GOLD : 'rgba(255,255,255,0.14)'}`,
+                      borderRadius: 999,
+                      cursor: 'pointer',
+                      padding: '9px 14px',
+                      fontSize: 14,
+                      fontWeight: active ? 700 : 500,
+                      color: active ? GOLD : '#f5f0e8',
+                      fontFamily: FONT,
+                      transition: 'background 0.12s, border-color 0.12s',
+                    }}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
             </div>
-
-            {rating > 0 && (
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginBottom: 16 }}>
-                {['', 'Дуже погано', 'Погано', 'Непогано', 'Добре', 'Чудово!'][rating]}
-              </div>
-            )}
 
             <textarea
               value={comment}

@@ -112,7 +112,7 @@ export default function MyLibrary() {
           {saved.map(b => (
             <Link key={b.slug} href={b.path} style={item}>
               <span aria-hidden="true" style={{ color: '#ef9f27', marginRight: 8 }}>
-                ★
+                ✓
               </span>
               {b.title || 'Без назви'}
             </Link>
