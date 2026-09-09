@@ -191,3 +191,43 @@ export async function castVote(userId: string, contentId: string): Promise<VoteR
     return { ok: false, error: 'Не вдалося зарахувати голос. Спробуйте ще раз.' }
   }
 }
+
+export interface VoteState {
+  /** Чи бере цей твір участь у голосуванні взагалі. */
+  eligible: boolean
+  /** Скільки голосів уже має твір. */
+  votes: number
+  /** Чи голосував за нього саме цей читач. */
+  voted: boolean
+}
+
+/**
+ * Стан голосування для ОДНОГО твору — для кнопки на сторінці твору.
+ *
+ * Окремо від getQueue навмисно: та тягне двадцять рядків черги і список усіх
+ * авторів, а сторінці твору потрібні три числа. Ставити важкий запит на кожне
+ * відкриття тексту не можна — це найчастіша сторінка на сайті.
+ */
+export async function getVoteState(userId: string | null, contentId: string): Promise<VoteState> {
+  try {
+    const r = await dbQuery(
+      `select
+         exists (select 1 from content c where c.id = $1 and ${ELIGIBLE}) as eligible,
+         (select count(*)::int from voice_votes where content_id = $1) as votes,
+         ($2::uuid is not null and exists (
+            select 1 from voice_votes where content_id = $1 and user_id = $2::uuid
+         )) as voted`,
+      [contentId, userId],
+    )
+    const row = r.rows[0] as { eligible: boolean; votes: number; voted: boolean } | undefined
+    return {
+      eligible: Boolean(row?.eligible),
+      votes: Number(row?.votes ?? 0),
+      voted: Boolean(row?.voted),
+    }
+  } catch {
+    // Кнопка — не головне на сторінці твору: якщо запит упав, ховаємо її,
+    // а не ламаємо читання.
+    return { eligible: false, votes: 0, voted: false }
+  }
+}
