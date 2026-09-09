@@ -5,6 +5,7 @@ import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ShareButtons from '@/app/components/ShareButtons'
 import BookmarkButton from '@/app/components/BookmarkButton'
 import FollowAuthorButton from '@/app/components/FollowAuthorButton'
+import VoiceVoteButton from '@/app/components/VoiceVoteButton'
 import ReaderPulse from '@/app/components/ReaderPulse'
 import LikeButton from '@/app/components/LikeButton'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
@@ -293,6 +294,10 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         <div style={{ marginTop: 40, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <BookmarkButton slug={id} title={story.title} path={`/stories/${id}`} />
           {story.author_id && <FollowAuthorButton authorUserId={story.author_id} />}
+          {/* Голос за озвучення саме цього твору. Доти голосувати можна було
+              лише через список авторів на /cherga — тобто читач, який щойно
+              дочитав, кнопки не бачив, а бали витрачати було нікуди. */}
+          <VoiceVoteButton contentId={story.id} />
         </div>
 
         {/* Поширення */}
