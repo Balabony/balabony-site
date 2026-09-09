@@ -104,6 +104,15 @@ export default function VoiceQueue({ cost }: { cost: number }) {
     padding: '14px 16px', marginBottom: 10,
   }
 
+  // Шлях залежить від типу: серіали живуть не в /stories. Раніше посилання
+  // вело в /stories/<slug> для всього підряд і на серіалах давало 404.
+  const workPath = (r: Row) => {
+    if (!r.slug) return null
+    if (r.type === 'balabony') return `/episodes/${r.slug}`
+    if (r.type === 'tysha') return `/tysha/${r.slug}`
+    return `/stories/${r.slug}`
+  }
+
   const renderRow = (r: Row, place?: number) => {
     const voted = mine.includes(r.id)
     const enough = balance >= cost
@@ -113,8 +122,8 @@ export default function VoiceQueue({ cost }: { cost: number }) {
           <div style={{ minWidth: 0, flex: '1 1 240px' }}>
             <div style={{ color: CREAM, fontWeight: 600 }}>
               {place ? `${place}. ` : ''}
-              {r.slug
-                ? <a href={`/stories/${r.slug}`} style={{ color: CREAM }}>{r.title}</a>
+              {workPath(r)
+                ? <a href={workPath(r) as string} style={{ color: CREAM }}>{r.title}</a>
                 : r.title}
             </div>
             {r.author_name && (

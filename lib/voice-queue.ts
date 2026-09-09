@@ -22,6 +22,32 @@ import { getBalance, awardPoints } from '@/lib/points'
 /** Скільки коштує голос. Стільки ж дає приведений друг або п'ять прочитаних серій. */
 export const VOTE_COST = 50
 
+/**
+ * Які твори взагалі беруть участь у голосуванні.
+ *
+ * Три уточнення, кожне куплене помилкою:
+ *   1. СТАТУС. На сайті опублікованим вважається і `approved`, і `published`
+ *      (див. lib/home-data.ts). Перша версія брала лише `published` — і 476
+ *      творів зникли з вибору разом зі своїми авторами.
+ *   2. ТИП. Крім окремих історій є серіали `balabony` і `tysha`. Спершу вони
+ *      були відрізані; рішення Богдана 09.09.2026 — додати всіх, бо голосують
+ *      читачі, а не автор за себе.
+ *   3. ЗГОДА. Автори, які згоду відкликали або не дали, не беруть участі
+ *      взагалі: озвучувати їх ми не маємо права, тож і голос за них був би
+ *      обманом читача.
+ */
+const ELIGIBLE = `
+  c.status::text in ('approved', 'published')
+  and c.type::text in ('story', 'balabony', 'tysha')
+  and c.author_name is not null
+  and (c.audio_status is null or c.audio_status::text <> 'ready')
+  and not exists (
+    select 1 from author_consents ac
+     where lower(trim(ac.author_name)) = lower(trim(c.author_name))
+       and ac.status::text in ('refused', 'revoked')
+  )
+`
+
 export interface QueueRow {
   id: string
   title: string
@@ -40,41 +66,9 @@ export async function getQueue(limit = 20): Promise<QueueRow[]> {
               count(v.user_id)::int as votes
          from voice_votes v
          join content c on c.id = v.content_id
-        where c.status = 'published'
-          -- audio_status це ENUM: порожній рядок у coalesce валить запит
-          -- помилкою 22P02, тому порівнюємо через ::text і окремо ловимо null.
-          and (c.audio_status is null or c.audio_status::text <> 'ready')
+        where ${ELIGIBLE}
         group by c.id, c.title, c.slug, c.type, c.author_name
         order by votes desc, c.title
-        limit $1`,
-      [limit],
-    )
-    return r.rows as QueueRow[]
-  } catch {
-    return []
-  }
-}
-
-/**
- * З чого можна вибирати, поки черга порожня.
- *
- * Без цього блоку сторінка на старті була б порожньою і проголосувати не було
- * б за що: голоси беруться лише з творів, за які вже хтось віддав голос.
- * Беремо свіжі опубліковані твори без аудіо. Коли на сторінці твору з'явиться
- * своя кнопка голосування, цей блок можна буде прибрати.
- */
-export async function getCandidates(limit = 24): Promise<QueueRow[]> {
-  try {
-    const r = await dbQuery(
-      `select c.id::text, c.title, c.slug, c.type, c.author_name,
-              (select count(*) from voice_votes v where v.content_id = c.id)::int as votes
-         from content c
-        where c.status = 'published'
-          and c.type = 'story'
-          -- audio_status це ENUM: порожній рядок у coalesce валить запит
-          -- помилкою 22P02, тому порівнюємо через ::text і окремо ловимо null.
-          and (c.audio_status is null or c.audio_status::text <> 'ready')
-        order by c.created_at desc
         limit $1`,
       [limit],
     )
@@ -102,10 +96,7 @@ export async function getAuthors(): Promise<AuthorRow[]> {
     const r = await dbQuery(
       `select c.author_name, count(*)::int as works
          from content c
-        where c.status = 'published'
-          and c.type = 'story'
-          and c.author_name is not null
-          and (c.audio_status is null or c.audio_status::text <> 'ready')
+        where ${ELIGIBLE}
         group by c.author_name
         order by c.author_name`,
     )
@@ -122,10 +113,8 @@ export async function getWorksByAuthor(authorName: string): Promise<QueueRow[]> 
       `select c.id::text, c.title, c.slug, c.type, c.author_name,
               (select count(*) from voice_votes v where v.content_id = c.id)::int as votes
          from content c
-        where c.status = 'published'
-          and c.type = 'story'
+        where ${ELIGIBLE}
           and c.author_name = $1
-          and (c.audio_status is null or c.audio_status::text <> 'ready')
         order by c.title`,
       [authorName],
     )
