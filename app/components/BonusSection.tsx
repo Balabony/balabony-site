@@ -54,14 +54,38 @@ function SurveyIcon() {
   )
 }
 
+function VoiceIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+    </svg>
+  )
+}
+
 const QUESTS: Quest[] = [
   { id: 'review',  title: 'Залиш відгук',      desc: '15 балів за відгук на твір',   reward: '+15', Icon: ReviewIcon },
   { id: 'survey',  title: 'Пройди опитування', desc: '3 хвилини · одноразово',       reward: '+50', Icon: SurveyIcon },
-  { id: 'invite',  title: 'Запроси друга',     desc: 'Скоро',                        reward: '+50', soon: true, Icon: InviteIcon },
+  // 09.09.2026: реферал перестав бути «скоро» — механіка працює, посилання
+  // з кодом лежить у профілі. Опис одразу каже, що дають ці 50 балів.
+  { id: 'invite',  title: 'Запроси друга',     desc: '50 балів — це цілий голос за озвучення', reward: '+50', Icon: InviteIcon },
   { id: 'share',   title: 'Поділись історією', desc: '+1 безкоштовна історія за кожну, якою поділишся (до 5)', reward: '🎁', Icon: ShareIcon  },
+  { id: 'vote',    title: 'Обери, що озвучимо', desc: 'Витрать 50 балів на голос у черзі', reward: '🎧', Icon: VoiceIcon },
 ]
 
 export default function BonusSection() {
+  // Чи увійшов читач. Беремо з /api/voice-vote — він і так віддає прапорець
+  // authorized, тож окремого роуту заводити не треба.
+  const [signedIn, setSignedIn] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    fetch('/api/voice-vote')
+      .then(r => r.json())
+      .then((d: { authorized?: boolean }) => setSignedIn(Boolean(d.authorized)))
+      .catch(() => setSignedIn(false))
+  }, [])
+
   const [balance, setBalance] = useState<number | null>(null)
 
   useEffect(() => {
@@ -120,11 +144,27 @@ export default function BonusSection() {
         })}
       </div>
 
+      {/* Блок був статичний і казав «Увійдіть, щоб отримати свій код» навіть
+          тому, хто вже увійшов. Тепер питаємо сесію: залогіненому показуємо
+          шлях до готового запрошення, а не пропозицію ввійти ще раз. */}
       <div className="bn-invite">
-        <div className="bn-invite-label">Реферальний код</div>
+        <div className="bn-invite-label">Запросити друга</div>
         <div className="bn-invite-row">
-          <div className="bn-invite-hint">Увійдіть, щоб отримати свій код</div>
-          <a href="/login" className="bn-invite-btn">Увійти</a>
+          {signedIn === null ? (
+            <div className="bn-invite-hint">…</div>
+          ) : signedIn ? (
+            <>
+              <div className="bn-invite-hint">
+                Ваше посилання — у профілі. Кожен друг це 50 балів, тобто голос за озвучення.
+              </div>
+              <a href="/profile" className="bn-invite-btn">Мій профіль</a>
+            </>
+          ) : (
+            <>
+              <div className="bn-invite-hint">Увійдіть, щоб отримати своє посилання</div>
+              <a href="/login" className="bn-invite-btn">Увійти</a>
+            </>
+          )}
         </div>
       </div>
 
