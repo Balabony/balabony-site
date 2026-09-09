@@ -357,6 +357,42 @@ export default async function AuthorDashboardPage() {
           </div>
         )}
 
+        {/* Черга на озвучення.
+
+            Автори мають знати, що озвучення тепер не рішення редакції, а вибір
+            читачів: вони витрачають зароблені бали, щоб просунути твір уперед.
+            Це водночас відповідь на питання «коли озвучите мене» — раніше на
+            нього не було чесної відповіді, бо коштів на озвучення немає. */}
+        <div style={{
+          marginBottom: '1.5rem', padding: '1rem 1.25rem', borderRadius: 12,
+          background: 'rgba(143,163,196,0.10)', border: '1px solid rgba(143,163,196,0.35)',
+        }}>
+          <div style={{ color: '#f5f0e8', fontWeight: 700, marginBottom: 6 }}>
+            Що озвучимо першим — вирішують читачі
+          </div>
+          <div style={{ color: '#e8eef7', lineHeight: 1.7, fontSize: '0.95rem', marginBottom: 12 }}>
+            Ми не вибираємо самі, кого озвучити. На платформі є черга: читач витрачає
+            бали, зароблені читанням, і віддає голос за твір, який хоче почути. Коли
+            з&apos;являться кошти на запис, ми почнемо з того, що набрало найбільше
+            голосів.
+            <br /><br />
+            Тому просування ваших історій — це не лише читачі, а й місце в черзі на
+            озвучення. Розкажіть про свої твори там, де вас читають: кожен новий читач
+            може віддати голос саме за вас.
+          </div>
+          <a
+            href="/cherga"
+            style={{
+              display: 'inline-block', padding: '0.55rem 1rem', borderRadius: 8,
+              background: 'transparent', color: '#FAC775', fontWeight: 700,
+              textDecoration: 'none', fontSize: '0.92rem',
+              border: '1px solid rgba(239,159,39,0.5)',
+            }}
+          >
+            Подивитися чергу →
+          </a>
+        </div>
+
         <AuthorProfileEditor
           initialAvatar={profile.avatar_url ?? null}
           initialBio={profile.bio ?? null}
