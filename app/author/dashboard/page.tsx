@@ -264,7 +264,16 @@ export default async function AuthorDashboardPage() {
     const cr = await dbQuery(
       `select c.id, c.number, c.status, c.rate, c.is_fop,
               c.doc_url, c.signed_pdf_url, c.signature_url, c.signed_at,
-              (select count(*) from contract_works w where w.contract_id = c.id)::int as works_count
+              (select count(*) from contract_works w where w.contract_id = c.id)::int as works_count,
+              -- Скільки творів чекають підтвердження. Підтвердження — це згода
+              -- автора на розміщення й озвучення, тобто юридично значуща дія,
+              -- а не перегляд списку. Станом на 09.09.2026 її не зробив ЖОДЕН
+              -- автор: 508 творів у договорах, підтверджено 0 (крім власних
+              -- творів засновника). Причина не в небажанні — кнопка звалася
+              -- «Перелік творів» і виглядала як довідка, а лічильник стояв уже
+              -- всередині сторінки, куди ніхто не заходив.
+              (select count(*) from contract_works w
+                where w.contract_id = c.id and w.confirmed_at is null)::int as pending_count
          from author_contracts c
         where c.author_id = $1
         order by c.created_at desc`,
@@ -291,6 +300,11 @@ export default async function AuthorDashboardPage() {
     .eq('author_user_id', user.id)
   const followers = followersCount ?? 0
 
+  // Скільки творів чекають підтвердження і в якому договорі. Договір зазвичай
+  // один; якщо їх кілька, ведемо в перший, де є непідтверджені.
+  const pendingWorks = contracts.reduce((n, c) => n + (c.pending_count ?? 0), 0)
+  const pendingContractId = contracts.find(c => (c.pending_count ?? 0) > 0)?.id ?? null
+
   const card: React.CSSProperties = {
     background: BRAND.cream, borderRadius: 14, padding: '1.25rem 1.5rem',
     boxShadow: '0 10px 30px rgba(0,0,0,0.25)', flex: '1 1 160px',
@@ -309,6 +323,39 @@ export default async function AuthorDashboardPage() {
           <h1 style={{ fontFamily: SERIF, fontSize: '2.1rem', color: 'white', margin: 0 }}>Кабінет автора</h1>
           <p style={{ color: 'rgba(255,255,255,0.7)', margin: '0.35rem 0 0' }}>{profile.display_name}</p>
         </div>
+
+        {/* Плашка про непідтверджені твори.
+
+            Підтвердження стоїть на сторінці, куди веде одна кнопка в блоці
+            договорів нижче. Лічильник «Підтверджено 0 із 62» був УСЕРЕДИНІ тієї
+            сторінки, тобто його бачив лише той, хто вже дійшов. Тому виносимо
+            саму суть нагору: скільки чекає, що це означає і куди тиснути. */}
+        {pendingWorks > 0 && pendingContractId && (
+          <div style={{
+            marginBottom: '1.5rem', padding: '1rem 1.25rem', borderRadius: 12,
+            background: 'rgba(239,159,39,0.10)', border: '1px solid rgba(239,159,39,0.45)',
+          }}>
+            <div style={{ color: '#FAC775', fontWeight: 700, marginBottom: 6 }}>
+              Чекають вашого підтвердження: {pendingWorks}
+            </div>
+            <div style={{ color: '#e8eef7', lineHeight: 1.7, fontSize: '0.95rem', marginBottom: 12 }}>
+              Підтвердження твору — це ваша згода на його розміщення та озвучення
+              на умовах договору. Поки твір не підтверджений, ми не маємо
+              письмової підстави його публікувати. Це займе кілька хвилин:
+              перегляньте перелік і натисніть «Підтвердити».
+            </div>
+            <a
+              href={`/author/dashboard/works?contract=${pendingContractId}`}
+              style={{
+                display: 'inline-block', padding: '0.6rem 1.1rem', borderRadius: 8,
+                background: '#ef9f27', color: '#0a1628', fontWeight: 700,
+                textDecoration: 'none', fontSize: '0.95rem',
+              }}
+            >
+              Переглянути й підтвердити
+            </a>
+          </div>
+        )}
 
         <AuthorProfileEditor
           initialAvatar={profile.avatar_url ?? null}

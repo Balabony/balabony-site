@@ -21,6 +21,8 @@ export type ContractRow = {
   rate: number
   is_fop: boolean
   works_count: number
+  /** Скільки творів у переліку ще не підтверджені автором. */
+  pending_count?: number
   doc_url: string | null
   signed_pdf_url: string | null
   signature_url: string | null
@@ -208,7 +210,20 @@ export default function AuthorContracts(
             {c.doc_url && (
               <a href={c.doc_url} target="_blank" rel="noreferrer" style={linkBtn}>Прочитати договір</a>
             )}
-            <a href={`/author/dashboard/works?contract=${c.id}`} style={linkBtn}>Перелік творів</a>
+            {/* Назва кнопки залежить від стану. «Перелік творів» звучало як
+                довідка, і саме тому підтвердження не ставив ніхто: людина не
+                бачила, що там треба ДІЯТИ. Коли все підтверджено, повертаємо
+                нейтральну назву — вимагати вже нічого. */}
+            <a
+              href={`/author/dashboard/works?contract=${c.id}`}
+              style={(c.pending_count ?? 0) > 0
+                ? { ...linkBtn, background: '#ef9f27', color: '#0a1628', fontWeight: 700, border: 'none' }
+                : linkBtn}
+            >
+              {(c.pending_count ?? 0) > 0
+                ? `Підтвердити твори (${c.pending_count} очікують)`
+                : 'Перелік творів'}
+            </a>
             {c.status !== 'signed' && diiaEnabled && (
               <button type="button" onClick={() => start(c.id)} disabled={busy} style={primaryBtn}>
                 Підписати через Дію
