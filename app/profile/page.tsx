@@ -82,6 +82,17 @@ export default async function ProfilePage() {
           Мій профіль
         </h1>
 
+        {/* Кабінет був набором цифр без жодного слова пояснення: читач бачив
+            «Бали 0» і не знав ні за що вони, ні що з ними робити. Пояснення
+            коротко, при кожному блоці — довгі тексти тут ніхто не читає. */}
+        <p style={{
+          fontSize: '0.95rem', color: '#C7BFB2', lineHeight: 1.7,
+          margin: '0 0 2rem',
+        }}>
+          Тут зібрано все ваше на Балабонах: недочитане, збережене, автори,
+          за якими ви стежите, і те, що ви вже прочитали.
+        </p>
+
         {isAuthor && (
           <a
             href="/author/dashboard"
@@ -148,28 +159,14 @@ export default async function ProfilePage() {
           )}
         </div>
 
-        {profile?.referral_code && (
-          <div style={{ marginBottom: '1.5rem' }}>
-            <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginBottom: '0.25rem' }}>
-              Реферальний код
-            </div>
-            <div style={{
-              padding: '0.5rem 0.75rem',
-              background: 'rgba(255,248,238,0.07)',
-              // Колір задаємо явно: успадкований лишався темним і код ставав
-              // невидимим на темному тлі.
-              color: '#FFF8EE',
-              border: '1px solid rgba(255,248,238,0.14)',
-              borderRadius: '6px',
-              fontFamily: 'monospace',
-              fontSize: '1rem',
-              letterSpacing: '0.06em',
-              display: 'inline-block',
-            }}>
-              {profile.referral_code}
-            </div>
-          </div>
-        )}
+        {/* Реферальний код тут БУВ і прибраний свідомо 09.09.2026.
+
+            У всьому коді `referral_code` згадувався лише тут, на екрані:
+            ніде не приймався `?ref=`, ніде не записувалося, хто кого привів,
+            жодних нарахувань не було. Показувати людині код, який нічого не
+            робить, гірше, ніж не показувати нічого. Повернути разом із
+            механікою: посилання з кодом → cookie → запис при реєстрації →
+            винагорода обом. */}
 
         {/* Бали й рівень.
 
@@ -201,6 +198,32 @@ export default async function ProfilePage() {
           <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginTop: '0.35rem' }}>
             Прочитано серій: {totalReads}
             {level.next && ` · до рівня «${level.next.title}» лишилося ${level.next.min - totalReads}`}
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginTop: '0.35rem', lineHeight: 1.6 }}>
+            Рахуємо різні серії, а не відкриття сторінки: перечитане вдруге
+            не додає нічого. Рівні — «Початківець», «Читач», «Книгочій»,
+            «Знавець Балабонів».
+          </div>
+        </div>
+
+        {/* Що далі. Кабінет закінчувався кнопкою «Вийти» — людина не знала,
+            куди з нього йти. */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginBottom: '0.5rem' }}>
+            Куди далі
+          </div>
+          <div style={{ fontSize: '0.92rem', color: '#C7BFB2', lineHeight: 1.8 }}>
+            <a href="/stories" style={{ color: '#FAC775' }}>Усі історії</a>
+            {' — каталог, зараз понад тисяча творів.'}
+            <br />
+            <a href="/top" style={{ color: '#FAC775' }}>Що читають</a>
+            {' — з чого почати, якщо не знаєте, за що взятися.'}
+            <br />
+            <a href="/episodes" style={{ color: '#FAC775' }}>Серіали</a>
+            {' — довгі історії, що виходять серіями.'}
+            <br />
+            <a href="/become-author" style={{ color: '#FAC775' }}>Стати автором</a>
+            {' — якщо пишете самі.'}
           </div>
         </div>
 
