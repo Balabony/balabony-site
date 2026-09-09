@@ -44,3 +44,44 @@ export async function peekAnonId(): Promise<string | null> {
     return null
   }
 }
+
+/**
+ * Перенести історію з анонімного cookie на акаунт при вході.
+ *
+ * Тільки ДОДАВАННЯМ: рядки копіюються, старі не видаляються. Якщо людина
+ * потім вийде і читатиме гостем, вона нічого не втратить, а дублікати
+ * відсіються унікальними ключами.
+ *
+ * Свідомо НЕ переносимо `user_free_picks`: до них прив'язана межа
+ * безкоштовних творів, і /api/pick досі працює з анонімним id. Перенести
+ * зараз означало б обнулити лічильник у браузері — тобто роздати
+ * безкоштовні твори наново.
+ */
+export async function mergeAnonInto(userId: string): Promise<void> {
+  const anon = await peekAnonId()
+  if (!anon || anon === userId) return
+
+  const { dbQuery } = await import('@/lib/db')
+
+  try {
+    await dbQuery(
+      `insert into user_episode_reads (user_id, episode_slug)
+       select $1, episode_slug from user_episode_reads where user_id = $2
+       on conflict do nothing`,
+      [userId, anon],
+    )
+  } catch {
+    // не вдалося — не страшно, історія лишиться на cookie
+  }
+
+  try {
+    await dbQuery(
+      `insert into point_events (user_id, kind, ref, points)
+       select $1, kind, ref, points from point_events where user_id = $2
+       on conflict do nothing`,
+      [userId, anon],
+    )
+  } catch {
+    // те саме: бали не критичний шлях
+  }
+}

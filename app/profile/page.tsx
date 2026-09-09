@@ -5,6 +5,7 @@ import LogoutButton from './LogoutButton'
 import { dbQuery } from '@/lib/db'
 import { getBalance } from '@/lib/points'
 import { levelFromReads } from '@/lib/levels'
+import { countInvited, inviteLink, REFERRAL_POINTS } from '@/lib/referral'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,6 +40,7 @@ export default async function ProfilePage() {
     // лишаємо 0
   }
   const level = levelFromReads(totalReads)
+  const invited = await countInvited(user.id)
 
   // Чи має ця людина кабінет автора. Раніше сюди потрапляли й автори — і не
   // мали звідси жодного шляху до своїх творів, бо кабінет живе за іншою
@@ -159,14 +161,41 @@ export default async function ProfilePage() {
           )}
         </div>
 
-        {/* Реферальний код тут БУВ і прибраний свідомо 09.09.2026.
+        {/* Запрошення.
 
-            У всьому коді `referral_code` згадувався лише тут, на екрані:
-            ніде не приймався `?ref=`, ніде не записувалося, хто кого привів,
-            жодних нарахувань не було. Показувати людині код, який нічого не
-            робить, гірше, ніж не показувати нічого. Повернути разом із
-            механікою: посилання з кодом → cookie → запис при реєстрації →
-            винагорода обом. */}
+            До 09.09.2026 тут показувався сам код і більше нічого: `?ref=` ніде
+            не приймався, зв'язок не зберігався, ніхто нічого не отримував.
+            Тепер механіка є, тому показуємо готове посилання, а не код —
+            людині не треба здогадуватися, що з вісьмома символами робити. */}
+        {profile?.referral_code && (
+          <div style={{ marginBottom: '1.5rem' }}>
+            <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginBottom: '0.35rem' }}>
+              Запросити друзів
+            </div>
+            <div style={{
+              padding: '0.6rem 0.8rem',
+              background: 'rgba(255,248,238,0.07)',
+              color: '#FFF8EE',
+              border: '1px solid rgba(255,248,238,0.14)',
+              borderRadius: '6px',
+              fontFamily: 'monospace',
+              fontSize: '0.9rem',
+              wordBreak: 'break-all',
+            }}>
+              {inviteLink(profile.referral_code)}
+            </div>
+            <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginTop: '0.5rem', lineHeight: 1.7 }}>
+              Надішліть це посилання тому, кому може сподобатися. Коли людина
+              за ним зареєструється, вам нарахується {REFERRAL_POINTS.inviter} балів,
+              а їй — {REFERRAL_POINTS.invited}. Посилання працює 90 днів після переходу:
+              якщо друг відкриє його сьогодні, а зареєструється за тиждень,
+              воно все одно спрацює.
+              {invited > 0
+                ? ` Уже прийшло за вашим посиланням: ${invited}.`
+                : ' Поки за ним ніхто не прийшов.'}
+            </div>
+          </div>
+        )}
 
         {/* Бали й рівень.
 

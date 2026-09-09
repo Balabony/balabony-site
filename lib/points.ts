@@ -1,6 +1,6 @@
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
-export type PointKind = 'read' | 'streak' | 'review' | 'survey' | 'gift_spend'
+export type PointKind = 'read' | 'streak' | 'review' | 'survey' | 'gift_spend' | 'referral'
 
 // Скільки балів за кожну дію (одне джерело правди).
 export const POINTS = {
@@ -8,6 +8,8 @@ export const POINTS = {
   streak: 5,
   review: 15,
   survey: 50,
+  // Реферал нараховується не звідси, а з lib/referral.ts: там дві різні суми
+  // — тому, хто привів, і тому, хто прийшов.
 } as const
 
 /**

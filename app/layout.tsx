@@ -8,6 +8,7 @@ import ServiceWorkerRegistration from './components/ServiceWorkerRegistration'
 import BottomBar from './components/BottomBar'
 import A11yApplier from './components/A11yApplier'
 import CookieConsent from './components/CookieConsent'
+import ReferralCapture from './components/ReferralCapture'
 export const metadata: Metadata = {
   metadataBase: new URL('https://balabony.com'),
   title: 'Українські історії, казки й серіали онлайн — Балабони',
@@ -118,6 +119,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <BottomBar />
         <UpdateBanner />
         <AnalyticsTracker />
+        <ReferralCapture />
         <GoogleAnalytics />
         <CookieConsent />
         <ServiceWorkerRegistration />
