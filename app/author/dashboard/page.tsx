@@ -199,6 +199,31 @@ export default async function AuthorDashboardPage() {
   const coverById = new Map<string, string | null>()
   for (const c of coverRows ?? []) coverById.set(c.id, c.cover_url)
 
+  // Голоси читачів за озвучення кожного твору.
+  //
+  // Автору це потрібніше, ніж будь-кому: черга на /cherga показує спільний
+  // список усіх авторів, і щоб побачити свої твори, він мусив шукати себе
+  // серед інших. А саме він розповідатиме читачам «проголосуйте за мене».
+  //
+  // Окремим запитом через dbQuery, а не .in() зі списком id: у Богдана 138
+  // творів, і довгий IN() у проєкті вже підводив (див. ways-of-working).
+  const votesById = new Map<string, number>()
+  try {
+    const v = await dbQuery(
+      `select v.content_id::text as id, count(*)::int as votes
+         from voice_votes v
+         join content c on c.id = v.content_id
+        where c.author_id = $1
+        group by v.content_id`,
+      [user.id],
+    )
+    for (const row of v.rows as { id: string; votes: number }[]) {
+      votesById.set(row.id, row.votes)
+    }
+  } catch {
+    // Голоси — не головне в кабінеті: якщо запит упав, показуємо решту.
+  }
+
   // Місце автора за останні 30 днів. Показуємо лише йому: публічно
   // висить тільки топ, бо побачити себе останнім — привід піти, а не
   // писати краще.
@@ -557,6 +582,14 @@ export default async function AuthorDashboardPage() {
                     <span>Прочитань: <strong style={{ color: BRAND.ink }}>{s.reads_total}</strong></span>
                     <span>Дочитали: <strong style={{ color: BRAND.ink }}>{s.reads_completed}</strong></span>
                     <span>Дочитування: <strong style={{ color: BRAND.ink }}>{s.avg_read_percentage}%</strong></span>
+                    {/* Голоси показуємо лише там, де вони є: нуль біля кожного
+                        твору читався б як докір, а не як інформація. */}
+                    {(votesById.get(s.content_id) ?? 0) > 0 && (
+                      <span>
+                        Голосів за озвучення:{' '}
+                        <strong style={{ color: BRAND.ink }}>{votesById.get(s.content_id)}</strong>
+                      </span>
+                    )}
                   </div>
                   <AuthorCoverUpload
                     contentId={s.content_id}
