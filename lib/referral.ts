@@ -64,6 +64,31 @@ export const REF_COOKIE_OPTIONS = {
  * невідомий, людина вже прив'язана, або це власний код — просто нічого не
  * робимо. Вхід ламати не можна в жодному разі.
  */
+/**
+ * Гарантувати рядок у `users` для цього акаунта.
+ *
+ * Тригер `on_auth_user_created` створює такий рядок при реєстрації, але
+ * акаунти, заведені ДО появи тригера, його не мають: 09.09.2026 знайшовся
+ * акаунт від 23 квітня без рядка. Для нього мовчки не працювало нічого —
+ * ні реферальний код, ні підписка, ні прив'язка, бо всі запити починаються
+ * з `select ... from users`.
+ *
+ * Тому при кожному вході дописуємо рядок, якщо його бракує. Це дешево
+ * (один запит) і знімає цілий клас мовчазних збоїв.
+ */
+export async function ensureUserRow(userId: string, email: string | null): Promise<void> {
+  try {
+    await dbQuery(
+      `insert into users (id, email, referral_code)
+       values ($1, $2, upper(substr(md5($1::text || 'balabony'), 1, 8)))
+       on conflict (id) do nothing`,
+      [userId, email ?? ''],
+    )
+  } catch {
+    // мовчазно: вхід важливіший за рядок у таблиці
+  }
+}
+
 export async function bindReferralIfAny(userId: string): Promise<void> {
   try {
     const code = await readRefCookie()

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { dbQuery } from '@/lib/db'
 import { mergeAnonInto } from '@/lib/reader-id'
-import { bindReferralIfAny } from '@/lib/referral'
+import { bindReferralIfAny, ensureUserRow } from '@/lib/referral'
 
 // =============================================================================
 // ПОВЕРНЕННЯ ПІСЛЯ ВХОДУ ЗА ПОСИЛАННЯМ
@@ -39,6 +39,7 @@ export async function GET(request: Request) {
         try {
           const { data: { user } } = await supabase.auth.getUser()
           if (user) {
+            await ensureUserRow(user.id, user.email ?? null)
             await mergeAnonInto(user.id)
             await bindReferralIfAny(user.id)
           }
@@ -55,6 +56,7 @@ export async function GET(request: Request) {
         if (user) {
           // Історія, накопичена до входу, і прив'язка до того, хто привів.
           // Обидві операції мовчазні: вхід не має ламатися через них.
+          await ensureUserRow(user.id, user.email ?? null)
           await mergeAnonInto(user.id)
           await bindReferralIfAny(user.id)
 
