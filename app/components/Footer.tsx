@@ -57,12 +57,19 @@ const READ_LINKS = [
   { label: 'Автори Балабонів',  href: '/avtory' },
 ]
 
+// 09.09.2026: з iOS і Android знято «Скоро». Це була неправда в гірший бік —
+// manifest.json, іконки 192/512 і service worker (public/sw.js) на місці,
+// застосунок ставиться на екран телефона вже давно, а ми його ховали.
+// Планшети виділено з рядка «Smart TV / Tablets»: на них сайт і PWA працюють
+// так само, як на телефоні, тож тримати їх під плашкою «Скоро» — те саме.
+// Посилання ведуть не на головну, а на /vstanovyty: «Safari PWA» саме по собі
+// читачеві нічого не каже, потрібні три кроки.
 const PLATFORMS = [
-  { label: 'Web (браузер)',        href: '/',  soon: false },
-  { label: 'iOS (Safari PWA)',     href: null, soon: true  },
-  { label: 'Android (Chrome PWA)', href: null, soon: true  },
-  { label: 'Telegram-бот',         href: null, soon: true  },
-  { label: 'Smart TV / Tablets',   href: null, soon: true  },
+  { label: 'Web (браузер)',            href: '/',            soon: false },
+  { label: 'iPhone і iPad',            href: '/vstanovyty',  soon: false },
+  { label: 'Android',                  href: '/vstanovyty',  soon: false },
+  { label: 'Telegram-бот',             href: null,           soon: true  },
+  { label: 'Smart TV',                 href: null,           soon: true  },
 ]
 
 
