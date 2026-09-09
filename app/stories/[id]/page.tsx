@@ -6,6 +6,7 @@ import ShareButtons from '@/app/components/ShareButtons'
 import BookmarkButton from '@/app/components/BookmarkButton'
 import FollowAuthorButton from '@/app/components/FollowAuthorButton'
 import VoiceVoteButton from '@/app/components/VoiceVoteButton'
+import ReviewButton from '@/app/components/ReviewButton'
 import ReaderPulse from '@/app/components/ReaderPulse'
 import LikeButton from '@/app/components/LikeButton'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
@@ -298,6 +299,16 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
               лише через список авторів на /cherga — тобто читач, який щойно
               дочитав, кнопки не бачив, а бали витрачати було нікуди. */}
           <VoiceVoteButton contentId={story.id} />
+          {/* Відгук. Механіка існувала з початку, але ReviewModal ніде не
+              викликався — залишити відгук було фізично неможливо, і в базі
+              за весь час нуль відгуків. */}
+          <ReviewButton
+            contentId={story.id}
+            contentType="story"
+            authorId={story.author_id ?? undefined}
+            authorName={story.author_name ?? undefined}
+            contentTitle={story.title}
+          />
         </div>
 
         {/* Поширення */}

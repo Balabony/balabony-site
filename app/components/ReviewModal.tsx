@@ -9,6 +9,8 @@ export interface ReviewModalProps {
   authorName?: string
   contentTitle?: string
   onClose: () => void
+  /** Викликається лише коли відгук СПРАВДІ збережено на сервері. */
+  onSaved?: () => void
 }
 
 const FONT = "'Montserrat', Arial, sans-serif"
@@ -16,27 +18,18 @@ const GOLD = '#FFB800'
 const NAVY = '#0f1e3a'
 const NAVY_DEEP = '#0a1628'
 
-function getOrCreateUserId(): string {
-  if (typeof window === 'undefined') return 'anon'
-  let id = localStorage.getItem('balabony_user_id')
-  if (!id) {
-    id = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36)
-    localStorage.setItem('balabony_user_id', id)
-  }
-  return id
-}
-
-function saveToLocalStorage(review: object) {
-  try {
-    const raw = localStorage.getItem('balabony_reviews') ?? '[]'
-    const list = JSON.parse(raw) as object[]
-    list.unshift({ ...review, createdAt: new Date().toISOString() })
-    localStorage.setItem('balabony_reviews', JSON.stringify(list.slice(0, 200)))
-  } catch {}
-}
+// getOrCreateUserId і saveToLocalStorage прибрано 09.09.2026.
+//
+// Перший видавав власний localStorage-ідентифікатор: очистив браузер — і той
+// самий читач лишав відгук за той самий твір знову. Тепер користувача визначає
+// сервер через resolveReaderId, як усюди на сайті.
+//
+// Другий записував відгук у localStorage, коли запит не пройшов, і показував
+// «Дякуємо за відгук!» — читач був певен, що написав, а відгук нікуди не
+// дійшов. За весь час у базі нуль відгуків, і це одна з причин.
 
 export default function ReviewModal({
-  contentType, contentId, authorId, authorName, contentTitle, onClose,
+  contentType, contentId, authorId, authorName, contentTitle, onClose, onSaved,
 }: ReviewModalProps) {
   const [rating,  setRating]  = useState(0)
   const [hovered, setHovered] = useState(0)
@@ -56,7 +49,6 @@ export default function ReviewModal({
       authorId:  authorId  ?? null,
       rating,
       comment:   comment.trim() || null,
-      userId:    getOrCreateUserId(),
     }
     try {
       const res = await fetch('/api/reviews', {
@@ -64,19 +56,16 @@ export default function ReviewModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-      if (res.ok) {
-        saveToLocalStorage(payload)
+      const data = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null
+      if (res.ok && data?.ok) {
         setDone(true)
+        onSaved?.()
         setTimeout(onClose, 2000)
       } else {
-        saveToLocalStorage(payload)
-        setDone(true)
-        setTimeout(onClose, 2000)
+        setError(data?.error ?? 'Не вдалося зберегти відгук. Спробуйте ще раз.')
       }
     } catch {
-      saveToLocalStorage(payload)
-      setDone(true)
-      setTimeout(onClose, 2000)
+      setError('Не вдалося зберегти відгук. Перевірте зв’язок і спробуйте ще раз.')
     } finally {
       setLoading(false)
     }
