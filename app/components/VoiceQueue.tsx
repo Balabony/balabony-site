@@ -171,6 +171,13 @@ export default function VoiceQueue({ cost }: { cost: number }) {
         {authorized ? (
           <span style={{ color: TEXT }}>
             У вас <strong style={{ color: GOLD }}>{balance}</strong> балів. Один голос коштує {cost}.
+            {balance < cost && (
+              <>
+                {' '}Найшвидший спосіб набрати —{' '}
+                <a href="/profile" style={{ color: GOLD }}>покликати друга</a>:
+                це одразу {cost} балів, тобто цілий голос.
+              </>
+            )}
           </span>
         ) : (
           <span style={{ color: TEXT }}>
