@@ -64,6 +64,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/games`,                 lastModified: now, changeFrequency: 'weekly',  priority: 0.7 },
     { url: `${BASE_URL}/pro-balabony`,          lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/vydannya`,              lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    // Черга на озвучення: голосування читачів. Окрема адреса, бо це те, що
+    // люди пересилатимуть одне одному («проголосуй за мою історію»).
+    { url: `${BASE_URL}/cherga`,                lastModified: now, changeFrequency: 'daily',   priority: 0.7 },
     { url: `${BASE_URL}/holosy`,                lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/wolne-lektury`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/become-author`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },

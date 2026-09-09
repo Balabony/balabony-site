@@ -1,6 +1,6 @@
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
-export type PointKind = 'read' | 'streak' | 'review' | 'survey' | 'gift_spend' | 'referral'
+export type PointKind = 'read' | 'streak' | 'review' | 'survey' | 'gift_spend' | 'referral' | 'voice_vote'
 
 // Скільки балів за кожну дію (одне джерело правди).
 export const POINTS = {
