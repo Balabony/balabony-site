@@ -80,7 +80,7 @@ export default function BookmarkButton({
         borderRadius: 10,
         border: `1px solid ${gold}${isOn ? 'cc' : '55'}`,
         background: isOn ? `${gold}1f` : 'transparent',
-        color: isOn ? gold : 'inherit',
+        color: gold,
         fontFamily: "'Montserrat', sans-serif",
         fontSize: 14,
         fontWeight: 600,

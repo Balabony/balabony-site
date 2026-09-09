@@ -110,7 +110,7 @@ export default function VoiceVoteButton({ contentId }: { contentId: string }) {
           borderRadius: 10,
           border: `1px solid ${GOLD}${voted ? 'cc' : '55'}`,
           background: voted ? `${GOLD}1f` : 'transparent',
-          color: voted ? GOLD : 'inherit',
+          color: GOLD,
           fontFamily: "'Montserrat', sans-serif",
           fontSize: 14,
           fontWeight: 600,

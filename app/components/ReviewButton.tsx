@@ -82,7 +82,7 @@ export default function ReviewButton({
           borderRadius: 10,
           border: `1px solid ${GOLD}${mine ? 'cc' : '55'}`,
           background: mine ? `${GOLD}1f` : 'transparent',
-          color: mine ? GOLD : 'inherit',
+          color: GOLD,
           fontFamily: "'Montserrat', sans-serif",
           fontSize: 14,
           fontWeight: 600,
