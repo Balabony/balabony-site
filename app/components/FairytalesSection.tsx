@@ -44,7 +44,7 @@ export default function FairytalesSection({ initial }: { initial?: Fairytale[] }
         <SectionHead
           kicker="Для дітей"
           title="Казки"
-          subtitle="Українські казки"
+          subtitle="Казки й оповідання для дітей"
           href="/fairytales"
           linkLabel="Усі казки"
         />

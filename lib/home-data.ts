@@ -174,9 +174,15 @@ export async function getFreshStories(limit = 6): Promise<HomeStory[]> {
       .select('id, author_name, approved_at')
       .eq('type', 'story')
       .in('status', ['approved', 'published'])
+      // Дитяче з «Свіжих історій» прибираємо: воно має власний розділ нижче,
+      // інакше той самий твір стоїть на головній двічі. З 09.09.2026 таких
+      // жанрів два — «Казка» і «Дитяче оповідання».
+      //
       // NULL != 'Казка' у SQL дає NULL, тому .neq() мовчки викидає історії
       // з порожнім жанром. Явно лишаємо і їх.
-      .or('genre.is.null,genre.neq.Казка')
+      // Лапки навколо значень обовʼязкові: «Дитяче оповідання» містить пробіл,
+      // а PostgREST без лапок обірве значення на ньому.
+      .or('genre.is.null,genre.not.in.("Казка","Дитяче оповідання")')
       .order('approved_at', { ascending: false, nullsFirst: false })
       .limit(500)
 
@@ -240,7 +246,14 @@ export async function getHomeSeries(limit = 3): Promise<HomeSeries[]> {
   }
 }
 
-/** Казки для головної. Той самий формат картки, що й у свіжих історій. */
+/**
+ * Дитячий розділ головної. Той самий формат картки, що й у свіжих історій.
+ *
+ * Беремо ДВА жанри — «Казка» і «Дитяче оповідання». До 09.09.2026 фільтр був
+ * лише по «Казці», а дитяча реалістична проза потрапляла туди ж через
+ * синоніми «дитячі»/«для дітей». Тепер жанри розділені, і якби фільтр лишився
+ * один, половина дитячих творів зникла б з головної зовсім.
+ */
 export async function getFairytales(limit = 3): Promise<HomeStory[]> {
   try {
     const supabase = getSupabaseAdmin()
@@ -250,7 +263,7 @@ export async function getFairytales(limit = 3): Promise<HomeStory[]> {
       .select('id, slug, title, author_name, genre, text, cover_url, cover_position, published_version, corrected_text, humanized_text, approved_at, duration_minutes, category, is_adult')
       .eq('type', 'story')
       .in('status', ['approved', 'published'])
-      .eq('genre', 'Казка')
+      .in('genre', ['Казка', 'Дитяче оповідання'])
       .order('approved_at', { ascending: false, nullsFirst: false })
       .limit(limit)
 
