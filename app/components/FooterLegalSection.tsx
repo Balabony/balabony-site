@@ -41,7 +41,7 @@ export function FooterLegalSection() {
       >
         {/* Реквізити */}
         <div>
-          <h4 style={headingStyle}>Реквізити</h4>
+          <h3 style={headingStyle}>Реквізити</h3>
           <p style={{ margin: 0 }}>
             Платежі обробляє ФОП Хомин Ігор Іванович
             <br />
@@ -55,7 +55,7 @@ export function FooterLegalSection() {
 
         {/* Зв'язок */}
         <div>
-          <h4 style={headingStyle}>Зв&apos;язок</h4>
+          <h3 style={headingStyle}>Зв&apos;язок</h3>
           <p style={{ margin: 0 }}>
             Email:{" "}
             <a style={linkStyle} href="mailto:nazar@balabony.com">
