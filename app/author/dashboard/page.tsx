@@ -14,6 +14,8 @@ import { dbQuery } from '@/lib/db'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import PublishWorkButton from '@/app/components/PublishWorkButton'
 import AddWorkForm from '@/app/components/AddWorkForm'
+import WorksFilter from '@/app/components/WorksFilter'
+import DeleteDraftButton from '@/app/components/DeleteDraftButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -538,8 +540,12 @@ export default async function AuthorDashboardPage() {
             </div>
           ) : (
             <div>
+              {/* Пошук і фільтр. Показуємо лише коли творів справді багато:
+                  при трьох історіях поле пошуку — зайвий елемент. */}
+              {stories.length >= 8 && <WorksFilter total={stories.length} />}
+
               {groups.map((g) => (
-                <div key={g.key}>
+                <div key={g.key} data-group={g.key}>
                   <div style={{
                     borderTop: `1px solid ${BRAND.line}`,
                     background: 'rgba(143,163,196,0.08)',
@@ -551,7 +557,12 @@ export default async function AuthorDashboardPage() {
                   </div>
 
               {g.items.map((s) => (
-                <div key={s.content_id} style={{ borderTop: `1px solid ${BRAND.line}`, padding: '0.9rem 1.5rem' }}>
+                <div
+                  key={s.content_id}
+                  data-work={s.title}
+                  data-status={s.status}
+                  style={{ borderTop: `1px solid ${BRAND.line}`, padding: '0.9rem 1.5rem' }}
+                >
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
                     <div style={{ color: BRAND.ink, fontWeight: 700, fontSize: '1rem', lineHeight: 1.35, minWidth: 0, flex: '1 1 200px' }}>
                       {s.episode_number != null && (
@@ -627,6 +638,13 @@ export default async function AuthorDashboardPage() {
 
                   {s.status === 'draft' && (
                     <PublishWorkButton contentId={s.content_id} title={s.title} />
+                  )}
+
+                  {/* Видалення — лише для чернеток. Опублікований твір має
+                      прочитання, з яких рахується винагорода, і посилання
+                      ззовні: зняти його з публікації — розмова з редакцією. */}
+                  {s.status === 'draft' && (
+                    <DeleteDraftButton contentId={s.content_id} title={s.title} />
                   )}
 
                   <a
