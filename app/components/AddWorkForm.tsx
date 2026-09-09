@@ -90,30 +90,41 @@ export default function AddWorkForm() {
           Доти його не бачить ніхто, крім вас.
         </div>
 
-        {/* Формати називаємо прямо: автор не має відкривати файловий діалог,
-            щоб дізнатися, що приймається. Значення звірені з
-            app/api/author/cover/route.ts — при розходженні правити ТАМ і тут. */}
-        <div style={{ fontSize: '0.85rem', color: '#8fa3c4', lineHeight: 1.6, marginBottom: 4 }}>
-          Приймаємо JPG, PNG або WebP, до 8 МБ. Фото з телефона підходить —
-          завелике зображення зменшиться саме.
-        </div>
-
+        {/* Про формати нічого не пишемо: AuthorCoverUpload має власний рядок
+            «JPG, PNG або WebP, до 8 МБ», і два однакові пояснення поспіль
+            виглядали як помилка. */}
         {/* Той самий компонент, що й біля кожного твору в переліку: другої
             реалізації завантаження файлу не заводимо. */}
         <AuthorCoverUpload contentId={newId} initialCover={null} />
 
-        <button
-          type="button"
-          onClick={() => { setNewId(''); setTitle(''); setGenre(''); setText(''); setOpen(true) }}
-          style={{
-            marginTop: 14,
-            fontFamily: FONT, fontSize: '0.88rem', fontWeight: 700, color: AMBER,
-            background: 'transparent', border: '1px solid rgba(239,159,39,0.45)',
-            borderRadius: 8, padding: '8px 14px', cursor: 'pointer',
-          }}
-        >
-          Додати ще одну історію
-        </button>
+        {/* Перелік творів нижче — серверний, він відрендерився до створення
+            цієї історії й сам її не покаже. Тому обидві кнопки перезавантажують
+            сторінку: інакше автор бачить «збережено», гортає вниз і не знаходить
+            свого твору. */}
+        <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            style={{
+              fontFamily: FONT, fontSize: '0.9rem', fontWeight: 700,
+              color: '#0a1628', background: AMBER, border: 'none',
+              borderRadius: 8, padding: '9px 16px', cursor: 'pointer',
+            }}
+          >
+            Готово — показати мої твори
+          </button>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            style={{
+              fontFamily: FONT, fontSize: '0.88rem', fontWeight: 700, color: AMBER,
+              background: 'transparent', border: '1px solid rgba(239,159,39,0.45)',
+              borderRadius: 8, padding: '9px 16px', cursor: 'pointer',
+            }}
+          >
+            Додати ще одну історію
+          </button>
+        </div>
       </div>
     )
   }
