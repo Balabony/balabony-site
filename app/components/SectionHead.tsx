@@ -68,7 +68,7 @@ export default function SectionHead({
             {adult && (
               <span
                 style={{
-                  background: '#E0484D',
+                  background: '#9B1B1E',
                   color: '#fff',
                   fontSize: 9,
                   padding: '1px 5px',

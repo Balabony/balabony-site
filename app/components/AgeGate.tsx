@@ -36,7 +36,7 @@ export default function AgeGate({ children }: { children: React.ReactNode }) {
     }}>
       <div style={{ maxWidth: 420 }}>
         <div style={{
-          display: 'inline-block', background: '#e0484d', color: '#fff',
+          display: 'inline-block', background: '#9b1b1e', color: '#fff',
           fontSize: 15, fontWeight: 800, padding: '4px 12px', borderRadius: 8,
           letterSpacing: 0.5, marginBottom: 18,
         }}>18+</div>

@@ -127,9 +127,9 @@ export default function Footer() {
             Українські історії для всієї родини
           </p>
 
-          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <h3 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Контакти
-          </h4>
+          </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
             <ProtectedEmail />
             <a
@@ -170,9 +170,9 @@ export default function Footer() {
             ))}
           </div>
 
-          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <h3 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Підтримати
-          </h4>
+          </h3>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             <a
               href="/support"
@@ -215,9 +215,9 @@ export default function Footer() {
 
         {/* ───── КОЛОНКА 2: ЧИТАТИ + ПЛАТФОРМИ + ДЛЯ АВТОРІВ ───── */}
         <div>
-          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <h3 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Читати
-          </h4>
+          </h3>
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: 14 }}>
             {READ_LINKS.map(item => (
               <li key={item.href} style={{ marginBottom: 5 }}>
@@ -228,9 +228,9 @@ export default function Footer() {
             ))}
           </ul>
 
-          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <h3 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Платформи
-          </h4>
+          </h3>
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: 14 }}>
             {PLATFORMS.map(item => (
               <li key={item.label} style={{ marginBottom: 5, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -276,9 +276,9 @@ export default function Footer() {
             ))}
           </ul>
 
-          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <h3 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Для авторів
-          </h4>
+          </h3>
           <a
             href="/become-author"
             className="footer-author-cta"
@@ -327,9 +327,9 @@ export default function Footer() {
             borderRadius: 10,
             padding: 16,
           }}>
-            <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 15, fontWeight: 700, fontFamily: "'Montserrat', sans-serif" }}>
+            <h3 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 15, fontWeight: 700, fontFamily: "'Montserrat', sans-serif" }}>
               Інклюзивність
-            </h4>
+            </h3>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.6, marginBottom: 10 }}>
               ВПО, ветерани (УБД) та люди з інвалідністю: повний доступ за 1 ₴.
             </p>
@@ -352,9 +352,9 @@ export default function Footer() {
             borderRadius: 10,
             padding: 16,
           }}>
-            <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 15, fontWeight: 700, fontFamily: "'Montserrat', sans-serif" }}>
+            <h3 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 15, fontWeight: 700, fontFamily: "'Montserrat', sans-serif" }}>
               Доступність
-            </h4>
+            </h3>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.6, marginBottom: 10 }}>
               Зручно для людей зі слабким зором, дислексією, обмеженою моторикою.
             </p>
@@ -374,9 +374,9 @@ export default function Footer() {
 
         {/* ───── КОЛОНКА 4: ДОКУМЕНТИ + ПРО НАС + НАВІГАЦІЯ ───── */}
         <div>
-          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <h3 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Документи
-          </h4>
+          </h3>
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: 8 }}>
             {LEGAL_LINKS.map(d => (
               <li key={d.title} style={{ marginBottom: 5 }}>
@@ -391,9 +391,9 @@ export default function Footer() {
             ))}
           </ul>
 
-          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <h3 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Про нас
-          </h4>
+          </h3>
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: 8 }}>
             <li style={{ marginBottom: 5 }}>
               <a href="/pro-balabony" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
@@ -417,9 +417,9 @@ export default function Footer() {
             </li>
           </ul>
 
-          <h4 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <h3 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Розділи
-          </h4>
+          </h3>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {[
               { label: 'Конкурси',    href: '/konkursy' },
@@ -447,13 +447,13 @@ export default function Footer() {
         border: '1px solid rgba(239,159,39,0.18)',
         borderRadius: 12,
       }}>
-        <h4 style={{
+        <h3 style={{
           color: 'var(--accent-gold)', marginBottom: 8, fontSize: 14, fontWeight: 700,
           fontFamily: "'Montserrat', sans-serif", letterSpacing: '0.5px',
           textTransform: 'uppercase',
         }}>
           Про Балабонів
-        </h4>
+        </h3>
         <p style={{
           fontSize: 14, lineHeight: 1.7, color: 'rgba(255,255,255,0.85)',
           marginBottom: 8, fontFamily: "'Montserrat', sans-serif",
@@ -476,13 +476,13 @@ export default function Footer() {
         maxWidth: 1200, margin: '0 auto 24px', paddingTop: 4,
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
       }}>
-        <h4 style={{
+        <h3 style={{
           color: 'var(--accent-gold)', fontSize: 11, fontWeight: 700,
           textTransform: 'uppercase', letterSpacing: '0.8px', margin: 0,
           fontFamily: "'Montserrat', sans-serif",
         }}>
           Партнери
-        </h4>
+        </h3>
         <div style={{
           display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center',
           gap: '12px 22px', maxWidth: 760,

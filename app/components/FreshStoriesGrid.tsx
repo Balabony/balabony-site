@@ -242,7 +242,7 @@ export default function FreshStoriesGrid({
                     <CoverPlaceholder title={story.title} />
                   )}
                   {story.isAdult && (
-                    <div style={{ position: 'absolute', top: 8, right: 8, background: '#e0484d', color: '#fff', fontSize: 12, fontWeight: 800, padding: '3px 8px', borderRadius: 6, letterSpacing: 0.5, fontFamily: FONT, lineHeight: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>18+</div>
+                    <div style={{ position: 'absolute', top: 8, right: 8, background: '#9b1b1e', color: '#fff', fontSize: 12, fontWeight: 800, padding: '3px 8px', borderRadius: 6, letterSpacing: 0.5, fontFamily: FONT, lineHeight: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>18+</div>
                   )}
                 </div>
               </div>

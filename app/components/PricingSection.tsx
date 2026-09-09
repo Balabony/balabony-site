@@ -777,7 +777,9 @@ export default function PricingSection() {
           </span>
           <span style={{ whiteSpace: 'nowrap', textAlign: 'right', flexShrink: 0 }}>
             <span style={{ fontSize: 30, fontWeight: 800, color: '#0f1e3a' }}>1 ₴</span>
-            <span style={{ display: 'block', fontSize: 13, color: 'rgba(15,30,58,0.6)' }}>на рік</span>
+            {/* 0.6 давало контраст ≈3:1 — PageSpeed 09.09.2026 позначив як
+                    відхилений елемент. 0.85 дає ≈5.5:1. */}
+            <span style={{ display: 'block', fontSize: 13, color: 'rgba(15,30,58,0.85)' }}>на рік</span>
           </span>
         </span>
       </button>

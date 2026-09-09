@@ -278,7 +278,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
         {/* Верхній рядок: назад ліворуч, 18+ праворуч — без накладання */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <Link href="/" style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.55)', textDecoration: 'none' }}>← На головну</Link>
-          <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: '#e0484d', padding: '3px 8px', borderRadius: 6, flexShrink: 0 }}>18+</span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: '#9b1b1e', padding: '3px 8px', borderRadius: 6, flexShrink: 0 }}>18+</span>
         </div>
         <span style={{ display: 'inline-block', marginTop: 12, fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--r-gold, #ef9f27)', background: 'rgba(239,159,39,0.14)', border: '1px solid rgba(239,159,39,0.5)', padding: '4px 9px', borderRadius: 4 }}>
           Авторський серіал

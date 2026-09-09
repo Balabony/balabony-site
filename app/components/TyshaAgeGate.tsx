@@ -96,7 +96,7 @@ export default function TyshaAgeGate() {
         <div
           style={{
             display: 'inline-block',
-            background: '#e0484d',
+            background: '#9b1b1e',
             color: '#fff',
             fontSize: 15,
             fontWeight: 800,

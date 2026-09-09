@@ -42,7 +42,7 @@ const doorTitleStyle: React.CSSProperties = { fontSize: 'clamp(12px, 3.4vw, 16px
 
 const doorSubStyle: React.CSSProperties = { fontSize: 'clamp(10px, 2.8vw, 12px)', color: '#C08A2E', lineHeight: 1.25 }
 
-const badge18Style: React.CSSProperties = { background: '#e0484d', color: '#FFF8EE', fontSize: 10, padding: '1px 5px', borderRadius: 3, verticalAlign: 2 }
+const badge18Style: React.CSSProperties = { background: '#9b1b1e', color: '#FFF8EE', fontSize: 10, padding: '1px 5px', borderRadius: 3, verticalAlign: 2 }
 
 
 /**
