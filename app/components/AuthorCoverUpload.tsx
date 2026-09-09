@@ -82,6 +82,14 @@ export default function AuthorCoverUpload({
           <img
             src={cover}
             alt=""
+            // У кабінеті таких карток сотні (у Богдана 206), а на екрані
+            // видно три-чотири. Без lazy браузер тягнув усі обкладинки
+            // одразу при відкритті сторінки. width/height атрибутами, а не
+            // лише в style: браузер резервує місце до завантаження.
+            loading="lazy"
+            decoding="async"
+            width={44}
+            height={44}
             style={{
               width: 44,
               height: 44,
