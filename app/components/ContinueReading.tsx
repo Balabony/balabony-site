@@ -41,8 +41,15 @@ export default function ContinueReading() {
     }
   }, [])
 
+  // Поки відповідь не прийшла — місця не займаємо ЗОВСІМ.
+  // Раніше тут стояв резерв minHeight: 132, і коли API відповідав «нічого не
+  // почато», блок зникав разом із резервом — усе під ним стрибало вгору на
+  // ~164px. Для читача без прогресу (а це кожен новий візит і кожен замір
+  // PageSpeed) резерв не рятував від зсуву, а створював його.
+  if (items === null) return null
+
   // Нічого не почато — блок не показуємо взагалі.
-  if (items !== null && items.length === 0) return null
+  if (items.length === 0) return null
 
   return (
     <section
@@ -51,11 +58,9 @@ export default function ContinueReading() {
         maxWidth: 1100,
         margin: '0 auto',
         padding: '8px 20px 24px',
-        // Резерв висоти, щоб поява списку не зсувала сторінку.
-        minHeight: items === null ? 132 : undefined,
       }}
     >
-      {items !== null && (
+      {(
         <>
           <h2
             style={{
