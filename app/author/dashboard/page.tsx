@@ -602,6 +602,25 @@ export default async function AuthorDashboardPage() {
                     initialCover={coverById.get(s.content_id) ?? null}
                   />
 
+                  {/* Подивитися очима читача. Для чернетки це єдиний спосіб
+                      перевірити верстку до публікації: сторінка твору показує
+                      неопублікований текст авторові й нікому більше. */}
+                  {s.slug && (
+                    <a
+                      href={`/stories/${s.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-block', marginTop: 10, marginRight: 8,
+                        fontSize: '0.85rem', fontWeight: 700, color: BRAND.amber,
+                        textDecoration: 'none', border: '1px solid rgba(239,159,39,0.45)',
+                        borderRadius: 8, padding: '7px 13px',
+                      }}
+                    >
+                      {s.status === 'draft' ? 'Переглянути чернетку' : 'Відкрити на сайті'}
+                    </a>
+                  )}
+
                   {['draft', 'approved', 'published'].includes(s.status) && (
                     <EditDraftForm contentId={s.content_id} />
                   )}

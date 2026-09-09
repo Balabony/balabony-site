@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import type { Metadata } from 'next'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ShareButtons from '@/app/components/ShareButtons'
@@ -34,6 +35,7 @@ interface StoryRow {
   title:             string
   author_name:       string
   author_id:         string | null
+  status?:           string | null
   genre:             string
   text:              string
   corrected_text:    string | null
@@ -50,24 +52,51 @@ interface StoryRow {
   audio_status:      string | null
 }
 
+/**
+ * Твір за адресою. Фільтр статусу тут ЗНЯТО навмисно (09.09.2026).
+ *
+ * Автор мусив публікувати наосліп: чернетка давала 404, тобто побачити, як
+ * ляжуть абзаци й чи не з'їхала обкладинка, можна було лише вже після
+ * публікації. Тепер сторінка віддає і чернетку, але показує її ВИКЛЮЧНО
+ * авторові — перевірка нижче, у StoryPage і в generateMetadata.
+ *
+ * Робити окрему сторінку перегляду було б гірше: другий рендер неминуче
+ * розійшовся б із бойовим, і «як побачить читач» стало б неправдою.
+ */
 async function getStory(id: string): Promise<StoryRow | null> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('id, slug, title, author_name, author_id, genre, text, corrected_text, humanized_text, published_version, cover_url, images, is_adult, is_free, is_premium, approved_at, updated_at, audio_url, audio_status')
+    .select('id, slug, title, author_name, author_id, genre, status, text, corrected_text, humanized_text, published_version, cover_url, images, is_adult, is_free, is_premium, approved_at, updated_at, audio_url, audio_status')
     .eq('type', 'story')
     .eq('slug', id)
-    .in('status', ['approved', 'published'])
     .maybeSingle()
 
   if (error || !data) return null
   return data as StoryRow
 }
 
+const PUBLIC_STATUSES = ['approved', 'published']
+
+/** Чи бачить цю сторінку хтось, крім автора. */
+function isPublic(story: { status?: string | null }): boolean {
+  return PUBLIC_STATUSES.includes(String(story.status ?? ''))
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
   const story = await getStory(id)
   if (!story) return { title: 'Історія не знайдена' }
+
+  // Чернетку з пошуку прибираємо повністю: вона живе за справжньою адресою,
+  // і без цього Google міг би дійти до неї за посиланням, яким автор
+  // поділився, показуючи твір комусь.
+  if (!isPublic(story)) {
+    return {
+      title: `${story.title} — чернетка | Balabony`,
+      robots: { index: false, follow: false },
+    }
+  }
 
   const desc    = toExcerpt(story.text, 160)
   const url      = `/stories/${id}`
@@ -105,6 +134,15 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
   const { id } = await params
   const story = await getStory(id)
   if (!story) notFound()
+
+  // Неопублікований твір бачить лише його автор. Для решти — той самий 404,
+  // що й раніше: сторонній не має навіть дізнатися, що така адреса існує.
+  const draft = !isPublic(story)
+  if (draft) {
+    const supabase = await createSupabaseServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user || user.id !== story.author_id) notFound()
+  }
 
   const v    = story.published_version ?? 'original'
   const body = (v === 'humanized' || v === 'corrected_humanized') && story.humanized_text
@@ -196,6 +234,24 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
       )}
 
             <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: story.cover_url ? '20px 20px 80px' : '60px 20px 80px' }}>
+
+        {/* Чернетку показуємо з чесною плашкою: сторінка виглядає точно як
+            бойова, тому без напису автор може вирішити, що твір уже на сайті,
+            і не натиснути «Опублікувати». */}
+        {draft && (
+          <div style={{
+            marginTop: 24, padding: '12px 16px', borderRadius: 10,
+            background: 'rgba(239,159,39,0.12)', border: '1px solid rgba(239,159,39,0.45)',
+            fontFamily: "'Montserrat', sans-serif", fontSize: 14, lineHeight: 1.6,
+            color: '#FAC775',
+          }}>
+            <strong style={{ color: '#FFF8EE' }}>Це чернетка.</strong>{' '}
+            Так твір побачить читач. Крім вас, цю сторінку зараз не бачить ніхто.{' '}
+            <a href="/author/dashboard" style={{ color: '#FAC775', fontWeight: 700 }}>
+              Опублікувати в кабінеті →
+            </a>
+          </div>
+        )}
 
         {/* Хлібні крихти — заміна старого back link */}
         <div style={{ marginTop: 24 }}>
