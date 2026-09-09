@@ -6,6 +6,7 @@ import { dbQuery } from '@/lib/db'
 import { getBalance } from '@/lib/points'
 import { levelFromReads } from '@/lib/levels'
 import { countInvited, inviteLink, REFERRAL_POINTS } from '@/lib/referral'
+import ReferralLink from '@/app/components/ReferralLink'
 
 export const dynamic = 'force-dynamic'
 
@@ -172,18 +173,7 @@ export default async function ProfilePage() {
             <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginBottom: '0.35rem' }}>
               Запросити друзів
             </div>
-            <div style={{
-              padding: '0.6rem 0.8rem',
-              background: 'rgba(255,248,238,0.07)',
-              color: '#FFF8EE',
-              border: '1px solid rgba(255,248,238,0.14)',
-              borderRadius: '6px',
-              fontFamily: 'monospace',
-              fontSize: '0.9rem',
-              wordBreak: 'break-all',
-            }}>
-              {inviteLink(profile.referral_code)}
-            </div>
+            <ReferralLink url={inviteLink(profile.referral_code)} />
             <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginTop: '0.5rem', lineHeight: 1.7 }}>
               Надішліть це посилання тому, кому може сподобатися. Коли людина
               за ним зареєструється, вам нарахується {REFERRAL_POINTS.inviter} балів,
