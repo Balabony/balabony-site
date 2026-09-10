@@ -92,6 +92,11 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
   const [extra, setExtra] = useState<Record<string, Extra>>({})
   const [editing, setEditing] = useState<Record<string, boolean>>({})
   const [busy, setBusy] = useState(false)
+  // Масове підтвердження — у два кроки. Автор Леонід Данільчик 10.09.2026
+  // випадково натиснув цю кнопку з телефону і підтвердив 62 твори разом,
+  // хоча всі вони мали аудіоверсії й входили в серії. Скидати довелося вручну
+  // запитом у базі. Один дотик не має підтверджувати десятки творів.
+  const [armed, setArmed] = useState(false)
   const [note, setNote] = useState<string | null>(null)
 
   const pending = useMemo(() => rows.filter(w => !w.confirmed_at), [rows])
@@ -194,11 +199,17 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
     }
   }
 
+  const cleanCount = pending.filter(w => {
+    const e = ex(w.id)
+    return !(prior[w.id] ?? '').trim() && !e.hasAudio && !e.inSeries
+  }).length
+
   function confirmOne(w: WorkRow) {
     void send([buildItem(w)])
   }
 
   function confirmAllClean() {
+    setArmed(false)
     const items = pending
       .filter(w => {
         const e = ex(w.id)
@@ -247,10 +258,30 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
         <div style={{ fontSize: '0.82rem', color: BRAND.muted }}>
           Редакція від {d(generatedAt)}
         </div>
-        {pending.length > 0 && (
-          <button type="button" onClick={confirmAllClean} disabled={busy} style={primaryBtn}>
+        {pending.length > 0 && !armed && (
+          <button type="button" onClick={() => setArmed(true)} disabled={busy} style={secondaryBtn}>
             Підтвердити всі, що не публікувалися
           </button>
+        )}
+        {pending.length > 0 && armed && (
+          <div style={{
+            display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center',
+            width: '100%', padding: '0.75rem 0.9rem', background: '#fff8ec',
+            border: `1px solid ${BRAND.line}`, borderRadius: 10,
+          }}>
+            <div style={{ fontSize: '0.9rem', color: BRAND.ink, lineHeight: 1.6, width: '100%' }}>
+              Підтвердити разом {cleanCount} {cleanCount === 1 ? 'твір' : cleanCount < 5 ? 'твори' : 'творів'},
+              у яких не заповнено попередню публікацію, аудіоверсію і серію? Якщо ваші твори
+              вже озвучені або входять у серії, підтверджуйте їх окремо — кнопка «підтвердити»
+              в рядку кожного твору.
+            </div>
+            <button type="button" onClick={confirmAllClean} disabled={busy} style={primaryBtn}>
+              Так, підтвердити {cleanCount}
+            </button>
+            <button type="button" onClick={() => setArmed(false)} disabled={busy} style={secondaryBtn}>
+              Скасувати
+            </button>
+          </div>
         )}
         <button type="button" onClick={() => window.print()} style={secondaryBtn}>
           Зберегти як PDF
