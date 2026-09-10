@@ -17,6 +17,13 @@ const BASE_URL = 'https://balabony.com'
  *  - опубліковані історії (решта типів)
  *  - публічні сторінки авторів /avtor/[slug]
  *
+ * Обкладинки творів віддаються полем images — Next перетворює його на
+ * <image:image> у XML. До 10.09.2026 карта не містила жодного зображення.
+ *
+ * Старий набір ігор (шахи, шашки, доміно, судоку, нарди) з карти прибрано:
+ * на /games тепер «Ігри для мозку», а ті сторінки лишаються робочими за
+ * прямим посиланням.
+ *
  * /reytyng додається лише коли рейтинг рахує реальні дані. Поки в
  * lib/reytyng.ts стоїть REYTYNG_DEMO = true, сторінка показує умовні
  * прізвища — віддавати таке пошуковику не можна.
@@ -104,11 +111,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/games/memory-order`,    lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/games/colors`,          lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/games/pairs`,           lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/chess`,           lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/checkers`,        lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/domino`,          lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/sudoku`,          lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/games/narde`,           lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
   ]
 
   const supabase = getSupabaseAdmin()
@@ -118,7 +120,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const { data, error } = await supabase
       .from('content')
-      .select('type, slug, approved_at')
+      .select('type, slug, approved_at, created_at, cover_url')
       .in('status', ['approved', 'published'])
       .limit(5000)
 
@@ -140,11 +142,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority = 0.7
           }
 
+          // Дата зміни: тільки справжня. Раніше при порожньому approved_at
+          // підставлявся момент генерації — і карта щоразу заявляла, що всі
+          // сотні сторінок щойно змінилися. Пошуковик на таке перестає
+          // зважати взагалі, тож краще не давати дати, ніж давати фальшиву.
+          const stamp = row.approved_at ?? row.created_at ?? null
+
           return {
             url: `${BASE_URL}${path}`,
-            lastModified: row.approved_at ? new Date(row.approved_at) : now,
+            ...(stamp ? { lastModified: new Date(stamp) } : {}),
             changeFrequency: 'monthly' as const,
             priority,
+            // Обкладинки: без цього Google не знає про них жодної.
+            ...(row.cover_url ? { images: [row.cover_url] } : {}),
           }
         })
     }
