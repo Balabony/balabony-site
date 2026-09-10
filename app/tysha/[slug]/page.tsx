@@ -12,6 +12,7 @@ import ReadingProgressBar from '@/app/components/ReadingProgressBar'
 import BackToTop from '@/app/components/BackToTop'
 import ReaderKeyboardNav from '@/app/components/ReaderKeyboardNav'
 import EpisodeNav from '@/app/components/EpisodeNav'
+import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ReaderPulse from '@/app/components/ReaderPulse'
 import TyshaProgressTracker from '@/app/components/TyshaProgressTracker'
 import TyshaAgeGate from '@/app/components/TyshaAgeGate'
@@ -277,7 +278,12 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
       <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '28px 20px 8px' }}>
         {/* Верхній рядок: назад ліворуч, 18+ праворуч — без накладання */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-          <Link href="/" style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.55)', textDecoration: 'none' }}>← На головну</Link>
+          {/* Хлібні крихти замість самотнього «На головну»: це єдина сторінка
+              читання, де їх бракувало, тож у розмітці не було ланцюжка
+              Головна → Тиша → серія, а читач не мав переходу до переліку серій. */}
+          <div style={{ minWidth: 0 }}>
+            <Breadcrumbs items={[{ label: 'Тиша', href: '/tysha' }, { label: ep.title }]} />
+          </div>
           <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: '#9b1b1e', padding: '3px 8px', borderRadius: 6, flexShrink: 0 }}>18+</span>
         </div>
         <span style={{ display: 'inline-block', marginTop: 12, fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: 'var(--r-gold, #ef9f27)', background: 'rgba(239,159,39,0.14)', border: '1px solid rgba(239,159,39,0.5)', padding: '4px 9px', borderRadius: 4 }}>
