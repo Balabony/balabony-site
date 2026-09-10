@@ -137,12 +137,14 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
   // Неопублікований твір бачить лише його автор. Для решти — той самий 404,
   // що й раніше: сторонній не має навіть дізнатися, що така адреса існує.
+  // Користувача дістаємо завжди, а не лише для чернеток: він потрібен ще й
+  // для того, щоб не зараховувати авторові читання власного твору.
+  const supabase = await createSupabaseServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const isOwnAuthor = !!user && !!story.author_id && user.id === story.author_id
+
   const draft = !isPublic(story)
-  if (draft) {
-    const supabase = await createSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || user.id !== story.author_id) notFound()
-  }
+  if (draft && !isOwnAuthor) notFound()
 
   const v    = story.published_version ?? 'original'
   const body = (v === 'humanized' || v === 'corrected_humanized') && story.humanized_text
@@ -319,7 +321,9 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
         {/* Облік прочитання — база для винагороди автора. Маркер кінця тексту
             має стояти саме тут, одразу під статтею. */}
-        <StoryReadTracker contentId={story.id} slug={id} title={story.title} charCount={charCount} />
+        {/* selfRead: автор може перечитувати свій твір скільки завгодно,
+            але в облік це не йде — з цих подій рахується його ж винагорода. */}
+        <StoryReadTracker contentId={story.id} slug={id} title={story.title} charCount={charCount} selfRead={isOwnAuthor} />
         <ReadingProgressBar />
         <BackToTop />
 

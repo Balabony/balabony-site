@@ -101,6 +101,11 @@ export default async function DochytuvanniaPage({
        from reading_progress rp
        left join content c on c.id = rp.content_id
        where rp.percent >= 3
+         -- Автор, який читає власний твір, у статистику не йде: з 11.09.2026
+         -- йому не зараховують і подію прочитання. Для залогінених user_id —
+         -- це id акаунта, тож порівняння з author_id працює; анонімні читачі
+         -- мають куку і під цю умову не потрапляють.
+         and (c.author_id is null or rp.user_id::text <> c.author_id::text)
        group by rp.slug
        having count(*) >= $1
        order by count(*) desc

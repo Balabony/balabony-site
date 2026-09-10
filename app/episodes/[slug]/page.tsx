@@ -409,6 +409,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
             charCount={body.length}
             promo={isPromoEpisode}
             analytics={false}
+            selfRead={isAdmin}
           />
         )}
 

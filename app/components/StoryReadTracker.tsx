@@ -21,6 +21,14 @@ import { getSessionId } from '@/lib/analytics'
  *
  * Час рахується лише коли вкладка видима: відкрита й забута вкладка
  * прочитанням не стає.
+ *
+ * ВЛАСНЕ ЧИТАННЯ НЕ РАХУЄТЬСЯ (рішення Богдана 11.09.2026). Автор може
+ * скільки завгодно перечитувати свій твір — сторінка працює як завжди, —
+ * але жодна подія в облік не йде: ні «відкрив», ні «прочитав». Причини дві.
+ * Перша: винагорода за договором рахується з цих подій, і автор технічно
+ * міг би накрутити її собі. Друга: без цього статистика показує не читачів,
+ * а авторів, які читають самих себе — саме це й вилізло 10.09.2026, коли
+ * після розсилки майже всі твори мали дочитуваність 100%.
  */
 
 const TICK_MS = 1000
@@ -41,6 +49,7 @@ export default function StoryReadTracker({
   charCount,
   promo = false,
   analytics = true,
+  selfRead = false,
 }: {
   contentId: string
   slug:      string
@@ -59,6 +68,11 @@ export default function StoryReadTracker({
    * та сама подія потрапила б у статистику двічі.
    */
   analytics?: boolean
+  /**
+   * Твір читає його ж автор (або адміністратор — для серіалів платформи).
+   * Сторінка працює звичайно, але облік вимкнено повністю.
+   */
+  selfRead?: boolean
 }) {
   const sentinelRef  = useRef<HTMLDivElement | null>(null)
   const sentRef      = useRef(false)
@@ -73,7 +87,7 @@ export default function StoryReadTracker({
   // «Відкрив» — одразу, двома подіями: рядок у article_reads і подія
   // в story_events, з якої перераховується лічильник переглядів.
   useEffect(() => {
-    if (!contentId) return
+    if (!contentId || selfRead) return
 
     fetch('/api/story-read', {
       method:  'POST',
@@ -94,10 +108,10 @@ export default function StoryReadTracker({
         }),
       }).catch(() => {})
     }
-  }, [contentId, slug, title, promo, analytics])
+  }, [contentId, slug, title, promo, analytics, selfRead])
 
   useEffect(() => {
-    if (!contentId) return
+    if (!contentId || selfRead) return
 
     // Мінімальний час за договором, але не менший за нижню межу.
     const needMs = Math.max(
@@ -209,7 +223,7 @@ export default function StoryReadTracker({
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
     }
-  }, [contentId, slug, title, charCount, promo, analytics])
+  }, [contentId, slug, title, charCount, promo, analytics, selfRead])
 
   // Маркер стоїть одразу під статтею — від нього шукаємо текст для вимірювання.
   return (

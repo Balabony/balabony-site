@@ -384,6 +384,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
           charCount={body.length}
           promo={epNum <= FREE_EPISODES}
           analytics={false}
+          selfRead={isAdmin}
         />
       )}
 
