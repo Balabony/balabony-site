@@ -24,6 +24,16 @@ export default function TyshaIndexPage() {
       <TyshaAgeGate />
       <Header />
       <main style={{ minHeight: '40vh', paddingTop: 8 }}>
+        {/* Головна сторінка серіалу зі 103 серіями не мала h1 узагалі —
+            ні тут, ні в TyshaSection. Для екранної читалки це означало
+            сторінку без точки входу. */}
+        <h1 style={{
+          maxWidth: 1100, margin: '0 auto 8px', padding: '0 5%',
+          fontSize: 'clamp(26px, 5vw, 34px)', fontWeight: 700,
+          color: 'var(--accent-gold)', textAlign: 'center',
+        }}>
+          «Тиша» — авторський серіал Назара Колодія
+        </h1>
         <TyshaSection />
       </main>
       <Footer />

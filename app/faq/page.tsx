@@ -22,6 +22,15 @@ export default function FaqPage() {
     <>
       <Header />
       <main style={{ background: 'var(--dark)', padding: '28px 5% 40px' }}>
+        {/* Сторінка не мала h1: компонент FAQ починається з h2, бо він же
+            стоїть секцією на /free, і другий h1 там був би помилкою.
+            Тому заголовок першого рівня належить саме сторінці. */}
+        <h1 style={{
+          maxWidth: 900, margin: '0 auto 18px', fontSize: 'clamp(26px, 5vw, 34px)',
+          fontWeight: 700, color: 'var(--accent-gold)', textAlign: 'center',
+        }}>
+          Часті питання
+        </h1>
         <FAQ />
       </main>
       <Footer />

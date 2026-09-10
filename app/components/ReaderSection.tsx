@@ -544,7 +544,7 @@ export default function ReaderSection() {
           >
             {isBookmarked ? '✦' : '✧'}
           </button>
-          <span style={{ marginLeft: 'auto', fontSize: 10, background: 'var(--accent-gold)', color: 'var(--on-gold)', padding: '3px 10px', borderRadius: 20, fontWeight: 700 }}>Офлайн · скоро</span>
+          <span style={{ marginLeft: 'auto', fontSize: 10, background: 'var(--accent-gold)', color: 'var(--on-gold)', padding: '3px 10px', borderRadius: 20, fontWeight: 700 }}>Офлайн</span>
         </div>
 
         {/* Story title */}
