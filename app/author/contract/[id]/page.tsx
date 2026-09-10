@@ -159,8 +159,10 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
           <div>Контрольна сума редакції: {shortHash(currentHash)}</div>
           {contract.doc_hash && contract.doc_hash !== currentHash ? (
             <div style={{ marginTop: 4, color: '#8a5a00' }}>
-              Підписано редакцію з сумою {shortHash(contract.doc_hash)} — відтоді перелік творів
-              поповнився. Підписана редакція лишається чинною в тому вигляді, в якому її підписано.
+              Підписано редакцію з сумою {shortHash(contract.doc_hash)}. Відтоді змінилися умови
+              договору та/або склад переліку творів. Чинною для Вас лишається саме та редакція,
+              яку Ви підписали, у тому вигляді, в якому її підписано; вище наведено чинну редакцію
+              умов. Копію підписаної редакції можна отримати за запитом до Видавця.
             </div>
           ) : null}
         </div>

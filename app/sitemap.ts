@@ -20,10 +20,6 @@ const BASE_URL = 'https://balabony.com'
  * Обкладинки творів віддаються полем images — Next перетворює його на
  * <image:image> у XML. До 10.09.2026 карта не містила жодного зображення.
  *
- * Старий набір ігор (шахи, шашки, доміно, судоку, нарди) з карти прибрано:
- * на /games тепер «Ігри для мозку», а ті сторінки лишаються робочими за
- * прямим посиланням.
- *
  * /reytyng додається лише коли рейтинг рахує реальні дані. Поки в
  * lib/reytyng.ts стоїть REYTYNG_DEMO = true, сторінка показує умовні
  * прізвища — віддавати таке пошуковику не можна.
@@ -111,6 +107,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/games/memory-order`,    lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/games/colors`,          lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/games/pairs`,           lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/chess`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/checkers`,      lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/domino`,        lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/sudoku`,        lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/games/narde`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
   ]
 
   const supabase = getSupabaseAdmin()
