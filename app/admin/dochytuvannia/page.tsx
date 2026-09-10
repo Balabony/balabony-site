@@ -117,10 +117,12 @@ export default async function DochytuvanniaPage({
   const totalReaders = visible.reduce((s, r) => s + r.readers, 0)
   const totalFinished = visible.reduce((s, r) => s + r.finished, 0)
 
-  // Найгірші за дочитуваністю — але тільки там, де читачів досить, щоб
-  // цифра щось означала.
+  // Найгірші за дочитуваністю. Поріг 50% обов'язковий: без нього при
+  // мінімумі в одного читача сюди потрапляли твори зі 100% дочитуваністю
+  // просто тому, що вони йшли в сортуванні після єдиного нуля — і поруч
+  // стояв підпис «кидають близько 100%», що є нонсенсом.
   const worst = [...visible]
-    .filter(r => r.readers >= minReaders * 2)
+    .filter(r => pct(r.finished, r.readers) < 50)
     .sort((a, b) => pct(a.finished, a.readers) - pct(b.finished, b.readers))
     .slice(0, 5)
 
@@ -208,7 +210,7 @@ export default async function DochytuvanniaPage({
               <div style={{ fontSize: 13, fontWeight: 700, color: '#ef4444', marginBottom: 10 }}>Кидають найчастіше</div>
               {worst.length === 0 && (
                 <div style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.5)' }}>
-                  Замало даних: потрібно щонайменше {minReaders * 2} читачів на твір.
+                  Немає творів із дочитуваністю нижче 50%.
                 </div>
               )}
               {worst.map(r => (
