@@ -38,6 +38,11 @@ const BASE_URL = 'https://balabony.com'
  * додаємо: якщо автор просив не показувати його публічно, віддавати
  * адресу пошуковику — те саме показування, тільки іншим шляхом.
  */
+// Без цього рядка Next збирає карту під час білда, і новий твір потрапляє
+// в неї лише з наступним деплоєм. Година — компроміс між свіжістю і
+// навантаженням на базу.
+export const revalidate = 3600
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
 
@@ -121,13 +126,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const { data, error } = await supabase
       .from('content')
-      .select('type, slug, approved_at, created_at, cover_url')
-      .in('status', ['approved', 'published'])
+      .select('type, slug, approved_at, created_at, cover_url, status, publish_at')
+      .in('status', ['approved', 'published', 'scheduled'])
       .limit(5000)
 
     if (!error && data) {
+      // Кожен тип має власне правило видимості, і карта мусить його
+      // повторювати рівно. Інакше або ведемо пошуковик на 404 (сторінка
+      // статус не віддає), або ховаємо робочі сторінки.
+      //   історії      — approved і published (PUBLIC_STATUSES у /stories/[id]);
+      //   «Балабони»   — лише published;
+      //   «Тиша»       — published або scheduled, у якої publish_at уже настав.
+      const visible = (row: { type: string | null; status: string | null; publish_at: string | null }) => {
+        if (row.status === 'published') return true
+        if (row.type === 'balabony') return false
+        if (row.type === 'tysha') {
+          return row.status === 'scheduled' && !!row.publish_at && new Date(row.publish_at) <= now
+        }
+        return row.status === 'approved'
+      }
+
       workPages = data
         .filter((row) => row.slug)
+        .filter(visible)
         .map((row) => {
           let path: string
           let priority: number
