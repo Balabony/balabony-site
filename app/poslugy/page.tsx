@@ -19,6 +19,16 @@ export const metadata: Metadata = {
     siteName: "Balabony",
     locale: "uk_UA",
     type: "website",
+    // Зображення обов'язкове: LinkedIn і Facebook без нього відмовляються
+    // будувати картку попереднього перегляду. У сторінковому openGraph воно
+    // НЕ успадковується з app/layout.tsx — Next.js замінює блок цілком.
+    images: [{ url: "https://balabony.com/og-image-v4.jpg", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Розробка сайтів і вебдодатків — Львів",
+    description: "Сайти під ключ на Next.js: адмінка, доступність, швидкість. Ціна після технічного завдання.",
+    images: ["https://balabony.com/og-image-v4.jpg"],
   },
 };
 
