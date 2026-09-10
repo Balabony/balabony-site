@@ -116,6 +116,7 @@ export default function AdminAuthorAccountsPage() {
   const [bulkDone, setBulkDone] = useState(0)
   const [bulkSent, setBulkSent] = useState(0)
   const [bulkFailed, setBulkFailed] = useState(0)
+  const [bulkSkipped, setBulkSkipped] = useState(0)
   const bulkStopRef = useRef(false)
 
   // Текст листа, який Богдан бачить і може правити.
@@ -233,7 +234,7 @@ export default function AdminAuthorAccountsPage() {
     setBulkRunning(true)
     setBulkArmed(false)
     bulkStopRef.current = false
-    setBulkDone(0); setBulkSent(0); setBulkFailed(0)
+    setBulkDone(0); setBulkSent(0); setBulkFailed(0); setBulkSkipped(0)
 
     let failStreak = 0
 
@@ -254,7 +255,15 @@ export default function AdminAuthorAccountsPage() {
         let d: Payload | null = null
         try { d = JSON.parse(raw) as Payload } catch { d = null }
 
-        if (d?.ok) {
+        if (res.status === 409) {
+          // Не помилка відправлення, а свідома відмова сервера: автор відкликав
+          // згоду або відписався від розсилки. Такий рядок не має накручувати
+          // failStreak — інакше троє заблокованих поспіль обірвуть усю розсилку
+          // запобіжником нижче, і решта авторів листа не отримає.
+          failStreak = 0
+          setBulkSkipped(n => n + 1)
+          setSendNote(prev => ({ ...prev, [r.user_id]: d?.error ?? 'Пропущено' }))
+        } else if (d?.ok) {
           failStreak = 0
           setBulkSent(n => n + 1)
           setSendNote(prev => ({ ...prev, [r.user_id]: 'Надіслано' }))
@@ -442,6 +451,7 @@ export default function AdminAuthorAccountsPage() {
                 <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 14, color: CREAM }}>
                     Надсилаємо: {bulkDone} з {targets.length} · надіслано {bulkSent}
+                    {bulkSkipped > 0 && <span style={{ color: MUTED }}> · пропущено {bulkSkipped}</span>}
                     {bulkFailed > 0 && <span style={{ color: BAD }}> · помилок {bulkFailed}</span>}
                   </span>
                   <button
