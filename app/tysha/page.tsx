@@ -34,7 +34,7 @@ export default function TyshaIndexPage() {
         }}>
           «Тиша» — авторський серіал Назара Колодія
         </h1>
-        <TyshaSection />
+        <TyshaSection coverOverride="/tysha-oblozhka-20260910-d.webp" />
       </main>
       <Footer />
       <AudioPlayer />
