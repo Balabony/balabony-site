@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { dbQuery } from '@/lib/db'
+import { saveContractSnapshot } from '@/lib/contract/snapshot'
 
 /**
  * Callback від сервера підпису (не від Дії напряму).
@@ -53,6 +54,9 @@ export async function POST(req: NextRequest) {
         where id = $3`,
       [body.signedPdfUrl ?? null, body.signatureUrl ?? null, row.contract_id],
     )
+    // Фіксуємо саме той текст, який автор підписав. Без цього кабінет
+    // показував би йому чинну редакцію шаблону замість його власної.
+    await saveContractSnapshot(row.contract_id)
   } else {
     await dbQuery(
       `update signing_sessions set status = 'failed', error = $1 where id = $2`,

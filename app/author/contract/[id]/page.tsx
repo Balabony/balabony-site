@@ -5,6 +5,7 @@ import { dbQuery } from '@/lib/db'
 import { CONTRACT_BLOCKS } from '@/lib/contract/template'
 import { buildVars, fmtDate, DASH } from '@/lib/contract/vars'
 import { computeDocHash, shortHash } from '@/lib/contract/hash'
+import type { ContractSnapshot } from '@/lib/contract/snapshot'
 import PrintButton from '@/app/components/PrintButton'
 
 export const metadata: Metadata = {
@@ -20,7 +21,8 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
   if (!user) redirect('/login')
 
   const c = await dbQuery(
-    `select id, number, status, rate, is_fop, created_at, signed_at, doc_hash
+    `select id, number, status, rate, is_fop, created_at, signed_at, doc_hash,
+            doc_snapshot, doc_snapshot_at
        from author_contracts where id = $1 and author_id = $2 limit 1`,
     [id, user.id],
   )
@@ -29,6 +31,8 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
     id: string; number: string; status: string; rate: number | null
     is_fop: boolean | null; created_at: string | null; signed_at: string | null
     doc_hash: string | null
+    doc_snapshot: ContractSnapshot | null
+    doc_snapshot_at: string | null
   }
 
   const p = await dbQuery(
@@ -111,6 +115,15 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
 
   const fill = (t: string) => t.replace(/\{\{(\w+)\}\}/g, (_, k: string) => V[k] ?? DASH)
 
+  // Якщо договір підписано і знімок збережено — показуємо саме його. Це той
+  // текст, під яким стоїть підпис; чинна редакція шаблону могла піти далі.
+  // Договори, підписані до 10.09.2026, знімка не мають — для них лишається
+  // старий шлях: чинна редакція плюс попередження внизу сторінки.
+  const snap = contract.doc_snapshot
+  const blocks = snap?.blocks?.length
+    ? snap.blocks
+    : CONTRACT_BLOCKS.map(b => ({ k: b.k, t: fill(b.t) }))
+
   return (
     <main style={{ background: '#ffffff', color: '#16202e', minHeight: '60vh', padding: '28px 18px 64px' }}>
       <div style={{ maxWidth: 780, margin: '0 auto', fontFamily: "'Times New Roman', Georgia, serif" }}>
@@ -122,8 +135,8 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
           <PrintButton />
         </div>
 
-        {CONTRACT_BLOCKS.map((b, i) => {
-          const t = fill(b.t)
+        {blocks.map((b, i) => {
+          const t = b.t
           if (b.k === 'h1') {
             return <h1 key={i} style={{ fontSize: 23, textAlign: 'center', margin: '0 0 6px', fontWeight: 700, letterSpacing: 0.5 }}>{t}</h1>
           }
@@ -155,6 +168,20 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
           marginTop: 30, paddingTop: 14, borderTop: '1px solid #d8dee8',
           fontSize: 12, color: '#5a6b85', fontFamily: 'Arial, sans-serif', lineHeight: 1.7,
         }}>
+          {snap ? (
+            <>
+              <div>
+                Підписана редакція від {fmtDate(contract.doc_snapshot_at)} · творів у Додатку № 1:{' '}
+                {snap.works?.length ?? worksCount}
+              </div>
+              <div>Контрольна сума: {shortHash(snap.hash)}</div>
+              <div style={{ marginTop: 4 }}>
+                Вище наведено текст договору в тому вигляді, в якому Ви його підписали. Подальші
+                зміни умов на цей договір не поширюються.
+              </div>
+            </>
+          ) : (
+          <>
           <div>Редакція від {fmtDate(null)} · творів у Додатку № 1: {worksCount}</div>
           <div>Контрольна сума редакції: {shortHash(currentHash)}</div>
           {contract.doc_hash && contract.doc_hash !== currentHash ? (
@@ -165,6 +192,8 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
               умов. Копію підписаної редакції можна отримати за запитом до Видавця.
             </div>
           ) : null}
+          </>
+          )}
         </div>
 
         <p className="no-print" style={{ fontSize: 13, color: '#5a6b85', marginTop: 28, fontFamily: 'Arial, sans-serif', lineHeight: 1.6 }}>

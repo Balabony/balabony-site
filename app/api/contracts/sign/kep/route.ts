@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { dbQuery } from '@/lib/db'
+import { saveContractSnapshot } from '@/lib/contract/snapshot'
 
 /**
  * Підписання договору кваліфікованим електронним підписом.
@@ -78,6 +79,10 @@ export async function POST(req: NextRequest) {
       where id = $2`,
     [path, contract.id],
   )
+
+  // КЕП-шлях до 10.09.2026 не писав ні знімка, ні контрольної суми взагалі:
+  // договір вважався підписаним, а якої саме редакції — ніде не лишалося.
+  await saveContractSnapshot(contract.id)
 
   return NextResponse.json({ ok: true, number: contract.number })
 }
