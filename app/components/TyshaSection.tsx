@@ -72,8 +72,14 @@ function cleanTitle(raw: string): string {
   return t || raw
 }
 
+// coverOverride — одна горизонтальна обкладинка на всю вітрину.
+// Навіщо: картки тут 3:2, а обкладинка серій tysha-cover-v3 вертикальна 3:4,
+// тож браузер зрізав їй низ разом із назвою «ТИША». Файл /tysha-main-3x2.webp
+// зроблено рівно 3:2 (720×480, 20 КБ) — обрізання немає взагалі.
+// Сторінки самих серій обкладинку не міняють: там лишається вертикальна.
 export default function TyshaSection(
-  { limit, showAllLink = false, initial }: { limit?: number; showAllLink?: boolean; initial?: TyshaItem[] } = {}
+  { limit, showAllLink = false, initial, coverOverride }:
+  { limit?: number; showAllLink?: boolean; initial?: TyshaItem[]; coverOverride?: string } = {}
 ) {
   const { colors, isNight } = useTheme()
   // Готові дані з сервера: без них рубрика вантажилася вже в браузері
@@ -124,13 +130,13 @@ export default function TyshaSection(
             >
               <div style={{ padding: 8, flexShrink: 0 }}>
                 <div style={{ position: 'relative', width: '100%', aspectRatio: '3 / 2', overflow: 'hidden', background: 'linear-gradient(135deg,#1a2a4a,#0f1e3a)', borderRadius: 8 }}>
-                  {ep.cover_url ? (
+                  {(coverOverride ?? ep.cover_url) ? (
                     <CoverImage
                       mode="fill"
-                      src={ep.cover_url}
+                      src={coverOverride ?? ep.cover_url}
                       alt={ep.title}
                       sizes="(max-width: 700px) 100vw, 320px"
-                      style={coverStyle(ep.cover_position, 'center 40%')}
+                      style={coverOverride ? { objectPosition: 'center' } : coverStyle(ep.cover_position, 'center 40%')}
                       hideOnError
                       className="ts-cover-img"
                     />
