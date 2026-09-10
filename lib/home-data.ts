@@ -258,18 +258,39 @@ export async function getFairytales(limit = 3): Promise<HomeStory[]> {
   try {
     const supabase = getSupabaseAdmin()
 
-    const { data, error } = await supabase
+    // Ротація двічі на добу, як у «Свіжих історіях» (рішення Богдана
+    // 10.09.2026): до того рубрика показувала просто три найновіші казки
+    // і не змінювалася тижнями. Порядок дій той самий — спершу легкий
+    // запит із полями, потрібними rotateDaily, потім повні дані лише
+    // для обраних трьох.
+    const { data: light, error: lightErr } = await supabase
       .from('content')
-      .select('id, slug, title, author_name, genre, text, cover_url, cover_position, published_version, corrected_text, humanized_text, approved_at, duration_minutes, category, is_adult')
+      .select('id, author_name, approved_at')
       .eq('type', 'story')
       .in('status', ['approved', 'published'])
       .in('genre', ['Казка', 'Дитяче оповідання'])
       .order('approved_at', { ascending: false, nullsFirst: false })
-      .limit(limit)
+      .limit(500)
 
-    if (error) throw error
+    if (lightErr) throw lightErr
 
-    return (data ?? []).map(mapStory)
+    const picked = rotateDaily(light ?? [], limit)
+    if (picked.length === 0) return []
+
+    const ids = picked.map(r => r.id)
+    const { data: full, error: fullErr } = await supabase
+      .from('content')
+      .select('id, slug, title, author_name, genre, text, cover_url, cover_position, published_version, corrected_text, humanized_text, approved_at, duration_minutes, category, is_adult')
+      .in('id', ids)
+
+    if (fullErr) throw fullErr
+
+    // .in() не гарантує порядок — відновлюємо той, який дала ротація.
+    const byId = new Map((full ?? []).map(r => [r.id, r]))
+    return ids
+      .map(id => byId.get(id))
+      .filter((r): r is NonNullable<typeof r> => Boolean(r))
+      .map(mapStory)
   } catch {
     return []
   }
