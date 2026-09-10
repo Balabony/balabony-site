@@ -317,6 +317,22 @@ export default function Footer() {
           >
             Озвучення на замовлення →
           </a>
+          {/* 10.09.2026: послуги веброзробки. У головне меню свідомо не
+              виводимо — грантові партнери дивляться balabony.com як
+              культурний проєкт, і розділ «замовте сайт» у навігації
+              змістив би враження. У підвалі, поруч із озвученням на
+              замовлення, воно на своєму місці. */}
+          <a
+            href="/poslugy"
+            className="footer-link"
+            style={{
+              display: 'block', marginTop: 6,
+              color: 'var(--accent-gold)', fontSize: 14, fontWeight: 600,
+              textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
+            }}
+          >
+            Створення сайтів →
+          </a>
         </div>
 
         {/* ───── КОЛОНКА 3: ВИДІЛЕНІ КАРТКИ ─ ІНКЛЮЗИВНІСТЬ + ДОСТУПНІСТЬ ───── */}
