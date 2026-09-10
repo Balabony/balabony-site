@@ -52,6 +52,10 @@ export default function Header() {
     <>
     <style dangerouslySetInnerHTML={{ __html: `
       .header-nav-link:hover { color: var(--accent-gold) !important; }
+      /* На вузькому екрані лишається сама іконка — інакше шапка ламається. */
+      @media (max-width: 560px) {
+        .hdr-search-label { display: none; }
+      }
     ` }} />
     <header style={{
       background: 'var(--white)', borderBottom: '1px solid var(--border)',
@@ -107,14 +111,21 @@ export default function Header() {
       {/* Right controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, flexWrap: 'nowrap' }}>
 
-        {/* Пошук — видимий і на телефоні: без нього каталог гортають руками */}
+        {/* Пошук — видимий і на телефоні: без нього каталог гортають руками.
+            10.09.2026: сама лупа нічого не пояснювала — четвертий поспіль
+            випадок «зроблено, але не знаходять» (після конкурсної форми,
+            кнопки «Перелік творів» і відгуків). Авторка Анна Пінчук просила
+            пошук за прізвищем, хоч він працює з 07.09. Тепер поряд із
+            іконкою стоїть слово «Пошук»: на вузькому екрані ховається,
+            щоб не ламати шапку, на решті — видно завжди. */}
         <a
           href="/search"
           title="Пошук творів і авторів"
           aria-label="Пошук творів і авторів"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: 32, height: 32, borderRadius: 8,
+            gap: 6,
+            height: 32, padding: '0 10px', borderRadius: 8,
             border: '1px solid var(--border)',
             color: 'var(--muted)',
             background: 'transparent',
@@ -123,10 +134,14 @@ export default function Header() {
           }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+               stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+               style={{ flexShrink: 0 }}>
             <circle cx="11" cy="11" r="7" />
             <path d="M20 20l-3.5-3.5" />
           </svg>
+          <span className="hdr-search-label" style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}>
+            Пошук
+          </span>
         </a>
 
         {/* Free CTA — desktop only */}
