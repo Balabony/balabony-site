@@ -1258,6 +1258,45 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
 
       
 
+      {/* Блок «хто ми» перед проханням про підтримку. Причина: кнопка EN у шапці
+          веде саме сюди, і до 11.09.2026 іноземець — зокрема грантовий
+          оцінювач — потрапляв одразу на прохання про гроші, не дізнавшись, що
+          це за проєкт. Текст свідомо без цифр трафіку: їх поки немає. */}
+      <section className="sup-intl" aria-labelledby="about-en">
+        <h2 id="about-en">Balabony — a Ukrainian Reading Platform</h2>
+        <div className="sup-intl-sub">Who we are</div>
+
+        <p><strong>Balabony</strong> is a Ukrainian-language platform for reading short stories,
+        fairy tales and serials. It is built by the Lviv-based public organisation
+        Institute of Civil Society, which has been working since 2005.</p>
+
+        <h3>Where we come from</h3>
+        <p>We did not start online. We started in print. The newspaper <em>Zhyttia</em> has been
+        published since 2003. Today we publish four literary newspapers with a combined circulation
+        of about 1.56 million copies a year and distribute them through Ukrposhta — including
+        villages and small towns where there is no bookshop at all.</p>
+        <p>Since 2010 we have been running literary competitions that pay authors a fee. That is
+        where the people who now write for the platform came from.</p>
+
+        <h3>What is on the platform</h3>
+        <p>More than a thousand works by 103 authors. Half of them are published writers; the rest
+        are teachers, veterans, engineers and people displaced from occupied territories.</p>
+        <p>The platform goes public at the end of 2026.</p>
+
+        <h3>Accessibility is the reason, not an add-on</h3>
+        <p>Reading should be possible for everyone. The site meets WCAG 2.1 level AA. The reader
+        lets you change the typeface, text size, line width and line spacing, offers day and night
+        themes, keeps your reading position across devices and works without a network connection.</p>
+        <p>A year of access costs 1 hryvnia — about two euro cents — for internally displaced
+        people, veterans and people with disabilities. Status is confirmed automatically through
+        the state application Diia, with no certificates and no paperwork.</p>
+        <p>Audio versions of the texts are in development.</p>
+
+        <h3>Who we work with</h3>
+        <p>We are open to partnership with publishers, literary magazines, translators and
+        organisations working on accessible reading. Write to us: <strong>{CONTACT_EMAIL}</strong></p>
+      </section>
+
       <section className="sup-intl" aria-labelledby="intl-en">
         <h2 id="intl-en">Support Accessible Ukrainian-Language Content</h2>
         <div className="sup-intl-sub">International Donations &amp; Grant Partnerships</div>
@@ -1358,11 +1397,6 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
           </div>
         </div>
 
-        <h3>Patreon (in preparation)</h3>
-        <p>A regular-support channel via Patreon is currently being set up and will be announced
-        shortly. If you would like to receive a notification when it launches, please send us a
-        short message at <strong>{CONTACT_EMAIL}</strong> and we will add you to the announcement list.</p>
-
         <h3>Documentation upon Request</h3>
         <p>Upon request, we provide:</p>
         <ul>
@@ -1403,6 +1437,45 @@ function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails
     <main id="sup-main" className="sup-container" style={{ paddingTop: 56 }}>
 
       
+
+      {/* Siehe Kommentar beim englischen Block: dieselbe Begründung. */}
+      <section className="sup-intl" aria-labelledby="about-de">
+        <h2 id="about-de">Balabony — eine ukrainische Leseplattform</h2>
+        <div className="sup-intl-sub">Wer wir sind</div>
+
+        <p><strong>Balabony</strong> ist eine ukrainischsprachige Plattform für Erzählungen,
+        Märchen und Serien. Getragen wird sie von der Lemberger zivilgesellschaftlichen
+        Organisation Institut für Zivilgesellschaft, die seit 2005 tätig ist.</p>
+
+        <h3>Woher wir kommen</h3>
+        <p>Wir haben nicht im Internet angefangen, sondern auf Papier. Die Zeitung <em>Schyttja</em>
+        erscheint seit 2003. Heute geben wir vier Literaturzeitungen mit einer Gesamtauflage von
+        rund 1,56 Millionen Exemplaren pro Jahr heraus und verbreiten sie über die ukrainische Post
+        — auch in Dörfern und Kleinstädten, in denen es keine Buchhandlung gibt.</p>
+        <p>Seit 2010 veranstalten wir Literaturwettbewerbe mit Honoraren für die Autorinnen und
+        Autoren. Von dort kommen die Menschen, die heute für die Plattform schreiben.</p>
+
+        <h3>Was auf der Plattform steht</h3>
+        <p>Über tausend Texte von 103 Autorinnen und Autoren. Die Hälfte von ihnen sind
+        veröffentlichte Schriftsteller, die anderen Lehrerinnen, Veteranen, Ingenieure und Menschen,
+        die aus den besetzten Gebieten geflohen sind.</p>
+        <p>Die Plattform geht Ende 2026 öffentlich an den Start.</p>
+
+        <h3>Barrierefreiheit ist der Grund, nicht ein Zusatz</h3>
+        <p>Lesen soll für alle möglich sein. Die Website erfüllt WCAG 2.1 Stufe AA. Im Lesemodus
+        lassen sich Schriftart, Schriftgröße, Zeilenbreite und Zeilenabstand ändern, es gibt einen
+        Tag- und einen Nachtmodus, die Leseposition wird geräteübergreifend gespeichert, und das
+        Lesen funktioniert auch ohne Netzverbindung.</p>
+        <p>Ein Jahr Zugang kostet 1 Hrywnja — etwa zwei Eurocent — für Binnenvertriebene, Veteranen
+        und Menschen mit Behinderung. Der Status wird automatisch über die staatliche App Dija
+        bestätigt, ohne Bescheinigungen und ohne Papierkram.</p>
+        <p>Audiofassungen der Texte sind in Entwicklung.</p>
+
+        <h3>Mit wem wir zusammenarbeiten</h3>
+        <p>Wir sind offen für Partnerschaften mit Verlagen, Literaturzeitschriften, Übersetzerinnen
+        und Übersetzern sowie Organisationen im Bereich barrierefreies Lesen. Schreiben Sie uns:
+        <strong>{CONTACT_EMAIL}</strong></p>
+      </section>
 
       <section className="sup-intl" aria-labelledby="intl-de">
         <h2 id="intl-de">Unterstützung für barrierefreie ukrainischsprachige Inhalte</h2>
@@ -1512,12 +1585,6 @@ function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails
             Sie scannen.</p>
           </div>
         </div>
-
-        <h3>Patreon (in Vorbereitung)</h3>
-        <p>Ein Kanal für regelmäßige Unterstützung über Patreon wird derzeit eingerichtet und in
-        Kürze angekündigt. Wenn Sie eine Benachrichtigung erhalten möchten, sobald er verfügbar ist,
-        senden Sie uns bitte eine kurze Nachricht an <strong>{CONTACT_EMAIL}</strong>, und wir werden
-        Sie zur Ankündigungsliste hinzufügen.</p>
 
         <h3>Dokumentation auf Anfrage</h3>
         <p>Auf Anfrage stellen wir bereit:</p>
