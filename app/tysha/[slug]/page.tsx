@@ -19,6 +19,7 @@ import TyshaAgeGate from '@/app/components/TyshaAgeGate'
 import { leadCssDeclarations, fitsLead } from '@/lib/reader-typography'
 import { toExcerpt, toPlainText } from '@/lib/plain-text'
 import ReaderSettings from '@/app/components/ReaderSettings'
+import EpisodeJsonLd from '@/app/components/EpisodeJsonLd'
 
 const GOLD = '#ef9f27'
 const AMBER = '#FFB347'
@@ -270,6 +271,17 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
         ['--r-base-ff' as string]: "'Georgia', serif",
       } as React.CSSProperties}
     >
+      <EpisodeJsonLd
+        title={ep.title}
+        path={`/tysha/${ep.slug}`}
+        seriesName="Тиша"
+        seriesPath="/tysha"
+        position={ep.episode_number}
+        coverUrl={ep.cover_url}
+        datePublished={ep.publish_at}
+        isFree={!locked}
+        paidSelector=".reader-body"
+      />
       <TyshaAgeGate />
       <ReadTracker slug={ep.slug} />
       <TyshaProgressTracker storyId={ep.id} storyTitle={ep.title} locked={locked} />

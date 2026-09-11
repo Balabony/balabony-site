@@ -26,6 +26,7 @@ import { leadCssDeclarations, fitsLead } from '@/lib/reader-typography'
 import { toExcerpt, toPlainText } from '@/lib/plain-text'
 import { getTeaserHtml } from '@/lib/episode-teaser'
 import ReaderSettings from '@/app/components/ReaderSettings'
+import EpisodeJsonLd from '@/app/components/EpisodeJsonLd'
 
 const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
@@ -305,6 +306,17 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         ['--r-base' as string]: `${BODY_FONT_SIZE}px`,
       } as React.CSSProperties}
     >
+<EpisodeJsonLd
+  title={episode.title}
+  path={`/episodes/${episode.slug}`}
+  seriesName="Балабони"
+  seriesPath="/episodes"
+  position={episode.episode_number}
+  coverUrl={episode.cover_url}
+  datePublished={episode.approved_at}
+  isFree={!isLocked}
+  paidSelector=".reader-body"
+/>
 <StreakTracker />
 <ReadTracker slug={episode.slug} />
 
