@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
 import GoogleAds from '@/app/components/GoogleAds';
 
 /**
@@ -57,27 +56,21 @@ const PURPOSE_EN = 'Charitable contribution to support the statutory activities 
 const CONTACT_EMAIL = 'nazar@balabony.com';
 
 // ============================================================================
-// EPC QR
+// ЧОМУ ТУТ НЕМАЄ ПЛАТІЖНОГО QR
 // ============================================================================
-function buildEpcQr(opts: {
-  beneficiary: string;
-  iban: string;
-  amount?: number;
-  currency?: string;
-  purpose: string;
-}): string {
-  const { beneficiary, iban, amount, currency = 'EUR', purpose } = opts;
-  const lines = [
-    'BCD', '002', '1', 'SCT',
-    SWIFT,
-    beneficiary.slice(0, 70),
-    iban,
-    amount ? `${currency}${amount.toFixed(2)}` : '',
-    '', '',
-    purpose.slice(0, 140),
-  ];
-  return lines.join('\n');
-}
+// 11.09.2026 прибрано генератор EPC QR і самі коди в англійській та німецькій
+// версіях. EPC QR — це код для переказу ВСЕРЕДИНІ SEPA, а Україна до SEPA поки
+// не входить: у 2025 зону розширили на Албанію, Молдову, Чорногорію, Північну
+// Македонію і Сербію, Україна лише подає заявку, реалістичний вступ 2027-2028.
+// Отже український IBAN як одержувач SEPA-переказу не проходить, і обіцянка
+// «більшість європейських банківських застосунків відсканують і підставлять
+// реквізити» була невиконанною. Додатково: типовою валютою стояла гривня, а
+// EPC розрахований на євро.
+// В українській версії QR не було взагалі, але текст його обіцяв — рядок теж
+// виправлено.
+// ПОВЕРТАТИ після вступу України в SEPA, не раніше. Для ДРУКОВАНИХ газет
+// потрібен інший код — звичайне посилання на balabony.com/support, його читає
+// будь-яка камера.
 
 // ============================================================================
 // ВИЗНАЧЕННЯ МОВИ З URL
@@ -219,14 +212,6 @@ SWIFT: ${SWIFT}
 Filiale: ${BRANCH_ADDR_EN}
 Verwendungszweck: ${PURPOSE_EN}`,
   };
-
-  const qrString = buildEpcQr({
-    beneficiary: ORG_NAME_TRANS,
-    iban: activeAccount.iban,
-    amount: selectedAmount || (customAmount ? parseFloat(customAmount) : undefined),
-    currency: activeAccount.currency,
-    purpose: lang === 'ua' ? PURPOSE_UA : PURPOSE_EN,
-  });
 
   return (
     <>
@@ -1009,7 +994,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           customAmount={customAmount}
           setCustomAmount={setCustomAmount}
           fullDetails={fullDetailsByLang.ua}
-          qrString={qrString}
           handleAmountClick={handleAmountClick}
           handleCopyConversion={handleCopyConversion}
         />}
@@ -1019,7 +1003,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           copiedField={copiedField}
           copyToClipboard={copyToClipboard}
           fullDetails={fullDetailsByLang.en}
-          qrString={qrString}
           handleCopyConversion={handleCopyConversion}
         />}
 
@@ -1028,7 +1011,6 @@ Verwendungszweck: ${PURPOSE_EN}`,
           copiedField={copiedField}
           copyToClipboard={copyToClipboard}
           fullDetails={fullDetailsByLang.de}
-          qrString={qrString}
           handleCopyConversion={handleCopyConversion}
         />}
 
@@ -1048,7 +1030,7 @@ function UkrainianContent({
   copiedField, copyToClipboard,
   selectedAmount, setSelectedAmount,
   customAmount, setCustomAmount,
-  fullDetails, qrString, handleAmountClick, handleCopyConversion,
+  fullDetails, handleAmountClick, handleCopyConversion,
 }: {
   activeCurrency: Currency;
   setActiveCurrency: (c: Currency) => void;
@@ -1060,7 +1042,6 @@ function UkrainianContent({
   customAmount: string;
   setCustomAmount: (s: string) => void;
   fullDetails: string;
-  qrString: string;
   handleAmountClick: (amount: number) => void;
   handleCopyConversion: () => void;
 }) {
@@ -1104,8 +1085,7 @@ function UkrainianContent({
         <section className="sup-section" aria-labelledby="bank-ua">
           <h2 id="bank-ua">Реквізити для переказу</h2>
           <div className="sup-section-lead">
-            <p>Виберіть валюту. Натисніть «Копіювати» біля будь-якого поля, або скористайтеся QR-кодом
-            для миттєвого переказу через банківський додаток.</p>
+            <p>Виберіть валюту. Натисніть «Копіювати» біля будь-якого поля.</p>
           </div>
 
           <div className="sup-tabs" role="tablist" aria-label="Виберіть валюту">
@@ -1245,12 +1225,11 @@ function UkrainianContent({
 }
 
 // ============================================================================
-function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails, qrString, handleCopyConversion }: {
+function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails, handleCopyConversion }: {
   activeAccount: AccountInfo;
   copiedField: string | null;
   copyToClipboard: (text: string, key: string) => void;
   fullDetails: string;
-  qrString: string;
   handleCopyConversion: () => void;
 }) {
   return (
@@ -1385,18 +1364,6 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
           {copiedField === 'all-en' ? '✓ All details copied!' : '📋 Copy all bank details'}
         </button>
 
-        <h3>📱 Quick payment via QR code</h3>
-        <div className="sup-intl-qr">
-          <div className="sup-intl-qr-box">
-            <QRCodeSVG value={qrString} size={180} level="M" />
-          </div>
-          <div className="sup-intl-qr-text">
-            <p>This QR code follows the European SEPA standard (EPC QR). Most European banking apps
-            (Revolut, N26, Sparkasse, Postbank, etc.) can scan it and prefill the transfer details
-            automatically. Select your currency (USD/EUR) above before scanning.</p>
-          </div>
-        </div>
-
         <h3>Documentation upon Request</h3>
         <p>Upon request, we provide:</p>
         <ul>
@@ -1425,12 +1392,11 @@ function EnglishAppeal({ activeAccount, copiedField, copyToClipboard, fullDetail
 }
 
 // ============================================================================
-function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails, qrString, handleCopyConversion }: {
+function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails, handleCopyConversion }: {
   activeAccount: AccountInfo;
   copiedField: string | null;
   copyToClipboard: (text: string, key: string) => void;
   fullDetails: string;
-  qrString: string;
   handleCopyConversion: () => void;
 }) {
   return (
@@ -1572,19 +1538,6 @@ function GermanAppeal({ activeAccount, copiedField, copyToClipboard, fullDetails
                 style={{ marginTop: 16 }}>
           {copiedField === 'all-de' ? '✓ Alle Daten kopiert!' : '📋 Alle Bankdaten kopieren'}
         </button>
-
-        <h3>📱 Schnelle Zahlung per QR-Code</h3>
-        <div className="sup-intl-qr">
-          <div className="sup-intl-qr-box">
-            <QRCodeSVG value={qrString} size={180} level="M" />
-          </div>
-          <div className="sup-intl-qr-text">
-            <p>Dieser QR-Code folgt dem europäischen SEPA-Standard (EPC QR). Die meisten europäischen
-            Banking-Apps (Sparkasse, Postbank, Volksbanken, N26 usw.) können ihn scannen und die
-            Überweisungsdaten automatisch ausfüllen. Wählen Sie oben Ihre Währung (USD/EUR), bevor
-            Sie scannen.</p>
-          </div>
-        </div>
 
         <h3>Dokumentation auf Anfrage</h3>
         <p>Auf Anfrage stellen wir bereit:</p>
