@@ -6,6 +6,7 @@ import { dbQuery } from '@/lib/db'
 import { getBalance } from '@/lib/points'
 import { levelFromReads } from '@/lib/levels'
 import { countInvited, inviteLink, REFERRAL_POINTS } from '@/lib/referral'
+import { CALENDAR, EXPERT_LEVEL, countYearlyInvited } from '@/lib/calendar-gift'
 import ReferralLink from '@/app/components/ReferralLink'
 
 export const dynamic = 'force-dynamic'
@@ -42,6 +43,10 @@ export default async function ProfilePage() {
   }
   const level = levelFromReads(totalReads)
   const invited = await countInvited(user.id)
+  // Скільки приведених оформили річну передплату — умова на подарунковий
+  // календар. Рахуємо тут, щоб людина бачила свій прогрес, а не питала.
+  const yearlyInvited = await countYearlyInvited(user.id)
+  const isExpertLevel = level.current.key === EXPERT_LEVEL.key
 
   // Чи має ця людина кабінет автора. Раніше сюди потрапляли й автори — і не
   // мали звідси жодного шляху до своїх творів, бо кабінет живе за іншою
@@ -228,6 +233,32 @@ export default async function ProfilePage() {
             Рахуємо різні серії, а не відкриття сторінки: перечитане вдруге
             не додає нічого. Рівні — «Початківець», «Читач», «Книгочій»,
             «Знавець Балабонів».
+          </div>
+        </div>
+
+        {/* Календар: прогрес до подарунка і знижка за рівнем.
+
+            Публічного лічильника «лишилося N із 10» свідомо немає: він
+            вимагав би механіки броні й суперечок про згорання. Людина
+            бачить власний рядок — цього досить, щоб повернутися. */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginBottom: '0.25rem' }}>
+            Календар 2027
+          </div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#FAC775' }}>
+            Приведено з річною передплатою: {yearlyInvited} з {CALENDAR.needYearly}
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginTop: '0.35rem', lineHeight: 1.6 }}>
+            {yearlyInvited >= CALENDAR.needYearly
+              ? 'Умову виконано. Ми напишемо вам і попросимо адресу для надсилання.'
+              : `Коли ${CALENDAR.needYearly} приведені вами читачі оформлять річну передплату — особисту або сімейну, — надішлемо друкований календар безкоштовно, доставку оплачуємо ми.`}
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginTop: '0.35rem', lineHeight: 1.6 }}>
+            {isExpertLevel
+              ? `Ваш рівень дає ціну ${CALENDAR.priceExpert} грн замість ${CALENDAR.price} — знижка застосується сама при замовленні.`
+              : `Читачам рівня «${EXPERT_LEVEL.title}» календар коштує ${CALENDAR.priceExpert} грн замість ${CALENDAR.price}.`}
+            {' '}
+            <a href="/bonusy" style={{ color: '#FAC775' }}>Бонусна програма →</a>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 /**
@@ -14,7 +14,14 @@ import Link from 'next/link'
  * Зображення лежать у /public/kalendar/. Це рендери сторінок макета, не
  * фото друкованого виробу — фото зробити варто, воно продає краще.
  *
- * Ціна 550 проти 600 на «Розетці»: там комісія майданчика.
+ * Ціна одна — 550. «Розетку» зі сторінки прибрано 12.09.2026: сторінка
+ * продажу не повинна відправляти покупця на майданчик, де ми платимо
+ * комісію. Замість порівняння кажемо просто, що нижчої ціни немає, бо
+ * продаємо як виробник.
+ *
+ * Знижку для рівня «Знавець Балабонів» показує /api/kalendar/price, а
+ * реальну суму для LiqPay рахує /api/kalendar/create — клієнту тут не
+ * вірять.
  */
 
 const GOLD   = '#ef9f27'
@@ -30,11 +37,11 @@ const PRICE = 550
 const MAX_QTY = 5
 
 const PAGES = [
-  { src: '/kalendar/sichen.jpg',       name: 'Січень',
+  { src: '/kalendar/sichen.webp',       name: 'Січень',
     cap: 'Великі клітинки з місцем для записів і поле «Нотатки» збоку' },
-  { src: '/kalendar/traven.jpg',       name: 'Травень',
+  { src: '/kalendar/traven.webp',       name: 'Травень',
     cap: 'Свята позначені просто в сітці — державні, церковні й пам’ятні дати' },
-  { src: '/kalendar/richnyi-plan.jpg', name: 'Річний план',
+  { src: '/kalendar/richnyi-plan.webp', name: 'Річний план',
     cap: 'Увесь 2027-й на одному аркуші' },
 ]
 
@@ -58,6 +65,8 @@ const label: React.CSSProperties = {
 
 export default function KalendarPage() {
   const [i, setI]         = useState(0)
+  const [zoom, setZoom]   = useState(false)
+  const [price, setPrice] = useState<{ price: number; base: number; expert: boolean; toExpert: number | null } | null>(null)
   const [qty, setQty]     = useState(1)
   const [busy, setBusy]   = useState(false)
   const [err, setErr]     = useState('')
@@ -65,6 +74,16 @@ export default function KalendarPage() {
     buyerName: '', buyerPhone: '', buyerEmail: '',
     npCity: '', npBranch: '', comment: '',
   })
+
+  // Ціну питаємо в сервера: рівень читача видно тільки там.
+  useEffect(() => {
+    fetch('/api/kalendar/price')
+      .then(r => r.json())
+      .then(d => setPrice(d))
+      .catch(() => {})
+  }, [])
+
+  const unit = price?.price ?? PRICE
 
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }))
@@ -113,8 +132,8 @@ export default function KalendarPage() {
           Фірмовий подарунковий настінний календар-планувальник на 2027 рік
         </h1>
         <p style={{ fontSize: '1.05rem', marginBottom: '.9rem' }}>
-          Формат А3, 15 сторінок, поле для нотаток на кожному місяці.
-          Наш власний — від макета до друку.
+          Поле для нотаток на кожному місяці, державні й церковні свята
+          просто в сітці. Наш власний — від макета до друку.
         </p>
 
         {/* ── Гортання сторінок ─────────────────────────────
@@ -136,7 +155,10 @@ export default function KalendarPage() {
                           boxShadow: '0 2px 14px rgba(0,0,0,.35)' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={PAGES[i].src} alt={`Календар 2027, ${PAGES[i].name}`}
-                   style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+                   onClick={() => setZoom(true)}
+                   title="Натисніть, щоб роздивитися"
+                   style={{ width: '100%', height: '100%', objectFit: 'contain',
+                            display: 'block', cursor: 'zoom-in' }} />
             </div>
           </div>
           <div style={{ textAlign: 'center', marginTop: '.7rem', minHeight: '2.6em' }}>
@@ -159,20 +181,41 @@ export default function KalendarPage() {
             <button onClick={() => setI((i + 1) % PAGES.length)}
                     aria-label="Наступна сторінка" style={btn}>→</button>
           </div>
+
+          {/* Три факти, які вирішують покупку, стоять під знімком, а не
+              внизу сторінки, куди більшість не долистує. */}
+          <p style={{ textAlign: 'center', marginTop: '.9rem', marginBottom: 0,
+                      color: CREAM, fontSize: '.95rem' }}>
+            <b>29,7 × 42 см (А3)</b> · <b>15 сторінок</b> · кріплення пружина
+          </p>
+          <p style={{ textAlign: 'center', margin: '.3rem 0 0', color: MUTED, fontSize: '.85rem' }}>
+            Натисніть на знімок, щоб роздивитися
+          </p>
         </div>
 
         {/* ── Ціна й форма ──────────────────────────────────── */}
         <div style={{ background: CARD, border: `1px solid rgba(239,159,39,.55)`,
                       borderRadius: 12, padding: '1.25rem', margin: '2rem 0' }}>
-          {/* Перекреслені 600 читалися як «стара ціна, яку ми знизили».
-              Насправді це ціна на чужому майданчику — там комісія.
-              Кажемо прямо, без викреслювання. */}
           <div style={{ fontSize: '2rem', color: GOLD_L, fontWeight: 500 }}>
-            {PRICE * qty} грн
+            {unit * qty} грн
+            {price?.expert && (
+              <span style={{ fontSize: '1rem', color: MUTED, marginLeft: '.6rem',
+                             textDecoration: 'line-through' }}>
+                {price.base * qty} грн
+              </span>
+            )}
           </div>
-          {qty === 1 && (
+
+          {price?.expert ? (
+            <p style={{ color: GOLD_L, fontSize: '.95rem', margin: '.2rem 0 0' }}>
+              Ціна для рівня «Знавець Балабонів».
+            </p>
+          ) : (
             <p style={{ color: MUTED, fontSize: '.95rem', margin: '.2rem 0 0' }}>
-              На «Розетці» — дорожче, 600 грн.
+              Це найнижча ціна на цей календар: ми його виробник, від макета до друку.
+              {price?.toExpert
+                ? ` Читачам рівня «Знавець Балабонів» — 400 грн; вам до нього ${price.toExpert} серій.`
+                : ' Читачам рівня «Знавець Балабонів» — 400 грн.'}
             </p>
           )}
 
@@ -244,6 +287,22 @@ export default function KalendarPage() {
           </p>
         </div>
 
+        {/* Блок подарунка стоїть ПІД формою навмисно. Над нею він забирав би
+            покупців: людина, готова заплатити, читає «можна безкоштовно» і
+            йде думати. Тут його бачить той, хто вже прогорнув повз оплату. */}
+        <h2 style={h2}>Календар у подарунок</h2>
+        <p>
+          Десять примірників ми віддаємо читачам, які приводять на платформу
+          інших. Умова одна: двоє приведених вами читачів оформили річну
+          передплату — особисту або сімейну. Доставку оплачуємо ми.
+        </p>
+        <p>
+          Свій прогрес видно в{' '}
+          <Link href="/profile" style={{ color: GOLD_L }}>кабінеті</Link>, умови —
+          на сторінці{' '}
+          <Link href="/bonusy" style={{ color: GOLD_L }}>бонусної програми</Link>.
+        </p>
+
         <h2 style={h2}>Що всередині</h2>
         <ul style={ul}>
           <li>12 місяців — великі клітинки з місцем для записів, поле «Нотатки» збоку</li>
@@ -276,6 +335,33 @@ export default function KalendarPage() {
           Календар-планувальник є твором, захищеним авторським правом.
         </p>
       </div>
+
+      {/* Збільшення знімка. Той, хто вагається, хоче роздивитися сітку
+          зблизька — інакше йому доводиться вірити на слово. */}
+      {zoom && (
+        <div
+          onClick={() => setZoom(false)}
+          role="dialog"
+          aria-label={`Календар 2027, ${PAGES[i].name}`}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            background: 'rgba(4,10,20,.92)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '1rem', cursor: 'zoom-out',
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={PAGES[i].src} alt={`Календар 2027, ${PAGES[i].name}`}
+               style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain',
+                        borderRadius: 6, background: '#fff' }} />
+          <button onClick={() => setZoom(false)} aria-label="Закрити"
+                  style={{ position: 'fixed', top: 14, right: 16, font: 'inherit',
+                           fontSize: '1.6rem', lineHeight: 1, color: CREAM,
+                           background: 'transparent', border: 0, cursor: 'pointer' }}>
+            ×
+          </button>
+        </div>
+      )}
     </main>
   )
 }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { createSupabaseServerClient } from '@/lib/supabase-ssr'
+import { CALENDAR, calendarPrice } from '@/lib/calendar-gift'
 
 /**
  * Створення замовлення на друкований календар-планувальник.
@@ -24,8 +26,15 @@ const SITE        = process.env.NEXT_PUBLIC_SITE_URL || 'https://balabony.com'
 const WEBHOOK_URL = `${SITE}/api/kalendar/confirm`
 const RESULT_URL  = `${SITE}/kalendar/success`
 
-/** Ціна на сайті. На «Розетці» 600 — там комісія майданчика. */
-export const PRICE_UAH = 550
+/**
+ * Ціна живе в lib/calendar-gift.ts. Тут лишається реекспорт, щоб не
+ * зламати те, що вже імпортує PRICE_UAH звідси.
+ *
+ * Рівень «Знавець Балабонів» дає ціну 400 замість 550. Рівень перевіряємо
+ * НА СЕРВЕРІ: клієнт показує число, але суму для LiqPay рахуємо самі —
+ * інакше знижку можна було б виставити собі самому через консоль.
+ */
+export const PRICE_UAH = CALENDAR.price
 /** Більше за раз — це вже опт, хай пишуть у редакцію. */
 export const MAX_QTY = 5
 
@@ -75,7 +84,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Коментар задовгий' }, { status: 400 })
     }
 
-    const amount  = PRICE_UAH * qty
+    // Хто замовляє. Не увійшов — звичайна ціна: рівень підтвердити нічим.
+    let userId: string | null = null
+    try {
+      const auth = await createSupabaseServerClient()
+      const { data } = await auth.auth.getUser()
+      userId = data?.user?.id ?? null
+    } catch {
+      // не увійшов або сесія протухла — рахуємо як гостя
+    }
+
+    const unitPrice = await calendarPrice(userId)
+    const amount    = unitPrice * qty
     const orderId = `cal_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 
     const sb = getSupabaseAdmin()
