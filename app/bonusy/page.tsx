@@ -4,6 +4,7 @@ import { POINTS } from '@/lib/points'
 import { LEVELS } from '@/lib/levels'
 import { REFERRAL_POINTS } from '@/lib/referral'
 import { VOTE_COST } from '@/lib/voice-queue'
+import { withPlural } from '@/lib/plural'
 import { CALENDAR, EXPERT_LEVEL } from '@/lib/calendar-gift'
 
 /**
@@ -116,7 +117,10 @@ export default function BonusyPage() {
           <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
             {LEVELS.map(l => (
               <li key={l.key}>
-                {l.title}{l.min > 0 ? ` — від ${l.min} серій` : ' — на початку'}
+                {l.title}
+                {l.min > 0
+                  ? ` — від ${withPlural(l.min, 'серії', 'серій', 'серій')}`
+                  : ' — на початку'}
               </li>
             ))}
           </ul>

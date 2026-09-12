@@ -7,6 +7,7 @@ import { getBalance } from '@/lib/points'
 import { levelFromReads } from '@/lib/levels'
 import { countInvited, inviteLink, REFERRAL_POINTS } from '@/lib/referral'
 import { CALENDAR, EXPERT_LEVEL, countYearlyInvited } from '@/lib/calendar-gift'
+import { withPlural } from '@/lib/plural'
 import ReferralLink from '@/app/components/ReferralLink'
 
 export const dynamic = 'force-dynamic'
@@ -227,7 +228,7 @@ export default async function ProfilePage() {
           </div>
           <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginTop: '0.35rem' }}>
             Прочитано серій: {totalReads}
-            {level.next && ` · до рівня «${level.next.title}» лишилося ${level.next.min - totalReads}`}
+            {level.next && ` · до рівня «${level.next.title}» лишилося ${withPlural(level.next.min - totalReads, 'серія', 'серії', 'серій')}`}
           </div>
           <div style={{ fontSize: '0.85rem', color: '#8CA0B8', marginTop: '0.35rem', lineHeight: 1.6 }}>
             Рахуємо різні серії, а не відкриття сторінки: перечитане вдруге
