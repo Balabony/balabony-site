@@ -84,6 +84,15 @@ const GROUPS: SitemapGroup[] = [
     ],
   },
   {
+    title: 'Календарі',
+    links: [
+      { href: '/kalendar',      label: 'Календар-планувальник 2027', note: 'Друкований А3 на пружині, 15 сторінок' },
+      { href: '/kalendar-2027', label: 'Календар 2027 роздрукувати', note: 'Три макети А4 у PDF, безкоштовно' },
+      { href: '/kalendar-2027/na-odnomu-arkushi', label: 'На одному аркуші', note: 'Два макети без картинок — альбомний і книжковий' },
+      { href: '/kalendar-2027/dytiachyi',         label: 'Дитячий, з котиком', note: 'А4 альбомний, для дитячої кімнати' },
+    ],
+  },
+  {
     title: 'Підтримка та інклюзія',
     links: [
       { href: '/support',           label: 'Підтримати ініціативу',    note: 'UA · EN · DE донати' },

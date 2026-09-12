@@ -89,6 +89,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/free`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/faq`,                   lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/gift`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+
+    // Календарі. /kalendar — продаж друкованого А3, /kalendar-2027 — безкоштовні
+    // макети А4. Розведені за наміром пошуку, тому обидві в карті.
+    { url: `${BASE_URL}/kalendar`,              lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
+    { url: `${BASE_URL}/kalendar-2027`,         lastModified: now, changeFrequency: 'weekly',  priority: 0.9 },
+    { url: `${BASE_URL}/kalendar-2027/na-odnomu-arkushi`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE_URL}/kalendar-2027/dytiachyi`,         lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE_URL}/pravopys`,              lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/pravopys/dity`,         lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE_URL}/demo`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
