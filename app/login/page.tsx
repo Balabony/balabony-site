@@ -1,13 +1,58 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
+  const [google, setGoogle] = useState(false)
+  const [next, setNext] = useState<string | null>(null)
+
+  // Куди повернути після входу. Той самий параметр, який уже розуміє
+  // /auth/callback: одноразові посилання з адмінки несуть ?next=/author/dashboard.
+  useEffect(() => {
+    const v = new URLSearchParams(window.location.search).get('next')
+    if (v && v.startsWith('/') && !v.startsWith('//')) setNext(v)
+  }, [])
+
+  /**
+   * Вхід через Google.
+   *
+   * Навіщо додано 12.09.2026: вхід був лише за посиланням на пошту — тобто
+   * «введи адресу, вийди із сайту, знайди лист, вернися». З 129 дочитувань
+   * у базі лише 5 належали акаунтам; решта 124 — гостям із cookie. А
+   * незалогінений читач не рахується ні в конкурсах, ні у винагороді
+   * авторам за договором, п. 1.5.
+   *
+   * Обмін коду на сесію робить наявний /auth/callback — той самий, що для
+   * посилання з пошти. Тому перенесення історії з cookie, привʼязка
+   * реферала й створення рядка в users працюють без змін.
+   */
+  async function signInWithGoogle() {
+    setGoogle(true)
+    setErrorMsg('')
+    try {
+      const supabase = createSupabaseBrowserClient()
+      const cb = new URL('/auth/callback', window.location.origin)
+      if (next) cb.searchParams.set('next', next)
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: cb.toString() },
+      })
+      if (error) {
+        setGoogle(false)
+        setErrorMsg('Не вдалося відкрити вхід через Google. Спробуйте посилання на пошту.')
+      }
+      // Успіх — браузер іде на Google, повертати нічого не треба.
+    } catch {
+      setGoogle(false)
+      setErrorMsg('Не вдалося відкрити вхід через Google. Спробуйте посилання на пошту.')
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -123,8 +168,52 @@ export default function LoginPage() {
             textAlign: 'center',
             lineHeight: 1.5,
           }}>
-            Залиш email — пришлемо чарівне посилання
+            Одне натискання через Google — або посилання на пошту
           </p>
+
+          {status !== 'sent' && (
+            <>
+              <button
+                type="button"
+                onClick={() => void signInWithGoogle()}
+                disabled={google}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.6rem',
+                  padding: '0.85rem 1rem',
+                  background: '#ffffff',
+                  border: '1.5px solid #dadce0',
+                  borderRadius: '10px',
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: '#1f1f1f',
+                  cursor: google ? 'default' : 'pointer',
+                  opacity: google ? 0.6 : 1,
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                {google ? 'Відкриваю Google…' : 'Увійти через Google'}
+              </button>
+
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '0.75rem',
+                margin: '1.25rem 0', fontSize: '0.85rem',
+              }}>
+                <span style={{ flex: 1, height: 1, background: '#e5e0d8' }} />
+                <span style={{ color: '#9b9384' }}>або</span>
+                <span style={{ flex: 1, height: 1, background: '#e5e0d8' }} />
+              </div>
+            </>
+          )}
 
           {status === 'sent' ? (
             <div style={{
