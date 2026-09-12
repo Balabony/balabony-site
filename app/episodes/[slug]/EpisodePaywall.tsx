@@ -4,7 +4,9 @@ import EpisodeBody from './EpisodeBody'
 import { getTeaserHtml } from '@/lib/episode-teaser'
 
 const GOLD = '#ef9f27'
-const FREE_PER_SEASON = 1
+// Перші три серії сезону — вітрина. Дублює те саме число на сервері
+// (app/episodes/[slug]/page.tsx): міняти обидва разом.
+const FREE_PER_SEASON = 3
 
 interface Props {
   html:           string
@@ -62,7 +64,7 @@ export default function EpisodePaywall({ html, fontFamily, seasonNumber, episode
     return <EpisodeBody html={html} fontFamily={fontFamily} />
   }
 
-  // Відкрито, якщо: вітрина (перша серія сезону), підписка, або серію обрано.
+  // Відкрито, якщо: вітрина (перші три серії сезону), підписка, або серію обрано.
   // Преміальна серія доступна лише за підпискою — вибором не відкривається.
   // Бонусна (преміальна) серія — лише річна передплата або пільговий
   // статус. Будь-яка інша активна підписка (місячна, сімейна місячна)

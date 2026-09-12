@@ -22,6 +22,9 @@ import Link from 'next/link'
 import { authorSlug } from '@/lib/author-slug'
 import ReaderSettings from '@/app/components/ReaderSettings'
 import RelatedStories from '@/app/components/RelatedStories'
+import ContestBadge from '@/app/components/ContestBadge'
+import { dbQuery } from '@/lib/db'
+import { CONTESTS } from '@/lib/contests'
 
 // Базовий кегль тексту історії — має збігатися зі стилем <article> нижче.
 const BODY_FONT_SIZE = 18
@@ -146,6 +149,36 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
   const draft = !isPublic(story)
   if (draft && !isOwnAuthor) notFound()
 
+  // Чи твір поданий на конкурс — і на який саме.
+  //
+  // Дві причини знати це тут. Перша: в умовах записано, що конкурсні роботи
+  // не блокуються нічим, і Ad Grants жене платний трафік саме на них — стіна
+  // на такому творі коштувала б грошей за кожен клік. Друга: за нульовою
+  // умовою підрахунку (lib/contest-reads.ts) дочитування зараховується в
+  // конкурс ЛИШЕ з акаунта, гості відсіюються join-ом із users. Тобто саме
+  // тут вхід важить найбільше — і читач має про це знати.
+  //
+  // Назву дістаємо з довідника CONTESTS за id, який лежить у contest_entries:
+  // тримати другий перелік назв у базі означало б, що колись вони розійдуться.
+  let contestName: string | null = null
+  try {
+    const r = await dbQuery(
+      `select e.contest
+         from contest_episodes ep
+         join contest_entries e on e.id = ep.entry_id
+        where ep.content_id = $1
+        limit 1`,
+      [story.id],
+    )
+    const id = r.rows[0]?.contest as string | undefined
+    if (id) contestName = CONTESTS.find(c => c.id === id)?.name ?? 'конкурс Балабонів'
+  } catch (e) {
+    // Помилка запиту не має замикати твір: краще показати текст зайвий раз,
+    // ніж закрити конкурсну роботу через збій. Але тоді стіни не буде НІДЕ,
+    // і без запису в лог причина була б невидима — шукати довелося б навмання.
+    console.error('[stories] contest lookup failed:', e)
+  }
+
   const v    = story.published_version ?? 'original'
   const body = (v === 'humanized' || v === 'corrected_humanized') && story.humanized_text
     ? story.humanized_text
@@ -266,6 +299,11 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
             ]}
           />
         </div>
+
+        {/* Позначка конкурсного твору. Стоїть вище за все інше, бо пояснює
+            читачеві дві речі одразу: чому цей твір відкритий і чому саме тут
+            варто увійти. */}
+        {contestName && <ContestBadge contestName={contestName} guest={!user} path={`/stories/${id}`} />}
 
         {/* Header */}
         <div style={{ marginBottom: 36 }}>
@@ -394,6 +432,17 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
             dangerouslySetInnerHTML={{ __html: toStoryHtml(body, story.images ?? []) }}
           />
         )}
+
+        {/* Реєстраційна стіна СВІДОМО НЕ ПІДКЛЮЧЕНА (рішення Богдана 12.09.2026).
+            Компонент готовий і лежить в app/components/StoryWall.tsx, але
+            історії лишаються відкритими всі: перші три місяці мета — трафік,
+            а стіна людей не приводить, лише фільтрує тих, хто вже прийшов.
+            При 574 прочитаннях за весь час фільтрувати нема чого, і замок на
+            історіях різав би саме той трафік, що йде з Google Ad Grants.
+            Історії — вхід у сайт, серії — комерція; замок стоїть на серіях.
+            Вмикати, коли місячні прочитання перевищать півтори тисячі — тоді
+            повернути import і рядок:
+              {!user && !contestName && <StoryWall slug={id} />} */}
 
         {/* Облік прочитання — база для винагороди автора. Маркер кінця тексту
             має стояти саме тут, одразу під статтею. */}

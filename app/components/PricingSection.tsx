@@ -814,7 +814,7 @@ export default function PricingSection() {
           <span style={{ flex: '1 1 180px', minWidth: 0 }}>
             <span style={{ display: 'block', fontSize: 17, fontWeight: 600, color: '#ef9f27', overflowWrap: 'normal', wordBreak: 'keep-all' }}>Заходь без оплати</span>
             <span style={{ display: 'block', fontSize: 14, color: 'rgba(255,255,255,0.82)', marginTop: 4, lineHeight: 1.5 }}>
-              8 серій + 7 історій + тиждень повного доступу
+              Понад 900 історій і 24 серії
             </span>
             <span style={{ display: 'block', fontSize: 14, color: 'rgba(255,255,255,0.82)', marginTop: 4, lineHeight: 1.5 }}>
               Нові серії відкриваються через тиждень після виходу
