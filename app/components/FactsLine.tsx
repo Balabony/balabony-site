@@ -12,7 +12,6 @@ import { useEffect, useState } from 'react'
 
 const FONT = "'Montserrat', sans-serif"
 const GOLD = '#C08A2E'
-const CREAM = '#FFF8EE'
 
 type Stats = { works: number; authors: number; fresh: number }
 
@@ -62,11 +61,15 @@ export default function FactsLine({ initial }: { initial?: Stats } = {}) {
         margin: '0 auto',
         padding: '0 20px 14px',
         fontFamily: FONT,
-        fontSize: 13,
-        color: CREAM,
-        opacity: 0.75,
+        // Було 13px, кремовий #FFF8EE і opacity 0.75 — саме прозорість робила
+        // рядок сірим, а не колір. Тепер чистий білий без прозорості й більший
+        // кегль: рядок несе три головні числа сайту, і його мають прочитати
+        // з першого погляду, зокрема ті, кому адресований третій пункт.
+        fontSize: 15,
+        fontWeight: 600,
+        color: '#ffffff',
         textAlign: 'center',
-        lineHeight: 1.5,
+        lineHeight: 1.6,
       }}
     >
       {items.map((t, i) => (
