@@ -17,7 +17,19 @@ const FONT = "'Montserrat', Arial, sans-serif"
  * без великої обіцянки — одна конкретна причина лишити пошту (розклад серій).
  * У `source` пишемо slug історії, щоб бачити, які саме тексти дають підписки.
  */
-export default function StoryEmailCapture({ slug }: { slug: string }) {
+export default function StoryEmailCapture({
+  slug,
+  compact = false,
+}: {
+  slug: string
+  /**
+   * Вбудований варіант — усередині блока «Ви дочитали» (StoryReadTracker).
+   * Без заголовка й великої рамки: там це вже не окрема пропозиція, а
+   * запасний вихід для того, хто не хоче заводити акаунт. Самостійний блок
+   * при цьому ховається, щоб два прохання про пошту не стояли поспіль.
+   */
+  compact?: boolean
+}) {
   const [email, setEmail] = useState('')
   const [website, setWebsite] = useState('') // honeypot
   const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle')
@@ -61,9 +73,16 @@ export default function StoryEmailCapture({ slug }: { slug: string }) {
 
   return (
     <section
-      className="reader-card"
-      aria-labelledby="story-email-title"
-      style={{
+      className={compact ? undefined : 'reader-card'}
+      id={compact ? undefined : 'story-email-capture'}
+      aria-labelledby={compact ? undefined : 'story-email-title'}
+      aria-label={compact ? 'Підписка на нові твори' : undefined}
+      style={compact ? {
+        marginTop: 14,
+        paddingTop: 13,
+        borderTop: '1px solid rgba(239,159,39,0.22)',
+        fontFamily: FONT,
+      } : {
         marginTop: 36,
         padding: '24px 22px',
         background: 'rgba(239,159,39,0.06)',
@@ -72,19 +91,27 @@ export default function StoryEmailCapture({ slug }: { slug: string }) {
         fontFamily: FONT,
       }}
     >
-      <h2
-        id="story-email-title"
-        style={{ fontSize: 18, fontWeight: 800, color: CREAM, margin: '0 0 8px' }}
-      >
-        Нове на Балабонах — щовівторка і щоп&apos;ятниці
-      </h2>
-      {/* Блок стоїть і на сторінці серії, і на сторінці окремої історії, тож
-          текст не звужуємо до серій: на /stories/ обіцянка «наступна серія»
-          була неправдива. */}
-      <p style={{ fontSize: 14, color: '#b5c7dd', lineHeight: 1.6, margin: '0 0 18px' }}>
-        Лишіть пошту — надішлемо, щойно вийде нове. Це безкоштовно,
-        відписатися можна одним кліком у будь-якому листі.
-      </p>
+      {compact ? (
+        <p style={{ fontSize: 12.5, color: '#c8d4e8', lineHeight: 1.6, margin: '0 0 9px' }}>
+          Не хочете акаунт? Лишіть пошту — надішлемо, щойно вийде нове.
+        </p>
+      ) : (
+        <>
+          <h2
+            id="story-email-title"
+            style={{ fontSize: 18, fontWeight: 800, color: CREAM, margin: '0 0 8px' }}
+          >
+            Нове на Балабонах — щовівторка і щоп&apos;ятниці
+          </h2>
+          {/* Блок стоїть і на сторінці серії, і на сторінці окремої історії, тож
+              текст не звужуємо до серій: на /stories/ обіцянка «наступна серія»
+              була неправдива. */}
+          <p style={{ fontSize: 14, color: '#b5c7dd', lineHeight: 1.6, margin: '0 0 18px' }}>
+            Лишіть пошту — надішлемо, щойно вийде нове. Це безкоштовно,
+            відписатися можна одним кліком у будь-якому листі.
+          </p>
+        </>
+      )}
 
       {status === 'ok' ? (
         <div
@@ -117,15 +144,15 @@ export default function StoryEmailCapture({ slug }: { slug: string }) {
               }}
               placeholder="ваш@email.com"
               style={{
-                flex: '1 1 220px',
+                flex: '1 1 180px',
                 minWidth: 0,
-                fontSize: 16,
+                fontSize: compact ? 14 : 16,
                 fontFamily: FONT,
                 color: CREAM,
                 background: 'rgba(255,255,255,0.06)',
                 border: `1px solid ${GOLD}55`,
-                borderRadius: 12,
-                padding: '13px 16px',
+                borderRadius: compact ? 10 : 12,
+                padding: compact ? '10px 13px' : '13px 16px',
                 outline: 'none',
               }}
             />
@@ -135,14 +162,14 @@ export default function StoryEmailCapture({ slug }: { slug: string }) {
               disabled={status === 'loading'}
               style={{
                 flex: '0 0 auto',
-                fontSize: 15,
+                fontSize: compact ? 13.5 : 15,
                 fontWeight: 800,
                 fontFamily: FONT,
                 color: '#1a1205',
                 background: status === 'loading' ? '#caa24a' : GOLD,
                 border: 'none',
-                borderRadius: 12,
-                padding: '13px 26px',
+                borderRadius: compact ? 10 : 12,
+                padding: compact ? '10px 18px' : '13px 26px',
                 cursor: status === 'loading' ? 'default' : 'pointer',
               }}
             >
@@ -161,7 +188,7 @@ export default function StoryEmailCapture({ slug }: { slug: string }) {
             aria-hidden="true"
           />
 
-          <p style={{ fontSize: 11, color: '#7f93ab', lineHeight: 1.5, margin: '10px 0 0' }}>
+          <p style={{ fontSize: 11, color: '#7f93ab', lineHeight: 1.5, margin: compact ? '8px 0 0' : '10px 0 0' }}>
             Натискаючи «Надсилайте», ви погоджуєтеся отримувати листи про нові серії.
           </p>
 

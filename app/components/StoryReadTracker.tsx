@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { getSessionId } from '@/lib/analytics'
+import StoryEmailCapture from './StoryEmailCapture'
 
 /**
  * Облік прочитань твору — база для винагороди автора.
@@ -50,6 +51,7 @@ export default function StoryReadTracker({
   promo = false,
   analytics = true,
   selfRead = false,
+  guest = false,
 }: {
   contentId: string
   slug:      string
@@ -73,9 +75,17 @@ export default function StoryReadTracker({
    * Сторінка працює звичайно, але облік вимкнено повністю.
    */
   selfRead?: boolean
+  /**
+   * Читає незалогінений. Тоді в момент ЗАРАХУВАННЯ (а не просто при
+   * догортуванні) показуємо прохання увійти. Момент узято саме
+   * зарахований, бо інакше «Ви дочитали» було б неправдою: людина могла
+   * пролетіти текст за п'ять секунд.
+   */
+  guest?: boolean
 }) {
   const sentinelRef  = useRef<HTMLDivElement | null>(null)
   const sentRef      = useRef(false)
+  const [credited, setCredited] = useState(false)
   const maxShareRef  = useRef(0)
   const activeMsRef  = useRef(0)
 
@@ -149,6 +159,7 @@ export default function StoryReadTracker({
     const send = () => {
       if (sentRef.current) return
       sentRef.current = true
+      if (guest) setCredited(true)
       const seconds = Math.round(activeMsRef.current / 1000)
       const percent = Math.round(maxShareRef.current * 100)
 
@@ -223,12 +234,75 @@ export default function StoryReadTracker({
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
     }
-  }, [contentId, slug, title, charCount, promo, analytics, selfRead])
+  }, [contentId, slug, title, charCount, promo, analytics, selfRead, guest])
+
+  // Коли з'явився об'єднаний блок, самостійна форма пошти нижче ховається:
+  // два прохання про адресу поспіль перетворюють кінець історії на анкету,
+  // а дешевша дія («лишити пошту») перехоплює тих, хто інакше завів би акаунт.
+  // Ховаємо через id, а не переносимо рендер у сторінку, бо стан «зараховано»
+  // живе тут, на клієнті, і сторінка про нього не знає.
+  useEffect(() => {
+    if (!credited) return
+    const node = document.getElementById('story-email-capture')
+    if (node instanceof HTMLElement) node.style.display = 'none'
+  }, [credited])
 
   // Маркер стоїть одразу під статтею — від нього шукаємо текст для вимірювання.
   return (
     <>
       <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />
+
+      {/* Друга з трьох точок входу (перша — рядок над текстом, третя —
+          стіна на другому творі). Тут прохання найсильніше: людина щойно
+          дочитала, і зарахування вже відбулося — лишилося тільки нікуди
+          його не подіти.
+
+          Свідомо НЕ спливне вікно: внизу екрана вже стоять аудіоплеєр,
+          «Аа», «нагору» і плашка «Ви вже читали цей текст». П'ятий
+          плаваючий елемент перетворив би читалку на панель приладів.
+
+          З'являється лише в момент ЗАРАХУВАННЯ — тобто коли виконані
+          обидві умови договору, п. 1.5 (70% обсягу і мінімальний час).
+          Якби вішали на просте догортування, фраза «Ви дочитали» брехала б
+          тому, хто пролетів текст за п'ять секунд. */}
+      {credited && (
+        <div style={{
+          marginTop: 26, padding: '13px 16px', borderRadius: 10,
+          background: 'rgba(239,159,39,0.09)',
+          border: '1px solid rgba(239,159,39,0.24)',
+          borderLeft: '3px solid #ef9f27',
+          fontFamily: "'Montserrat', Arial, sans-serif",
+          fontSize: 13.5, lineHeight: 1.6, color: '#c8d4e8',
+        }}>
+          <div style={{ color: '#FFF8EE', fontWeight: 700, fontSize: 14 }}>
+            Ви дочитали цю історію.
+          </div>
+          <div style={{ marginTop: 5 }}>
+            Увійдіть — і вона зарахується авторові. Гостьове прочитання не рахується нікому.
+          </div>
+          <a
+            href={`/login?next=${encodeURIComponent(
+              typeof window === 'undefined' ? '/' : window.location.pathname,
+            )}`}
+            style={{
+              display: 'inline-block', marginTop: 11,
+              background: '#ef9f27', color: '#0a1628',
+              fontWeight: 800, fontSize: 13.5,
+              padding: '9px 18px', borderRadius: 10, textDecoration: 'none',
+            }}
+          >
+            Зарахувати авторові
+          </a>
+
+          {/* Запасний вихід. Головний канал приходу — QR у газеті: читач
+              потрапляє одразу в текст і головної сторінки не бачить. Для
+              людини 60+ акаунт — вищий бар'єр, ніж адреса, і без цього рядка
+              вона пішла б ні з чим. Той самий компонент, що й нижче на
+              сторінці, лише в компактному вигляді — логіка підписки одна. */}
+          <StoryEmailCapture slug={slug} compact />
+        </div>
+      )}
+
       {check && (
         <div style={{
           position: 'fixed', left: 12, bottom: 12, zIndex: 9999,

@@ -399,7 +399,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
             має стояти саме тут, одразу під статтею. */}
         {/* selfRead: автор може перечитувати свій твір скільки завгодно,
             але в облік це не йде — з цих подій рахується його ж винагорода. */}
-        <StoryReadTracker contentId={story.id} slug={id} title={story.title} charCount={charCount} selfRead={isOwnAuthor} />
+        <StoryReadTracker contentId={story.id} slug={id} title={story.title} charCount={charCount} selfRead={isOwnAuthor} guest={!user} />
         <ReadingProgressBar />
         <BackToTop />
 
