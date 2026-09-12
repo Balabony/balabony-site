@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
-import { getOrCreateAnonUserId } from '@/lib/anon-user'
+import { resolveReaderId } from '@/lib/reader-id'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 const PUBLIC_KEY  = process.env.LIQPAY_PUBLIC_KEY  || ''
@@ -31,7 +31,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Identity = balabony_uid cookie.
-    const userId = await getOrCreateAnonUserId()
+    // 12.09.2026: було getOrCreateAnonUserId() — підписка лягала на cookie
+    // НАВІТЬ для того, хто увійшов у акаунт. Наслідки: у кабінеті підписки
+    // не видно (кабінет читає users.subscription_until), доступ гинув разом
+    // із cookie, і приведеного передплатника не було з чим з'єднати.
+    // resolveReaderId() віддає id акаунта для залогінених і cookie для
+    // гостей — той самий підхід, що вже стоїть у прочитаннях і балах.
+    const userId = await resolveReaderId()
     if (!userId) {
       return NextResponse.json({ error: 'Failed to identify user' }, { status: 500 })
     }
