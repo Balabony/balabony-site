@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { dbQuery } from '@/lib/db'
 import { slugify } from '@/lib/slugify'
 import { CONTESTS, findContest } from '@/lib/contests'
+import { countedReadsByEntry } from '@/lib/contest-reads'
 
 /**
  * Конкурсні заявки для адмінки: перегляд, приймання, відхилення.
@@ -20,6 +21,9 @@ import { CONTESTS, findContest } from '@/lib/contests'
  *            сторінка твору і «Що читають» жорстко фільтрують
  *            type = 'story'; з новим типом твір зник би з усіх списків,
  *            його ніхто не відкрив би, і дочитувань було б нуль.
+ *   is_free = true    — в умовах записано, що конкурсні твори не
+ *            блокуються пейволом. Раніше тут стояло false, і роботи
+ *            потрапляли б під замок усупереч обіцяному.
  *   status = 'draft'  — приймання не є публікацією. Далі текст іде
  *            звичайною чергою редактури, як усі інші твори.
  *   season_number / episode_number — номер серії в межах заявки, щоб
@@ -54,6 +58,8 @@ type EntryRow = {
   episodes: number
   words: number
   published: number
+  /** Зараховані дочитування — рахуються окремо, див. lib/contest-reads.ts */
+  counted?: number
 }
 
 /** GET — перелік заявок. ?entry=<id> додає тексти серій цієї заявки. */
@@ -94,6 +100,11 @@ export async function GET(req: NextRequest) {
 
     const rows = list.rows as EntryRow[]
 
+    // Зараховані дочитування. Окремим запитом, бо три фільтри з правил
+    // не вкладаються в той самий group by без дублювання рядків.
+    const counts = await countedReadsByEntry()
+    for (const r of rows) r.counted = counts.get(r.id) ?? 0
+
     // Зведення по конкурсах — щоб не рахувати очима в списку.
     const stats = CONTESTS.map(c => {
       const mine = rows.filter(r => r.contest === c.id)
@@ -101,6 +112,7 @@ export async function GET(req: NextRequest) {
         id:        c.id,
         name:      c.name,
         episodesNeed: c.episodes,
+        threshold: c.threshold,
         opensAt:   c.opensAt,
         closesAt:  c.closesAt,
         stages:    c.stages,
@@ -192,7 +204,7 @@ export async function POST(req: NextRequest) {
             is_free, is_adult, is_premium, images, writer_note)
          values ('story', 'draft', 'pending', $1, $2, $3, $4, $5,
                  $6, $7, $8, $9,
-                 false, false, false, '[]'::jsonb, $10)
+                 true, false, false, '[]'::jsonb, $10)
          returning id::text`,
         [
           slug, title, raw.body, entry.author_id, entry.author_name,

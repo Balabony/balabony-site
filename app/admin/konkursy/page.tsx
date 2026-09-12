@@ -44,6 +44,7 @@ type Entry = {
   episodes: number
   words: number
   published: number
+  counted: number
 }
 
 type Episode = {
@@ -70,6 +71,7 @@ type Stat = {
   id: string
   name: string
   episodesNeed: number
+  threshold: number
   opensAt: string
   closesAt: string
   stages: Stages
@@ -232,6 +234,11 @@ export default function AdminKonkursyPage() {
                 <br />
                 Серій: <b style={{ color: CREAM }}>{s.episodes}</b>
                 {' · '}у каталозі: <b style={{ color: CREAM }}>{s.published}</b>
+                <br />
+                Поріг {s.threshold} подолали:{' '}
+                <b style={{ color: CREAM }}>
+                  {entries.filter(e => e.contest === s.id && e.counted >= s.threshold).length}
+                </b>
               </div>
 
               <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px solid ${LINE}`,
@@ -291,6 +298,14 @@ export default function AdminKonkursyPage() {
                 color: need && e.episodes < need ? '#eab308' : CREAM,
               }}>{e.episodes}{need ? ` з ${need}` : ''}</span>
               {' · '}слів: {e.words.toLocaleString('uk-UA')}
+              {st && (
+                <>
+                  {' · '}дочитувань:{' '}
+                  <b style={{ color: e.counted >= st.threshold ? '#22c55e' : '#eab308' }}>
+                    {e.counted} з {st.threshold}
+                  </b>
+                </>
+              )}
               {e.genre ? ` · ${e.genre}` : ''}
               {e.published > 0 && ` · у каталозі: ${e.published}`}
             </div>

@@ -32,6 +32,12 @@ export interface Contest {
   /** Що показати автору під вибором конкурсу. */
   hint: string
   /**
+   * Поріг допуску до призових місць — скільки зарахованих дочитувань
+   * має набрати робота. До 12.09.2026 ці числа жили тільки в текстах
+   * правил; у коді їх не було, тому перевірити поріг було неможливо.
+   */
+  threshold: number
+  /**
    * Етапи після закриття прийому.
    *
    * null означає «дату ще не визначено», і в адмінці вона так і
@@ -59,6 +65,7 @@ export interface Contest {
 export const CONTESTS: Contest[] = [
   {
     id: 'ce-dovha-istoriya',
+    threshold: 75,
     name: '«Це довга історія» — конкурс серіалів',
     episodes: 10,
     minWords: 1500,
@@ -79,6 +86,7 @@ export const CONTESTS: Contest[] = [
   },
   {
     id: 'pyat-vechoriv',
+    threshold: 75,
     name: "«П'ять вечорів»",
     episodes: 5,
     minWords: 900,
@@ -99,6 +107,7 @@ export const CONTESTS: Contest[] = [
   },
   {
     id: 'odyn-den',
+    threshold: 50,
     name: '«Один день, який усе змінив»',
     episodes: 1,
     minWords: 300,
@@ -114,6 +123,7 @@ export const CONTESTS: Contest[] = [
   },
   {
     id: 'z-viterczem',
+    threshold: 50,
     name: '«З вітерцем»',
     episodes: 1,
     minWords: 300,
