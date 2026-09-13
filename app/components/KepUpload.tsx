@@ -88,14 +88,29 @@ export default function KepUpload({ contractId, docUrl }: { contractId: string; 
           .
         </li>
         <li>
-          Підпишіть його своїм ключем на{' '}
+          Підпишіть його своїм ключем — через Дію на{' '}
+          <a href="https://ca.diia.gov.ua/sign" target="_blank" rel="noopener noreferrer" style={{ color: GOLD_SOFT, fontWeight: 700 }}>
+            ca.diia.gov.ua/sign
+          </a>, на{' '}
           <a href="https://czo.gov.ua/sign" target="_blank" rel="noopener noreferrer" style={{ color: GOLD_SOFT, fontWeight: 700 }}>
             czo.gov.ua/sign
           </a>{' '}
           або в застосунку свого банку. Ключ лишається у вас — ми його не бачимо й не просимо.
         </li>
-        <li>Збережіть результат і додайте його сюди.</li>
+        <li>
+          <b style={{ color: CREAM }}>Завантажте «файл з підписом»</b> — портал не надсилає його нам.
+          Це файл .p7s (іноді .asice або підписаний PDF). Якщо ви його не зберегли,
+          підпису у вас на руках немає.
+        </li>
+        <li>Додайте цей файл сюди й натисніть «Надіслати підпис».</li>
       </ol>
+
+      <p style={{ fontSize: 14, lineHeight: 1.7, color: MUTED, margin: '12px 0 0' }}>
+        Докладно, з поясненням кожного кроку —{' '}
+        <a href="/yak-pidpysaty" style={{ color: GOLD_SOFT, fontWeight: 700 }}>
+          як підписати договір
+        </a>.
+      </p>
 
       <input
         type="file"

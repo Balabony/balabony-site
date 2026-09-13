@@ -198,8 +198,12 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
 
         <p className="no-print" style={{ fontSize: 13, color: '#5a6b85', marginTop: 28, fontFamily: 'Arial, sans-serif', lineHeight: 1.6 }}>
           Щоб підписати договір кваліфікованим підписом, збережіть цю сторінку як PDF
-          (кнопка вище або Ctrl+P → «Зберегти як PDF»), підпишіть файл своїм ключем і
-          завантажте його в кабінеті.
+          (кнопка вище або Ctrl+P → «Зберегти як PDF») і підпишіть файл своїм ключем.
+          Дія та czo.gov.ua підпис створюють, але нам його не надсилають: збережений
+          файл підпису треба завантажити в кабінеті самостійно.{' '}
+          <a href="/yak-pidpysaty" style={{ color: '#b26f00', fontWeight: 700 }}>
+            Покрокова інструкція
+          </a>.
         </p>
 
         <style>{`
