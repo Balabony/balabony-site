@@ -562,7 +562,7 @@ const PLANS: PlanConfig[] = [
     unit: '₴/міс',
     subline: 'Перший місяць — 49 ₴, далі 129 ₴',
     perks: [
-      { text: 'Нові серії на тиждень раніше', highlight: true },
+      { text: 'Усі серії «Балабонів» і «Тиші»', highlight: true },
       { text: 'Жодної реклами' },
       { text: 'Усі серії, історії та казки' },
       { text: 'Офлайн-завантаження' },
@@ -584,7 +584,7 @@ const PLANS: PlanConfig[] = [
     subline: 'Всього 74 ₴/міс · економія 658 ₴',
     perks: [
       { text: 'Бонусні серії «Балабонів» і «Тиші»', highlight: true },
-      { text: 'Нові серії на тиждень раніше', highlight: true },
+      { text: 'Усі серії «Балабонів» і «Тиші»', highlight: true },
       { text: 'Жодної реклами' },
       { text: 'Офлайн-завантаження' },
       { text: 'Усі серії, історії та казки' },
@@ -608,7 +608,7 @@ const PLANS: PlanConfig[] = [
     unit: '₴/міс',
     subline: '50 ₴ на особу · до 4 акаунтів',
     perks: [
-      { text: 'Нові серії на тиждень раніше', highlight: true },
+      { text: 'Усі серії «Балабонів» і «Тиші»', highlight: true },
       { text: 'Жодної реклами' },
       { text: 'Усі серії, історії та казки' },
       { text: 'До 4 акаунтів у родині' },
@@ -631,7 +631,7 @@ const PLANS: PlanConfig[] = [
     subline: 'Всього 29 ₴ на особу/міс · економія 998 ₴',
     perks: [
       { text: 'Бонусні серії «Балабонів» і «Тиші»', highlight: true },
-      { text: 'Нові серії на тиждень раніше', highlight: true },
+      { text: 'Усі серії «Балабонів» і «Тиші»', highlight: true },
       { text: 'Жодної реклами для всіх' },
       { text: 'Офлайн-завантаження' },
       { text: 'Усі серії, історії та казки' },
@@ -759,7 +759,7 @@ export default function PricingSection() {
               Для ветеранів (УБД), ВПО та людей з інвалідністю
             </span>
             <span style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#a05f00', marginTop: 9, lineHeight: 1.45 }}>
-              Нові серії на тиждень раніше й бонусні серії — як у річній передплаті
+              Повний доступ і бонусні серії — як у річній передплаті
             </span>
             <span style={{
               display: 'inline-block',
@@ -817,7 +817,7 @@ export default function PricingSection() {
               Понад 900 історій і 24 серії
             </span>
             <span style={{ display: 'block', fontSize: 14, color: 'rgba(255,255,255,0.82)', marginTop: 4, lineHeight: 1.5 }}>
-              Нові серії відкриваються через тиждень після виходу
+              Три серії кожного сезону + одна на твій вибір
             </span>
           </span>
           <span style={{ fontSize: 24, fontWeight: 800, color: '#ef9f27', whiteSpace: 'nowrap', flexShrink: 0 }}>0 ₴</span>
@@ -1047,7 +1047,7 @@ function PensionCard() {
   const [diiaOpen, setDiiaOpen] = useState(false)
   const perks: { text: string; highlight?: boolean; ad?: boolean }[] = [
     { text: 'Бонусні серії «Балабонів» і «Тиші»', highlight: true },
-    { text: 'Нові серії на тиждень раніше', highlight: true },
+    { text: 'Усі серії «Балабонів» і «Тиші»', highlight: true },
     { text: 'Жодної реклами' },
     { text: 'Усі серії, історії та казки' },
     { text: 'Великий шрифт для читання' },
