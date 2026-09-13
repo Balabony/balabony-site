@@ -1,8 +1,22 @@
 import type { Metadata } from 'next'
 import BookList, { type Book } from './BookList'
 
-export const revalidate = 604800 // оновлюємо раз на тиждень: каталог класики майже не змінюється,
-// а кожне оновлення означає сотню звернень до бібліотеки
+/**
+ * ЧОМУ force-dynamic, А НЕ ГЕНЕРАЦІЯ НА ЗБІРЦІ.
+ * 13.09.2026 білд Vercel упав тричі поспіль саме на цій сторінці: каталог
+ * Wolne Lektury віддає понад 2 МБ, далі йде окремий запит на кожну книжку,
+ * і сторінка не вкладалася у 60 секунд, відведені на прегенерацію. Через це
+ * не міг задеплоїтися код, який до Wolne Lektury не має жодного стосунку —
+ * швидкість чужого сервера блокувала весь сайт.
+ *
+ * Тепер сторінка збирається при першому відвіданні, а не на білді. Дані
+ * далі кешуються на тиждень через `next: { revalidate }` у самих fetch, тож
+ * бібліотеку ми смикаємо не частіше, ніж раніше.
+ */
+export const dynamic = 'force-dynamic'
+
+/** Скільки чекаємо на бібліотеку. Далі показуємо сторінку без списку. */
+const FETCH_TIMEOUT_MS = 10_000
 
 export const metadata: Metadata = {
   title: 'Львів і Галичина у Wolne Lektury — вільні тексти й аудіо | Balabony',
@@ -74,6 +88,7 @@ async function getDetail(href: string): Promise<unknown> {
     const res = await fetch(href, {
       headers: { Accept: 'application/json' },
       next: { revalidate: 604800 },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     })
     if (!res.ok) return null
     return (await res.json()) as unknown
@@ -87,6 +102,7 @@ async function getBooks(): Promise<{ ok: boolean; books: Book[] }> {
     const res = await fetch(API_URL, {
       headers: { Accept: 'application/json' },
       next: { revalidate: 604800 },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     })
     if (!res.ok) return { ok: false, books: [] }
 
