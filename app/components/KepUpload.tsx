@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 
 const GOLD = '#ef9f27'
 const GOLD_SOFT = '#FAC775'
@@ -21,19 +22,53 @@ export default function KepUpload({ contractId, docUrl }: { contractId: string; 
   const [msg, setMsg] = useState('')
   const [done, setDone] = useState(false)
 
+  /**
+   * Файл іде ПРЯМО В СХОВИЩЕ, не через наш сервер.
+   *
+   * До 13.09.2026 форма надсилала файл на /api/contracts/sign/kep у
+   * FormData. Vercel ріже тіло запиту приблизно на 4,5 МБ, тому підписаний
+   * PDF на 10,7 МБ не доходив нікуди, а людина бачила «немає зв'язку» і
+   * думала, що винен її інтернет. Тепер сервер видає одноразове посилання,
+   * браузер ллє файл у сховище сам, а на сервер іде лише шлях.
+   */
   const send = async () => {
     if (!file) { setMsg('Спершу оберіть файл підпису'); return }
     setBusy(true); setMsg('')
     try {
-      const fd = new FormData()
-      fd.append('contractId', contractId)
-      fd.append('file', file)
-      const res = await fetch('/api/contracts/sign/kep', { method: 'POST', body: fd })
+      // 1. Одноразове посилання на завантаження.
+      const urlRes = await fetch('/api/contracts/sign/kep-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contractId, filename: file.name }),
+      })
+      const u = (await urlRes.json()) as
+        { ok: boolean; error?: string; path?: string; token?: string; bucket?: string }
+      if (!u.ok || !u.path || !u.token || !u.bucket) {
+        setMsg(u.error ?? 'Не вдалося підготувати завантаження')
+        return
+      }
+
+      // 2. Файл у сховище.
+      const supabase = createSupabaseBrowserClient()
+      const { error: upErr } = await supabase.storage
+        .from(u.bucket)
+        .uploadToSignedUrl(u.path, u.token, file)
+      if (upErr) {
+        setMsg('Файл не завантажився. Перевірте зв’язок і спробуйте ще раз')
+        return
+      }
+
+      // 3. Позначаємо договір підписаним.
+      const res = await fetch('/api/contracts/sign/kep', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contractId, path: u.path }),
+      })
       const d = (await res.json()) as { ok: boolean; error?: string }
-      if (!d.ok) { setMsg(d.error ?? 'Не вдалося надіслати'); return }
+      if (!d.ok) { setMsg(d.error ?? 'Не вдалося зафіксувати підпис'); return }
       setDone(true)
     } catch {
-      setMsg('Немає зв’язку — спробуйте ще раз')
+      setMsg('Не вдалося надіслати. Перевірте зв’язок і спробуйте ще раз')
     } finally {
       setBusy(false)
     }
