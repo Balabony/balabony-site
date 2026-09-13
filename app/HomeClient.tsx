@@ -155,7 +155,7 @@ export default function HomeClient({
         </div>
 
         <div style={{ display: 'block' }}>
-          <FAQ limit={5} showAllLink />
+          <FAQ limit={3} showAllLink />
         </div>
 
         <BonusSection />

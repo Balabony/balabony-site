@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import PricingSection from '@/app/components/PricingSection'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
+import FAQ from '@/app/components/FAQ'
 
 /**
  * Сторінка передплати.
@@ -35,6 +36,9 @@ export default function PeredplataPage() {
     <main style={{ background: '#0a1628', minHeight: '100vh' }}>
       <Breadcrumbs items={[{ label: 'Передплата' }]} />
       <PricingSection variant="full" />
+      <div style={{ padding: '0 5% 40px' }}>
+        <FAQ only="money" showAllLink />
+      </div>
     </main>
   )
 }

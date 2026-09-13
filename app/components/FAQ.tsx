@@ -87,8 +87,22 @@ const ITEMS: { q: string; a: React.ReactNode; plain?: string }[] = [
   },
 ]
 
-export default function FAQ({ limit, showAllLink }: { limit?: number; showAllLink?: boolean } = {}) {
-  const items = typeof limit === 'number' ? ITEMS.slice(0, limit) : ITEMS
+// Питання про гроші — для /peredplata. Решта (безкоштовний доступ, авторство,
+// допомога) там недоречна, а повний перелік живе на /faq. Дублювати весь блок
+// на двох сторінках не можна: для Google це однаковий текст за двома адресами,
+// і він сам обере, яку показати.
+const MONEY_QUESTIONS = [
+  'Скільки коштує підписка?',
+  'А якщо ціна не підходить?',
+  'Чи можна не платити одразу всю суму?',
+  'Що таке «закриті серії»?',
+  'Як працює пільговий тариф?',
+  'Можна подарувати підписку?',
+]
+
+export default function FAQ({ limit, showAllLink, only }: { limit?: number; showAllLink?: boolean; only?: 'money' } = {}) {
+  const base = only === 'money' ? ITEMS.filter((it) => MONEY_QUESTIONS.includes(it.q)) : ITEMS
+  const items = typeof limit === 'number' ? base.slice(0, limit) : base
 
   // Розмітка FAQPage дає відповіді просто у видачі Google. Складається саме
   // з показаних питань: якщо розмітка ширша за видимий текст, Google вважає
