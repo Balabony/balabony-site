@@ -151,7 +151,7 @@ export default function HomeClient({
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 0' }}>
 
         <div style={{ display: 'block' }}>
-          <PricingSection />
+          <PricingSection variant="home" />
         </div>
 
         <div style={{ display: 'block' }}>

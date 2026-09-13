@@ -30,7 +30,7 @@ interface Props {
 
 export default function EpisodePaywall({ html, fontFamily, seasonNumber, episodeNumber, serverLocked = false, bypass = false, isPremium = false, hasPick = false, hasSub = false, hasPremiumAccess = false, globalEpisodeNumber }: Props) {
   const scrollToPricing = () => {
-    window.location.href = '/#pricing'
+    window.location.href = '/peredplata'
   }
 
   // Обрати цю серію як безкоштовну. Ліміт перевіряє сервер (/api/pick),

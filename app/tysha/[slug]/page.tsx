@@ -374,7 +374,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
                 ? 'Бонусні серії «Тиші» відкриті для річної передплати та пільгового доступу.'
                 : 'Перші дві серії «Тиші» — вільні. Щоб читати серіал далі, обери пакет.'}
             </p>
-            <a href="/#pricing" style={{ display: 'inline-block', padding: '14px 28px', background: GOLD, color: NAVY_DEEP, borderRadius: 10, fontSize: 15, fontWeight: 700, textDecoration: 'none', fontFamily: FONT }}>
+            <a href="/peredplata" style={{ display: 'inline-block', padding: '14px 28px', background: GOLD, color: NAVY_DEEP, borderRadius: 10, fontSize: 15, fontWeight: 700, textDecoration: 'none', fontFamily: FONT }}>
               {ep.is_premium && hasSub ? 'Перейти на річну →' : 'Обрати пакет →'}
             </a>
           </div>

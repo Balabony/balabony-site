@@ -442,7 +442,7 @@ export default function Footer() {
               { label: 'Безкоштовно', href: '/free'     },
               { label: 'Подарунок',   href: '/gift'     },
               { label: 'Історії',     href: '/stories'  },
-              { label: 'Тарифи',      href: '/#pricing' },
+              { label: 'Тарифи',      href: '/peredplata' },
               { label: 'Часті питання', href: '/faq'    },
               { label: 'Календар 2027 роздрукувати', href: '/kalendar-2027' },
               { label: 'Бонусна програма', href: '/bonusy' },

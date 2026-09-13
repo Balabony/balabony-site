@@ -85,6 +85,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Як поставити сайт на екран телефона. Окрема адреса, бо це інформаційний
     // запит («як встановити застосунок»), на який відповідає підвал.
     { url: `${BASE_URL}/vstanovyty`,            lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/peredplata`,            lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/inclusivevoice`,        lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/free`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/faq`,                   lastModified: now, changeFrequency: 'monthly', priority: 0.7 },

@@ -668,7 +668,14 @@ const GIFT_FAMILY: GiftConfig = {
 // 5. ГОЛОВНИЙ КОМПОНЕНТ
 // ═════════════════════════════════════════════════════════════════════
 
-export default function PricingSection() {
+export type PricingVariant = 'home' | 'full'
+
+// variant='home' — на головній лишається лише місійна частина (пільга 1₴,
+// безкоштовний доступ) плюс посилання на /peredplata. Комерційні пакети,
+// разова оплата, подарунок і подяки живуть на окремій сторінці.
+// Одне джерело правди: ціни правляться в одному місці.
+export default function PricingSection({ variant = 'full' }: { variant?: PricingVariant } = {}) {
+  const isFull = variant === 'full'
   const [modal, setModal] = useState<PaymentPkg | null>(null)
   const [socialDiiaOpen, setSocialDiiaOpen] = useState(false)
 
@@ -822,75 +829,100 @@ export default function PricingSection() {
         </span>
       </a>
 
-      {/* РАЗОВА ОПЛАТА — плоска картка, 9₴ поштучно */}
-      <div style={{ maxWidth: 720, margin: '0 auto 26px', fontFamily: "'Montserrat', Arial, sans-serif" }}>
-        <div style={{
-          fontSize: 12,
-          fontWeight: 600,
-          color: 'rgba(255,255,255,0.6)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em',
-          marginBottom: 8,
-          paddingLeft: 2,
-          whiteSpace: 'nowrap',
-        }}>Разова оплата</div>
-        <button
-          type="button"
-          onClick={openPaymentForOneTime}
-          style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 12,
-            background: 'rgba(255,255,255,0.04)',
-            border: '1.5px solid #ef9f27',
-            borderRadius: 10,
-            padding: '13px 15px',
-            cursor: 'pointer',
-            textAlign: 'left',
-            fontFamily: "'Montserrat', Arial, sans-serif",
-          }}
-        >
-          <span style={{ flex: '1 1 180px', minWidth: 0 }}>
-            <span style={{ display: 'block', fontSize: 15, fontWeight: 500, color: '#fff', overflowWrap: 'normal', wordBreak: 'keep-all' }}>Без підписки</span>
-            <span style={{ display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>Одна історія або серія — відкривається одразу</span>
-          </span>
-          <span style={{ fontSize: 18, fontWeight: 600, color: '#ef9f27', whiteSpace: 'nowrap', flexShrink: 0 }}>9 ₴</span>
-        </button>
-      </div>
+      {isFull && (
+        <>
+        {/* РАЗОВА ОПЛАТА — плоска картка, 9₴ поштучно */}
+        <div style={{ maxWidth: 720, margin: '0 auto 26px', fontFamily: "'Montserrat', Arial, sans-serif" }}>
+          <div style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: 'rgba(255,255,255,0.6)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            marginBottom: 8,
+            paddingLeft: 2,
+            whiteSpace: 'nowrap',
+          }}>Разова оплата</div>
+          <button
+            type="button"
+            onClick={openPaymentForOneTime}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 12,
+              background: 'rgba(255,255,255,0.04)',
+              border: '1.5px solid #ef9f27',
+              borderRadius: 10,
+              padding: '13px 15px',
+              cursor: 'pointer',
+              textAlign: 'left',
+              fontFamily: "'Montserrat', Arial, sans-serif",
+            }}
+          >
+            <span style={{ flex: '1 1 180px', minWidth: 0 }}>
+              <span style={{ display: 'block', fontSize: 15, fontWeight: 500, color: '#fff', overflowWrap: 'normal', wordBreak: 'keep-all' }}>Без підписки</span>
+              <span style={{ display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>Одна історія або серія — відкривається одразу</span>
+            </span>
+            <span style={{ fontSize: 18, fontWeight: 600, color: '#ef9f27', whiteSpace: 'nowrap', flexShrink: 0 }}>9 ₴</span>
+          </button>
+        </div>
+  
+        {/* FOR SELF */}
+        <SectionLabel text="Для себе" />
+        <div className="bb-pricing-grid">
+          <PlanCard plan={PLANS[0]} onSubscribe={() => openPaymentForPlan(PLANS[0])} onInstallment={() => openPaymentForPlan(PLANS[0])} />
+          <PlanCard plan={PLANS[1]} onSubscribe={() => openPaymentForPlan(PLANS[1])} onInstallment={() => openPaymentForPlan(PLANS[1])} />
+        </div>
+  
+        {/* FOR FAMILY */}
+        <SectionLabel text="Для родини" />
+        <div className="bb-pricing-grid">
+          <PlanCard plan={PLANS[2]} onSubscribe={() => openPaymentForPlan(PLANS[2])} onInstallment={() => openPaymentForPlan(PLANS[2])} />
+          <PlanCard plan={PLANS[3]} onSubscribe={() => openPaymentForPlan(PLANS[3])} onInstallment={() => openPaymentForPlan(PLANS[3])} />
+        </div>
+  
+        {/* FOR PENSIONERS */}
+        <SectionLabel text="Для пенсіонерів" />
+        <div className="bb-pricing-single">
+          <PensionCard />
+        </div>
+  
+        {/* GIFT SECTION */}
+        <GiftSection
+          gifts={GIFTS_INDIVIDUAL}
+          family={GIFT_FAMILY}
+          onGiftClick={openPaymentForGift}
+          onGiftCta={handleGiftCtaClick}
+        />
+  
+        {/* ПОДЯКИ — імена тих, хто оплатив пільгові доступи */}
+        <ThanksSection />
+        </>
+      )}
 
-      {/* FOR SELF */}
-      <SectionLabel text="Для себе" />
-      <div className="bb-pricing-grid">
-        <PlanCard plan={PLANS[0]} onSubscribe={() => openPaymentForPlan(PLANS[0])} onInstallment={() => openPaymentForPlan(PLANS[0])} />
-        <PlanCard plan={PLANS[1]} onSubscribe={() => openPaymentForPlan(PLANS[1])} onInstallment={() => openPaymentForPlan(PLANS[1])} />
-      </div>
-
-      {/* FOR FAMILY */}
-      <SectionLabel text="Для родини" />
-      <div className="bb-pricing-grid">
-        <PlanCard plan={PLANS[2]} onSubscribe={() => openPaymentForPlan(PLANS[2])} onInstallment={() => openPaymentForPlan(PLANS[2])} />
-        <PlanCard plan={PLANS[3]} onSubscribe={() => openPaymentForPlan(PLANS[3])} onInstallment={() => openPaymentForPlan(PLANS[3])} />
-      </div>
-
-      {/* FOR PENSIONERS */}
-      <SectionLabel text="Для пенсіонерів" />
-      <div className="bb-pricing-single">
-        <PensionCard />
-      </div>
-
-      {/* GIFT SECTION */}
-      <GiftSection
-        gifts={GIFTS_INDIVIDUAL}
-        family={GIFT_FAMILY}
-        onGiftClick={openPaymentForGift}
-        onGiftCta={handleGiftCtaClick}
-      />
-
-      {/* ПОДЯКИ — імена тих, хто оплатив пільгові доступи */}
-      <ThanksSection />
+      {!isFull && (
+        <div style={{ maxWidth: 720, margin: '0 auto 26px', textAlign: 'center' }}>
+          <a
+            href="/peredplata"
+            style={{
+              display: 'inline-block',
+              padding: '14px 28px',
+              border: '1px solid #ef9f27',
+              borderRadius: 10,
+              color: '#ef9f27',
+              fontSize: 15,
+              fontWeight: 700,
+              textDecoration: 'none',
+              fontFamily: "'Montserrat', Arial, sans-serif",
+            }}
+          >
+            Усі тарифи й передплата →
+          </a>
+        </div>
+      )}
 
       {/* РОЗМЕЖУВАННЯ ВОРОНОК — некомерційний напрям ГО */}
       <p style={{
