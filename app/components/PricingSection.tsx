@@ -584,7 +584,6 @@ const PLANS: PlanConfig[] = [
     subline: 'Всього 74 ₴/міс · економія 658 ₴',
     perks: [
       { text: 'Бонусні серії «Балабонів» і «Тиші»', highlight: true },
-      { text: 'Усі серії «Балабонів» і «Тиші»', highlight: true },
       { text: 'Жодної реклами' },
       { text: 'Офлайн-завантаження' },
       { text: 'Усі серії, історії та казки' },
@@ -631,7 +630,6 @@ const PLANS: PlanConfig[] = [
     subline: 'Всього 29 ₴ на особу/міс · економія 998 ₴',
     perks: [
       { text: 'Бонусні серії «Балабонів» і «Тиші»', highlight: true },
-      { text: 'Усі серії «Балабонів» і «Тиші»', highlight: true },
       { text: 'Жодної реклами для всіх' },
       { text: 'Офлайн-завантаження' },
       { text: 'Усі серії, історії та казки' },
@@ -1047,7 +1045,6 @@ function PensionCard() {
   const [diiaOpen, setDiiaOpen] = useState(false)
   const perks: { text: string; highlight?: boolean; ad?: boolean }[] = [
     { text: 'Бонусні серії «Балабонів» і «Тиші»', highlight: true },
-    { text: 'Усі серії «Балабонів» і «Тиші»', highlight: true },
     { text: 'Жодної реклами' },
     { text: 'Усі серії, історії та казки' },
     { text: 'Великий шрифт для читання' },
