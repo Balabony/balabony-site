@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { readingMinutes } from '@/lib/readingTime'
 import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { getAnonUserId } from '@/lib/anon-user'
+import { readerIdForRender } from '@/lib/reader-id'
 import type { Metadata } from 'next'
 import EpisodePaywall from './EpisodePaywall'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
@@ -220,7 +220,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
   // з газети. У браузері з наявною кукою помилка не відтворювалась.
   // Тепер лише читаємо: у нового читача ані вибору, ані підписки бути не може,
   // а сама кука створиться при першому виклику /api/*, де це дозволено.
-  const readerId = await getAnonUserId()
+  const readerId = await readerIdForRender()
   const db = getSupabaseAdmin()
 
   const { data: pickRow } = readerId

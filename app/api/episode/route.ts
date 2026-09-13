@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { getAnonUserId } from '@/lib/anon-user'
+import { readerIdForRender } from '@/lib/reader-id'
 
 // Splits text into sentences without breaking on "..." or initials.
 // Rule: a sentence ends at . ! ? followed by whitespace + capital letter (or end of text).
@@ -88,7 +88,7 @@ export async function GET(req: Request) {
     // Преміум (закриті) серії: не безкоштовні й не через pick; лише річна підписка.
     let isUnlocked = !isPremium && data.is_free === true
     if (!isUnlocked) {
-      const userId = await getAnonUserId()
+      const userId = await readerIdForRender()
       if (userId) {
         // (2) Check active subscription first — cheapest check, unlocks all episodes
         const nowIso = new Date().toISOString()

@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { readingMinutes, countWords } from '@/lib/readingTime'
 import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { getAnonUserId } from '@/lib/anon-user'
+import { readerIdForRender } from '@/lib/reader-id'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import ReadTracker from '@/app/components/ReadTracker'
@@ -222,7 +222,7 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
   // Вибору серій (user_free_picks) у «Тиші» немає навмисне: серіал 18+,
   // безкоштовна «вітрина» тут обмежена промо-серіями.
   const epNum = ep.episode_number ?? 0
-  const readerId = await getAnonUserId()
+  const readerId = await readerIdForRender()
   const db = getSupabaseAdmin()
 
   const { data: subRow } = readerId

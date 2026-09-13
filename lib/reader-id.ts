@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
-import { getOrCreateAnonUserId } from '@/lib/anon-user'
+import { getOrCreateAnonUserId, getAnonUserId } from '@/lib/anon-user'
 
 /**
  * Хто зараз читає: акаунт, якщо людина увійшла, інакше анонімний cookie.
@@ -111,4 +111,36 @@ export async function mergeAnonInto(userId: string): Promise<void> {
   } catch (e) {
     console.error('[mergeAnonInto] referral_bonuses', (e as Error)?.message)
   }
+}
+
+/**
+ * Хто читає — БЕЗ створення cookie.
+ *
+ * Те саме правило, що в resolveReaderId (спершу акаунт, потім cookie), але
+ * придатне для рендерингу сторінки: нічого не записує.
+ *
+ * НАВІЩО ЦЕ З'ЯВИЛОСЯ 13.09.2026. Сторінки серій брали читача через
+ * getAnonUserId() — тобто ЛИШЕ з cookie balabony_uid. Підписка ж, куплена
+ * через LiqPay, лягає на id акаунта: вебхук бере його з номера замовлення.
+ * Тому людина, яка увійшла і заплатила, відкривала серію й бачила замок:
+ * сторінка шукала її підписку за cookie, а та лежала під акаунтом.
+ *
+ * Так само ламався груповий доступ: місце видається на акаунт учасника.
+ *
+ * Чому не resolveReaderId: він падає на getOrCreateAnonUserId(), який пише
+ * cookie, а Next.js забороняє це під час рендерингу сторінки — саме через
+ * це сторінка колись віддавала 500 кожному, хто заходив уперше.
+ *
+ * Повертає null, якщо людина не увійшла і cookie ще немає. Для такого читача
+ * ані підписки, ані вибору бути не може, тож null тут безпечний.
+ */
+export async function readerIdForRender(): Promise<string | null> {
+  try {
+    const supabase = await createSupabaseServerClient()
+    const { data } = await supabase.auth.getUser()
+    if (data?.user?.id) return data.user.id
+  } catch {
+    /* немає сесії — читаємо cookie нижче */
+  }
+  return getAnonUserId()
 }
