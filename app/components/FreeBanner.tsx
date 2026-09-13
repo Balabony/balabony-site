@@ -1,84 +1,82 @@
 'use client'
 
+import Link from 'next/link'
+
 /**
- * FreeBanner — тонкий банер під Hero.
- * Один рядок: домик (HomeIcon) + два речення + CTA «Деталі ↓».
- * CTA — якір на #how-it-works (блок «Як це працює» на тій же сторінці).
- * Коли /free буде задеплоєна — поміняти href на /free.
+ * FreeBanner — банер «читати безкоштовно» під Hero.
+ *
+ * ПЕРЕРОБЛЕНО 13.09.2026 на вимогу Богдана: банер має виглядати так само,
+ * як блок конкурсів нижче на головній. Була біла плашка з лівою золотою
+ * смугою і темно-синьою кнопкою — єдиний світлий елемент серед темних
+ * карток, і на телефоні він читався як чужа вставка, майже як реклама.
+ *
+ * Тепер оформлення один в один із KonkursyBanner: темна картка, тонка
+ * золота рамка, той самий радіус і поля, золота кнопка-пігулка. Текст
+ * вирівняний по центру — теж рішення Богдана.
+ *
+ * Класи free-banner* прибрані свідомо: правила в globals.css перебудовували
+ * банер у колонку на вузькому екрані й додавали пульсацію кнопці. Новий
+ * банер і так колонка, а пульсації в блоці конкурсів немає — з нею
+ * однаковості не вийшло б.
  */
+
+const NAVY_CARD = '#14253B'
+const GOLD = '#EF9F27'
+const CREAM = '#FFF8EE'
+const FONT = "'Montserrat', Arial, sans-serif"
+const SERIF = "'Lora', Georgia, serif"
+
 export default function FreeBanner() {
   return (
     <section
       aria-label="Безкоштовне ознайомлення"
-      style={{
-        fontFamily: 'Montserrat, sans-serif',
-        padding: '1rem 1.25rem',
-        // Було 1200 — під один короткий рядок це давало порожню стрічку
-        // на пів екрана, і банер читався як смуга, а не як акцент.
-        maxWidth: 560,
-        margin: '0 auto',
-      }}
+      style={{ maxWidth: 1100, margin: '0 auto', padding: '8px 20px 4px' }}
     >
-      <a
-        href="#how-it-works"
-        className="free-banner"
+      <div
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 14,
-          // Біла плашка (рішення Богдана 12.09.2026). Золотий текст на білому
-          // дає контраст близько 2:1 і не читається — те саме вже виявилося в
-          // читалці, де на світлому аркуші золото довелося міняти на темніше.
-          // Тому золото тут працює на рамці, іконці й підкладці слова
-          // «БЕЗКОШТОВНО», а сам текст — темно-синій.
-          background: '#ffffff',
-          // Рамки навмисно немає: така сама золота рамка стоїть на картках
-          // вище й на конкурсах нижче, і банер зливався з ними. Акцент
-          // тримає ліва смуга — той самий прийом, що в блоках на сторінці
-          // твору, тож сайт лишається одноманітним.
-          borderLeft: '6px solid #ef9f27',
-          borderRadius: '0 14px 14px 0',
-          padding: '14px 18px',
-          textDecoration: 'none',
-          color: '#0f1e3a',
-          position: 'relative',
-          overflow: 'hidden',
+          border: '1px solid rgba(239,159,39,0.45)',
+          borderRadius: 14,
+          background: NAVY_CARD,
+          padding: '18px 20px',
+          textAlign: 'center',
         }}
       >
-
-        <span
-          className="free-banner__text"
+        <div
           style={{
-            flex: 1,
-            minWidth: 0,
-            fontSize: 13.5,
-            lineHeight: 1.5,
-            position: 'relative',
-            zIndex: 1,
+            fontFamily: FONT,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: 1.2,
+            color: GOLD,
+            marginBottom: 4,
           }}
         >
-          <span style={{ display: 'block', color: '#0f1e3a', fontSize: 15, fontWeight: 700 }}>
-            Понад 900 історій і 24 серії
-          </span>
-          {/* Темніший відтінок золота, ніж скрізь на сайті. Фірмовий #ef9f27
-              на білому дає контраст близько 2:1 — те саме вже виявилося в
-              читалці, де на світлому аркуші довелося взяти #8a5200. */}
-          <span style={{ display: 'block', color: '#8a5200', fontSize: 14, fontWeight: 800, marginTop: 4 }}>
-            БЕЗКОШТОВНО. БЕЗ РЕЄСТРАЦІЇ.
-          </span>
-        </span>
+          БЕЗКОШТОВНО. БЕЗ РЕЄСТРАЦІЇ.
+        </div>
 
-        {/* Темно-синя, а не золота: на білому тлі золота кнопка читалася гірше
-            за текст, і золото сперечалося саме з собою — смуга, іконка й кнопка
-            одного кольору. Тепер золото в одному місці. */}
-        <span
-          className="free-banner__cta"
-          style={{ background: '#0f1e3a', color: '#ffffff' }}
+        <div style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 500, color: CREAM }}>
+          Понад 900 історій і 24 серії
+        </div>
+
+        <Link
+          href="#how-it-works"
+          style={{
+            display: 'inline-block',
+            marginTop: 14,
+            fontFamily: FONT,
+            fontSize: 13,
+            fontWeight: 700,
+            color: '#0E1A2B',
+            background: GOLD,
+            padding: '9px 18px',
+            borderRadius: 20,
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+          }}
         >
           Читати&nbsp;→
-        </span>
-      </a>
-
+        </Link>
+      </div>
     </section>
   )
 }
