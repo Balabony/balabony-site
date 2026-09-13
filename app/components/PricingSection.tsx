@@ -976,13 +976,13 @@ export default function PricingSection({ variant = 'full' }: { variant?: Pricing
         fontFamily: "'Montserrat', Arial, sans-serif",
         borderTop: '1px solid rgba(255,255,255,0.1)',
       }}>
-        Передплата підтримує роботу платформи й гонорари авторів. Соціальний тариф 1&nbsp;₴/рік
+        {!isFull && <>Передплата підтримує роботу платформи й гонорари авторів. Соціальний тариф 1&nbsp;₴/рік
         (для УБД, ВПО та людей з інвалідністю) і благодійні внески — окремий некомерційний напрям
         ЛОГО «Інститут громадянського суспільства». Повна назва партнера —
         Львівська обласна громадська організація «Інститут громадянського суспільства».{' '}
         <a href="/support" style={{ color: '#EF9F27', textDecoration: 'none', fontWeight: 600 }}>
           Підтримати ініціативу →
-        </a>
+        </a></>}
         {/* Повне розкриття — лише на /peredplata. На головній воно зайве:
             там ми свідомо тримаємо місійний бік, а назва ФОПа поруч із
             гаслом читається як комерційна сторінка. Тут же, у розділі про
@@ -990,8 +990,11 @@ export default function PricingSection({ variant = 'full' }: { variant?: Pricing
         {isFull && (
           <>
             <span style={{ display: 'block', height: 14 }} />
-            <span style={{ display: 'block', textAlign: 'left', maxWidth: 640, margin: '0 auto' }}>
-              <strong style={{ display: 'block', color: 'rgba(255,255,255,0.82)', fontSize: 14, marginBottom: 8 }}>
+            <span style={{
+              display: 'block', textAlign: 'left', maxWidth: 640, margin: '0 auto',
+              fontSize: 15, lineHeight: 1.75, color: 'rgba(255,255,255,0.8)',
+            }}>
+              <strong style={{ display: 'block', color: '#EF9F27', fontSize: 17, marginBottom: 12 }}>
                 Куди йдуть кошти
               </strong>
               Передплата покриває роботу платформи й гонорари авторам за прочитання.
@@ -1260,7 +1263,11 @@ function OrgCard({
           padding: '5px 14px', borderRadius: 999, whiteSpace: 'nowrap',
         }}
       >
-        {social ? `Соціальна ціна · −${discount}` : `Вигода ${discount}`}
+        {/* У корпоративного НЕ показуємо відсоток: поруч із бібліотечними 80%
+            будь-яке менше число читається як «той пакет вигідніший», хоча
+            це різні покупці. Компанії важить ціна за особу — саме нею вона
+            обґрунтовує витрату. */}
+        {social ? 'Соціальна ціна' : `${seats} місць · ${perPerson.replace(' на рік', '')}`}
       </span>
 
       <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: accent, marginBottom: 10 }}>
