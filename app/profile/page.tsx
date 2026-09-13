@@ -26,7 +26,35 @@ export default async function ProfilePage() {
     .eq('id', user.id)
     .single()
 
-  const hasSubscription = profile?.subscription_until && new Date(profile.subscription_until) > new Date()
+  // 13.09.2026: кабінет показував «Немає активної підписки» тому, хто доступ
+  // МАЄ. Причина — два різні записи про підписку: users.subscription_until
+  // заповнює лише активація подарунка, а реальний доступ до серій усюди
+  // вирішує app_subscriptions. Тепер кабінет питає ту саму таблицю, що й
+  // сторінка серії, інакше читач бачить одне, а сайт робить інше.
+  const { data: subRow } = await supabase
+    .from('app_subscriptions')
+    .select('plan, expires_at, source')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .gt('expires_at', new Date().toISOString())
+    .order('expires_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  // Старе поле лишається як запасне: подарункові підписки досі пишуться туди.
+  const legacyUntil = profile?.subscription_until && new Date(profile.subscription_until) > new Date()
+    ? profile.subscription_until
+    : null
+
+  const hasSubscription = Boolean(subRow) || Boolean(legacyUntil)
+  const subUntil = subRow?.expires_at ?? legacyUntil
+  const subLabel = subRow?.source === 'group'
+    ? 'груповий доступ'
+    : subRow?.plan === 'yearly'
+      ? 'річна'
+      : subRow?.plan === 'monthly'
+        ? 'місячна'
+        : (profile?.subscription_tier || 'базова')
 
   // Бали й прочитані серії. Обидва запити не критичні: якщо не вдалися,
   // показуємо нулі, а не ламаємо сторінку.
@@ -147,11 +175,15 @@ export default async function ProfilePage() {
               borderRadius: '8px',
               color: '#7ddba0',
             }}>
-              <strong>Активна:</strong> {profile.subscription_tier || 'базова'}
-              <br />
-              <span style={{ fontSize: '0.9rem' }}>
-                до {new Date(profile.subscription_until).toLocaleDateString('uk-UA')}
-              </span>
+              <strong>Активна:</strong> {subLabel}
+              {subUntil && (
+                <>
+                  <br />
+                  <span style={{ fontSize: '0.9rem' }}>
+                    до {new Date(subUntil).toLocaleDateString('uk-UA')}
+                  </span>
+                </>
+              )}
             </div>
           ) : (
             <div style={{
@@ -161,7 +193,7 @@ export default async function ProfilePage() {
               color: '#FAC775',
             }}>
               Немає активної підписки.{' '}
-              <a href="/" style={{ color: '#FAC775', textDecoration: 'underline' }}>
+              <a href="/peredplata" style={{ color: '#FAC775', textDecoration: 'underline' }}>
                 Обрати план
               </a>
             </div>
