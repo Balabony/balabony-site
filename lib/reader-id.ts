@@ -75,6 +75,29 @@ export async function mergeAnonInto(userId: string): Promise<void> {
     // не вдалося — не страшно, історія лишиться на cookie
   }
 
+  // Прочитання з article_reads. САМЕ З ЦІЄЇ таблиці рахуються дочитування
+  // в конкурсах і винагорода авторам за договором, п. 1.5 — тому без цього
+  // перенесення читач, який дочитав серії гостем і аж потім зареєструвався,
+  // не приносив авторові нічого. Половина конкурсної оцінки складається
+  // саме з цих чисел.
+  //
+  // Ключ таблиці — (user_id, content_id, read_date), тож `on conflict do
+  // nothing` коректно відсіює день, який на акаунті вже зарахований.
+  try {
+    await dbQuery(
+      `insert into article_reads
+         (user_id, content_id, read_date, article_slug, article_title,
+          completed, read_percentage, time_spent_seconds, read_at)
+       select $1, content_id, read_date, article_slug, article_title,
+              completed, read_percentage, time_spent_seconds, read_at
+         from article_reads where user_id = $2
+       on conflict do nothing`,
+      [userId, anon],
+    )
+  } catch (e) {
+    console.error('[mergeAnonInto] article_reads', (e as Error)?.message)
+  }
+
   try {
     await dbQuery(
       `insert into point_events (user_id, kind, ref, points)
