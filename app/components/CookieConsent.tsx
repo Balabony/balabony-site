@@ -99,16 +99,15 @@ export default function CookieConsent() {
         color: '#f5f0e8',
       }}
     >
+      {/* Текст скорочено 13.09.2026: банер накривав блок конкурсів на головній,
+          і чим він вищий, тим більше ховає. */}
       <p style={{ margin: '0 0 10px', fontSize: 15, lineHeight: 1.55 }}>
-        Дозволяєте порахувати, які історії читають? Це допомагає нам їх
-        добирати. Читати можна й без дозволу.
+        Порахувати, які історії читають?
       </p>
       <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.5, color: '#8899bb' }}>
-        Докладніше — у{' '}
         <a href="/legal/cookies" style={{ color: GOLD, fontWeight: 600 }}>
-          Політиці Cookies
+          Політика Cookies
         </a>
-        . Змінити вибір можна будь-коли.
       </p>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
         <button

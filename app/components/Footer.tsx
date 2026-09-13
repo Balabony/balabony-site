@@ -306,6 +306,10 @@ export default function Footer() {
           >
             Літературні конкурси →
           </a>
+          {/* 13.09.2026: було «Озвучення на замовлення» — напис обіцяв платну
+              послугу, якої на /holosy немає (там голоси платформи й голосування
+              читачів). Комерційний сигнал у підвалі зайвий і при перевірці на
+              Google Ad Grants читається як продаж послуг. */}
           <a
             href="/holosy"
             className="footer-link"
@@ -315,23 +319,7 @@ export default function Footer() {
               textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
             }}
           >
-            Озвучення на замовлення →
-          </a>
-          {/* 10.09.2026: послуги веброзробки. У головне меню свідомо не
-              виводимо — грантові партнери дивляться balabony.com як
-              культурний проєкт, і розділ «замовте сайт» у навігації
-              змістив би враження. У підвалі, поруч із озвученням на
-              замовлення, воно на своєму місці. */}
-          <a
-            href="/poslugy"
-            className="footer-link"
-            style={{
-              display: 'block', marginTop: 6,
-              color: 'var(--accent-gold)', fontSize: 14, fontWeight: 600,
-              textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
-            }}
-          >
-            Створення сайтів →
+            Голоси платформи →
           </a>
         </div>
 
