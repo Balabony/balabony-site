@@ -167,3 +167,50 @@ export async function sendGiftDeliveryEmail({
 </html>`,
   })
 }
+/**
+ * Запрошення до групового доступу (сімейний, корпоративний, бібліотечний).
+ *
+ * Лист навмисно короткий і без картинок: він іде людині, яка про Балабони
+ * могла не чути взагалі, і має відповісти на три питання — хто кличе, що
+ * дають, куди тиснути.
+ */
+export async function sendPlanInviteEmail({
+  to, ownerName, kindLabel, acceptUrl, expiresLabel,
+}: {
+  to: string; ownerName: string; kindLabel: string
+  acceptUrl: string; expiresLabel: string
+}) {
+  await getResend().emails.send({
+    from: process.env.RESEND_FROM_EMAIL ?? 'editorial@balabony.com',
+    to,
+    subject: 'Вам відкрито доступ до Балабонів',
+    html: `
+<!DOCTYPE html>
+<html lang="uk">
+<body style="font-family:Arial,sans-serif;background:#0a1628;color:#f5f0e8;padding:32px;max-width:600px;margin:0 auto;">
+<div style="background:#0f1e3a;border-radius:16px;padding:28px;border:1px solid rgba(240,165,0,0.3);">
+  <div style="font-size:22px;font-weight:700;color:#f0a500;margin-bottom:24px;">Balabony</div>
+  <p style="color:#c8d4e8;line-height:1.7;margin-bottom:18px;">
+    <strong style="color:#f5f0e8;">${ownerName}</strong> відкрив вам доступ до Балабонів —
+    української платформи історій. Це ${kindLabel.toLowerCase()}: понад 900 історій,
+    серіали «Балабони» і «Тиша», без реклами.
+  </p>
+  <p style="color:#c8d4e8;line-height:1.7;margin-bottom:24px;">
+    У вас буде власний обліковий запис: свої закладки, своя історія читання.
+    Ніхто інший їх не бачить.
+  </p>
+  <a href="${acceptUrl}" style="display:block;text-align:center;background:#f0a500;color:#081420;padding:15px 20px;border-radius:10px;text-decoration:none;font-weight:700;font-size:16px;margin-bottom:20px;">
+    Прийняти запрошення
+  </a>
+  <p style="font-size:13px;color:#8899bb;line-height:1.6;margin:0;">
+    Увійдіть саме цією поштою — запрошення прив'язане до неї.
+    Посилання дійсне до ${expiresLabel}.
+  </p>
+</div>
+<p style="font-size:11px;color:#445566;margin-top:18px;text-align:center;">
+  Якщо ви не знаєте, хто це надіслав — просто не переходьте за посиланням.
+</p>
+</body>
+</html>`,
+  })
+}

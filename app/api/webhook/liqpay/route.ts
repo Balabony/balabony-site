@@ -21,6 +21,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { recordRevenueEvent } from '@/lib/revenue'
+import { SEATS_BY_KIND, extendGroup, type PlanGroupKind } from '@/lib/plan-groups'
 
 const PRIVATE_KEY = process.env.LIQPAY_PRIVATE_KEY || ''
 
@@ -45,6 +46,21 @@ function inferPlanAndDuration(amount: number): { plan: 'monthly' | 'yearly', mon
   // Anything paid as a year-tier (>= 890₴) → yearly. Otherwise monthly.
   if (amount >= 890) return { plan: 'yearly',  months: 12 }
   return                    { plan: 'monthly', months: 1  }
+}
+
+/**
+ * Груповий пакет за сумою платежу.
+ *
+ * Так само, як inferPlanAndDuration: LiqPay повертає лише суму, tier до нас
+ * не доходить. Тому вид пакета впізнаємо за ціною з прайсу (PricingSection).
+ * Числа мусять збігатися з цінами — при зміні прайсу правити ТУТ ТЕЖ.
+ *
+ * Сімейні: 199 ₴/міс і 1390 ₴/рік. Ці дві суми унікальні серед тарифів, тож
+ * сплутати з особистими (129 / 890 / 600) не можна.
+ */
+function inferGroupKind(amount: number): PlanGroupKind | null {
+  if (amount === 199 || amount === 1390) return 'family'
+  return null
 }
 
 function addMonths(date: Date, months: number): Date {
@@ -216,6 +232,41 @@ export async function POST(req: NextRequest) {
         liqpay_order_id:   order_id,
         liqpay_payment_id: payment_id ? String(payment_id) : null,
       })
+
+    // ── Груповий пакет: створюємо групу місць
+    //
+    // Робиться ПІСЛЯ вставки підписки і НЕ ламає її при помилці: власник у
+    // будь-якому разі має доступ, а групу можна створити повторно наступним
+    // платежем або вручну. Зворотний порядок міг би лишити людину без
+    // оплаченого доступу через збій у побічній таблиці.
+    if (!insertErr) {
+      const kind = inferGroupKind(numAmount)
+      if (kind) {
+        const { data: already } = await sb
+          .from('plan_groups')
+          .select('id')
+          .eq('owner_user_id', userId)
+          .gt('expires_at', new Date().toISOString())
+          .maybeSingle()
+
+        if (already) {
+          // Друга оплата того самого пакета ПРОДОВЖУЄ наявну групу разом з
+          // усіма виданими нею підписками — а не створює другу групу, у якій
+          // учасників довелося б запрошувати наново.
+          await extendGroup(already.id, expiresAt.toISOString())
+        } else {
+          const { error: groupErr } = await sb.from('plan_groups').insert({
+            owner_user_id:   userId,
+            kind,
+            seats:           SEATS_BY_KIND[kind],
+            plan,
+            expires_at:      expiresAt.toISOString(),
+            liqpay_order_id: order_id,
+          })
+          if (groupErr) console.error('[webhook/liqpay] plan_group insert failed', order_id, groupErr)
+        }
+      }
+    }
 
     if (insertErr) {
       // 23503 = FK violation (user_id doesn't exist in app_users)
