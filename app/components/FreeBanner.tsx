@@ -45,23 +45,6 @@ export default function FreeBanner() {
           overflow: 'hidden',
         }}
       >
-        {/* Домик (HomeIcon в стилі Breadcrumbs.tsx) */}
-        <span className="free-banner__icon" aria-hidden="true">
-          <svg
-            width={22}
-            height={22}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.4}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-          >
-            <path d="M3 12l9-9 9 9" />
-            <path d="M5 10v10h14V10" />
-            <path d="M10 20v-6h4v6" />
-          </svg>
-        </span>
 
         <span
           className="free-banner__text"

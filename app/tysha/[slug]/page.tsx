@@ -434,13 +434,14 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
         </div>
       )}
 
-      {/* Наступна серія */}
-      {next && !locked && (
+      {/* ДАЛІ БУДЕ — лише анонс. Назву й посилання на наступну серію вже дає
+          EpisodeNav вище; раніше цей блок повторював їх, і читач бачив дві
+          однакові картки поспіль. Лишається те, чого в навігації немає. */}
+      {next && !locked && ep.next_teaser && (
         <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px 48px' }}>
           <Link href={`/tysha/${next.slug}`} id="tysha-next-link" className="reader-card" style={{ display: 'block', padding: 16, borderRadius: 12, background: '#0f1e3a', border: `1.5px solid ${AMBER}`, textDecoration: 'none' }}>
-            <div style={{ fontSize: 11, color: 'rgba(245,240,232,0.5)', marginBottom: 4 }}>Наступна серія →</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--r-gold, #ef9f27)' }}>{next.title}</div>
-            {ep.next_teaser && <div style={{ fontSize: 13, color: 'rgba(245,240,232,0.7)', marginTop: 6 }}>{ep.next_teaser}</div>}
+            <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(245,240,232,0.5)', marginBottom: 6 }}>Далі буде…</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'rgba(245,240,232,0.9)', lineHeight: 1.5 }}>{ep.next_teaser}</div>
           </Link>
         </div>
       )}

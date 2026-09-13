@@ -101,12 +101,12 @@ export default function StoryEmailCapture({
             id="story-email-title"
             style={{ fontSize: 18, fontWeight: 800, color: CREAM, margin: '0 0 8px' }}
           >
-            Нове на Балабонах — щовівторка і щоп&apos;ятниці
+            Нове на Балабонах — щотижня
           </h2>
           {/* Блок стоїть і на сторінці серії, і на сторінці окремої історії, тож
               текст не звужуємо до серій: на /stories/ обіцянка «наступна серія»
               була неправдива. */}
-          <p style={{ fontSize: 14, color: '#b5c7dd', lineHeight: 1.6, margin: '0 0 18px' }}>
+          <p style={{ fontSize: 14, color: '#f5f0e8', lineHeight: 1.6, margin: '0 0 18px' }}>
             Лишіть пошту — надішлемо, щойно вийде нове. Це безкоштовно,
             відписатися можна одним кліком у будь-якому листі.
           </p>
@@ -188,7 +188,7 @@ export default function StoryEmailCapture({
             aria-hidden="true"
           />
 
-          <p style={{ fontSize: 11, color: '#7f93ab', lineHeight: 1.5, margin: compact ? '8px 0 0' : '10px 0 0' }}>
+          <p style={{ fontSize: 11, color: '#c9d6e5', lineHeight: 1.5, margin: compact ? '8px 0 0' : '10px 0 0' }}>
             Натискаючи «Надсилайте», ви погоджуєтеся отримувати листи про нові серії.
           </p>
 
