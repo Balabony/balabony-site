@@ -83,6 +83,23 @@ type Stat = {
   published: number
 }
 
+type Editor = {
+  id: number
+  name: string
+  email: string
+}
+
+/** Суддівський стан роботи — номер, хто читає, чи є бал. */
+type Judging = {
+  entry_id: string
+  entry_number: number | null
+  primary_editor: number | null
+  recheck_editor: number | null
+  score_status: string | null
+  score_total: number | null
+  recheck_total: number | null
+}
+
 const STATUS_LABEL: Record<string, string> = {
   new:      'нова',
   accepted: 'прийнята',
@@ -130,6 +147,8 @@ export default function AdminKonkursyPage() {
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
   const [loading, setLoading] = useState(true)
+  const [editors, setEditors] = useState<Editor[]>([])
+  const [judging, setJudging] = useState<Judging[]>([])
 
   const load = useCallback(async (entryId?: string) => {
     setErr('')
@@ -153,7 +172,50 @@ export default function AdminKonkursyPage() {
     }
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  /**
+   * Суддівський шар: редактори, номери, призначення, стан оцінок.
+   * Окремим запитом, а не в /api/admin/konkursy — щоб правка приймання
+   * заявок і правка суддівства ніколи не чіпали один файл.
+   */
+  const loadJudging = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/suddivstvo')
+      const d = await res.json()
+      if (res.ok && d.ok) {
+        setEditors(d.editors as Editor[])
+        setJudging(d.judging as Judging[])
+      }
+    } catch {
+      /* мовчки: приймання заявок має працювати й без цього шару */
+    }
+  }, [])
+
+  useEffect(() => { void load(); void loadJudging() }, [load, loadJudging])
+
+  /** Дія суддівства: нумерація, призначення, зняття, друга думка. */
+  const judge = useCallback(async (payload: Record<string, unknown>) => {
+    setBusy(true)
+    setErr('')
+    try {
+      const res = await fetch('/api/admin/suddivstvo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const d = await res.json()
+      if (!res.ok || !d.ok) {
+        setErr(d?.error || 'Дія не виконалася')
+        return null
+      }
+      await loadJudging()
+      return d as Record<string, unknown>
+    } catch {
+      setErr('Немає звʼязку із сервером')
+      return null
+    } finally {
+      setBusy(false)
+    }
+  }, [loadJudging])
 
   async function open(id: string) {
     if (openId === id) { setOpenId(null); setEpisodes([]); return }
@@ -257,6 +319,32 @@ export default function AdminKonkursyPage() {
           ))}
         </div>
 
+        {/* ── Нумерація робіт ───────────────────────────────────── */}
+        <div style={{ display: 'flex', gap: '.7rem', alignItems: 'center',
+                      flexWrap: 'wrap', marginBottom: '1.1rem' }}>
+          <button
+            onClick={async () => {
+              const targets = filter ? [filter] : stats.map(x => x.id)
+              let total = 0
+              for (const c of targets) {
+                const d = await judge({ action: 'number', contest: c })
+                total += Number(d?.numbered ?? 0)
+              }
+              if (total > 0) setErr('')
+            }}
+            disabled={busy}
+            style={{ font: 'inherit', background: 'rgba(239,159,39,.12)', color: GOLD_L,
+                     border: '1px solid rgba(239,159,39,.5)', borderRadius: 8,
+                     padding: '.5rem 1.1rem', cursor: busy ? 'default' : 'pointer' }}
+          >
+            Пронумерувати прийняті роботи{filter ? ' цього конкурсу' : ''}
+          </button>
+          <span style={{ fontSize: 12.5, color: MUTED, lineHeight: 1.6 }}>
+            Номер замінює редакторові прізвище автора. Присвоюється один раз
+            і не міняється; уже пронумеровані пропускаються.
+          </span>
+        </div>
+
         {loading && <p style={{ color: MUTED }}>Завантажую…</p>}
 
         {!loading && shown.length === 0 && (
@@ -268,6 +356,7 @@ export default function AdminKonkursyPage() {
         {/* ── Заявки ───────────────────────────────────────────── */}
         {shown.map(e => {
           const st = stats.find(x => x.id === e.contest)
+          const j = judging.find(x => x.entry_id === e.id)
           const need = st?.episodesNeed ?? 0
           const late = Boolean(st && e.created_at.slice(0, 10) > st.closesAt)
           return (
@@ -278,7 +367,8 @@ export default function AdminKonkursyPage() {
                       style={{ font: 'inherit', background: 'transparent', border: 0,
                                color: GOLD_L, fontSize: 15.5, fontWeight: 600,
                                cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                {openId === e.id ? '▾ ' : '▸ '}{e.title}
+                {openId === e.id ? '▾ ' : '▸ '}
+                {j?.entry_number ? `№ ${j.entry_number} · ` : ''}{e.title}
               </button>
               <span style={{ fontSize: 12, color: STATUS_COLOR[e.status] ?? MUTED }}>
                 {STATUS_LABEL[e.status] ?? e.status}
@@ -392,6 +482,92 @@ export default function AdminKonkursyPage() {
                     </button>
                   )}
                 </div>
+
+                {/* ── Суддівство ────────────────────────────────── */}
+                {e.status === 'accepted' && (
+                  <div style={{ marginTop: '.9rem', paddingTop: '.8rem',
+                                borderTop: `1px solid ${LINE}` }}>
+                    <div style={{ fontSize: 13, color: GOLD_L, marginBottom: '.5rem' }}>
+                      Суддівство
+                    </div>
+
+                    {!j?.entry_number && (
+                      <p style={{ color: '#eab308', fontSize: 12.5, margin: '0 0 .5rem' }}>
+                        Роботі не присвоєно номер — призначити редактора не можна.
+                      </p>
+                    )}
+
+                    <div style={{ display: 'flex', gap: '.6rem', alignItems: 'center',
+                                  flexWrap: 'wrap', fontSize: 13 }}>
+                      <span style={{ color: MUTED }}>Читає:</span>
+                      <select
+                        value={j?.primary_editor ?? ''}
+                        disabled={busy || !j?.entry_number}
+                        onChange={ev => {
+                          const v = ev.target.value
+                          void judge(v
+                            ? { action: 'assign', entryId: e.id, editorId: Number(v) }
+                            : { action: 'unassign', entryId: e.id })
+                        }}
+                        style={{ font: 'inherit', background: NAVY, color: CREAM,
+                                 border: `1px solid ${LINE}`, borderRadius: 8,
+                                 padding: '.35rem .6rem' }}
+                      >
+                        <option value="">— не призначено —</option>
+                        {editors.map(ed => (
+                          <option key={ed.id} value={ed.id}>{ed.name}</option>
+                        ))}
+                      </select>
+
+                      <span style={{ color: MUTED }}>
+                        Бал:{' '}
+                        <b style={{ color: j?.score_status === 'submitted' ? '#22c55e' : CREAM }}>
+                          {j?.score_status === 'submitted'
+                            ? `${j.score_total} з 50`
+                            : j?.score_status === 'draft' ? 'чернетка' : 'немає'}
+                        </b>
+                      </span>
+
+                      {st && (
+                        <span style={{ color: MUTED }}>
+                          Дочитувань: <b style={{ color: CREAM }}>{e.counted}</b>
+                        </span>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '.6rem', alignItems: 'center',
+                                  flexWrap: 'wrap', fontSize: 13, marginTop: '.5rem' }}>
+                      <span style={{ color: MUTED }}>Друга думка:</span>
+                      <select
+                        value={j?.recheck_editor ?? ''}
+                        disabled={busy || !j?.entry_number}
+                        onChange={ev => {
+                          const v = ev.target.value
+                          if (v) void judge({ action: 'recheck', entryId: e.id, editorId: Number(v) })
+                        }}
+                        style={{ font: 'inherit', background: NAVY, color: CREAM,
+                                 border: `1px solid ${LINE}`, borderRadius: 8,
+                                 padding: '.35rem .6rem' }}
+                      >
+                        <option value="">— не потрібна —</option>
+                        {editors.map(ed => (
+                          <option key={ed.id} value={ed.id}>{ed.name}</option>
+                        ))}
+                      </select>
+                      {j?.recheck_total !== null && j?.recheck_total !== undefined && (
+                        <span style={{ color: MUTED }}>
+                          Другий бал: <b style={{ color: CREAM }}>{j.recheck_total} з 50</b>
+                        </span>
+                      )}
+                    </div>
+
+                    <p style={{ color: MUTED, fontSize: 12, margin: '.5rem 0 0', lineHeight: 1.6 }}>
+                      Другу думку призначає людина. Автоматичної перевірки
+                      «одна половина вдвічі перевищує другу» немає: як
+                      дочитування перетворюються на 50 балів, ще не визначено.
+                    </p>
+                  </div>
+                )}
 
                 {e.status === 'accepted' && (
                   <p style={{ color: MUTED, fontSize: 12.5, marginTop: '.7rem', marginBottom: 0 }}>
