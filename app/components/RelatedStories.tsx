@@ -21,10 +21,12 @@ type Item = { id: string; slug: string | null; title: string; author_name: strin
 async function fetchItems(params: {
   excludeId: string
   authorName?: string | null
+  /** Виключити твори цього автора — для блоку «Читати далі». */
+  excludeAuthor?: string | null
   genre?: string | null
   limit: number
 }): Promise<Item[]> {
-  const { excludeId, authorName, genre, limit } = params
+  const { excludeId, authorName, excludeAuthor, genre, limit } = params
   try {
     const supabase = getSupabaseAdmin()
     let q = supabase
@@ -37,6 +39,7 @@ async function fetchItems(params: {
       .limit(limit)
 
     if (authorName) q = q.eq('author_name', authorName)
+    if (excludeAuthor) q = q.neq('author_name', excludeAuthor)
     if (genre) q = q.eq('genre', genre)
 
     const { data, error } = await q
@@ -99,16 +102,25 @@ export default async function RelatedStories({
   authorName: string | null
   genre: string | null
 }) {
-  const [byAuthor, byGenre] = await Promise.all([
+  const [byAuthor, byGenre, byOthers] = await Promise.all([
     authorName ? fetchItems({ excludeId: storyId, authorName, limit: 4 }) : Promise.resolve([]),
     genre ? fetchItems({ excludeId: storyId, genre, limit: 8 }) : Promise.resolve([]),
+    // Твори ІНШИХ авторів. Потрібні не для краси: в умовах конкурсів
+    // дочитування зараховується лише читачеві, який прочитав на платформі
+    // щонайменше один твір іншого автора. Без такого блоку читач, що дійшов
+    // до кінця тексту, не має куди перейти — і його чесне дочитування
+    // фільтр не зарахує. «Схожі за жанром» тут не рятують: вони автора не
+    // виключають і можуть привести до ще одного твору того самого автора.
+    fetchItems({ excludeId: storyId, excludeAuthor: authorName, limit: 12 }),
   ])
 
   // Твори автора вже показані вище — у добірці за жанром їх не дублюємо.
   const shown = new Set(byAuthor.map((i) => i.id))
   const similar = byGenre.filter((i) => !shown.has(i.id)).slice(0, 4)
+  similar.forEach((i) => shown.add(i.id))
+  const others = byOthers.filter((i) => !shown.has(i.id)).slice(0, 4)
 
-  if (byAuthor.length === 0 && similar.length === 0) return null
+  if (byAuthor.length === 0 && similar.length === 0 && others.length === 0) return null
 
   return (
     <>
@@ -118,6 +130,7 @@ export default async function RelatedStories({
         more={authorName ? { href: `/avtor/${authorSlug(authorName)}`, label: 'Усі твори автора' } : undefined}
       />
       <Section title={genre ? `Схожі: ${genre}` : 'Схожі історії'} items={similar} />
+      <Section title="Читати далі — інші автори" items={others} more={{ href: '/stories', label: 'Усі історії' }} />
     </>
   )
 }
