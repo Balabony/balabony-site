@@ -214,3 +214,57 @@ export async function sendPlanInviteEmail({
 </html>`,
   })
 }
+
+/**
+ * Юрособі відкрито груповий доступ після оплати за рахунком.
+ *
+ * Лист іде контактній особі, яка стає власником пакета. Головне, що він
+ * має пояснити: доступ уже працює, а людей запрошують самостійно на /group.
+ * Без цього листа клієнт заплатив і не знає, що робити далі.
+ */
+export async function sendGroupOpenedEmail({
+  to, orgName, kindLabel, seats, expiresLabel, manageUrl,
+}: {
+  to: string; orgName: string; kindLabel: string
+  seats: number; expiresLabel: string; manageUrl: string
+}) {
+  await getResend().emails.send({
+    from: process.env.RESEND_FROM_EMAIL ?? 'editorial@balabony.com',
+    to,
+    subject: 'Балабони: доступ для вашої організації відкрито',
+    html: `
+<!DOCTYPE html>
+<html lang="uk">
+<body style="font-family:Arial,sans-serif;background:#0a1628;color:#f5f0e8;padding:32px;max-width:620px;margin:0 auto;">
+<div style="background:#0f1e3a;border-radius:16px;padding:28px;border:1px solid rgba(240,165,0,0.3);">
+  <div style="font-size:22px;font-weight:700;color:#f0a500;margin-bottom:22px;">Balabony</div>
+
+  <p style="color:#c8d4e8;line-height:1.7;margin-bottom:18px;">
+    Кошти надійшли — доступ для <strong style="color:#f5f0e8;">${orgName}</strong> відкрито.
+  </p>
+
+  <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:16px 18px;margin-bottom:20px;font-size:14px;color:#c8d4e8;line-height:1.9;">
+    <div>Пакет: <strong style="color:#f5f0e8;">${kindLabel}</strong></div>
+    <div>Місць: <strong style="color:#f5f0e8;">${seats}</strong></div>
+    <div>Діє до: <strong style="color:#f5f0e8;">${expiresLabel}</strong></div>
+  </div>
+
+  <p style="color:#c8d4e8;line-height:1.7;margin-bottom:18px;">
+    Людей ви запрошуєте самі: вводите пошту, і людині приходить лист із
+    посиланням. У кожного буде власний обліковий запис — свої закладки й
+    своя історія читання, які ніхто інший не бачить.
+  </p>
+
+  <a href="${manageUrl}" style="display:block;text-align:center;background:#f0a500;color:#081420;padding:15px 20px;border-radius:10px;text-decoration:none;font-weight:700;font-size:16px;margin-bottom:18px;">
+    Керувати доступом
+  </a>
+
+  <p style="font-size:13px;color:#8899bb;line-height:1.6;margin:0;">
+    Якщо когось треба замінити — приберіть людину з переліку, і місце
+    звільниться одразу. Питання: nazar@balabony.com
+  </p>
+</div>
+</body>
+</html>`,
+  })
+}

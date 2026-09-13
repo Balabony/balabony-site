@@ -20,6 +20,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { SEATS_BY_KIND, KIND_LABEL, type PlanGroupKind } from '@/lib/plan-groups'
+import { sendGroupOpenedEmail } from '@/lib/email'
+
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://balabony.com'
 
 async function assertAdmin() {
   const jar = await cookies()
@@ -174,11 +177,30 @@ export async function POST(req: NextRequest) {
     updated_at: new Date().toISOString(),
   }).eq('id', reqRow.id)
 
+  // Лист — ОСТАННІМ і поза критичним шляхом: доступ уже відкрито, і збій
+  // Resend не має його скасовувати. Якщо лист не пішов, адміністратор бачить
+  // попередження і пише клієнту сам.
+  let emailWarning: string | null = null
+  try {
+    await sendGroupOpenedEmail({
+      to: ownerEmail,
+      orgName: reqRow.org_name,
+      kindLabel: KIND_LABEL[kind],
+      seats,
+      expiresLabel: expiresAt.toLocaleDateString('uk-UA'),
+      manageUrl: `${SITE}/group`,
+    })
+  } catch (e) {
+    console.error('[admin/plan-requests] opened-email failed', ownerEmail, e)
+    emailWarning = 'Доступ відкрито, але лист не надіслався — напишіть клієнту самі.'
+  }
+
   return NextResponse.json({
     ok: true,
     groupId: group.id,
     seats,
     kindLabel: KIND_LABEL[kind],
     expiresAt: expiresAt.toISOString(),
+    emailWarning,
   })
 }

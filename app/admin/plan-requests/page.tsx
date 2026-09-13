@@ -118,7 +118,10 @@ export default function PlanRequestsPage() {
       })
       const d = await r.json()
       if (d.ok) {
-        setMsg(`Доступ відкрито: ${d.kindLabel}, ${d.seats} місць, до ${fmtDate(d.expiresAt)}. Напишіть контактній особі, що керування — на balabony.com/group`)
+        setMsg(
+          `Доступ відкрито: ${d.kindLabel}, ${d.seats} місць, до ${fmtDate(d.expiresAt)}.` +
+          (d.emailWarning ? ` ${d.emailWarning}` : ' Лист із посиланням на керування надіслано.')
+        )
         await load()
       } else {
         setMsg(d.message ?? 'Не вдалося відкрити доступ.')
