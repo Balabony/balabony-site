@@ -890,6 +890,46 @@ export default function PricingSection({ variant = 'full' }: { variant?: Pricing
           <PensionCard />
         </div>
   
+        {/* ДЛЯ ОРГАНІЗАЦІЙ — корпоративний і бібліотечний.
+            Блок ПОКАЗУЄ тарифи, але кнопка веде на /dlia-orhanizatsiy, яка
+            закрита від індексації до відповіді Google на заявку в Ad Grants:
+            форма з ЄДРПОУ й актами читається як комерційна діяльність.
+            Самі тарифи в прайсі — звичайний опис, ризику не несуть. */}
+        <SectionLabel text="Для організацій" />
+        <div className="bb-pricing-grid">
+          <OrgCard
+            title="Корпоративний"
+            seats={25}
+            price="8 900 ₴"
+            perPerson="356 ₴ за особу на рік"
+            was="22 250 ₴"
+            discount="60%"
+            lead="Для компаній, які відкривають читання працівникам."
+            points={[
+              'Усі серії, історії та казки',
+              'У кожного власний обліковий запис',
+              'Місцями керує одна людина з вашого боку',
+              'Оплата за рахунком, акт виконаних робіт',
+            ]}
+          />
+          <OrgCard
+            title="Бібліотечний"
+            seats={50}
+            price="8 900 ₴"
+            perPerson="178 ₴ за особу на рік"
+            was="44 500 ₴"
+            discount="80%"
+            social
+            lead="Соціальна ціна для публічних бібліотек, шкіл і культурних центрів."
+            points={[
+              'Усі серії, історії та казки',
+              'Удвічі більше місць за ту саму суму',
+              'Налаштування для слабкого зору й дислексії',
+              'Оплата за рахунком, акт виконаних робіт',
+            ]}
+          />
+        </div>
+
         {/* GIFT SECTION */}
         <GiftSection
           gifts={GIFTS_INDIVIDUAL}
@@ -943,6 +983,32 @@ export default function PricingSection({ variant = 'full' }: { variant?: Pricing
         <a href="/support" style={{ color: '#EF9F27', textDecoration: 'none', fontWeight: 600 }}>
           Підтримати ініціативу →
         </a>
+        {/* Повне розкриття — лише на /peredplata. На головній воно зайве:
+            там ми свідомо тримаємо місійний бік, а назва ФОПа поруч із
+            гаслом читається як комерційна сторінка. Тут же, у розділі про
+            гроші, читач саме цього й шукає. */}
+        {isFull && (
+          <>
+            <span style={{ display: 'block', height: 14 }} />
+            <span style={{ display: 'block', textAlign: 'left', maxWidth: 640, margin: '0 auto' }}>
+              <strong style={{ display: 'block', color: 'rgba(255,255,255,0.82)', fontSize: 14, marginBottom: 8 }}>
+                Куди йдуть кошти
+              </strong>
+              Передплата покриває роботу платформи й гонорари авторам за прочитання.
+              Різниця між витратами й доходом іде на соціальний тариф: 1&nbsp;₴ на рік
+              для ветеранів, ВПО та людей з інвалідністю.
+              <span style={{ display: 'block', height: 10 }} />
+              Комерційний і соціальний напрями розділені юридично й у звітності.
+              Передплату приймає ФОП Хомин Ігор Іванович. Пільговий доступ, донати
+              та грантові програми веде ЛОГО «Інститут громадянського суспільства»
+              (Львів, з 2005 року) — громадська організація не продає передплат.
+              <span style={{ display: 'block', height: 10 }} />
+              Спільне в них одне: платформа, якою користуються всі читачі однаково.
+              Той, хто платить, утримує те саме, чим безкоштовно користується той,
+              хто платити не може.
+            </span>
+          </>
+        )}
       </p>
 
       {/* PAYMENT MODAL */}
@@ -1150,6 +1216,97 @@ function PensionCard() {
           onClose={() => setDiiaOpen(false)}
         />
       )}
+    </div>
+  )
+}
+
+/**
+ * Картка пакета для організацій.
+ *
+ * Візуально це PlanCard, але з трьома відмінностями, потрібними саме тут:
+ * закреслена повна вартість (юрособа порівнює із сумою окремих підписок),
+ * ціна за особу (це те число, яким обґрунтовують витрату перед керівництвом)
+ * і кнопка не «Підписатись», а «Залишити заявку» — карткою це не купується.
+ *
+ * `social` фарбує бібліотечну картку інакше: у неї знижка 80% проти 60%, і
+ * без явної позначки «соціальна ціна» компанії питатимуть, чому їм не можна
+ * той самий пакет.
+ */
+function OrgCard({
+  title, seats, price, perPerson, was, discount, lead, points, social = false,
+}: {
+  title: string; seats: number; price: string; perPerson: string
+  was: string; discount: string; lead: string; points: string[]; social?: boolean
+}) {
+  const accent = social ? '#7ddba0' : '#ef9f27'
+  return (
+    <div
+      style={{
+        position: 'relative',
+        background: 'rgba(255,255,255,0.03)',
+        border: `1px solid ${accent}44`,
+        borderRadius: 16,
+        padding: '26px 22px 22px',
+        display: 'flex',
+        flexDirection: 'column',
+        fontFamily: "'Montserrat', Arial, sans-serif",
+      }}
+    >
+      <span
+        style={{
+          position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
+          background: accent, color: '#0a1628', fontSize: 11, fontWeight: 800,
+          letterSpacing: '0.04em', textTransform: 'uppercase',
+          padding: '5px 14px', borderRadius: 999, whiteSpace: 'nowrap',
+        }}
+      >
+        {social ? `Соціальна ціна · −${discount}` : `Вигода ${discount}`}
+      </span>
+
+      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: accent, marginBottom: 10 }}>
+        {title}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 10 }}>
+        <span style={{ fontSize: 34, fontWeight: 800, color: '#fff', lineHeight: 1 }}>{price}</span>
+        <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)' }}>на рік</span>
+      </div>
+
+      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 7 }}>
+        замість <s>{was}</s> · {perPerson}
+      </div>
+
+      <div style={{ fontSize: 14, fontWeight: 700, color: accent, marginTop: 12 }}>
+        {seats} місць
+      </div>
+
+      <p style={{ fontSize: 14, lineHeight: 1.6, color: '#c8d4e8', margin: '10px 0 16px' }}>
+        {lead}
+      </p>
+
+      <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px', display: 'flex', flexDirection: 'column', gap: 9 }}>
+        {points.map((t) => (
+          <li key={t} style={{ display: 'flex', gap: 9, fontSize: 14, lineHeight: 1.5, color: '#e8eef7' }}>
+            <span aria-hidden style={{ color: accent, fontWeight: 700, flexShrink: 0 }}>✓</span>
+            <span>{t}</span>
+          </li>
+        ))}
+      </ul>
+
+      <a
+        href="/dlia-orhanizatsiy"
+        style={{
+          marginTop: 'auto', display: 'block', textAlign: 'center',
+          padding: '14px 20px', borderRadius: 10,
+          border: `1px solid ${accent}`, color: accent,
+          fontSize: 15, fontWeight: 700, textDecoration: 'none',
+        }}
+      >
+        Залишити заявку →
+      </a>
+      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', textAlign: 'center', marginTop: 9 }}>
+        Рахунок надішлемо на пошту
+      </div>
     </div>
   )
 }
