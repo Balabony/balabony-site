@@ -47,6 +47,18 @@ export default async function ProfilePage() {
     : null
 
   const hasSubscription = Boolean(subRow) || Boolean(legacyUntil)
+
+  // Чи людина ВОЛОДІЄ груповим пакетом. Без цього рядка власник сімейного
+  // доступу не мав звідки дізнатися, що керування взагалі існує: сторінка
+  // /group у меню не виводиться, і платник бачив «до 4 акаунтів» у прайсі
+  // без жодної кнопки, щоб їх додати.
+  const { data: ownedGroup } = await supabase
+    .from('plan_groups')
+    .select('id, seats')
+    .eq('owner_user_id', user.id)
+    .gt('expires_at', new Date().toISOString())
+    .limit(1)
+    .maybeSingle()
   const subUntil = subRow?.expires_at ?? legacyUntil
   const subLabel = subRow?.source === 'group'
     ? 'груповий доступ'
@@ -182,6 +194,14 @@ export default async function ProfilePage() {
                   <span style={{ fontSize: '0.9rem' }}>
                     до {new Date(subUntil).toLocaleDateString('uk-UA')}
                   </span>
+                </>
+              )}
+              {ownedGroup && (
+                <>
+                  <br />
+                  <a href="/group" style={{ color: '#7ddba0', textDecoration: 'underline', fontSize: '0.9rem' }}>
+                    Керувати доступом ({ownedGroup.seats} місць) →
+                  </a>
                 </>
               )}
             </div>

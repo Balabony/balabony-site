@@ -28,7 +28,22 @@ export type PlanGroupKind = 'family' | 'corporate' | 'library'
 export const SEATS_BY_KIND: Record<PlanGroupKind, number> = {
   family: 4,
   corporate: 25,
-  library: 100,
+  library: 50,
+}
+
+/**
+ * Річна ціна пакета в гривнях. Обидва платні пакети коштують однаково —
+ * бібліотечний дає вдвічі більше місць за ту саму суму, і це СВІДОМО:
+ * українські публічні бібліотеки бідні, а саме вони — головний канал
+ * доступу для тих, хто платити не може. Тому в прайсі бібліотечний
+ * називається соціальною ціною, а не знижкою.
+ *
+ * Рахунок за обидва виставляється окремо, карткою вони не купуються.
+ */
+export const PRICE_BY_KIND: Record<PlanGroupKind, number | null> = {
+  family: null,      // купується карткою в прайсі
+  corporate: 8900,
+  library: 8900,
 }
 
 export const KIND_LABEL: Record<PlanGroupKind, string> = {

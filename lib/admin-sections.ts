@@ -79,6 +79,7 @@ export const ADMIN_GROUPS: AdminGroup[] = [
     title: 'Читачі',
     items: [
       { href: '/admin/benefits',    label: 'Пільгові статуси', note: 'Ручні заявки на пільгу — те, що Дія не валідує', quick: true, short: 'Пільги' },
+      { href: '/admin/plan-requests', label: 'Груповий доступ',   note: 'Заявки юросіб на корпоративний і бібліотечний пакети', short: 'Групи' },
       { href: '/admin/pidpysnyky',  label: 'Підписники',       note: 'База пошт із блоку під історіями, вивантаження CSV', quick: true, short: 'Підписники' },
     ],
   },
