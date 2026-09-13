@@ -40,11 +40,15 @@ export interface Contest {
   /**
    * Етапи після закриття прийому.
    *
-   * null означає «дату ще не визначено», і в адмінці вона так і
-   * показується. Порожнє поле краще за вигадане: після скасування
-   * різдвяної паузи (24.12–06.01) строки редактури й підсумків треба
-   * перерахувати, і ставити сюди приблизні числа означало б, що хтось
-   * потім опублікує їх як остаточні.
+   * Заповнено 13.09.2026, після публікації умов. До того тут стояв null
+   * («дату ще не визначено»), бо строки залежали від скасування різдвяної
+   * паузи.
+   *
+   * publishFrom, publishUntil і resultsAt узяті з ОПУБЛІКОВАНИХ умов на
+   * /konkursy — міняти їх тут, не змінивши сторінку, не можна.
+   * reviewUntil і scoresUntil — внутрішні віхи редакції, на сайті їх немає:
+   * редактори дочитують до кінця зарахування дочитувань, бали виставляють
+   * за два дні до підсумків.
    *
    * Формат — YYYY-MM-DD, як у opensAt / closesAt.
    */
@@ -79,9 +83,9 @@ export const CONTESTS: Contest[] = [
     stages: {
       publishFrom:  '2026-11-25',
       publishUntil: '2027-01-27',
-      reviewUntil:  null,
-      scoresUntil:  null,
-      resultsAt:    null,
+      reviewUntil:  '2027-02-17',
+      scoresUntil:  '2027-02-22',
+      resultsAt:    '2027-02-24',
     },
   },
   {
@@ -100,9 +104,9 @@ export const CONTESTS: Contest[] = [
     stages: {
       publishFrom:  '2026-11-03',
       publishUntil: '2026-11-17',
-      reviewUntil:  null,
-      scoresUntil:  null,
-      resultsAt:    null,
+      reviewUntil:  '2026-12-08',
+      scoresUntil:  '2026-12-10',
+      resultsAt:    '2026-12-11',
     },
   },
   {
@@ -117,8 +121,8 @@ export const CONTESTS: Contest[] = [
     closesAt: '2026-12-15',
     hint: 'Одна історія до 1500 слів.',
     stages: {
-      publishFrom: null, publishUntil: null,
-      reviewUntil: null, scoresUntil: null, resultsAt: null,
+      publishFrom: '2027-01-12', publishUntil: '2027-01-29',
+      reviewUntil: '2027-02-23', scoresUntil: '2027-03-01', resultsAt: '2027-03-02',
     },
   },
   {
@@ -133,8 +137,8 @@ export const CONTESTS: Contest[] = [
     closesAt: '2026-12-15',
     hint: 'Одна гумористична історія до 1500 слів.',
     stages: {
-      publishFrom: null, publishUntil: null,
-      reviewUntil: null, scoresUntil: null, resultsAt: null,
+      publishFrom: '2027-01-12', publishUntil: '2027-01-29',
+      reviewUntil: '2027-02-23', scoresUntil: '2027-03-01', resultsAt: '2027-03-02',
     },
   },
 ]
