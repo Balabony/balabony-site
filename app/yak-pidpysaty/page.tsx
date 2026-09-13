@@ -102,39 +102,69 @@ export default function HowToSignPage() {
         </Step>
 
         <Step n={3} title="Підпишіть файл">
-          <p style={{ margin: '0 0 10px' }}>Підходить будь-який із трьох способів:</p>
-          <ul style={{ margin: '0 0 10px', paddingLeft: 22 }}>
-            <li style={{ marginBottom: 6 }}>
-              <b>Через Дію.</b> Відкрийте{' '}
-              <a href="https://ca.diia.gov.ua/sign" target="_blank" rel="noopener noreferrer"
-                 style={{ color: GOLD, fontWeight: 700 }}>ca.diia.gov.ua/sign</a>,
-              оберіть «Дія.Підпис», додайте свій PDF і підтвердіть підпис
-              у застосунку Дія на телефоні.
-            </li>
-            <li style={{ marginBottom: 6 }}>
-              <b>Ключем із файлу або токена.</b>{' '}
-              <a href="https://czo.gov.ua/sign" target="_blank" rel="noopener noreferrer"
-                 style={{ color: GOLD, fontWeight: 700 }}>czo.gov.ua/sign</a>.
-            </li>
-            <li>
-              <b>У застосунку свого банку</b>, якщо він видає КЕП.
-            </li>
-          </ul>
+          <p style={{ margin: '0 0 14px' }}>
+            Спосіб залежить від того, що у вас є. Прочитайте свій варіант —
+            другий вам не потрібен.
+          </p>
+
+          <div style={{
+            background: '#f6f8fb', border: `1px solid ${LINE}`, borderRadius: 12,
+            padding: '14px 16px', marginBottom: 14,
+          }}>
+            <p style={{ margin: '0 0 8px', color: INK, fontSize: 17.5 }}>
+              <b>Варіант А. У вас є файл ключа</b>
+            </p>
+            <p style={{ margin: '0 0 10px' }}>
+              Так буває, якщо ви отримували підпис у Приват24 (файл .jks),
+              у податковій чи в іншому банку (файл .dat або .pfx), або маєте
+              захищений носій-токен.
+            </p>
+            <ol style={{ margin: 0, paddingLeft: 22 }}>
+              <li style={{ marginBottom: 6 }}>
+                Відкрийте{' '}
+                <a href="https://czo.gov.ua/sign" target="_blank" rel="noopener noreferrer"
+                   style={{ color: GOLD, fontWeight: 700 }}>czo.gov.ua/sign</a>.
+              </li>
+              <li style={{ marginBottom: 6 }}>
+                Оберіть «за допомогою електронного підпису», далі свій вид ключа,
+                додайте файл ключа й уведіть пароль.
+              </li>
+              <li style={{ marginBottom: 6 }}>Додайте PDF договору й натисніть «Підписати».</li>
+              <li>
+                <b style={{ color: INK }}>Натисніть «Зберегти»</b> — на комп’ютер
+                завантажиться файл із додатковим розширенням .p7s.
+              </li>
+            </ol>
+          </div>
+
+          <div style={{
+            background: '#f6f8fb', border: `1px solid ${LINE}`, borderRadius: 12,
+            padding: '14px 16px',
+          }}>
+            <p style={{ margin: '0 0 8px', color: INK, fontSize: 17.5 }}>
+              <b>Варіант Б. У вас є Дія.Підпис на телефоні</b>
+            </p>
+            <ol style={{ margin: 0, paddingLeft: 22 }}>
+              <li style={{ marginBottom: 6 }}>
+                Відкрийте{' '}
+                <a href="https://ca.diia.gov.ua/sign" target="_blank" rel="noopener noreferrer"
+                   style={{ color: GOLD, fontWeight: 700 }}>ca.diia.gov.ua/sign</a>{' '}
+                і оберіть «Дія.Підпис».
+              </li>
+              <li style={{ marginBottom: 6 }}>Додайте PDF договору й підтвердіть підпис у застосунку Дія на телефоні.</li>
+              <li>
+                <b style={{ color: INK }}>Завантажте файл із підписом</b> —
+                кнопка з’явиться після напису «Документ підписано».
+              </li>
+            </ol>
+            <p style={{ margin: '10px 0 0' }}>
+              Якщо кнопки завантаження там немає — не шукайте далі,
+              скористайтеся варіантом А. Ключ від Приват24 для нього підходить.
+            </p>
+          </div>
         </Step>
 
-        <Step n={4} title="Заберіть файл із підписом — це той крок, який усі пропускають">
-          <p style={{ margin: '0 0 10px' }}>
-            Коли з’явиться напис «Документ підписано», на сторінці буде кнопка
-            <b> «Завантажити файл з підписом»</b>. Натисніть її і збережіть файл.
-          </p>
-          <p style={{ margin: 0 }}>
-            Файл має розширення <b>.p7s</b> (іноді .asice або підписаний PDF).
-            Якщо ви його не завантажили — підпису у вас на руках немає, і
-            надіслати нам нічого.
-          </p>
-        </Step>
-
-        <Step n={5} title="Завантажте файл у кабінеті">
+        <Step n={4} title="Завантажте файл у кабінеті">
           Поверніться до{' '}
           <a href="/author/dashboard" style={{ color: GOLD, fontWeight: 700 }}>кабінету</a>,
           знайдіть свій договір, натисніть «Підписати КЕП», оберіть збережений
