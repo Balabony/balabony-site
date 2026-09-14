@@ -36,8 +36,10 @@ export type AccountRow = {
   requisites_missing: string[]
   works_total: number
   works_published: number
+  contract_id: string | null
   contract_number: string | null
   contract_status: string | null
+  contract_method: string | null
   contract_works: number
   consent: string | null
   last_email_template: string | null
@@ -103,19 +105,23 @@ export async function GET(req: NextRequest) {
   }
 
   // --- 3. Договори --------------------------------------------------------
-  const contracts = new Map<string, { number: string; status: string; works: number }>()
+  const contracts = new Map<string, { id: string; number: string; status: string; works: number; method: string | null }>()
   if (ids.length > 0) {
     try {
       const r = await dbQuery(
-        `select c.author_id::text as id, c.number, c.status::text as status,
+        `select c.author_id::text as id, c.id::text as contract_id, c.number, c.status::text as status,
+                c.sign_method,
                 (select count(*) from contract_works w where w.contract_id = c.id)::int as works
            from author_contracts c
           where c.author_id = any($1::uuid[])
             and c.status <> 'terminated'`,
         [ids],
       )
-      for (const row of r.rows as { id: string; number: string; status: string; works: number }[]) {
-        contracts.set(row.id, { number: row.number, status: row.status, works: row.works })
+      for (const row of r.rows as { id: string; contract_id: string; number: string; status: string; works: number; sign_method: string | null }[]) {
+        contracts.set(row.id, {
+          id: row.contract_id, number: row.number, status: row.status,
+          works: row.works, method: row.sign_method,
+        })
       }
     } catch {
       warnings.push('Не вдалося прочитати договори (author_contracts / contract_works)')
@@ -191,8 +197,10 @@ export async function GET(req: NextRequest) {
       requisites_missing: missing.slice(),
       works_total: w?.total ?? 0,
       works_published: w?.published ?? 0,
+      contract_id: c?.id ?? null,
       contract_number: c?.number ?? null,
       contract_status: c?.status ?? null,
+      contract_method: c?.method ?? null,
       contract_works: c?.works ?? 0,
       consent,
       last_email_template: lastMail.get(id)?.template ?? null,

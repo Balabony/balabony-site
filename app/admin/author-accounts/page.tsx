@@ -40,8 +40,10 @@ type Row = {
   requisites_missing: string[]
   works_total: number
   works_published: number
+  contract_id: string | null
   contract_number: string | null
   contract_status: string | null
+  contract_method: string | null
   contract_works: number
   consent: string | null
   last_email_template: string | null
@@ -111,6 +113,37 @@ export default function AdminAuthorAccountsPage() {
   const [sendingId, setSendingId] = useState('')
   const [sendNote, setSendNote] = useState<Record<string, string>>({})
   const [pickTemplate] = useState<Record<string, AuthorEmailTemplate>>({})
+
+  /**
+   * Позначка «підписано на папері».
+   *
+   * Автори без КЕП надсилають підписаний примірник Укрпоштою, і досі це
+   * ніде не фіксувалося: договір лишався `draft`, хоч підпис лежав у шафі.
+   * Кнопка ставить статус і спосіб підпису; повторне натискання знімає
+   * позначку, якщо помилилися. Договір, підписаний КЕП, кнопка не чіпає.
+   */
+  const [paperBusy, setPaperBusy] = useState<string | null>(null)
+
+  async function markPaper(contractId: string, undo: boolean) {
+    if (paperBusy) return
+    setPaperBusy(contractId)
+    try {
+      const res = await fetch('/api/admin/contract-paper', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contractId, undo }),
+      })
+      const d = await res.json() as { ok?: boolean; error?: string }
+      if (!d.ok) { alert(d.error ?? 'Не вдалося зберегти'); return }
+      // Завантаження таблиці живе всередині useEffect і ззовні недоступне,
+      // тож просто перечитуємо сторінку — дія рідкісна, це не заважає.
+      window.location.reload()
+    } catch {
+      alert('Немає зв’язку. Спробуйте ще раз.')
+    } finally {
+      setPaperBusy(null)
+    }
+  }
   const [bulkArmed, setBulkArmed] = useState(false)
   const [bulkRunning, setBulkRunning] = useState(false)
   const [bulkDone, setBulkDone] = useState(0)
@@ -617,7 +650,7 @@ export default function AdminAuthorAccountsPage() {
                             </a>}
                       </td>
 
-                      <td style={{ ...td, minWidth: 140 }}>
+                      <td style={{ ...td, minWidth: 170 }}>
                         {r.contract_number
                           ? (
                             <>
@@ -625,8 +658,33 @@ export default function AdminAuthorAccountsPage() {
                               № {r.contract_number}
                               <div style={{ color: MUTED, fontSize: 12, marginTop: 3 }}>
                                 {CONTRACT_LABEL[r.contract_status ?? ''] ?? r.contract_status}
+                                {r.contract_method === 'paper' && ' на папері'}
                                 {' · '}{r.contract_works} творів
                               </div>
+                              {r.contract_id && (
+                                <button
+                                  onClick={() => void markPaper(r.contract_id!, r.contract_method === 'paper')}
+                                  disabled={paperBusy === r.contract_id
+                                    || (r.contract_status === 'signed' && r.contract_method !== 'paper')}
+                                  style={{
+                                    marginTop: 5, background: 'none', border: 'none', padding: 0,
+                                    font: 'inherit', fontSize: 12,
+                                    color: r.contract_status === 'signed' && r.contract_method !== 'paper'
+                                      ? MUTED : GOLD,
+                                    textDecoration: 'underline',
+                                    cursor: r.contract_status === 'signed' && r.contract_method !== 'paper'
+                                      ? 'default' : 'pointer',
+                                  }}
+                                >
+                                  {paperBusy === r.contract_id
+                                    ? '…'
+                                    : r.contract_method === 'paper'
+                                      ? 'зняти позначку'
+                                      : r.contract_status === 'signed'
+                                        ? 'підписано КЕП'
+                                        : 'підписано на папері'}
+                                </button>
+                              )}
                             </>
                           )
                           : <span style={{ color: MUTED }}><Dot tone="warn" />немає</span>}
