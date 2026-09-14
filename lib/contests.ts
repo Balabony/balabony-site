@@ -69,7 +69,7 @@ export interface Contest {
 export const CONTESTS: Contest[] = [
   {
     id: 'ce-dovha-istoriya',
-    threshold: 75,
+    threshold: 50,
     name: '«Це довга історія» — конкурс серіалів',
     episodes: 10,
     minWords: 1500,
@@ -90,7 +90,7 @@ export const CONTESTS: Contest[] = [
   },
   {
     id: 'pyat-vechoriv',
-    threshold: 75,
+    threshold: 50,
     name: "«П'ять вечорів»",
     episodes: 5,
     minWords: 900,
