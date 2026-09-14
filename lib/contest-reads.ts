@@ -13,7 +13,7 @@ import { dbQuery } from '@/lib/db'
  *                     Це та сама таблиця, за якою рахується винагорода
  *                     авторам за договором, п. 1.5. Конкурс навмисно
  *                     рахує рівно те саме, що й гроші.
- *   content         — хто автор твору (author_id).
+ *   content         — хто автор твору (author_id) і чи він уже вийшов.
  *   contest_episodes.content_id — який твір до якої заявки належить.
  *
  * ЧОТИРИ УМОВИ, УСІ З ОПУБЛІКОВАНИХ ПРАВИЛ
@@ -55,35 +55,94 @@ export type ContestCount = {
   counted: number
 }
 
-const SQL = `
+/** Рядок відкритої таблиці на сторінці конкурсу. */
+export type PublicContestRow = {
+  entryId: string
+  contest: string
+  title: string
+  author: string
+  /** Скільки серій цієї роботи вже вийшло на сайті. */
+  episodes: number
+  counted: number
+}
+
+/**
+ * Спільна частина обох запитів: серії заявок і зараховані дочитування.
+ * Винесено в одну константу навмисно — правила підрахунку не мають
+ * існувати у двох редакціях, інакше адмінка й відкрита сторінка з часом
+ * розійдуться в цифрах, і довести, яка з них правильна, буде нічим.
+ */
+const BASE_CTE = `
   with works as (
     select ep.id        as episode_id,
            ep.entry_id  as entry_id,
            ep.content_id,
-           c.author_id
+           c.author_id,
+           c.status     as content_status
       from contest_episodes ep
       join content c on c.id = ep.content_id
      where ep.content_id is not null
+  ),
+  counted as (
+    select w.entry_id,
+           count(distinct ar.user_id::text || ':' || w.episode_id::text)::int as counted
+      from works w
+      join article_reads ar
+        on ar.content_id = w.content_id
+       and ar.completed = true
+      join users u
+        on u.id = ar.user_id
+     where (w.author_id is null or ar.user_id <> w.author_id)
+       and exists (
+             select 1
+               from article_reads ar2
+               join content c2 on c2.id = ar2.content_id
+              where ar2.user_id = ar.user_id
+                and ar2.completed = true
+                and c2.author_id is not null
+                and (w.author_id is null or c2.author_id <> w.author_id)
+           )
+     group by w.entry_id
   )
-  select w.entry_id::text                                              as entry_id,
-         count(distinct ar.user_id::text || ':' || w.episode_id::text)::int as counted
-    from works w
-    join article_reads ar
-      on ar.content_id = w.content_id
-     and ar.completed = true
-    join users u
-      on u.id = ar.user_id
-   where (w.author_id is null or ar.user_id <> w.author_id)
-     and exists (
-           select 1
-             from article_reads ar2
-             join content c2 on c2.id = ar2.content_id
-            where ar2.user_id = ar.user_id
-              and ar2.completed = true
-              and c2.author_id is not null
-              and (w.author_id is null or c2.author_id <> w.author_id)
-         )
-   group by w.entry_id
+`
+
+const SQL = `
+  ${BASE_CTE}
+  select entry_id::text as entry_id, counted
+    from counted
+`
+
+/**
+ * Те саме для відкритої сторінки, з двома додатковими умовами.
+ *
+ * ЧОМУ ФІЛЬТР ПО content.status, А НЕ ПО content_id.
+ * Приймання заявки в адмінці створює рядки в `content` одразу — зі
+ * статусом `draft`, і `contest_episodes.content_id` заповнюється в ту
+ * саму мить. Тобто заповнений content_id означає «прийнято», а не
+ * «вийшло на сайті». Якби відкрита таблиця будувалася по ньому, назви
+ * всіх прийнятих робіт з'явилися б на сторінці ще під час прийому — з
+ * нулями навпроти. Публікацію робить cron, він ставить `published`;
+ * саме цей статус тут і перевіряємо.
+ */
+const PUBLIC_SQL = `
+  ${BASE_CTE},
+  live as (
+    select entry_id, count(*)::int as episodes
+      from works
+     where content_status = 'published'
+     group by entry_id
+  )
+  select e.id::text                    as entry_id,
+         e.contest                     as contest,
+         e.title                       as title,
+         coalesce(e.author_name, '')   as author,
+         l.episodes                    as episodes,
+         coalesce(c.counted, 0)::int   as counted
+    from contest_entries e
+    join live l      on l.entry_id = e.id
+    left join counted c on c.entry_id = e.id
+   where e.status = 'accepted'
+   order by coalesce(c.counted, 0) desc, e.title
 `
 
 /**
@@ -104,4 +163,26 @@ export async function countedReadsByEntry(): Promise<Map<string, number>> {
     console.error('[contest-reads]', (err as Error)?.message)
   }
   return out
+}
+
+/**
+ * Відкрита таблиця: тільки роботи, чиї серії вже вийшли.
+ * Помилка тут не має ламати сторінку конкурсів — повертаємо порожній
+ * список, блок просто не з'явиться.
+ */
+export async function publicCountedReads(): Promise<PublicContestRow[]> {
+  try {
+    const res = await dbQuery(PUBLIC_SQL)
+    return (res.rows as PublicContestRow[]).map(r => ({
+      entryId:  String(r.entryId),
+      contest:  String(r.contest || ''),
+      title:    String(r.title || 'Без назви'),
+      author:   String(r.author || ''),
+      episodes: Number(r.episodes) || 0,
+      counted:  Number(r.counted) || 0,
+    }))
+  } catch (err) {
+    console.error('[contest-reads public]', (err as Error)?.message)
+    return []
+  }
 }

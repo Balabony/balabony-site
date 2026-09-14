@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
+import ContestReads from '@/app/components/ContestReads'
 import { findContest, isOpen, type Contest } from '@/lib/contests'
 
 /**
@@ -955,6 +956,13 @@ function ShortContestCard({ c }: { c: ShortContest }) {
       <ul style={{ margin: 0, paddingLeft: 20, fontSize: 15, lineHeight: 1.8, color: A.body }}>
         {c.rules.map(r => <li key={r} style={{ marginBottom: 6 }}>{r}</li>)}
       </ul>
+
+      {/* Відкритий показник із умов, розділ «Що видно всім». До першої
+          публікації блок не з'являється. */}
+      <ContestReads
+        contest={c.id}
+        colors={{ title: A.title, body: A.body, edge: A.edge, stripe: A.stripe, line: A.line }}
+      />
     </section>
   )
 }
@@ -1482,6 +1490,8 @@ export default function KonkursyPage() {
             договорі. Серіал лишається на платформі й далі приносить винагороду за прочитання.
           </p>
         </Section>
+
+        <ContestReads contest="ce-dovha-istoriya" />
 
         <BackToTop />
 
