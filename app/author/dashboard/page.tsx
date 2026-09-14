@@ -4,6 +4,7 @@ import NarrationOrderForm from '@/app/components/NarrationOrderForm'
 import EditDraftForm from '@/app/components/EditDraftForm'
 import AuthorContracts, { type ContractRow } from '@/app/components/AuthorContracts'
 import AuthorRequisites, { type Requisites } from '@/app/components/AuthorRequisites'
+import AuthorRevisions from '@/app/components/AuthorRevisions'
 import AuthorSurvey, { type Feedback } from '@/app/components/AuthorSurvey'
 import AuthorNewsletter from '@/app/components/AuthorNewsletter'
 import AuthorMessageForm from '@/app/components/AuthorMessageForm'
@@ -353,6 +354,10 @@ export default async function AuthorDashboardPage() {
           <h1 style={{ fontFamily: SERIF, fontSize: '2.1rem', color: 'white', margin: 0 }}>Кабінет автора</h1>
           <p style={{ color: 'rgba(255,255,255,0.7)', margin: '0.35rem 0 0' }}>{profile.display_name}</p>
         </div>
+
+        {/* Редакційні правки конкурсних серій. Стоїть найвище з плашок:
+            у неї єдиної є строк, після якого мовчання означає згоду. */}
+        <AuthorRevisions />
 
         {/* Плашка про непідтверджені твори.
 
