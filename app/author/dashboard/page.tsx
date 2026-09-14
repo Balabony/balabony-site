@@ -8,6 +8,7 @@ import AuthorSurvey, { type Feedback } from '@/app/components/AuthorSurvey'
 import AuthorNewsletter from '@/app/components/AuthorNewsletter'
 import AuthorMessageForm from '@/app/components/AuthorMessageForm'
 import ContestCountdown from '@/app/components/ContestCountdown'
+import ContestIntent from '@/app/components/ContestIntent'
 import AuthorCoverUpload from '@/app/components/AuthorCoverUpload'
 import AuthorProfileEditor from '@/app/components/AuthorProfileEditor'
 import { dbQuery } from '@/lib/db'
@@ -438,6 +439,10 @@ export default async function AuthorDashboardPage() {
 
         {/* Конкурси — усі активні, з дедлайнами. Компонент рахує дні в браузері. */}
         <ContestCountdown />
+
+        {/* Намір узяти участь. Стоїть ОДРАЗУ під анонсами: автор щойно
+            побачив конкурси й строки — саме тут відповідь має сенс. */}
+        <ContestIntent />
 
         {/* Публікація в газеті — це просування, а не другий гонорар.
             Автор має знати це до того, як подасться на конкурс. */}
