@@ -33,12 +33,12 @@ const LAUNCH = new Date('2026-11-25T00:00:00+02:00')
 /** «П'ять вечорів»: прийом робіт і оголошення переможців. */
 const FIVE_OPEN = new Date('2026-09-01T00:00:00+03:00')
 const FIVE_CLOSE = new Date('2026-10-20T23:59:59+03:00')
-const FIVE_RESULTS = new Date('2026-11-25T00:00:00+02:00')
-const RESULTS = new Date('2027-02-27T00:00:00+02:00')
+const FIVE_RESULTS = new Date('2026-12-11T00:00:00+02:00')
+const RESULTS = new Date('2027-03-03T00:00:00+02:00')
 /** Короткі конкурси: «Один день, який усе змінив» і «З вітерцем». */
 const SHORT_OPEN = new Date('2026-11-01T00:00:00+02:00')
 const SHORT_CLOSE = new Date('2026-12-15T23:59:59+02:00')
-const SHORT_RESULTS = new Date('2027-01-31T00:00:00+02:00')
+const SHORT_RESULTS = new Date('2027-03-02T00:00:00+02:00')
 
 function daysUntil(target: Date, from: Date): number {
   return Math.max(0, Math.ceil((target.getTime() - from.getTime()) / 86400000))
@@ -112,7 +112,7 @@ function buildCards(now: Date): Card[] {
       label: 'До підсумків',
       value: days(daysUntil(RESULTS, now)),
       what: 'Серія щотижня, у свій день',
-      hint: 'Різдвяна пауза — 24 грудня по 6 січня. Пропустили тиждень без попередження — вибули.',
+      hint: 'Серії виходять десять тижнів поспіль, різдвяної паузи немає. На святки можна здати серії наперед. Пропустили тиждень без попередження — вибули.',
       urgent: false,
     })
   }
@@ -145,8 +145,8 @@ function buildCards(now: Date): Card[] {
       href: '/konkursy#pyat-vechoriv',
       label: 'До оголошення переможців',
       value: days(daysUntil(FIVE_RESULTS, now)),
-      what: 'Публікація серій — 4–18 листопада',
-      hint: 'Прийом закрито. Фіналістів публікуємо щовівторка і щоп’ятниці о 18:00.',
+      what: 'Публікація серій — 3, 6, 10, 13 і 17 листопада',
+      hint: 'Прийом закрито. Серії фіналістів виходять о 18:00, підсумки — 11 грудня.',
       urgent: false,
     })
   }
