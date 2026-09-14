@@ -519,20 +519,95 @@ const REVISION_NOTE =
 
 const P: React.CSSProperties = { fontSize: 15.5, lineHeight: 1.75, margin: '0 0 12px', color: SOFT }
 
+/**
+ * Зміст умов серіалу.
+ *
+ * Одинадцять розділів підряд — це десять екранів гортання, і автор, якому
+ * потрібне «Як подати», доходить туди останнім. Тому короткий перелік
+ * посилань одразу під шапкою. Порядок і назви мусять збігатися з anchor
+ * кожної Section — правити разом.
+ */
+const TOC: [string, string][] = [
+  ['scho-pyshemo', 'Що пишемо'],
+  ['try-pravyla', 'Три правила'],
+  ['choho-unykaty', 'Чого уникати'],
+  ['nahorody', 'Нагороди'],
+  ['yak-vyznachaiemo', 'Як визначаємо переможця'],
+  ['yak-pryvesty-chytacha', 'Як привести читача'],
+  ['shcho-take-sezon', 'Що таке сезон'],
+  ['khto-mozhe', 'Хто може брати участь'],
+  ['yak-podaty', 'Як подати'],
+  ['daty', 'Дати сезону'],
+  ['pravyla-konkursu', 'Правила конкурсу'],
+]
+
+function Toc() {
+  return (
+    <nav
+      aria-label="Розділи умов"
+      style={{
+        display: 'flex', flexWrap: 'wrap', gap: 8,
+        margin: '0 0 22px',
+      }}
+    >
+      {TOC.map(([id, label]) => (
+        <a
+          key={id}
+          href={`#${id}`}
+          style={{
+            fontSize: 12.5,
+            color: GOLD_SOFT,
+            textDecoration: 'none',
+            border: '1px solid rgba(239,159,39,0.35)',
+            borderRadius: 20,
+            padding: '5px 12px',
+            lineHeight: 1.3,
+          }}
+        >
+          {label}
+        </a>
+      ))}
+    </nav>
+  )
+}
+
+/** Повернення до плиток вибору — щоб не гортати вгору вручну. */
+function BackToTop() {
+  return (
+    <p style={{ margin: '0 0 26px', textAlign: 'center' }}>
+      <a href="#vybir-konkursu" style={{ fontSize: 13, color: MUTED, textDecoration: 'none' }}>
+        ↑ до вибору конкурсу
+      </a>
+    </p>
+  )
+}
+
+/**
+ * Розділ умов серіалу.
+ *
+ * ЯКІР ОБОВ'ЯЗКОВИЙ. Умови довгі — одинадцять розділів підряд, — і без
+ * постійної адреси на кожен ми в листах змушені писати «десь у частині про
+ * нагороди». Тепер це /konkursy#nahorody, і посилання не зламається, поки
+ * не зміниться сам anchor.
+ */
 function Section({
   num,
   title,
+  anchor,
   gold = false,
   children,
 }: {
   num: string
   title: string
+  anchor: string
   gold?: boolean
   children: React.ReactNode
 }) {
   return (
     <section
+      id={anchor}
       style={{
+        scrollMarginTop: 90,
         background: gold ? 'rgba(239,159,39,0.07)' : NAVY,
         border: gold ? '1px solid rgba(239,159,39,0.45)' : '1px solid rgba(143,163,196,0.18)',
         borderRadius: 16,
@@ -787,11 +862,13 @@ function ContestPicker() {
 
   return (
     <div
+      id="vybir-konkursu"
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
         gap: 12,
         margin: '0 0 26px',
+        scrollMarginTop: 90,
       }}
     >
       {tiles.map(t => (
@@ -990,7 +1067,9 @@ export default function KonkursyPage() {
           ))}
         </div>
 
-        <Section num="1" title="Що пишемо">
+        <Toc />
+
+        <Section num="1" anchor="scho-pyshemo" title="Що пишемо">
           <p style={P}>
             Серіал із десяти серій. Кожна — 1500–1800 слів, самостійна за подією, але пов’язана
             наскрізним сюжетом і героями.
@@ -1002,7 +1081,7 @@ export default function KonkursyPage() {
           </p>
         </Section>
 
-        <Section num="2" title="Три правила серіалу">
+        <Section num="2" anchor="try-pravyla" title="Три правила серіалу">
           {RULES.map((r, i) => (
             <div
               key={r.title}
@@ -1018,7 +1097,7 @@ export default function KonkursyPage() {
           ))}
         </Section>
 
-        <Section num="3" title="Чого уникати у фіналі">
+        <Section num="3" anchor="choho-unykaty" title="Чого уникати у фіналі">
           <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
             {AVOID.map(a => (
               <li
@@ -1039,7 +1118,7 @@ export default function KonkursyPage() {
           </ul>
         </Section>
 
-        <Section num="4" title="Нагороди" gold>
+        <Section num="4" anchor="nahorody" title="Нагороди" gold>
           {AWARDS.map(a => (
             <div
               key={a.name}
@@ -1081,7 +1160,7 @@ export default function KonkursyPage() {
           </p>
         </Section>
 
-        <Section num="5" title="Як визначаємо переможця">
+        <Section num="5" anchor="yak-vyznachaiemo" title="Як визначаємо переможця">
           <p style={P}>Два показники, рівні за вагою.</p>
           {SCORING.map(s => (
             <div
@@ -1130,7 +1209,7 @@ export default function KonkursyPage() {
           </p>
         </Section>
 
-        <Section num="6" title="Як привести читача">
+        <Section num="6" anchor="yak-pryvesty-chytacha" title="Як привести читача">
           <p style={P}>
             Платформа показує ваш серіал усім, хто заходить: анонси в розсилці,
             місце в рубриці, сторінка автора. Це робиться без вашої участі. Але найкращі результати будуть у
@@ -1162,7 +1241,7 @@ export default function KonkursyPage() {
           </div>
         </Section>
 
-        <Section num="7" title="Що таке сезон">
+        <Section num="7" anchor="shcho-take-sezon" title="Що таке сезон">
           <p style={P}>
             Конкурс не одноразовий. «Це довга історія» проходить двічі на рік — узимку й навесні. Кожен раунд
             і є сезон: десять тижнів публікацій, далі підсумки, виплати, озвучення переможців і
@@ -1178,7 +1257,7 @@ export default function KonkursyPage() {
           </p>
         </Section>
 
-        <Section num="8" title="Хто може брати участь">
+        <Section num="8" anchor="khto-mozhe" title="Хто може брати участь">
           <ul style={{ margin: 0, paddingLeft: 20, fontSize: 15.5, lineHeight: 1.85, color: SOFT }}>
             <li>будь-який автор із підписаним авторським договором і заповненими реквізитами в кабінеті;</li>
             <li>твір має бути ваш і ніде раніше не публікований;</li>
@@ -1194,7 +1273,7 @@ export default function KonkursyPage() {
           </p>
         </Section>
 
-        <Section num="9" title="Як подати" gold>
+        <Section num="9" anchor="yak-podaty" title="Як подати" gold>
           <p style={P}>
             <strong style={{ color: GOLD_SOFT }}>Реєстрація кабінетів уже відкрита.</strong>{' '}
             Заходьте, підписуйте договір, заповнюйте реквізити — щоб потім не робити це поспіхом.
@@ -1223,7 +1302,7 @@ export default function KonkursyPage() {
           </Link>
         </Section>
 
-        <Section num="10" title="Дати першого сезону">
+        <Section num="10" anchor="daty" title="Дати першого сезону">
           {DATES.map(([k, v], i) => (
             <div
               key={k}
@@ -1246,7 +1325,7 @@ export default function KonkursyPage() {
           </p>
         </Section>
 
-        <Section num="11" title="Правила конкурсу">
+        <Section num="11" anchor="pravyla-konkursu" title="Правила конкурсу">
           <ul style={{ margin: 0, paddingLeft: 20, fontSize: 15, lineHeight: 1.8, color: SOFT }}>
             {COMMON_RULES.map(r => (
               <li key={r} style={{ marginBottom: 9 }}>{r}</li>
@@ -1258,11 +1337,15 @@ export default function KonkursyPage() {
           </p>
         </Section>
 
+        <BackToTop />
+
         {/* «Розгін» одразу після головного конкурсу: легший вхід для тих,
             кого десять серій лякають. */}
         <div style={{ marginTop: 40 }}>
           <ShortContestCard c={PYAT_VECHORIV} />
         </div>
+
+        <BackToTop />
 
         {/* ─── Ще два конкурси коротких історій ─── */}
 
@@ -1277,6 +1360,8 @@ export default function KonkursyPage() {
         </div>
 
         {SHORT_CONTESTS.map(c => <ShortContestCard key={c.id} c={c} />)}
+
+        <BackToTop />
 
         {/* Кінець сторінки має вести до дії, а не в порожнечу. */}
         <div
