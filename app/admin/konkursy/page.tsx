@@ -137,6 +137,18 @@ function dateLabel(iso: string): string {
   }
 }
 
+/** Рядок зведення намірів — по одному на конкурс. */
+type IntentStat = {
+  id: string
+  name: string
+  episodesEach: number
+  intents: number
+  submitted: number
+  pending: number
+  episodes: number
+  people: { name: string; email: string; submitted: boolean }[]
+}
+
 export default function AdminKonkursyPage() {
   const [entries, setEntries] = useState<Entry[]>([])
   const [stats, setStats] = useState<Stat[]>([])
@@ -149,6 +161,9 @@ export default function AdminKonkursyPage() {
   const [loading, setLoading] = useState(true)
   const [editors, setEditors] = useState<Editor[]>([])
   const [judging, setJudging] = useState<Judging[]>([])
+  const [intents, setIntents] = useState<IntentStat[]>([])
+  const [intentsTotal, setIntentsTotal] = useState(0)
+  const [openIntent, setOpenIntent] = useState<string | null>(null)
 
   const load = useCallback(async (entryId?: string) => {
     setErr('')
@@ -190,7 +205,24 @@ export default function AdminKonkursyPage() {
     }
   }, [])
 
-  useEffect(() => { void load(); void loadJudging() }, [load, loadJudging])
+  /**
+   * Наміри взяти участь. Окремим запитом: це планування навантаження на
+   * редактуру, а не приймання заявок, і падати разом вони не мають.
+   */
+  const loadIntents = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/intents')
+      const d = await res.json()
+      if (res.ok && Array.isArray(d.contests)) {
+        setIntents(d.contests as IntentStat[])
+        setIntentsTotal(Number(d.totalEpisodes) || 0)
+      }
+    } catch {
+      /* мовчки: без намірів адмінка працює як раніше */
+    }
+  }, [])
+
+  useEffect(() => { void load(); void loadJudging(); void loadIntents() }, [load, loadJudging, loadIntents])
 
   /** Дія суддівства: нумерація, призначення, зняття, друга думка. */
   const judge = useCallback(async (payload: Record<string, unknown>) => {
@@ -270,6 +302,57 @@ export default function AdminKonkursyPage() {
           <p style={{ color: '#ff9b9b', background: 'rgba(255,60,60,.08)',
                       border: '1px solid rgba(255,60,60,.3)', borderRadius: 8,
                       padding: '.6rem .8rem' }}>{err}</p>
+        )}
+
+        {/* ── Наміри авторів ────────────────────────────────────── */}
+        {intents.some(i => i.intents > 0) && (
+          <div style={{
+            background: CARD, border: `1px solid ${LINE}`, borderRadius: 10,
+            padding: '.9rem 1rem', marginBottom: '1.4rem',
+          }}>
+            <div style={{ fontSize: 13, color: GOLD_L, marginBottom: 8 }}>
+              Наміри авторів · разом {intentsTotal} серій на редактуру, якщо подадуться всі
+            </div>
+            <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.6, margin: '0 0 10px' }}>
+              Це верхня межа, а не прогноз: галочка ні до чого не зобов’язує,
+              частина позначить і не подасть, частина подасть не позначивши.
+              Планувати варто приблизно за половиною.
+            </p>
+
+            {intents.filter(i => i.intents > 0).map(i => (
+              <div key={i.id} style={{ borderTop: `1px solid ${LINE}`, padding: '.55rem 0' }}>
+                <div style={{ fontSize: 12.5, color: MUTED, lineHeight: 1.7 }}>
+                  <span style={{ color: CREAM }}>{i.name}</span>
+                  {' — '}позначили: <b style={{ color: CREAM }}>{i.intents}</b>
+                  {' · '}подали: <b style={{ color: CREAM }}>{i.submitted}</b>
+                  {' · '}ще ні: <b style={{ color: i.pending ? '#eab308' : CREAM }}>{i.pending}</b>
+                  {' · '}серій: <b style={{ color: CREAM }}>{i.episodes}</b>
+                  {' '}({i.intents}×{i.episodesEach})
+                  {' '}
+                  <button
+                    onClick={() => setOpenIntent(openIntent === i.id ? null : i.id)}
+                    style={{
+                      background: 'none', border: 'none', padding: 0, font: 'inherit',
+                      color: GOLD_L, textDecoration: 'underline', cursor: 'pointer',
+                    }}
+                  >
+                    {openIntent === i.id ? 'сховати' : 'хто саме'}
+                  </button>
+                </div>
+
+                {openIntent === i.id && (
+                  <ul style={{ margin: '.5rem 0 0', paddingLeft: 18, fontSize: 12.5, lineHeight: 1.8, color: MUTED }}>
+                    {i.people.map(pp => (
+                      <li key={pp.email + pp.name} style={{ color: pp.submitted ? MUTED : CREAM }}>
+                        {pp.name} · {pp.email}
+                        {pp.submitted ? ' — подав' : ' — ще не подав'}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
         )}
 
         {/* ── Зведення по конкурсах ─────────────────────────────── */}
