@@ -17,9 +17,25 @@ import { LOGIN_LINK_MINUTES } from '@/lib/editor-auth'
  * СТАРІ НЕВИКОРИСТАНІ ПОСИЛАННЯ ГАСЯТЬСЯ. Якщо редактор натиснув «надіслати»
  * двічі, працює тільки останній лист: попередні токени позначаються
  * використаними. Без цього старий лист із пошти лишався б робочим ключем.
+ *
+ * ПАУЗА МІЖ ЛИСТАМИ — саме через те, що новий лист гасить попередній.
+ * Без паузи це була атака: хто знає пошту редакторки, натискає «надіслати»
+ * в ту мить, коли вона переходить за своїм посиланням, — і її токен уже
+ * мертвий, а скринька засипана листами. Тепер якщо непрогаслий лист
+ * молодший за COOLDOWN_MINUTES, ми не надсилаємо новий і НІЧОГО НЕ ГАСИМО,
+ * а відповідаємо тим самим «ok»: сторонній не має дізнатися ні що адреса
+ * в базі є, ні що лист щойно був.
+ *
+ * ВІК ПОСИЛАННЯ РАХУЄМО З expires_at, а не з окремої колонки часу
+ * створення: строк завжди рівно LOGIN_LINK_MINUTES від створення, тож
+ * «молодше за дві хвилини» — це «до протермінування лишилося більше ніж
+ * LOGIN_LINK_MINUTES − 2».
  */
 
 export const dynamic = 'force-dynamic'
+
+/** Скільки чекати між двома листами входу на одну адресу. */
+const COOLDOWN_MINUTES = 2
 
 export async function POST(req: NextRequest) {
   const ok = NextResponse.json({ ok: true })
@@ -39,6 +55,18 @@ export async function POST(req: NextRequest) {
     if (!found.rowCount) return ok
 
     const editor = found.rows[0] as { id: number; name: string; email: string }
+
+    // Свіжий лист уже в дорозі — не чіпаємо ні його, ні скриньку.
+    const fresh = await dbQuery(
+      `select 1
+         from editor_sessions
+        where editor_id = $1
+          and token_used_at is null
+          and expires_at > now() + ($2 || ' minutes')::interval
+        limit 1`,
+      [editor.id, String(LOGIN_LINK_MINUTES - COOLDOWN_MINUTES)],
+    )
+    if (fresh.rowCount) return ok
 
     // Гасимо попередні невикористані посилання цього редактора.
     await dbQuery(
