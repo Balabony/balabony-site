@@ -46,7 +46,7 @@ export const metadata: Metadata = {
 }
 
 const PRINT_CSS = `
-@page { size: A4 portrait; margin: 0; }
+@page { size: A4 portrait; margin: 12mm; }
 
 /* Аркуш має ті самі розміри на екрані й на папері: 210x297 мм із полями
    14 мм усередині. Інакше «на екрані вмістилося» нічого не означає — і
@@ -70,12 +70,14 @@ const PRINT_CSS = `
 }
 
 @media print {
-  html, body { background: #fff !important; }
+  /* Обгортка сторінки не належить аркушу. Через min-height: 100vh і власні
+     відступи <main> висота друку перевищувала A4 на кілька міліметрів — і
+     підпис їхав на другу сторінку. */
+  html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+  main { padding: 0 !important; min-height: 0 !important; }
   .a-no-print { display: none !important; }
-  /* Панель навігації платформи не належить аркушу: вона друкувалася разом
-     із ним і зсувала підпис на другу сторінку. */
+  /* Панель навігації платформи друкувалася разом з аркушем. */
   .bb-root { display: none !important; }
-
   .a-wrap { overflow: visible !important; height: auto !important; }
   .a-sheet {
     border: none !important;
@@ -83,8 +85,9 @@ const PRINT_CSS = `
     width: auto; min-height: 0;
     margin: 0; padding: 0;
   }
-  /* Жодних розривів усередині аркуша: він має бути рівно однією сторінкою. */
-  .a-sheet, .a-sheet * { break-inside: avoid; page-break-inside: avoid; }
+  /* Заборона розриву лише для аркуша цілком: якщо повісити її ще й на всі
+     вкладені блоки, браузер починає виносити хвіст на наступну сторінку. */
+  .a-sheet { break-inside: avoid; page-break-inside: avoid; }
 }
 `
 
