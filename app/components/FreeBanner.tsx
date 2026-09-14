@@ -59,7 +59,7 @@ export default function FreeBanner() {
         </div>
 
         <Link
-          href="#how-it-works"
+          href="/stories"
           style={{
             display: 'inline-block',
             marginTop: 14,
