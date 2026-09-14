@@ -1,6 +1,58 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
+import { findContest, isOpen, type Contest } from '@/lib/contests'
+
+/**
+ * Сторінка перезбирається щогодини.
+ *
+ * Стан прийому («відкрито», «залишилося N днів», «закрито») рахується на
+ * сервері з дат у lib/contests. Без revalidate сторінка застигла б на дні
+ * білду і 21 жовтня далі писала б «Заявки до 20 жовтня».
+ */
+export const revalidate = 3600
+
+/** Людський підпис під плиткою: що зараз відбувається з прийомом. */
+function acceptanceLabel(id: string): { text: string; closed: boolean } {
+  const c = findContest(id)
+  if (!c) return { text: '', closed: false }
+
+  const today = new Date().toISOString().slice(0, 10)
+  if (today < c.opensAt) {
+    return { text: `Прийом з ${humanDate(c.opensAt)}`, closed: false }
+  }
+  if (isOpen(c)) {
+    return { text: `Заявки до ${humanDate(c.closesAt)}`, closed: false }
+  }
+  return { text: closedLabel(c), closed: true }
+}
+
+/** Що показати, коли прийом уже позаду: конкурс не зникає, він триває далі. */
+function closedLabel(c: Contest): string {
+  const today = new Date().toISOString().slice(0, 10)
+  const st = c.stages
+  if (st.publishFrom && today < st.publishFrom) {
+    return `Прийом закрито · публікація з ${humanDate(st.publishFrom)}`
+  }
+  if (st.publishUntil && today <= st.publishUntil) {
+    return 'Прийом закрито · серії виходять'
+  }
+  if (st.resultsAt && today < st.resultsAt) {
+    return `Прийом закрито · підсумки ${humanDate(st.resultsAt)}`
+  }
+  return 'Конкурс завершено'
+}
+
+const MONTHS = [
+  'січня', 'лютого', 'березня', 'квітня', 'травня', 'червня',
+  'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня',
+]
+
+/** '2026-10-20' → '20 жовтня'. Рік не пишемо: він видно з таблиці дат. */
+function humanDate(iso: string): string {
+  const [, m, d] = iso.split('-')
+  return `${Number(d)} ${MONTHS[Number(m) - 1]}`
+}
 
 // Перший сезон — один конкурс: серіальний «Це довга історія».
 // Свідомо НЕ згадуємо: наклад газет як приз, гонорар за газетну публікацію,
@@ -855,10 +907,10 @@ function ShortContestCard({ c }: { c: ShortContest }) {
 /** Три плитки вгорі: одразу видно, який конкурс про що і скільки коштує. */
 function ContestPicker() {
   const tiles = [
-    { href: '#dovha-istoriya', accent: SCHEMES.serial, mark: 'weeks' as const, name: 'Це довга історія',           what: 'Серіал · 10 серій',    when: 'Заявки до 31 жовтня', prize: '20 000 ₴', main: true  },
-    { href: '#pyat-vechoriv',  accent: SCHEMES.sprint, mark: 'sprint' as const, name: "П'ять вечорів",            what: "П'ять серій по 1000 слів", when: 'Заявки до 20 жовтня', prize: '8 000 ₴',  main: false },
-    { href: '#odyn-den',       accent: SCHEMES.oneDay, mark: 'break' as const, name: 'Один день, який усе змінив', what: 'Одна історія',         when: 'Прийом до 15 грудня',   prize: '3 000 ₴',  main: false },
-    { href: '#z-viterczem',    accent: SCHEMES.humour, mark: 'gust'  as const, name: 'З вітерцем',                 what: 'Одна історія · гумор', when: 'Прийом до 15 грудня',   prize: '3 000 ₴',  main: false },
+    { id: 'ce-dovha-istoriya', href: '#dovha-istoriya', accent: SCHEMES.serial, mark: 'weeks' as const, name: 'Це довга історія',           what: 'Серіал · 10 серій',        prize: '20 000 ₴ головна нагорода', main: true  },
+    { id: 'pyat-vechoriv',     href: '#pyat-vechoriv',  accent: SCHEMES.sprint, mark: 'sprint' as const, name: "П'ять вечорів",            what: "П'ять серій по 1000 слів", prize: '4 000 ₴ перше місце',       main: false },
+    { id: 'odyn-den',          href: '#odyn-den',       accent: SCHEMES.oneDay, mark: 'break' as const, name: 'Один день, який усе змінив', what: 'Одна історія',             prize: '3 000 ₴ перше місце',       main: false },
+    { id: 'z-viterczem',       href: '#z-viterczem',    accent: SCHEMES.humour, mark: 'gust'  as const, name: 'З вітерцем',                 what: 'Одна історія · гумор',     prize: '3 000 ₴ перше місце',       main: false },
   ]
 
   return (
@@ -904,8 +956,13 @@ function ContestPicker() {
           </div>
           <div style={{ fontSize: 13, color: t.accent.quiet }}>{t.what}</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 12.5, color: t.accent.body }}>{t.when}</span>
-            <span style={{ fontSize: 15, fontWeight: 800, color: t.accent.line }}>{t.prize}</span>
+            <span style={{
+              fontSize: 12.5,
+              color: acceptanceLabel(t.id).closed ? t.accent.quiet : t.accent.body,
+            }}>
+              {acceptanceLabel(t.id).text}
+            </span>
+            <span style={{ fontSize: 14, fontWeight: 800, color: t.accent.line }}>{t.prize}</span>
           </div>
         </a>
       ))}
