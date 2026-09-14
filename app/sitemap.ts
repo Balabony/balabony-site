@@ -1,3 +1,4 @@
+import { CONTESTS } from '@/lib/contests'
 import type { MetadataRoute } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { authorSlug } from '@/lib/author-slug'
@@ -67,6 +68,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Подача творів. Окрема адреса, бо автор шукає її пошуком («як подати твір
     // на конкурс»), а не лише переходом зі сторінки конкурсів.
     { url: `${BASE_URL}/konkursy/podaty`,       lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    // Окремі сторінки конкурсів — на них ведуть QR-коди в газеті.
+    ...CONTESTS.map(c => ({
+      url: `${BASE_URL}/konkursy/${c.id}`,
+      lastModified: now, changeFrequency: 'weekly' as const, priority: 0.7,
+    })),
     { url: `${BASE_URL}/support`,               lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE_URL}/about`,                 lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/games`,                 lastModified: now, changeFrequency: 'weekly',  priority: 0.7 },
