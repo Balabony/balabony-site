@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ContestReads from '@/app/components/ContestReads'
-import { findContest, isOpen, type Contest } from '@/lib/contests'
+import { CONTESTS, findContest, isOpen, type Contest } from '@/lib/contests'
 
 /**
  * Сторінка перезбирається щогодини.
@@ -1533,6 +1533,39 @@ export default function KonkursyPage() {
               ))}
             </div>
           ))}
+        </div>
+
+        {/* ─── ДЛЯ БІБЛІОТЕК І ШКІЛ ─────────────────────────────────────── */}
+        {/* Установі потрібен не лист, а аркуш на дошку оголошень. Тому
+            посилання на друковані афіші стоять на самій сторінці конкурсів,
+            а не тільки в розсилці: бібліотекар, що прийшов сюди сам, має
+            їх знайти без листа. */}
+        <div id="dlia-bibliotek" className="k-no-print" style={{ marginTop: 26, padding: '26px 22px', borderRadius: 16, background: NAVY, border: '1px solid rgba(239,159,39,0.25)', scrollMarginTop: 90 }}>
+          <h2 style={{ fontFamily: SERIF, fontSize: 24, color: GOLD_SOFT, margin: '0 0 6px', fontWeight: 700 }}>
+            Бібліотекам, школам і спілкам
+          </h2>
+          <p style={{ ...P, margin: '0 0 14px' }}>
+            Готові аркуші A4 з QR-кодом — відкрийте, збережіть як PDF або одразу
+            надрукуйте й повісьте на дошку оголошень. Чорно-білі, кольоровий
+            принтер не потрібен. Дати й суми в них завжди чинні: аркуш формується
+            з тих самих даних, що й ця сторінка.
+          </p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <Link href="/konkursy/afisha" style={{
+              fontSize: 14.5, fontWeight: 700, color: '#14213a', background: GOLD,
+              border: `1px solid ${GOLD}`, borderRadius: 9, padding: '10px 18px', textDecoration: 'none',
+            }}>
+              Усі чотири конкурси — один аркуш
+            </Link>
+            {CONTESTS.map(c => (
+              <Link key={c.id} href={`/konkursy/${c.id}/afisha`} style={{
+                fontSize: 14.5, fontWeight: 600, color: GOLD_SOFT, background: 'transparent',
+                border: '1px solid rgba(239,159,39,0.4)', borderRadius: 9, padding: '10px 18px', textDecoration: 'none',
+              }}>
+                {c.name}
+              </Link>
+            ))}
+          </div>
         </div>
 
         {/* ─── ПИТАННЯ І ВІДПОВІДІ ──────────────────────────────────────── */}

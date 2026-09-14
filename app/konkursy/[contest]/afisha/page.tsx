@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import QrBlock from '@/app/components/QrBlock'
+import PrintButton from '@/app/components/PrintButton'
 import { findContest, isOpen } from '@/lib/contests'
 
 /**
@@ -109,7 +110,8 @@ export default async function AfishaPage(
       <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
 
       <div className="a-no-print" style={{ maxWidth: 720, margin: '0 auto 18px', fontSize: 13.5, color: '#555', lineHeight: 1.6 }}>
-        Аркуш для друку: Ctrl+P, A4, книжкова орієнтація. Кольори не потрібні.
+        <div style={{ marginBottom: 10 }}><PrintButton /></div>
+        Аркуш A4, книжкова орієнтація. Кольори не потрібні — друкується чорно-білим.
         {!short && ' Щоб рахувати сканування окремо для кожного місця, створіть короткий код у /admin/qr і додайте до адреси ?code=<код>.'}
       </div>
 
@@ -152,7 +154,7 @@ export default async function AfishaPage(
             {c.episodes > 1
               ? `${c.episodes} серій по ${c.minWords}–${c.maxWords} слів`
               : `одна історія ${c.minWords}–${c.maxWords} слів`}
-            , українською, раніше не публікований
+            {' '}— українською, твір власний і раніше ніде не публікований
           </li>
           <li>Участь безкоштовна, від автора — одна робота</li>
           <li>Половину оцінки дають читачі, половину — редакція</li>
