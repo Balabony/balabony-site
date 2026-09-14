@@ -70,13 +70,19 @@ const PRINT_CSS = `
 @media print {
   html, body { background: #fff !important; }
   .a-no-print { display: none !important; }
+  /* Панель навігації платформи не належить аркушу: вона друкувалася разом
+     із ним і зсувала підпис на другу сторінку. */
+  .bb-root { display: none !important; }
+
   .a-wrap { overflow: visible !important; height: auto !important; }
   .a-sheet {
     border: none !important;
     transform: none !important;
-    width: auto; min-height: auto;
+    width: auto; min-height: 0;
     margin: 0; padding: 0;
   }
+  /* Жодних розривів усередині аркуша: він має бути рівно однією сторінкою. */
+  .a-sheet, .a-sheet * { break-inside: avoid; page-break-inside: avoid; }
 }
 `
 
