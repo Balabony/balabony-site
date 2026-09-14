@@ -3,6 +3,7 @@ import { dbQuery } from '@/lib/db'
 import { getEditor } from '@/lib/editor-auth'
 import { findContest } from '@/lib/contests'
 import ScoreForm, { type ExistingScore } from '../ScoreForm'
+import EpisodeEditor from '../EpisodeEditor'
 
 /**
  * Сторінка оцінювання однієї конкурсної роботи.
@@ -34,7 +35,7 @@ type Entry = {
   role: string
 }
 
-type Episode = { ord: number; words: number; body: string }
+type Episode = { id: string; ord: number; words: number; body: string; revisions: number }
 
 export default async function EditorScorePage(
   { params }: { params: Promise<{ entryId: string }> },
@@ -55,7 +56,11 @@ export default async function EditorScorePage(
   const entry = e.rows[0] as Entry
 
   const eps = await dbQuery(
-    `select ord, words, body from contest_episodes where entry_id = $1 order by ord`,
+    `select ep.id::text, ep.ord, ep.words, ep.body,
+            (select count(*)::int from episode_revisions r where r.episode_id = ep.id) as revisions
+       from contest_episodes ep
+      where ep.entry_id = $1
+      order by ep.ord`,
     [entryId],
   )
   const episodes = eps.rows as Episode[]
@@ -95,14 +100,14 @@ export default async function EditorScorePage(
         {episodes.map(ep => (
           <details key={ep.ord} style={{ marginBottom: '.6rem' }}>
             <summary style={{ cursor: 'pointer', fontSize: 14.5, color: CREAM, padding: '.4rem 0' }}>
-              Серія {ep.ord} · {ep.words} слів
+              Серія {ep.ord} · {ep.words} слів{ep.revisions > 0 ? ` · правок: ${ep.revisions}` : ''}
             </summary>
-            <pre style={{
-              whiteSpace: 'pre-wrap', fontFamily: 'Georgia, serif',
-              fontSize: 15.5, lineHeight: 1.8, color: '#E6EDF7',
-              background: CARD, border: `1px solid ${LINE}`,
-              borderRadius: 10, padding: '1rem 1.1rem', margin: '.4rem 0 0',
-            }}>{ep.body}</pre>
+            <EpisodeEditor
+              episodeId={ep.id}
+              initialText={ep.body}
+              initialWords={ep.words}
+              revisions={ep.revisions}
+            />
           </details>
         ))}
 
