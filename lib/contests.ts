@@ -159,6 +159,24 @@ export function isOpen(c: Contest, now: Date = new Date()): boolean {
   return today >= c.opensAt && today <= c.closesAt
 }
 
+/**
+ * Чи можна ще досилати серії до ВЖЕ ПОДАНОЇ заявки.
+ *
+ * ЧОМУ ЦЕ ОКРЕМО ВІД isOpen. У серіальному конкурсі заявка — це синопсис і
+ * ПЕРША серія, а решта дев'ять пишуться щотижня до лютого. Якщо закрити
+ * форму разом із прийомом заявок 31 жовтня, автор фізично не має куди
+ * надіслати другу серію: конкурс зупиниться через тиждень після старту.
+ *
+ * Тому прийом НОВИХ заявок і дозаливка серій до наявної — різні строки.
+ * Дозаливка живе до дати останньої публікації; після неї конкурс уже в
+ * підрахунку, і нові тексти в нього не потрапляють.
+ */
+export function acceptsEpisodes(c: Contest, now: Date = new Date()): boolean {
+  const today = now.toISOString().slice(0, 10)
+  const until = c.stages.publishUntil ?? c.closesAt
+  return today >= c.opensAt && today <= until
+}
+
 /** Слова рахуємо однаково у формі, в API і в листі — інакше цифри розійдуться. */
 export function countWords(text: string): number {
   const t = text.trim()

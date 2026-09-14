@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { CONTESTS, findContest, isOpen, type ContestId } from '@/lib/contests'
+import { CONTESTS, findContest, isOpen, acceptsEpisodes, type ContestId } from '@/lib/contests'
 
 /**
  * Подача твору на конкурс.
@@ -43,8 +43,13 @@ export default function ContestSubmitForm() {
   const [authorized, setAuthorized] = useState(false)
   const [entries, setEntries] = useState<Entry[]>([])
 
-  const open = CONTESTS.filter(c => isOpen(c))
-  const [contestId, setContestId] = useState(open[0]?.id ?? CONTESTS[0].id)
+  // Конкурси, доступні авторові прямо зараз. Це НЕ просто «прийом відкрито»:
+  // після 31 жовтня серіальний конкурс зникає з переліку відкритих, але автор,
+  // який уже подав заявку, мусить бачити його — щоб дослати серії 2–10.
+  // Список добудовується після завантаження заявок, тому лічимо його нижче.
+  const [contestId, setContestId] = useState(
+    CONTESTS.find(c => isOpen(c))?.id ?? CONTESTS[0].id,
+  )
   const [title, setTitle] = useState('')
   const [annotation, setAnnotation] = useState('')
   const [genre, setGenre] = useState('')
@@ -53,8 +58,13 @@ export default function ContestSubmitForm() {
   const [note, setNote] = useState('')
   const [done, setDone] = useState('')
 
+  const open = CONTESTS.filter(
+    c => isOpen(c) || (acceptsEpisodes(c) && entries.some(e => e.contest === c.id)),
+  )
   const contest = findContest(contestId)!
   const entry = entries.find(e => e.contest === contestId)
+  /** Прийом заявок позаду, але свої серії дослати ще можна. */
+  const onlyEpisodes = !isOpen(contest) && Boolean(entry)
   const accepted = entry?.episodes.length ?? 0
   const left = contest.episodes - accepted
 
@@ -167,7 +177,10 @@ export default function ContestSubmitForm() {
           {open.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
         <p style={{ color: BRAND.muted, fontSize: '0.85rem', lineHeight: 1.6, margin: '0 0 4px' }}>
-          {contest.hint} Прийом до {contest.closesAt.split('-').reverse().join('.')}.
+          {contest.hint}{' '}
+          {onlyEpisodes
+            ? 'Прийом нових заявок закрито — можна досилати серії до вашої.'
+            : `Прийом до ${contest.closesAt.split('-').reverse().join('.')}.`}
         </p>
       </div>
 

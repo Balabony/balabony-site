@@ -4,7 +4,7 @@ import mammoth from 'mammoth'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { dbQuery } from '@/lib/db'
 import { toPlainText } from '@/lib/plain-text'
-import { findContest, isOpen, countWords } from '@/lib/contests'
+import { findContest, isOpen, acceptsEpisodes, countWords } from '@/lib/contests'
 
 /**
  * Прийом конкурсних заявок: /api/contest/submit
@@ -121,7 +121,11 @@ export async function POST(req: NextRequest) {
   if (!contest) {
     return NextResponse.json({ ok: false, error: 'Виберіть конкурс' }, { status: 400 })
   }
-  if (!isOpen(contest)) {
+  // Прийом ЗАЯВОК і дозаливка СЕРІЙ мають різні строки — див. acceptsEpisodes.
+  // Тут рубаємо лише те, що вже точно пізно: коли навіть серії не приймаються.
+  // Заборону створювати НОВУ заявку після closesAt перевіряємо нижче, коли
+  // вже видно, чи є в автора заявка на цей конкурс.
+  if (!acceptsEpisodes(contest)) {
     return NextResponse.json(
       { ok: false, error: `Прийом на цей конкурс триває з ${contest.opensAt} до ${contest.closesAt}` },
       { status: 400 },
@@ -231,6 +235,16 @@ export async function POST(req: NextRequest) {
         )
       }
     } else {
+      // Заявки немає, а прийом уже закрито: досилати нема до чого.
+      if (!isOpen(contest)) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: `Прийом заявок на цей конкурс закрито ${contest.closesAt}. Досилати серії можуть лише ті, хто подав заявку до цієї дати.`,
+          },
+          { status: 400 },
+        )
+      }
       if (!title) {
         return NextResponse.json({ ok: false, error: 'Вкажіть назву твору' }, { status: 400 })
       }
