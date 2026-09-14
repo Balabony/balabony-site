@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { dbQuery } from '@/lib/db'
 import { getEditor } from '@/lib/editor-auth'
 import { findContest } from '@/lib/contests'
+import LogoutButton from './LogoutButton'
 
 /**
  * Кабінет редактора конкурсів — перелік призначених робіт.
@@ -74,6 +75,7 @@ export default async function EditorHomePage() {
             Кабінет редактора
           </div>
           <span style={{ marginLeft: 'auto', fontSize: 13, color: MUTED }}>{editor.name}</span>
+          <LogoutButton color={MUTED} />
         </div>
 
         <h1 style={{ fontSize: 21, color: GOLD_L, fontWeight: 600, margin: '1.4rem 0 .3rem' }}>
