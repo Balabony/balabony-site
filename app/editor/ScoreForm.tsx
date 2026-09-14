@@ -149,8 +149,17 @@ export default function ScoreForm({
       </label>
       <p style={{ fontSize: 12.5, color: MUTED, margin: '0 0 .5rem', lineHeight: 1.6 }}>
         Не для автора. Підсумки підписують усі редактори, і кожен має бачити,
-        чому бал саме такий. Щонайменше 40 символів.
+        чому бал саме такий. Автор може оскаржити результат протягом десяти днів
+        після оголошення — коментар і буде тим, чим ми бал обґрунтуємо.
       </p>
+      {/* Підказка, а не вимога: поріг у 150 символів відсікає відписки, але
+          сам собою не підказує, чим їх замінити. Три питання нижче — те, чого
+          бракувало в тестових коментарях. */}
+      <ul style={{ fontSize: 12.5, color: MUTED, margin: '0 0 .6rem', paddingLeft: 18, lineHeight: 1.7 }}>
+        <li>За що саме знято бали — назвіть місце в тексті, а не враження.</li>
+        <li>Що спрацювало. Навіть у слабкій роботі є те, що тримає.</li>
+        <li>Що врятувало б текст, якби автор переписав.</li>
+      </ul>
       <textarea
         value={comment}
         onChange={e => setComment(e.target.value)}
@@ -160,9 +169,9 @@ export default function ScoreForm({
                  background: NAVY, color: CREAM, border: `1px solid ${LINE}`,
                  borderRadius: 8, resize: 'vertical' }}
       />
-      <div style={{ fontSize: 12, color: comment.trim().length < 40 ? '#eab308' : MUTED,
+      <div style={{ fontSize: 12, color: comment.trim().length < 150 ? '#eab308' : MUTED,
                     marginTop: 4 }}>
-        {comment.trim().length} символів
+        {comment.trim().length} із 150 символів
       </div>
 
       {msg && (
