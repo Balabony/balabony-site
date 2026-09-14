@@ -545,6 +545,7 @@ function Toc() {
   return (
     <nav
       aria-label="Розділи умов"
+      className="k-no-print"
       style={{
         display: 'flex', flexWrap: 'wrap', gap: 8,
         margin: '0 0 22px',
@@ -574,7 +575,7 @@ function Toc() {
 /** Повернення до плиток вибору — щоб не гортати вгору вручну. */
 function BackToTop() {
   return (
-    <p style={{ margin: '0 0 26px', textAlign: 'center' }}>
+    <p className="k-no-print" style={{ margin: '0 0 26px', textAlign: 'center' }}>
       <a href="#vybir-konkursu" style={{ fontSize: 13, color: MUTED, textDecoration: 'none' }}>
         ↑ до вибору конкурсу
       </a>
@@ -863,6 +864,7 @@ function ContestPicker() {
   return (
     <div
       id="vybir-konkursu"
+      className="k-no-print"
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
@@ -911,9 +913,41 @@ function ContestPicker() {
   )
 }
 
+/**
+ * Стиль для друку.
+ *
+ * ЧОМУ ВІН ПОТРІБЕН. Аудиторія цих конкурсів — автори з осередків Спілки
+ * письменників, і частина з них читає умови на папері, а не з екрана.
+ * Сторінка темна: без цього блоку на друк іде чорний фон, сірий текст по
+ * ньому і половина картриджа. Кольори задані інлайново, тому перекрити їх
+ * можна тільки через !important.
+ *
+ * Ховаємо те, що на папері не працює: зміст із посиланнями, «до вибору
+ * конкурсу», плитки вибору і кнопки-заклики.
+ */
+const PRINT_CSS = `
+@media print {
+  html, body { background: #fff !important; }
+  .k-page, .k-page * {
+    background: #fff !important;
+    background-image: none !important;
+    color: #111 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  .k-page a { color: #111 !important; text-decoration: underline; }
+  .k-page section, .k-page nav { border: 1px solid #bbb !important; }
+  .k-page section { break-inside: avoid; page-break-inside: avoid; }
+  .k-page h1, .k-page h2, .k-page h3 { break-after: avoid; page-break-after: avoid; }
+  .k-no-print { display: none !important; }
+  .k-page { max-width: none !important; padding: 0 !important; }
+}
+`
+
 export default function KonkursyPage() {
   return (
-    <main style={{ background: NAVY_DEEP, color: CREAM, fontFamily: FONT }}>
+    <main className="k-page" style={{ background: NAVY_DEEP, color: CREAM, fontFamily: FONT }}>
+      <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '36px 20px calc(88px + env(safe-area-inset-bottom, 0px))' }}>
 
         <Breadcrumbs items={[{ label: 'Конкурси' }]} />
