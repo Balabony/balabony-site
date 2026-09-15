@@ -64,29 +64,38 @@ export default function AdminWorksPage() {
   const [bulkBusy, setBulkBusy] = useState(false)
   const [genre,   setGenre]   = useState('all')
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [type,    setType]    = useState('all')
+  const [total,   setTotal]   = useState(0)
+  const [more,    setMore]    = useState(false)
 
   // Читаємо ?q= та ?status= з адреси, щоб лінки можна було зберігати в закладках
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search)
     const q0 = sp.get('q')
     const st0 = sp.get('status')
+    const tp0 = sp.get('type')
     if (q0) setSearch(q0)
     if (st0 && ['all', 'draft', 'approved', 'published'].includes(st0)) setStatus(st0)
+    // Тип теж читаємо з адреси: так посилання виду /admin/works?type=balabony
+    // відкриває каталог одразу відфільтрованим, і його можна зберегти в закладки.
+    if (tp0 && ['all', 'story', 'balabony', 'tysha'].includes(tp0)) setType(tp0)
     setReady(true)
   }, [])
 
-  const load = useCallback(async (q: string, st: string) => {
+  const load = useCallback(async (q: string, st: string, tp: string) => {
     setPhase('loading')
     setError('')
     try {
       const params = new URLSearchParams()
       if (q) params.set('q', q)
       params.set('status', st)
+      params.set('type', tp)
       params.set('limit', '200')
       const res = await fetch(`/api/admin/works?${params.toString()}`)
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Помилка запиту')
       setItems(Array.isArray(data.items) ? data.items : [])
+      setTotal(Number(data.total) || 0)
       setPicked(new Set())
       setPhase('done')
     } catch (err) {
@@ -95,18 +104,41 @@ export default function AdminWorksPage() {
     }
   }, [])
 
+  /** Наступні 200. Одразу всі 1200 не тягнемо — сторінка застигне. */
+  const loadMore = useCallback(async () => {
+    setMore(true)
+    try {
+      const params = new URLSearchParams()
+      if (search) params.set('q', search)
+      params.set('status', status)
+      params.set('type', type)
+      params.set('limit', '200')
+      params.set('offset', String(items.length))
+      const res = await fetch(`/api/admin/works?${params.toString()}`)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Помилка запиту')
+      setItems(prev => [...prev, ...(Array.isArray(data.items) ? data.items : [])])
+      setTotal(Number(data.total) || 0)
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : String(err))
+    } finally {
+      setMore(false)
+    }
+  }, [search, status, type, items.length])
+
   useEffect(() => {
     if (!ready) return
     const t = setTimeout(() => {
-      void load(search, status)
+      void load(search, status, type)
       const sp = new URLSearchParams()
       if (search) sp.set('q', search)
       if (status !== 'all') sp.set('status', status)
+      if (type !== 'all') sp.set('type', type)
       const qs = sp.toString()
       window.history.replaceState(null, '', qs ? `?${qs}` : window.location.pathname)
     }, 350)
     return () => clearTimeout(t)
-  }, [search, status, load, ready])
+  }, [search, status, type, load, ready])
 
   function toggle(id: string) {
     setPicked(prev => {
@@ -229,6 +261,19 @@ export default function AdminWorksPage() {
             <option value="approved">Схвалено</option>
             <option value="published">Опубліковано</option>
           </select>
+          <select
+            style={{
+              padding: '12px 14px', borderRadius: 10, border: '1px solid #24365c',
+              background: NAVY_DEEP, color: '#fff', fontSize: 15, fontFamily: FONT,
+            }}
+            value={type}
+            onChange={e => setType(e.target.value)}
+          >
+            <option value="all">Усі типи</option>
+            <option value="story">Історії</option>
+            <option value="balabony">Серії «Балабони»</option>
+            <option value="tysha">«Тиша»</option>
+          </select>
           {genres.length > 0 && (
             <select
               style={{
@@ -276,7 +321,7 @@ export default function AdminWorksPage() {
               </button>
 
               <span style={{ color: '#7d8aa8', fontSize: 13 }}>
-                Знайдено: {items.length}
+                Показано {shown.length} із {total}
                 {picked.size > 0 ? ` · обрано ${picked.size}` : ''}
               </span>
 
@@ -400,6 +445,22 @@ export default function AdminWorksPage() {
                 </div>
               </div>
             ))}
+
+            {items.length < total && (
+              <div style={{ textAlign: 'center', padding: '18px 0 4px' }}>
+                <button
+                  onClick={() => void loadMore()}
+                  disabled={more}
+                  style={{
+                    background: 'transparent', color: GOLD, border: `1.5px solid ${GOLD}`,
+                    borderRadius: 999, padding: '11px 26px', fontSize: 14, fontWeight: 700,
+                    fontFamily: FONT, cursor: more ? 'default' : 'pointer', opacity: more ? 0.6 : 1,
+                  }}
+                >
+                  {more ? 'Вантажу…' : `Показати ще (лишилось ${total - items.length})`}
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>

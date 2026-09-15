@@ -21,16 +21,27 @@ export async function GET(req: NextRequest) {
     const q      = (searchParams.get('q') || '').trim()
     const status = searchParams.get('status') || 'all'
     const limit  = Math.min(Number(searchParams.get('limit')) || 200, 500)
+    const offset = Math.max(0, Number(searchParams.get('offset')) || 0)
+    const type   = searchParams.get('type') || 'all'
 
+    // 15.09.2026. Роут віддавав 200 найновіших записів і на цьому все: без
+    // зсуву й без фільтра за типом. У базі майже 1200 творів, тож серії
+    // «Балабонів», старші за останні дві сотні, у каталог просто не
+    // потрапляли — виглядало так, ніби їх немає. Тепер є і зсув (кнопка
+    // «Показати ще»), і фільтр за типом, і загальна кількість.
     const supabase = getSupabaseAdmin()
     let query = supabase
       .from('content')
-      .select('id, title, author_name, status, type, genre, created_at')
+      .select('id, title, author_name, status, type, genre, created_at', { count: 'exact' })
       .order('created_at', { ascending: false })
-      .limit(limit)
+      .range(offset, offset + limit - 1)
 
     if (status !== 'all') {
       query = query.eq('status', status)
+    }
+
+    if (type !== 'all') {
+      query = query.eq('type', type)
     }
 
     if (q) {
@@ -38,10 +49,10 @@ export async function GET(req: NextRequest) {
       query = query.or(`title.ilike.%${safe}%,author_name.ilike.%${safe}%`)
     }
 
-    const { data, error } = await query
+    const { data, error, count } = await query
     if (error) throw error
 
-    return NextResponse.json({ items: data ?? [] })
+    return NextResponse.json({ items: data ?? [], total: count ?? 0 })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
   }

@@ -31,8 +31,8 @@ export const ADMIN_GROUPS: AdminGroup[] = [
     title: 'Контент',
     items: [
       { href: '/admin/works',           label: 'Каталог творів',  note: 'Усі твори, включно з чернетками: пошук, статуси, видалення', quick: true, short: 'Твори' },
-      { href: '/admin/stories',         label: 'Редактор серій', note: 'Написання й правка серій «Балабонів»',    quick: true },
-      { href: '/admin/series-list',     label: 'Список серій',   note: 'Перелік із перевіркою канону',            quick: true },
+      { href: '/admin/stories',         label: 'Написання серій',  note: 'Редактор тексту серій «Балабонів» — писати й правити', quick: true, short: 'Писати' },
+      { href: '/admin/series-list',     label: 'Усі серії «Балабонів»', note: 'Повний перелік серій за сезонами: обкладинки, перевірка канону', quick: true, short: 'Серії' },
       { href: '/admin/stories1',        label: 'Авторські',      note: 'Твори авторів' },
       { href: '/admin/konkursy',        label: 'Конкурсні заявки', note: 'Що надіслали на конкурси: читати, приймати, відхиляти', quick: true, short: 'Конкурси' },
       { href: '/admin/na-redakturi',    label: 'На редактурі',   note: 'Черга текстів у роботі' },
