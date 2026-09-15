@@ -58,6 +58,13 @@ export default function CoverPositionPage() {
   const [note, setNote]       = useState('')
   const [uploading, setUploading] = useState(false)
   const [more, setMore]       = useState(false)
+  // 'frame' — підгонка кадру (як було), 'revision' — ревізія: оригінали
+  // цілком і великим планом, щоб ловити збої генерації. Раніше це була
+  // окрема сторінка /admin/balabony-covers тільки для «Балабонів»; тут
+  // те саме працює для будь-якого типу, і знайдений збій можна виправити
+  // на місці — клац по картці відкриває рамку.
+  const [view, setView]       = useState<'frame' | 'revision'>('frame')
+  const [shot, setShot]       = useState<260 | 420 | 620>(420)
   const [urlInput, setUrlInput]   = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -67,7 +74,7 @@ export default function CoverPositionPage() {
     setLoading(true)
     setErr('')
     try {
-      const params = new URLSearchParams({ q, only, type, limit: '60' })
+      const params = new URLSearchParams({ q, only, type, limit: view === 'revision' ? '200' : '60' })
       const r = await fetch(`/api/admin/cover-position?${params.toString()}`)
       if (!r.ok) throw new Error(r.status === 401 ? 'Потрібен вхід в адмінку' : `Помилка ${r.status}`)
       const j = await r.json() as { rows: Row[]; total: number }
@@ -78,7 +85,7 @@ export default function CoverPositionPage() {
     } finally {
       setLoading(false)
     }
-  }, [q, only, type])
+  }, [q, only, type, view])
 
   useEffect(() => { void load() }, [load])
 
@@ -241,6 +248,29 @@ export default function CoverPositionPage() {
           </span>
         </div>
 
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 18 }}>
+          <button type="button" onClick={() => setView('frame')}
+            style={{ ...btn, background: view === 'frame' ? GOLD : NAVY, color: view === 'frame' ? '#10243c' : CREAM, fontWeight: 700 }}>
+            Кадр
+          </button>
+          <button type="button" onClick={() => setView('revision')}
+            style={{ ...btn, background: view === 'revision' ? GOLD : NAVY, color: view === 'revision' ? '#10243c' : CREAM, fontWeight: 700 }}>
+            Ревізія
+          </button>
+
+          {view === 'revision' && (
+            <>
+              <span style={{ fontSize: 12.5, color: MUTED, marginLeft: 6 }}>Розмір:</span>
+              {([260, 420, 620] as const).map(sz => (
+                <button key={sz} type="button" onClick={() => setShot(sz)}
+                  style={{ ...btn, padding: '8px 14px', background: shot === sz ? GOLD : NAVY, color: shot === sz ? '#10243c' : CREAM }}>
+                  {sz === 260 ? 'дрібно' : sz === 420 ? 'звично' : 'велико'}
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+
         {err && (
           <div style={{ border: '1px solid rgba(255,139,139,0.5)', background: 'rgba(255,139,139,0.12)', color: '#ffb3b3', borderRadius: 10, padding: '12px 14px', fontSize: 13, marginBottom: 16 }}>
             {err}
@@ -253,6 +283,38 @@ export default function CoverPositionPage() {
           </div>
         )}
 
+        {view === 'revision' ? (
+          /* РЕВІЗІЯ. Показуємо ОРИГІНАЛ повністю (contain), а не обрізаний кадр:
+             мета тут інша — знайти зайві пальці, предмети в повітрі, криві написи.
+             На обрізаній мініатюрі збій ховається за краєм рамки. */
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(min(${shot}px, 100%), 1fr))`, gap: 16 }}>
+            {rows.map(row => (
+              <div key={row.id} style={{ background: NAVY, border: `1px solid ${LINE}`, borderRadius: 12, overflow: 'hidden' }}>
+                <div style={{ background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: shot * 0.62 }}>
+                  {row.cover_url
+                    ? <img src={row.cover_url} alt={row.title} style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'contain' }} />
+                    : <span style={{ color: MUTED, fontSize: 12.5, padding: 24 }}>без обкладинки</span>}
+                </div>
+                <div style={{ padding: '10px 12px 12px' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.35 }}>{row.title}</div>
+                  <div style={{ fontSize: 11.5, color: MUTED, marginTop: 4 }}>{row.author_name ?? '—'}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+                    <button type="button" onClick={() => { setView('frame'); open(row) }}
+                      style={{ ...btn, padding: '7px 14px', fontSize: 12.5 }}>
+                      Виправити кадр
+                    </button>
+                    {row.cover_url && (
+                      <a href={row.cover_url} target="_blank" rel="noopener noreferrer"
+                        style={{ ...btn, padding: '7px 14px', fontSize: 12.5, textDecoration: 'none', display: 'inline-block' }}>
+                        Оригінал
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(275px, 100%), 1fr))', gap: 16 }}>
           {rows.map(row => {
             const f = parseFocus(row.cover_position)
@@ -285,6 +347,7 @@ export default function CoverPositionPage() {
             )
           })}
         </div>
+        )}
 
         {rows.length < total && (
           <div style={{ textAlign: 'center', padding: '22px 0 4px' }}>
