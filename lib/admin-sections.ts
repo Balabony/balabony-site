@@ -39,6 +39,9 @@ export const ADMIN_GROUPS: AdminGroup[] = [
       { href: '/admin/editorial',       label: 'Редакція',       note: 'Редакційний розділ' },
       { href: '/admin/cover-position',  label: 'Кадр обкладинки', note: 'Підгонка фото в картці, щоб не зрізало обличчя', quick: true, short: 'Кадр' },
       { href: '/admin/balabony-covers', label: 'Обкладинки «Балабонів»', note: 'Перегляд усіх обкладинок серій — пошук збоїв генерації', quick: true, short: 'Обкладинки Б' },
+      { href: '/admin/works',           label: 'Каталог із чернетками', note: 'Пошук по ВСІХ творах, включно з draft — те, чого не видно в «Історіях»', short: 'Чернетки' },
+      { href: '/admin/genres',          label: 'Жанри',                 note: 'Довідник жанрів творів' },
+      { href: '/admin/compress-covers', label: 'Стиснення обкладинок',  note: 'Пакетне зменшення ваги картинок' },
       { href: '/admin/rozklad',         label: 'Розклад публікацій', note: 'Вівторок і пʼятниця о 18:00 — що на які дати призначено', quick: true, short: 'Розклад' },
     ],
   },
@@ -57,7 +60,10 @@ export const ADMIN_GROUPS: AdminGroup[] = [
       { href: '/admin/link-authors',    label: 'Привʼязка авторів',            note: 'Архівні твори → профіль автора', quick: true, short: 'Привʼязка' },
       { href: '/admin/sync-works',      label: 'Перелік творів за договорами', note: 'Додаток № 1. Чернетки не бере',  quick: true, short: 'Перелік творів' },
       { href: '/admin/author-messages', label: 'Звернення авторів',            note: 'Листи з кабінетів авторів', quick: true, short: 'Звернення' },
+      { href: '/admin/correspondence',  label: 'Реєстр листування',            note: 'Вхідні й вихідні листи авторів, строки відповіді 14 і 30 днів', short: 'Листування' },
+      { href: '/admin/notify',          label: 'Сповістити підписників',       note: 'Лист тим, хто стежить за автором — вручну на конкретний твір', short: 'Сповіщення' },
       { href: '/admin/editors',         label: 'Редактори',                    note: 'Доступи редакційної команди' },
+      { href: '/admin/withdraw-author', label: 'Зняття творів автора',         note: 'АВАРІЙНЕ: знімає з сайту всі твори автора, який відкликав згоду', short: 'Зняття' },
     ],
   },
   {
@@ -78,6 +84,7 @@ export const ADMIN_GROUPS: AdminGroup[] = [
   {
     title: 'Читачі',
     items: [
+      { href: '/admin/chytachi',    label: 'Залогінені читачі', note: 'Хто з акаунтом, чи ростуть реєстрації, хто проходить конкурсний залік', quick: true, short: 'Читачі з акаунтом' },
       { href: '/admin/benefits',    label: 'Пільгові статуси', note: 'Ручні заявки на пільгу — те, що Дія не валідує', quick: true, short: 'Пільги' },
       { href: '/admin/plan-requests', label: 'Груповий доступ',   note: 'Заявки юросіб на корпоративний і бібліотечний пакети', short: 'Групи' },
       { href: '/admin/pidpysnyky',  label: 'Підписники',       note: 'База пошт із блоку під історіями, вивантаження CSV', quick: true, short: 'Підписники' },
@@ -89,8 +96,7 @@ export const ADMIN_GROUPS: AdminGroup[] = [
       { href: '/admin/spelling',        label: 'Довідник правопису',   note: 'Статті правопису, чернетка → звірено' },
       { href: '/admin/import-archive',  label: 'Імпорт архіву',        note: 'Завантаження текстів зі Сторріса' },
       { href: '/admin/import-balabony', label: 'Імпорт Балабонів',     note: 'Завантаження серій' },
-      { href: '/admin/panas-poses',     label: 'Пози Панаса',          note: 'Генератор ілюстрацій' },
-      { href: '/admin/ganya-poses',     label: 'Пози баби Гані',       note: 'Генератор ілюстрацій' },
+      { href: '/admin/poses',           label: 'Пози героїв',          note: 'Генератор ілюстрацій Панаса і Гані — еталон обличчя й пози' },
       { href: '/admin/stt-test',        label: 'Розпізнавання голосу', note: 'Перевірка Deepgram' },
     ],
   },

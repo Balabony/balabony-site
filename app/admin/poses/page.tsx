@@ -1,12 +1,25 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 // =============================================================================
-// АДМІН: ГЕНЕРАТОР ПОЗ БАБИ ГАНІ
-// Крок 1 — згенерувати кілька еталонів, обрати один (канонічний вигляд).
-// Крок 2 — з еталона згенерувати кожну позу (Flux тримає те саме обличчя).
-// Крок 3 — завантажити найкращі й покласти у public/ganya-poses/ як ganya-<key>.jpg
+// АДМІН: ПОЗИ ГЕРОЇВ — один розділ замість /admin/panas-poses і /admin/ganya-poses.
+//
+// Сторінки були однакові з точністю до імені персонажа: ті самі кроки, той
+// самий вигляд, та сама кнопка завантаження. Різниця була лише в одному —
+// у Панаса вже існує канонічне фото-еталон, тож крок 1 йому потрібен рідко,
+// а Гані еталон щоразу генерується з нуля. Тут обидва шляхи є завжди:
+// готовий еталон підставляється сам, якщо він у персонажа заданий.
+//
+// Порядок роботи:
+//   1. Еталон обличчя — згенерувати чотири й обрати, або вставити URL наявного.
+//   2. Пози — з обраного еталона, по одній, обличчя тримається тим самим.
+//   3. Завантажити найкращі й покласти у public/<тека персонажа>/ під іменем,
+//      яке підписане під кожною позою. Імена міняти НЕ МОЖНА: generate-cover
+//      шукає файли саме за ними.
+//
+// Канон персонажів живе в lib/pose-characters.ts, генерація — в
+// /api/admin/generate-pose.
 // =============================================================================
 
 const NAVY = '#0E1A2B'
@@ -17,11 +30,19 @@ const CREAM = '#FFF8EE'
 const BLUE = '#B5D4F4'
 const FONT = 'Montserrat, system-ui, sans-serif'
 
+const CHARACTERS = [
+  { key: 'panas', title: 'Дід Панас' },
+  { key: 'ganya', title: 'Баба Ганя' },
+]
+
 type PoseItem = { key: string; label: string; fileName: string }
 
-export default function GanyaPosesPage() {
+export default function PosesPage() {
+  const [character, setCharacter] = useState('panas')
+
   const [look, setLook] = useState('')
   const [poses, setPoses] = useState<PoseItem[]>([])
+  const [folder, setFolder] = useState('')
   const [refs, setRefs] = useState<string[]>([])
   const [chosenRef, setChosenRef] = useState('')
   const [manualRef, setManualRef] = useState('')
@@ -29,28 +50,42 @@ export default function GanyaPosesPage() {
   const [busy, setBusy] = useState<string | null>(null)
   const [err, setErr] = useState('')
 
+  // Зміна персонажа скидає все, що стосувалося попереднього: еталон Панаса на
+  // позах Гані дав би чужу бабу з дідовим обличчям, і це не відразу помітно.
   useEffect(() => {
-    fetch('/api/admin/generate-ganya-pose')
+    setLook(''); setPoses([]); setRefs([]); setChosenRef('')
+    setManualRef(''); setPoseImgs({}); setErr('')
+
+    fetch(`/api/admin/generate-pose?character=${character}`)
       .then(r => r.json())
       .then(d => {
+        if (d.error) { setErr(d.error); return }
         setPoses(d.poses || [])
+        setFolder(d.folder || '')
         if (d.defaultLook) setLook(d.defaultLook)
+        // Готовий канонічний еталон — підставляємо одразу, щоб не генерувати
+        // обличчя наново там, де воно вже затверджене.
+        if (d.defaultRefUrl) setChosenRef(d.defaultRefUrl)
       })
       .catch(() => setErr('Не вдалося завантажити список поз'))
-  }, [])
+  }, [character])
+
+  const post = useCallback(
+    (payload: Record<string, unknown>) =>
+      fetch('/api/admin/generate-pose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ character, ...payload }),
+      }).then(r => r.json()),
+    [character],
+  )
 
   async function genRefs() {
     setErr(''); setBusy('refs'); setRefs([])
     try {
       const seeds = [0, 1, 2, 3].map(() => Math.floor(Math.random() * 2_000_000))
       const results = await Promise.all(
-        seeds.map(seed =>
-          fetch('/api/admin/generate-ganya-pose', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mode: 'reference', description: look, seed }),
-          }).then(r => r.json())
-        )
+        seeds.map(seed => post({ mode: 'reference', description: look, seed })),
       )
       const urls = results.map(r => r.url).filter(Boolean) as string[]
       if (urls.length === 0) setErr('Жоден еталон не згенерувався. Спробуй ще раз.')
@@ -66,11 +101,7 @@ export default function GanyaPosesPage() {
     if (!chosenRef) { setErr('Спершу обери еталон угорі'); return }
     setErr(''); setBusy(key)
     try {
-      const res = await fetch('/api/admin/generate-ganya-pose', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'pose', description: look, pose: key, referenceImageUrl: chosenRef }),
-      }).then(r => r.json())
+      const res = await post({ mode: 'pose', description: look, pose: key, referenceImageUrl: chosenRef })
       if (res.url) setPoseImgs(prev => ({ ...prev, [key]: res.url }))
       else setErr(res.error || 'Поза не згенерувалась')
     } catch {
@@ -80,7 +111,7 @@ export default function GanyaPosesPage() {
     }
   }
 
-  // Завантажує зображення з правильним імʼям файлу (ganya-<key>.jpg) — без ручного перейменування.
+  // Завантаження з правильним імʼям файлу — щоб не перейменовувати руками.
   async function downloadPose(url: string, fileName: string) {
     try {
       const res = await fetch(url)
@@ -109,14 +140,45 @@ export default function GanyaPosesPage() {
     cursor: active ? 'pointer' : 'default',
   })
 
+  const current = CHARACTERS.find(c => c.key === character)?.title ?? ''
+
   return (
     <div style={{ minHeight: '100%', background: NAVY, color: CREAM, fontFamily: FONT, padding: '28px 22px 120px' }}>
       <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-        <h1 style={{ color: GOLD2, fontSize: 26, margin: '0 0 6px' }}>Пози баби Гані</h1>
+
+        <a href="/admin" style={{ fontSize: 13, color: BLUE, textDecoration: 'none' }}>← Адмінка</a>
+
+        <h1 style={{ color: GOLD2, fontSize: 26, margin: '14px 0 12px' }}>Пози героїв</h1>
+
+        {/* ПЕРЕМИКАЧ ПЕРСОНАЖА */}
+        <div style={{ display: 'flex', gap: 10, marginBottom: 18, flexWrap: 'wrap' }}>
+          {CHARACTERS.map(c => {
+            const on = c.key === character
+            return (
+              <button
+                key={c.key}
+                onClick={() => setCharacter(c.key)}
+                style={{
+                  background: on ? GOLD : 'transparent',
+                  color: on ? NAVY : GOLD2,
+                  border: `1px solid ${GOLD}`,
+                  borderRadius: 999,
+                  padding: '8px 20px',
+                  fontFamily: FONT, fontWeight: 700, fontSize: 14,
+                  cursor: 'pointer',
+                }}
+              >
+                {c.title}
+              </button>
+            )
+          })}
+        </div>
+
         <p style={{ color: BLUE, fontSize: 14, lineHeight: 1.5, margin: '0 0 24px' }}>
-          Крок 1 — згенеруй еталони й обери один. Крок 2 — з нього згенеруй кожну позу.
-          Крок 3 — завантаж найкращі (ПКМ → «Зберегти зображення як…») і поклади у{' '}
-          <code style={{ color: GOLD2 }}>public/ganya-poses/</code> з відповідним іменем файлу.
+          Крок 1 — еталон обличчя: згенеруй і обери, або встав URL наявного.
+          Крок 2 — з нього згенеруй кожну позу. Крок 3 — завантаж найкращі й поклади у{' '}
+          <code style={{ color: GOLD2 }}>public/{folder || '…'}/</code> під тим іменем, що підписане
+          під позою. Імена не міняй — обкладинки шукають файли саме за ними.
         </p>
 
         {err && (
@@ -127,13 +189,13 @@ export default function GanyaPosesPage() {
 
         {/* ОПИС ВИГЛЯДУ */}
         <label style={{ display: 'block', color: GOLD2, fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
-          Опис вигляду Гані (англійською — це «замок» обличчя й одягу)
+          Опис вигляду ({current}, англійською — це «замок» обличчя й одягу)
         </label>
         <textarea
           value={look}
           onChange={e => setLook(e.target.value)}
           rows={4}
-          style={{ width: '100%', background: NAVY2, color: CREAM, border: `1px solid #2c3e57`, borderRadius: 8, padding: 12, fontFamily: FONT, fontSize: 13, lineHeight: 1.5, resize: 'vertical', marginBottom: 22 }}
+          style={{ width: '100%', background: NAVY2, color: CREAM, border: '1px solid #2c3e57', borderRadius: 8, padding: 12, fontFamily: FONT, fontSize: 13, lineHeight: 1.5, resize: 'vertical', marginBottom: 22 }}
         />
 
         {/* КРОК 1 — ЕТАЛОНИ */}
@@ -142,17 +204,15 @@ export default function GanyaPosesPage() {
           {busy === 'refs' ? 'Генерую 4 еталони…' : 'Згенерувати 4 еталони'}
         </button>
 
-        {/* Вставити URL уже наявного еталона зі Storage — щоб нові пози
-            збіглися обличчям із тими, що вже згенеровані раніше. */}
         <div style={{ marginTop: 14, padding: 14, background: NAVY2, borderRadius: 10, border: '1px solid #2c3e57' }}>
           <label style={{ display: 'block', color: GOLD2, fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
-            Або встав URL наявного еталона (Storage → covers → ganya-gen → ref-…jpg)
+            Або встав URL наявного еталона (Storage → covers → {character}-gen → ref-…jpg)
           </label>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <input
               value={manualRef}
               onChange={e => setManualRef(e.target.value)}
-              placeholder="https://…/storage/v1/object/public/covers/ganya-gen/ref-…jpg"
+              placeholder={`https://…/storage/v1/object/public/covers/${character}-gen/ref-…jpg`}
               style={{ flex: 1, minWidth: 260, background: NAVY, color: CREAM, border: '1px solid #2c3e57', borderRadius: 8, padding: '10px 12px', fontFamily: FONT, fontSize: 13 }}
             />
             <button
@@ -230,6 +290,7 @@ export default function GanyaPosesPage() {
             )
           })}
         </div>
+
       </div>
     </div>
   )
