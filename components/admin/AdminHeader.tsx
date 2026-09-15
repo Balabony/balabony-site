@@ -69,7 +69,7 @@ export default function AdminHeader({ icon, title }: AdminHeaderProps) {
   // На Тиші показуємо перемикач «Балабони», на Балабонах — «Тиша».
   const isTysha = pathname?.startsWith('/admin/tysha')
   const switcher = isTysha
-    ? { href: '/admin/content/stories', label: 'Балабони' }
+    ? { href: '/admin/works',           label: 'Балабони' }
     : { href: '/admin/tysha',           label: 'Тиша' }
 
   // Розділ «Тиша» має власний перемикач у шапці, тому в переліку його не дублюємо.

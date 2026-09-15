@@ -30,7 +30,7 @@ export const ADMIN_GROUPS: AdminGroup[] = [
   {
     title: 'Контент',
     items: [
-      { href: '/admin/content/stories', label: 'Історії',        note: 'Усі тексти: пошук, редагування, статуси', quick: true },
+      { href: '/admin/works',           label: 'Каталог творів',  note: 'Усі твори, включно з чернетками: пошук, статуси, видалення', quick: true, short: 'Твори' },
       { href: '/admin/stories',         label: 'Редактор серій', note: 'Написання й правка серій «Балабонів»',    quick: true },
       { href: '/admin/series-list',     label: 'Список серій',   note: 'Перелік із перевіркою канону',            quick: true },
       { href: '/admin/stories1',        label: 'Авторські',      note: 'Твори авторів' },
@@ -38,7 +38,6 @@ export const ADMIN_GROUPS: AdminGroup[] = [
       { href: '/admin/na-redakturi',    label: 'На редактурі',   note: 'Черга текстів у роботі' },
       { href: '/admin/editorial',       label: 'Редакція',       note: 'Редакційний розділ' },
       { href: '/admin/cover-position',  label: 'Обкладинки',      note: 'Кадр і ревізія обкладинок в одному: підгонка рамки мишею і перегляд оригіналів великим планом', quick: true, short: 'Кадр' },
-      { href: '/admin/works',           label: 'Каталог із чернетками', note: 'Пошук по ВСІХ творах, включно з draft — те, чого не видно в «Історіях»', short: 'Чернетки' },
       { href: '/admin/genres',          label: 'Жанри',                 note: 'Довідник жанрів творів' },
       { href: '/admin/compress-covers', label: 'Стиснення обкладинок',  note: 'Пакетне зменшення ваги картинок' },
       { href: '/admin/rozklad',         label: 'Розклад публікацій', note: 'Вівторок і пʼятниця о 18:00 — що на які дати призначено', quick: true, short: 'Розклад' },

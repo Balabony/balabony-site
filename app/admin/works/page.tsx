@@ -1,9 +1,25 @@
 'use client'
 
 // app/admin/works/page.tsx
-// Пошук по УСІХ творах, включно з чернетками (draft).
-// /admin/content/stories бере дані з публічного /api/stories, який ріже draft —
-// тому там видно лише approved. Ця сторінка показує все.
+//
+// ЄДИНИЙ КАТАЛОГ ТВОРІВ. 15.09.2026 сюди зведено /admin/content/stories.
+//
+// Були дві сторінки з тим самим списком. Різниця була одна: «Історії» брали
+// дані з публічного /api/stories, який ріже чернетки, а цей розділ бере
+// /api/admin/works без фільтра статусу. Тобто відмінність зводилася до одного
+// фільтра, а коштувала двох розділів, у яких ще й дії були різні: там
+// видалення, тут зміна статусу пачкою. Шукаючи твір, треба було спершу
+// згадати, у якому з двох він видимий.
+//
+// Що звідти перенесено: видалення запису і фільтр за жанром.
+// Що свідомо НЕ перенесено: мініатюри обкладинок. Для їх перегляду тепер є
+// режим «Ревізія» в /admin/cover-position, де картинка показується цілою і
+// великою — на дрібній мініатюрі в списку збою генерації все одно не видно.
+//
+// /admin/content/stories лишився як перенаправлення сюди, бо на нього
+// посилається перемикач у шапці адмінки й збережені закладки. Підсторінка
+// /admin/content/stories/[id]/edit жива й далі використовується — саме її
+// відкриває кнопка «Відкрити».
 
 import { useState, useEffect, useCallback } from 'react'
 
@@ -46,6 +62,8 @@ export default function AdminWorksPage() {
   const [ready,   setReady]   = useState(false)
   const [picked,  setPicked]  = useState<Set<string>>(new Set())
   const [bulkBusy, setBulkBusy] = useState(false)
+  const [genre,   setGenre]   = useState('all')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   // Читаємо ?q= та ?status= з адреси, щоб лінки можна було зберігати в закладках
   useEffect(() => {
@@ -126,6 +144,30 @@ export default function AdminWorksPage() {
     }
   }
 
+  /**
+   * Видалення запису. Перенесено з /admin/content/stories: там це була єдина
+   * дія, якої тут бракувало. Роут той самий, що використовувала та сторінка.
+   */
+  async function handleDelete(id: string, title: string) {
+    if (!window.confirm(`Видалити «${title || 'без назви'}»?\n\nЦю дію не можна скасувати.`)) return
+    setDeletingId(id)
+    try {
+      const res = await fetch(`/api/admin/content/${id}`, { method: 'DELETE' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Не вдалося видалити')
+      setItems(prev => prev.filter(w => w.id !== id))
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : String(err))
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  // Жанри беремо з того, що вже завантажено: окремий довідник тут зайвий,
+  // фільтрувати можна лише те, що видно.
+  const genres = Array.from(new Set(items.map(w => w.genre).filter(Boolean) as string[])).sort()
+  const shown = genre === 'all' ? items : items.filter(w => w.genre === genre)
+
   async function changeStatus(id: string, next: string) {
     setBusyId(id)
     try {
@@ -157,9 +199,9 @@ export default function AdminWorksPage() {
 
         <div style={box}>
           <div style={{ color: '#7d8aa8', fontSize: 12, letterSpacing: 1.4 }}>ADMIN · WORKS</div>
-          <h1 style={{ color: '#fff', fontSize: 28, margin: '6px 0 4px' }}>Пошук творів</h1>
+          <h1 style={{ color: '#fff', fontSize: 28, margin: '6px 0 4px' }}>Каталог творів</h1>
           <div style={{ color: '#8a97b5', fontSize: 14 }}>
-            Показує всі записи, зокрема чернетки, яких немає в інших розділах.
+            Усі записи, включно з чернетками. Пошук, статуси, видалення.
           </div>
         </div>
 
@@ -187,6 +229,19 @@ export default function AdminWorksPage() {
             <option value="approved">Схвалено</option>
             <option value="published">Опубліковано</option>
           </select>
+          {genres.length > 0 && (
+            <select
+              style={{
+                padding: '12px 14px', borderRadius: 10, border: '1px solid #24365c',
+                background: NAVY_DEEP, color: '#fff', fontSize: 15, fontFamily: FONT,
+              }}
+              value={genre}
+              onChange={e => setGenre(e.target.value)}
+            >
+              <option value="all">Усі жанри</option>
+              {genres.map(g => <option key={g} value={g}>{g}</option>)}
+            </select>
+          )}
         </div>
 
         {phase === 'loading' && (
@@ -210,7 +265,7 @@ export default function AdminWorksPage() {
               alignItems: 'center', flexWrap: 'wrap',
             }}>
               <button
-                onClick={() => toggleAll(items)}
+                onClick={() => toggleAll(shown)}
                 style={{
                   background: 'transparent', color: GOLD, border: `1px solid ${GOLD}`,
                   borderRadius: 10, padding: '9px 16px', fontSize: 14,
@@ -256,7 +311,7 @@ export default function AdminWorksPage() {
                 </>
               )}
             </div>
-            {items.map(w => (
+            {shown.map(w => (
               <div key={w.id} style={{ ...box, marginBottom: 10 }}>
                 <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                   <input
@@ -327,6 +382,20 @@ export default function AdminWorksPage() {
                     >
                       Відкрити
                     </a>
+
+                    <button
+                      onClick={() => void handleDelete(w.id, w.title)}
+                      disabled={deletingId === w.id}
+                      style={{
+                        background: 'transparent', color: '#e0484d',
+                        border: '1.5px solid rgba(224,72,77,0.6)', borderRadius: 10,
+                        padding: '9px 16px', fontSize: 14, fontWeight: 600,
+                        fontFamily: FONT, cursor: deletingId === w.id ? 'default' : 'pointer',
+                        opacity: deletingId === w.id ? 0.5 : 1,
+                      }}
+                    >
+                      {deletingId === w.id ? 'Видаляю…' : 'Видалити'}
+                    </button>
                   </div>
                 </div>
               </div>
