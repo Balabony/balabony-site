@@ -17,9 +17,19 @@ export const TEMPLATE_LABEL: Record<AuthorEmailTemplate, string> = {
   intro: 'Кабінет автора, конкурси й запис голосу',
 }
 
+import { CONTESTS, prizeLine } from '@/lib/contests'
+
 const SITE = 'https://balabony.com'
 const TERMS = `${SITE}/legal/author-contract`
 const KONKURSY = `${SITE}/konkursy`
+
+/** «1 вересня — 31 жовтня 2026» з двох дат довідника. */
+function humanRange(from: string, to: string): string {
+  const f = new Date(from), t = new Date(to)
+  const d = (x: Date, withYear: boolean) =>
+    x.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', ...(withYear ? { year: 'numeric' } : {}) })
+  return `${d(f, f.getFullYear() !== t.getFullYear())} — ${d(t, true)}`.replace(' р.', '')
+}
 
 type Vars = { name: string; email: string }
 
@@ -59,10 +69,14 @@ function textIntro(v: Vars) {
     'Зворотний бік скажемо прямо: текст, який ніхто не відкрив, не принесе нічого. Але ваш заробіток більше не залежить від чийогось редакційного рішення.',
     '',
     'КОНКУРСИ',
-    '«Розгін» — три серії за 10 днів, 5 000 ₴. Дедлайну немає, подаватись можна вже сьогодні.',
-    '«Це довга історія» — 10 серій за 10 тижнів, 20 000 ₴ + озвучення + місяць у газеті «Життя». Прийом 1–15 листопада.',
-    '«Один день, який усе змінив» — до 1500 слів, 3 000 ₴. Прийом 1 листопада — 15 грудня.',
-    '«З вітерцем» — гумор, до 1500 слів, 3 000 ₴. Прийом 1 листопада — 15 грудня.',
+    // 16.09.2026: перелік складається з довідника lib/contests.ts, а не
+    // пишеться руками. Доти тут було три помилки, які пішли б у листи
+    // авторам: конкурс «Розгін» на 5 000 ₴, якого вже немає; прийом
+    // «Це довга історія» вказано як 1–15 листопада замість 1 вересня –
+    // 31 жовтня; конкурсу «П'ять вечорів» не було зовсім.
+    ...CONTESTS.map(c =>
+      `${c.name}. ${c.episodes > 1 ? `${c.episodes} серій по ${c.minWords}–${c.maxWords} слів` : `Одна історія до ${c.maxWords} слів`}. ` +
+      `${prizeLine(c)}. Прийом ${humanRange(c.opensAt, c.closesAt)}.`),
     `Умови всіх конкурсів: ${KONKURSY}`,
     '',
     'Порада: не чекайте листопада. Почніть із «Розгону» — три серії покажуть, чи йде вам формат серіалу, і це готовий розгін до великого конкурсу.',

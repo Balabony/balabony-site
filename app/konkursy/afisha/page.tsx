@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import QrBlock from '@/app/components/QrBlock'
 import PrintButton from '@/app/components/PrintButton'
-import { CONTESTS, isOpen, type Contest } from '@/lib/contests'
+import { CONTESTS, isOpen, type Contest, prizeLine } from '@/lib/contests'
 
 /**
  * Зведена афіша: усі чотири конкурси на одному аркуші A4, один QR.
@@ -140,7 +140,7 @@ export default async function AllContestsAfisha(
               </div>
             </div>
             <div style={{ fontSize: 14.5, lineHeight: 1.6, margin: '4px 0 0' }}>{c.tagline}</div>
-            <div style={{ fontSize: 14.5, fontWeight: 700, margin: '3px 0 0' }}>{c.prizes}</div>
+            <div style={{ fontSize: 14.5, fontWeight: 700, margin: '3px 0 0' }}>{prizeLine(c)}</div>
           </div>
         ))}
 

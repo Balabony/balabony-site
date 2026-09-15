@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ContestReads from '@/app/components/ContestReads'
-import { CONTESTS, findContest, isOpen, type Contest } from '@/lib/contests'
+import { CONTESTS, findContest, isOpen, type Contest, prizeLine } from '@/lib/contests'
 
 /**
  * Окрема сторінка одного конкурсу — під QR-код у газеті.
@@ -70,7 +70,7 @@ export async function generateMetadata(
   if (!c) return { title: 'Конкурс — Balabony' }
 
   const title = `${c.name} — конкурс Balabony`
-  const description = `${c.tagline} ${c.prizes}. Заявки до ${humanDate(c.closesAt)}.`
+  const description = `${c.tagline} ${prizeLine(c)}. Заявки до ${humanDate(c.closesAt)}.`
 
   return {
     title,
@@ -153,7 +153,7 @@ export default async function ContestPage(
             marginTop: 20, padding: '14px 16px', borderRadius: 10,
             background: NAVY_DEEP, borderLeft: `3px solid ${GOLD}`,
           }}>
-            <div style={{ fontSize: 17, fontWeight: 700, color: GOLD_SOFT }}>{c.prizes}</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: GOLD_SOFT }}>{prizeLine(c)}</div>
             <div style={{ fontSize: 14, color: MUTED, marginTop: 5 }}>{acceptance(c)}</div>
           </div>
 

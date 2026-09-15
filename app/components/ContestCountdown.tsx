@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { findContest, prizeFund, topPrize } from '@/lib/contests'
 
 /**
  * Лічильник конкурсів у кабінеті автора.
@@ -79,7 +80,7 @@ function buildCards(now: Date): Card[] {
       href: '/konkursy#dovha-istoriya',
       label: 'До подання заявок',
       value: days(d),
-      what: '10 серій · 1500–1800 слів · 20 000 ₴',
+      what: `10 серій · 1500–1800 слів · ${topPrize(findContest('ce-dovha-istoriya')!)}`,
       hint: perEpisode >= 2
         ? `Заявка — це синопсис і перша серія. Але писати варто вже зараз: до першої публікації ${days(daysUntil(LAUNCH, now))}, а далі серія щотижня.`
         : 'Заявка — це синопсис і повний текст першої серії.',
@@ -91,7 +92,7 @@ function buildCards(now: Date): Card[] {
       href: '/konkursy#dovha-istoriya',
       label: 'До закриття заявок',
       value: days(daysUntil(LONG_CLOSE, now)),
-      what: '10 серій · 1500–1800 слів · 20 000 ₴',
+      what: `10 серій · 1500–1800 слів · ${topPrize(findContest('ce-dovha-istoriya')!)}`,
       hint: 'Подання відкрите. Потрібні синопсис на сторінку і повний текст першої серії.',
       urgent: true,
     })
@@ -124,7 +125,7 @@ function buildCards(now: Date): Card[] {
       href: '/konkursy#pyat-vechoriv',
       label: 'До прийому робіт',
       value: days(daysUntil(FIVE_OPEN, now)),
-      what: "5 серій по 900–1100 слів · 8 000 ₴",
+      what: `5 серій по 900–1100 слів · ${prizeFund(findContest('pyat-vechoriv')!)}`,
       hint: 'Найкоротший вхід. Усі п’ять серій надсилаються одразу — частинами не приймаємо.',
       urgent: false,
     })
@@ -135,7 +136,7 @@ function buildCards(now: Date): Card[] {
       href: '/konkursy#pyat-vechoriv',
       label: 'До закриття прийому',
       value: days(d),
-      what: "5 серій по 900–1100 слів · 8 000 ₴",
+      what: `5 серій по 900–1100 слів · ${prizeFund(findContest('pyat-vechoriv')!)}`,
       hint: 'Прийом відкрито. Потрібні всі п’ять серій одразу, кожна на тисячу слів.',
       urgent: d <= 14,
     })
@@ -156,13 +157,13 @@ function buildCards(now: Date): Card[] {
     {
       name: 'Один день, який усе змінив',
       href: '/konkursy#odyn-den',
-      what: 'Коротка проза до 1500 слів · 3 000 ₴',
+      what: `Коротка проза до 1500 слів · ${topPrize(findContest('odyn-den')!)}`,
       hint: 'Один день, після якого життя героя пішло інакше. Переможці виходять у газеті «Життя».',
     },
     {
       name: 'З вітерцем',
       href: '/konkursy#z-viterczem',
-      what: 'Смішна історія до 1500 слів · 3 000 ₴',
+      what: `Смішна історія до 1500 слів · ${topPrize(findContest('z-viterczem')!)}`,
       hint: 'Гумористична історія з життя. Переможці виходять у газеті «Життя».',
     },
   ]

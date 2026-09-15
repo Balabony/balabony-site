@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ContestReads from '@/app/components/ContestReads'
-import { CONTESTS, findContest, isOpen, type Contest } from '@/lib/contests'
+import { CONTESTS, findContest, isOpen, prizeLine, topPrize, type Contest } from '@/lib/contests'
 
 /**
  * Сторінка перезбирається щогодини.
@@ -130,7 +130,7 @@ type Accent = Scheme
 export const metadata: Metadata = {
   title: 'Це довга історія — конкурс серіалів · Балабони',
   description:
-    'Конкурс серіалів «Це довга історія» на Балабонах: десять серій за десять тижнів. Головна нагорода — 20 000 грн і багатоголосе озвучення.',
+    `Конкурс серіалів «Це довга історія» на Балабонах: десять серій за десять тижнів. Головна нагорода — ${topPrize(findContest('ce-dovha-istoriya')!)} і багатоголосе озвучення.`,
   alternates: { canonical: '/konkursy' },
   openGraph: {
     title: 'Це довга історія — конкурс серіалів · Балабони',
@@ -144,7 +144,8 @@ export const metadata: Metadata = {
 }
 
 const HERO_NUMBERS: { value: string; label: string }[] = [
-  { value: '20 000 ₴', label: 'головна нагорода' },
+  // Сума береться з довідника: інакше вона стоїть тут третьою копією.
+  { value: topPrize(findContest('ce-dovha-istoriya')!), label: 'головна нагорода' },
   { value: '10', label: 'тижнів і серій' },
   { value: '3', label: 'серіали озвучимо' },
 ]
@@ -183,7 +184,7 @@ const AVOID: string[] = [
 const AWARDS: { name: string; prize: string; text: string; main?: boolean }[] = [
   {
     name: 'Історія сезону',
-    prize: '20 000 ₴',
+    prize: topPrize(findContest('ce-dovha-istoriya')!),
     main: true,
     text: 'Багатоголосе озвучення всього серіалу — кілька дикторів, ближче до аудіовистави, ніж до начитки. І місяць у газеті «Життя»: чотири номери з QR-кодом на вашу сторінку автора.',
   },
@@ -314,7 +315,7 @@ const PYAT_VECHORIV: ShortContest = {
     'героя, за яким хочеться йти далі',
     'історію, яку дочитують до кінця',
   ],
-  prize: 'Перше місце — 4 000 ₴, друге — 2 500 ₴, третє — 1 500 ₴',
+  prize: prizeLine(findContest('pyat-vechoriv')!),
   bonus:
     'Автор найкращої історії пише продовження вже за нашим замовленням, з окремим гонораром. ' +
     'Усі фіналісти отримують озвучення своєї історії у грудні 2026, публікацію в газеті «Життя» ' +
@@ -381,7 +382,7 @@ const SHORT_CONTESTS: ShortContest[] = [
       'зміну, що справді сталася, а не була пояснена автором',
       'фінал, якого не було видно з середини тексту',
     ],
-    prize: 'Перше місце — 3 000 ₴, друге — 2 000 ₴, третє — 1 000 ₴',
+    prize: prizeLine(findContest('odyn-den')!),
     bonus:
       'Історії трьох переможців виходять у газеті «Життя» — з QR-кодом на сторінку автора. ' +
       'Газетні читачі знаходять вас і приходять читати далі на платформу.',
@@ -434,7 +435,7 @@ const SHORT_CONTESTS: ShortContest[] = [
       'темп: короткі речення, швидку розвʼязку',
       'фінал-несподіванку, а не пояснення жарту',
     ],
-    prize: 'Перше місце — 3 000 ₴, друге — 2 000 ₴, третє — 1 000 ₴',
+    prize: prizeLine(findContest('z-viterczem')!),
     bonus:
       'Історії трьох переможців виходять у газеті «Життя» — з QR-кодом на сторінку автора. ' +
       'Газетні читачі знаходять вас і приходять читати далі на платформу.',
@@ -970,10 +971,10 @@ function ShortContestCard({ c }: { c: ShortContest }) {
 /** Три плитки вгорі: одразу видно, який конкурс про що і скільки коштує. */
 function ContestPicker() {
   const tiles = [
-    { id: 'ce-dovha-istoriya', href: '#dovha-istoriya', accent: SCHEMES.serial, mark: 'weeks' as const, name: 'Це довга історія',           what: 'Серіал · 10 серій',        prize: '20 000 ₴ головна нагорода', main: true  },
-    { id: 'pyat-vechoriv',     href: '#pyat-vechoriv',  accent: SCHEMES.sprint, mark: 'sprint' as const, name: "П'ять вечорів",            what: "П'ять серій по 1000 слів", prize: '4 000 ₴ перше місце',       main: false },
-    { id: 'odyn-den',          href: '#odyn-den',       accent: SCHEMES.oneDay, mark: 'break' as const, name: 'Один день, який усе змінив', what: 'Одна історія',             prize: '3 000 ₴ перше місце',       main: false },
-    { id: 'z-viterczem',       href: '#z-viterczem',    accent: SCHEMES.humour, mark: 'gust'  as const, name: 'З вітерцем',                 what: 'Одна історія · гумор',     prize: '3 000 ₴ перше місце',       main: false },
+    { id: 'ce-dovha-istoriya', href: '#dovha-istoriya', accent: SCHEMES.serial, mark: 'weeks' as const, name: 'Це довга історія',           what: 'Серіал · 10 серій',        prize: `${topPrize(findContest('ce-dovha-istoriya')!)} головна нагорода`, main: true  },
+    { id: 'pyat-vechoriv',     href: '#pyat-vechoriv',  accent: SCHEMES.sprint, mark: 'sprint' as const, name: "П'ять вечорів",            what: "П'ять серій по 1000 слів", prize: `${topPrize(findContest('pyat-vechoriv')!)} перше місце`,       main: false },
+    { id: 'odyn-den',          href: '#odyn-den',       accent: SCHEMES.oneDay, mark: 'break' as const, name: 'Один день, який усе змінив', what: 'Одна історія',             prize: `${topPrize(findContest('odyn-den')!)} перше місце`,       main: false },
+    { id: 'z-viterczem',       href: '#z-viterczem',    accent: SCHEMES.humour, mark: 'gust'  as const, name: 'З вітерцем',                 what: 'Одна історія · гумор',     prize: `${topPrize(findContest('z-viterczem')!)} перше місце`,       main: false },
   ]
 
   return (

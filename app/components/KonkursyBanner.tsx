@@ -1,5 +1,7 @@
 'use client'
 
+import { findContest, topPrize } from '@/lib/contests'
+
 /**
  * Блок конкурсів на головній.
  *
@@ -41,14 +43,14 @@ export default function KonkursyBanner() {
   const konkursy: Konkurs[] = [
     {
       nazva: 'Це довга історія',
-      pryz: '20 000 ₴',
+      pryz: topPrize(findContest('ce-dovha-istoriya')!),
       umova: 'Десять серій за десять тижнів',
       deadline: dovga ? 'Заявки до 31 жовтня' : 'Прийом завершено',
       aktyvnyi: dovga,
     },
     {
       nazva: 'Коротка історія',
-      pryz: '3 000 · 2 000 · 1 000 ₴',
+      pryz: findContest('odyn-den')!.awards.map(a => a.amount).join(' · '),
       umova: 'Одна історія до 1500 слів',
       deadline: 'Прийом з 1 листопада до 15 грудня',
       aktyvnyi: true,

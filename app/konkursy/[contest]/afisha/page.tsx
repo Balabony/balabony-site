@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import QrBlock from '@/app/components/QrBlock'
 import PrintButton from '@/app/components/PrintButton'
-import { findContest, isOpen } from '@/lib/contests'
+import { findContest, isOpen, prizeLine } from '@/lib/contests'
 
 /**
  * Друкована афіша конкурсу — A4 для бібліотек, спілок і шкіл.
@@ -138,7 +138,7 @@ export default async function AfishaPage(
 
         <p style={{ fontSize: 17, lineHeight: 1.6, margin: '0 0 18px' }}>{c.tagline}</p>
 
-        <div style={{ fontSize: 21, fontWeight: 800, margin: '0 0 4px' }}>{c.prizes}</div>
+        <div style={{ fontSize: 21, fontWeight: 800, margin: '0 0 4px' }}>{prizeLine(c)}</div>
         <div style={{ fontSize: 16, margin: '0 0 22px' }}>
           {open
             ? <>Роботи приймаємо до <strong>{humanDate(c.closesAt)}</strong></>
