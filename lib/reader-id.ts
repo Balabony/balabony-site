@@ -134,6 +134,35 @@ export async function mergeAnonInto(userId: string): Promise<void> {
   } catch (e) {
     console.error('[mergeAnonInto] referral_bonuses', (e as Error)?.message)
   }
+
+  // Джерело переходу (перший дотик). Додано 16.09.2026.
+  //
+  // Раніше сюди не потрапляло, і це робило атрибуцію сліпою. Механіка була
+  // така: user_acquisition пишеться ЗАВЖДИ на анонімний id (getOrCreateAnonUserId
+  // у /api/analytics/track), а прочитання після входу копіюються на id акаунта.
+  // Тобто той самий читач існував під двома ідентифікаторами: під акаунтом —
+  // прочитання без джерела, під cookie — джерело без прочитань.
+  //
+  // Вимір 16.09.2026: зі 124 читачів першої серії «Балабонів» джерело вдалося
+  // визначити лише для 18. При цьому в user_acquisition було 1377 записів на
+  // 263 читачів — дані були, просто не зчіплювалися.
+  //
+  // on conflict do nothing зберігає перший дотик: якщо на акаунті запис уже є
+  // (людина входила з іншого пристрою), він має перевагу — саме він раніший.
+  try {
+    await dbQuery(
+      `insert into user_acquisition
+         (user_id, utm_source, utm_medium, utm_campaign, utm_content, utm_term,
+          referrer, landing_path)
+       select $1, utm_source, utm_medium, utm_campaign, utm_content, utm_term,
+              referrer, landing_path
+         from user_acquisition where user_id = $2
+       on conflict do nothing`,
+      [userId, anon],
+    )
+  } catch (e) {
+    console.error('[mergeAnonInto] user_acquisition', (e as Error)?.message)
+  }
 }
 
 /**

@@ -27,6 +27,7 @@ import { toExcerpt, toPlainText } from '@/lib/plain-text'
 import { getTeaserHtml } from '@/lib/episode-teaser'
 import ReaderSettings from '@/app/components/ReaderSettings'
 import EpisodeJsonLd from '@/app/components/EpisodeJsonLd'
+import ReviewButton from '@/app/components/ReviewButton'
 
 const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
@@ -432,6 +433,25 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
             promo={isPromoEpisode}
             analytics={false}
             selfRead={isAdmin}
+          />
+        )}
+
+        {/* Оцінка серії — «Не зайшло … Чудово».
+            Додано 16.09.2026. Кнопка існувала з першого дня і навіть мала
+            заготовлений режим contentType="series" із заголовком «Як тобі ця
+            серія?», але стояла ЛИШЕ на /stories/[id]. Тобто про серіал, який
+            і є обличчям платформи, читача не питали взагалі.
+            Привід: зі 124 читачів першої серії до другої дійшло 8, і причини
+            ми не знали, бо ніде не питали.
+            Місце: одразу під текстом, ПЕРЕД змістом сезону й переходом до
+            наступної серії — поки читач ще під враженням, а не після того,
+            як вибирає, куди йти далі.
+            На замкненій серії не показуємо: оцінювати нічого. */}
+        {!isLocked && (
+          <ReviewButton
+            contentId={episode.id}
+            contentType="series"
+            contentTitle={episode.title}
           />
         )}
 
