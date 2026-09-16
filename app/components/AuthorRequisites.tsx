@@ -181,6 +181,18 @@ export default function AuthorRequisites({ initial }: Props) {
           <p style={{ color: BRAND.muted, fontSize: '0.85rem', margin: 0 }}>
             Ці дані автоматично підставляються у ваш авторський договір і в розрахунок винагороди.
           </p>
+          {/* Посилання на умови ПЕРЕД полями. Додано 16.09.2026 після листа
+              авторки: вона відмовилася вводити РНОКПП і банківський рахунок,
+              бо не могла спершу прочитати, на що погоджується. Умови давно
+              відкриті, але форма на них не посилалася — і виглядало так, ніби
+              текст показують лише в обмін на персональні дані. */}
+          <p style={{ color: BRAND.muted, fontSize: '0.85rem', margin: '0.5rem 0 0' }}>
+            Умови однакові для всіх авторів і відкриті до заповнення:{' '}
+            <a href="/legal/author-contract" target="_blank" rel="noopener"
+               style={{ color: BRAND.amber, textDecoration: 'underline' }}>
+              прочитати договір
+            </a>.
+          </p>
         </div>
         <span style={{
           flex: 'none', fontSize: '0.72rem', padding: '3px 9px', borderRadius: 999,

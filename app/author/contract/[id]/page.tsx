@@ -99,6 +99,26 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
             Допишіть у кабінеті — договір сформується одразу, нічого повторно робити не потрібно.
           </p>
 
+          {/* Умови ПЕРЕД реквізитами. Додано 16.09.2026 після листа авторки:
+              вона відмовилася заповнювати РНОКПП і банківський рахунок, бо не
+              могла спершу прочитати, на що погоджується, — і мала рацію.
+              Умови однакові для всіх і давно відкриті на /legal/author-contract,
+              просто ця сторінка на них не посилалася, і виглядало так, ніби
+              текст показують лише в обмін на персональні дані. */}
+          <div style={{ border: '1px solid #ccd3de', borderRadius: 10, padding: '14px 16px', margin: '0 0 22px' }}>
+            <p style={{ fontSize: 15, lineHeight: 1.6, margin: '0 0 10px' }}>
+              <strong>Умови можна прочитати вже зараз</strong> — реквізитів для цього не потрібно.
+              Вони однакові для всіх авторів: ставка винагороди, формула розрахунку, строк
+              передачі прав, що залишається вам.
+            </p>
+            <a
+              href="/legal/author-contract"
+              style={{ fontSize: 15, color: '#2c3a52', textDecoration: 'underline' }}
+            >
+              Відкрити умови договору
+            </a>
+          </div>
+
           <a
             href="/author/dashboard"
             style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', background: '#14253B', textDecoration: 'none', borderRadius: 8, padding: '12px 22px', display: 'inline-block' }}
