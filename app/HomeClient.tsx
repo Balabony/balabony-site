@@ -143,7 +143,7 @@ export default function HomeClient({
 
       <div id="fairytales"><FairytalesSection initial={fairytales} /></div>
 
-      <div id="tysha"><TyshaSection limit={2} showAllLink initial={tyshaItems} coverOverride="/tysha-oblozhka-20260910-d.webp" /></div>
+      <div id="tysha"><TyshaSection limit={1} showAllLink initial={tyshaItems} coverOverride="/tysha-oblozhka-20260910-d.webp" /></div>
 
       <EmailCapture />
 

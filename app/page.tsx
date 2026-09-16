@@ -32,7 +32,11 @@ export default async function HomePage() {
     getHomeSeries(2),
     getFreshStories(9),
     getFairytales(3),
-    getTyshaItems(2),
+    // Одна серія, не дві: обкладинка в «Тиші» одна на весь серіал, тож дві
+    // картки поруч відрізнялися лише чотирма словами тизера й читалися як
+    // збій завантаження. Друга картка вела в серію 2 — той, хто вже читає,
+    // повертається через «Продовжити читання», а не звідси.
+    getTyshaItems(1),
     getGenreCounts(),
     getSiteStats(),
     getStripAuthors(8),
