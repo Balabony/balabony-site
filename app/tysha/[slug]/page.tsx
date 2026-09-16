@@ -20,6 +20,11 @@ import { leadCssDeclarations, fitsLead } from '@/lib/reader-typography'
 import { toExcerpt, toPlainText } from '@/lib/plain-text'
 import ReaderSettings from '@/app/components/ReaderSettings'
 import EpisodeJsonLd from '@/app/components/EpisodeJsonLd'
+import ReviewButton from '@/app/components/ReviewButton'
+import FollowSeriesButton from '@/app/components/FollowSeriesButton'
+import BookmarkButton from '@/app/components/BookmarkButton'
+import ShareButtons from '@/app/components/ShareButtons'
+import StoryEmailCapture from '@/app/components/StoryEmailCapture'
 
 const GOLD = '#ef9f27'
 const AMBER = '#FFB347'
@@ -400,6 +405,38 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
         />
       )}
 
+      {/* ─────────────────────────────────────────────────────────────
+          ПОРЯДОК БЛОКІВ ПІСЛЯ ТЕКСТУ, зведено з «Балабонами» 16.09.2026.
+
+          Доти «Тиша» — 103 серії, половина серіального контенту — мала
+          після тексту лише навігацію й опитування: ні оцінки, ні кнопки
+          «стежити», ні збереження, ні збору пошти. Усе, що додавалося
+          протягом тижня, робилося в /episodes/[slug], і сюди не доїхало.
+
+          Порядок той самий: спершу те, що веде ДАЛІ, потім те, що просить
+          щось ВІД читача.
+          ───────────────────────────────────────────────────────────── */}
+
+      {/* 1. Гачок і наступна серія — найсильніший момент сесії.
+          Гачок поточної серії на замкненій не показуємо: це її кінцівка,
+          тобто те, за що читач мав би заплатити. Анонс наступної лишається. */}
+      {!locked && (ep.hook || (next && ep.next_teaser)) && (
+        <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '8px 20px 0' }}>
+          {ep.hook && (
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#F2EDE4', lineHeight: 1.55, marginBottom: 14 }}>
+              {ep.hook}
+            </div>
+          )}
+          {next && ep.next_teaser && (
+            <Link href={`/tysha/${next.slug}`} id="tysha-next-link" className="reader-card" style={{ display: 'block', padding: 16, borderRadius: 12, background: '#0f1e3a', border: `1.5px solid ${AMBER}`, textDecoration: 'none' }}>
+              <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(245,240,232,0.5)', marginBottom: 6 }}>Далі буде…</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'rgba(245,240,232,0.9)', lineHeight: 1.5 }}>{ep.next_teaser}</div>
+            </Link>
+          )}
+        </div>
+      )}
+
+      {/* 2. Видимий перехід між серіями. */}
       <EpisodeNav
         prevUrl={prev ? `/tysha/${prev.slug}` : undefined}
         prevTitle={prev?.title}
@@ -408,6 +445,49 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
         gold={GOLD}
       />
 
+      {/* 3. «Стежити за серіалом» — окремо від «Балабонів»: читач воєнної
+          драми 18+ не має отримувати листи про сільську комедію. */}
+      {!locked && (
+        <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px' }}>
+          <FollowSeriesButton
+            series="tysha"
+            seriesTitle="Тиша"
+            returnTo={`/tysha/${ep.slug}`}
+          />
+        </div>
+      )}
+
+      {/* 4. Оцінка серії. */}
+      {!locked && (
+        <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px' }}>
+          <ReviewButton
+            contentId={ep.id}
+            contentType="series"
+            contentTitle={ep.title}
+          />
+        </div>
+      )}
+
+      {/* 5. Зберегти й поділитися. */}
+      <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '24px 20px 0' }}>
+        <BookmarkButton slug={ep.slug} title={ep.title} path={`/tysha/${ep.slug}`} />
+      </div>
+
+      <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '16px 20px 0' }}>
+        <ShareButtons
+          url={`https://balabony.com/tysha/${ep.slug}`}
+          title={ep.title}
+          storyId={ep.id}
+          season={ep.season_number ?? undefined}
+        />
+      </div>
+
+      {/* 6. Збір пошти — останнім, у розігрітого читача. */}
+      <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px' }}>
+        <StoryEmailCapture slug={ep.slug} />
+      </div>
+
+      {/* Технічне, поза візуальним потоком. */}
       {!locked && <ReadingProgressBar />}
       {!locked && <BackToTop gold={GOLD} />}
 
@@ -416,8 +496,6 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
         nextUrl={next ? `/tysha/${next.slug}` : undefined}
       />
 
-      {/* Позиція читання. Тільки для відкритої серії: у замкненій
-          показано лише тізер, повертати читача нікуди. */}
       {!locked && (
         <ReadingPosition
           slug={ep.slug}
@@ -427,22 +505,10 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
         />
       )}
 
-      {/* Три питання тому, хто дочитав серію цілком */}
+      {/* 7. Три питання тому, хто дочитав серію цілком. */}
       {!locked && (
-        <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px' }}>
-          <ReaderPulse contentId={ep.id} />
-        </div>
-      )}
-
-      {/* ДАЛІ БУДЕ — лише анонс. Назву й посилання на наступну серію вже дає
-          EpisodeNav вище; раніше цей блок повторював їх, і читач бачив дві
-          однакові картки поспіль. Лишається те, чого в навігації немає. */}
-      {next && !locked && ep.next_teaser && (
         <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px 48px' }}>
-          <Link href={`/tysha/${next.slug}`} id="tysha-next-link" className="reader-card" style={{ display: 'block', padding: 16, borderRadius: 12, background: '#0f1e3a', border: `1.5px solid ${AMBER}`, textDecoration: 'none' }}>
-            <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(245,240,232,0.5)', marginBottom: 6 }}>Далі буде…</div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: 'rgba(245,240,232,0.9)', lineHeight: 1.5 }}>{ep.next_teaser}</div>
-          </Link>
+          <ReaderPulse contentId={ep.id} />
         </div>
       )}
       {/* Шрифт, розмір літер, день/ніч */}
