@@ -604,13 +604,20 @@ function escapeHtmlChars(str: string): string {
 
 function formatEpisodeText(raw: string): string {
   const scenes = raw.split(/\n{2,}/)
-  // Перший абзац нарації першої сцени — кандидат у лід. Якщо він задовгий,
-  // правило ліду просто не додаємо, і абзац лишається звичайним.
-  const firstNarrative = (scenes[0] ?? '')
+  // Перший абзац серії — кандидат у лід. Якщо він задовгий, правило ліду
+  // просто не додаємо, і абзац лишається звичайним.
+  //
+  // Виправлено 16.09.2026, та сама вада, що в «Тиші»: раніше тут стояв
+  // .find(), і якщо серія починалася з репліки, лід «перестрибував» на
+  // наступний абзац — золотий виділений шматок з'являвся ПОСЕРЕД тексту.
+  // Лід — це зачин, тобто саме перший абзац. Починається серія реплікою —
+  // ліду в ній немає зовсім: у репліки вже є золоте ім'я персонажа.
+  const firstParagraph = (scenes[0] ?? '')
     .split(/\n/)
     .map(x => x.trim())
-    .filter(x => x.length > 0)
-    .find(x => !SPEAKER_REGEX.test(x))
+    .filter(x => x.length > 0)[0]
+  const firstNarrative =
+    firstParagraph && !SPEAKER_REGEX.test(firstParagraph) ? firstParagraph : undefined
   const leadAllowed = firstNarrative !== undefined && fitsLead(firstNarrative)
   const renderedScenes = scenes.map((scene, sceneIdx) => {
     const paragraphs = scene.split(/\n/).filter(p => p.trim().length > 0)

@@ -51,14 +51,24 @@ function formatTyshaText(raw: string): string {
   const cleaned = raw.replace(/^[ \t]*\*[ \t]*\*[ \t]*\*[ \t]*$/gm, '') // прибрати * * *
   const scenes = cleaned.split(/\n{2,}/)
   // Задовгий перший абзац лідом не подаємо — див. LEAD_MAX_CHARS.
-  const firstNarrative = (scenes[0] ?? '')
+  //
+  // ВАЖЛИВО, виправлено 16.09.2026. Раніше тут стояв .find(): якщо серія
+  // починалася з репліки, лід «перестрибував» на наступний абзац нарації —
+  // і читач бачив золотий виділений шматок ПОСЕРЕД тексту, без жодної
+  // причини (так було на tysha-s1e02, що починається реплікою тітки Люби).
+  // Лід — це ЗАЧИН, тобто саме перший абзац. Якщо перший абзац серії
+  // виявився реплікою, ліду в цій серії немає зовсім: у репліки вже є
+  // золоте ім'я, другий акцент поруч зайвий.
+  const firstParagraph = (scenes[0] ?? '')
     .split(/\n/)
     .map(x => x.trim())
-    .filter(x => x.length > 0)
-    .find(x => {
-      const m = x.match(/^([^:]{1,40}):\s/)
-      return !(m && isSpeakerLabel(m[1]))
-    })
+    .filter(x => x.length > 0)[0]
+  const firstIsSpeaker = (() => {
+    if (!firstParagraph) return false
+    const m = firstParagraph.match(/^([^:]{1,40}):\s/)
+    return Boolean(m && isSpeakerLabel(m[1]))
+  })()
+  const firstNarrative = firstIsSpeaker ? undefined : firstParagraph
   const leadAllowed = firstNarrative !== undefined && fitsLead(firstNarrative)
   const rendered = scenes.map((scene, sceneIdx) => {
     const paragraphs = scene.split(/\n/).filter((p) => p.trim().length > 0)
