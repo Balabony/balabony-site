@@ -421,9 +421,16 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
           Гачок поточної серії на замкненій не показуємо: це її кінцівка,
           тобто те, за що читач мав би заплатити. Анонс наступної лишається. */}
       {!locked && (ep.hook || (next && ep.next_teaser)) && (
-        <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '8px 20px 0' }}>
+        <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '28px 20px 0' }}>
+          {/* Гачок поточної серії. Відокремлюємо його від тексту відступом і
+              золотою рискою: без них він читався як обірваний останній абзац
+              статті, а не як окрема кінцівка. */}
           {ep.hook && (
-            <div style={{ fontSize: 16, fontWeight: 600, color: '#F2EDE4', lineHeight: 1.55, marginBottom: 14 }}>
+            <div style={{
+              fontSize: 16.5, fontWeight: 600, color: '#F2EDE4', lineHeight: 1.6,
+              marginBottom: 18, paddingTop: 18,
+              borderTop: `1px solid ${AMBER}55`,
+            }}>
               {ep.hook}
             </div>
           )}
