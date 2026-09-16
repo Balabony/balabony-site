@@ -75,10 +75,19 @@ function seconds(w: number): number {
   return Math.round((w / 150) * 60)
 }
 
-/** Чи вкладається ролик у зручні для TikTok 30-60 секунд. */
+/**
+ * Ціль — ролик до 10 секунд (рішення Богдана 16.09.2026). Це приблизно
+ * 25 слів: одне-два речення, не більше.
+ *
+ * Через це головним текстом тут став `hook` — одне речення, — а не
+ * `short_script` на 70-90 слів: останній озвучується 30-36 секунд, тобто
+ * втричі довше за ціль. Шорт-скрипт лишається поруч як довгий варіант
+ * (для опису під постом), але видно одразу, що в десять секунд він не
+ * вкладається.
+ */
 function fitColor(sec: number): string {
-  if (sec >= 20 && sec <= 60) return '#22c55e'
-  if (sec > 60 && sec <= 90) return '#eab308'
+  if (sec <= 10) return '#22c55e'
+  if (sec <= 15) return '#eab308'
   return '#ef4444'
 }
 
@@ -110,7 +119,11 @@ export default async function ShortsPage({
     error = e instanceof Error ? e.message : 'Помилка запиту'
   }
 
-  const withScript = rows.filter(r => (r.short_script ?? '').trim().length > 0)
+  const withHook = rows.filter(r => (r.hook ?? '').trim().length > 0)
+  const fits = rows.filter(r => {
+    const body = (r.hook ?? '').trim() || (r.short_script ?? '').trim()
+    return body.length > 0 && seconds(words(body)) <= 10
+  })
 
   const tab = (href: string, label: string, active: boolean) => (
     <a
@@ -136,9 +149,11 @@ export default async function ShortsPage({
         Шорти — матеріал для роликів
       </h1>
       <p style={{ fontSize: 13.5, color: 'rgba(245,240,232,0.6)', lineHeight: 1.6, margin: '0 0 18px', maxWidth: 680 }}>
-        Тексти згенеровано в розділі «Усі серії «Балабонів»». Тут їх можна
-        прочитати, скопіювати й побачити, як обкладинку обріже вертикальний
-        кадр. Саме відео монтується зовні.
+        Ціль — ролик до 10 секунд, тобто приблизно 25 слів. Основний текст
+        тут — гачок на одне речення; довший шорт-скрипт схований під кожним
+        записом. Зелений таймінг означає, що текст у десять секунд
+        вкладається. «Копіювати пост» дає готовий текст із назвою,
+        посиланням і хештегами — його можна вставити в Telegram чи Facebook.
       </p>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
@@ -155,7 +170,7 @@ export default async function ShortsPage({
 
       {!error && (
         <div style={{ fontSize: 13, color: 'rgba(245,240,232,0.55)', marginBottom: 16 }}>
-          Серій у списку: {rows.length} · із повним текстом шорту: {withScript.length}
+          Серій у списку: {rows.length} · із гачком: {withHook.length} · у 10 секунд вкладається: {fits.length}
         </div>
       )}
 
@@ -163,10 +178,10 @@ export default async function ShortsPage({
         {rows.map(r => {
           const script = (r.short_script ?? '').trim()
           const hook = (r.hook ?? '').trim()
-          const body = script || hook
+          const body = hook || script
           const w = words(body)
           const sec = seconds(w)
-          const isHookOnly = !script && Boolean(hook)
+          const isFallback = !hook && Boolean(script)
 
           return (
             <div
@@ -222,9 +237,9 @@ export default async function ShortsPage({
                   <span style={{ fontSize: 12, fontWeight: 700, color: fitColor(sec) }}>
                     ≈{sec} с
                   </span>
-                  {isHookOnly && (
+                  {isFallback && (
                     <span style={{ fontSize: 11.5, color: '#eab308' }}>
-                      тільки гачок, повного шорту немає
+                      гачка немає, це довгий шорт
                     </span>
                   )}
                   <CopyText text={body} label="Копіювати гачок" />
@@ -239,6 +254,19 @@ export default async function ShortsPage({
                     )}
                     label="Копіювати пост"
                   />
+                  {hook && script && (
+                    <details style={{ flexBasis: '100%', marginTop: 4 }}>
+                      <summary style={{ cursor: 'pointer', fontSize: 12, color: 'rgba(245,240,232,0.45)' }}>
+                        довгий варіант · {words(script)} слів · ≈{seconds(words(script))} с
+                      </summary>
+                      <p style={{ fontSize: 13.5, lineHeight: 1.6, color: 'rgba(245,240,232,0.75)', margin: '8px 0 0', whiteSpace: 'pre-wrap' }}>
+                        {script}
+                      </p>
+                      <div style={{ marginTop: 8 }}>
+                        <CopyText text={script} label="Копіювати довгий" />
+                      </div>
+                    </details>
+                  )}
                   <a
                     href={r.type === 'tysha' ? `/tysha/${r.slug}` : `/episodes/${r.slug}`}
                     target="_blank"
