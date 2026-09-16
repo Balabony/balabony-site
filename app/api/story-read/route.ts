@@ -104,6 +104,12 @@ export async function POST(req: Request) {
 
     const event = body?.event === 'read' ? 'read' : 'open'
 
+    // Ідентифікатор сесії і згода на аналітику приходять із того самого
+    // запиту — див. коментар біля запису story_events нижче.
+    const sessionId =
+      typeof body?.sessionId === 'string' ? body.sessionId.slice(0, 100) : null
+    const analytics = body?.analytics === true
+
     // Позначку промо ставить сторінка. Відсутня — вважаємо звичайним твором.
     const promo = body?.promo === true
 
@@ -186,6 +192,37 @@ export async function POST(req: Request) {
         },
         { onConflict: 'user_id,content_id,read_date', ignoreDuplicates: true },
       )
+    }
+
+    // Подія для аналітики пишеться ТУТ, а не окремим запитом з браузера.
+    //
+    // Було: клієнт паралельно бив у /api/story-read і /api/analytics/track.
+    // Обидва запити з keepalive, але доставку він не гарантує: читач дочитує
+    // й одразу закриває вкладку, один долітає, другий ні. Вимір 16.09.2026:
+    // у story_events виявилося 71 подію 'read', якій у article_reads немає
+    // пари навіть за той самий день. Основна маса (62) — червень-липень,
+    // стара історія, але 9 припали на серпень-вересень, тобто розходження
+    // тривало. Тепер або записуються обидві таблиці, або жодна.
+    //
+    // Згоду перевіряємо, бо Політика cookies обіцяє: до згоди аналітичні дані
+    // не збираються. Прапорець шле клієнт — там, де читається cookie згоди.
+    //
+    // Подію 'open' сюди НЕ переносимо: через /api/analytics/track вона ще
+    // оновлює content.views_count, і це окремий шлях.
+    if (analytics) {
+      try {
+        await db.from('story_events').insert({
+          story_id:         contentId,
+          story_title:      title,
+          event_type:       'read',
+          duration_seconds: dwell,
+          session_id:       sessionId,
+          content_id:       contentId,
+        })
+      } catch (e) {
+        // Аналітика не має ламати зарахування прочитання.
+        console.error('[story-read] story_events', (e as Error)?.message)
+      }
     }
 
     return NextResponse.json({ ok: true, counted: true, payable })

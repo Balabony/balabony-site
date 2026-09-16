@@ -163,7 +163,16 @@ export default function StoryReadTracker({
       const seconds = Math.round(activeMsRef.current / 1000)
       const percent = Math.round(maxShareRef.current * 100)
 
-      // keepalive: подія доходить, навіть якщо вкладку вже закривають.
+      // ОДИН запит замість двох. Раніше поруч летів ще й /api/analytics/track
+      // з тією самою подією 'read'. Обидва з keepalive, але доставку він не
+      // гарантує: читач закриває вкладку, один запит долітає, другий ні — і
+      // таблиці розходяться (вимір 16.09.2026: 9 подій за серпень-вересень
+      // без пари). Тепер story_events пише сам /api/story-read, тож або
+      // записуються обидві таблиці, або жодна.
+      //
+      // sessionId і analytics передаємо, бо на сервері їх нема: перший живе
+      // в браузері, другий — це згода на аналітику з cookie. Без згоди
+      // сервер story_events не пише.
       fetch('/api/story-read', {
         method:    'POST',
         headers:   { 'Content-Type': 'application/json' },
@@ -176,24 +185,10 @@ export default function StoryReadTracker({
           dwellSeconds: seconds,
           percent,
           promo,
+          sessionId:    getSessionId(),
+          analytics,
         }),
       }).catch(() => {})
-
-      if (analytics) {
-        fetch('/api/analytics/track', {
-          method:    'POST',
-          headers:   { 'Content-Type': 'application/json' },
-          keepalive: true,
-          body:      JSON.stringify({
-            type:             'story_event',
-            story_id:         contentId,
-            story_title:      title,
-            event_type:       'read',
-            duration_seconds: seconds,
-            session_id:       getSessionId(),
-          }),
-        }).catch(() => {})
-      }
     }
 
     const debugOn =
