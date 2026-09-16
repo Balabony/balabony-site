@@ -16,11 +16,21 @@ import { dbQuery } from '@/lib/db'
  * повертається JSON-ом і пишеться в лог Vercel.
  */
 
-const REQUIRED = ['full_name', 'rnokpp', 'address', 'phone', 'payout_iban', 'bank_name'] as const
+// Список мусить збігатися з двома іншими: формою реквізитів
+// (app/components/AuthorRequisites.tsx, константа REQUIRED) і сторінкою
+// договору (app/author/contract/[id]/page.tsx, масив missing). Поле
+// birth_date додали до профілю пізніше за цей обробник, і воно лишилося
+// тільки в тих двох. Наслідок був такий: договір ТУТ створювався без дати
+// народження, а сторінка договору його не показувала й писала «Договір поки
+// не сформовано» — автор бачив створений документ, який неможливо відкрити.
+// Дата народження потрібна в самому тексті (п. 6.1-2, повноліття Автора),
+// тож вирівнюємо по семи полях, а не навпаки.
+const REQUIRED = ['full_name', 'rnokpp', 'birth_date', 'address', 'phone', 'payout_iban', 'bank_name'] as const
 
 const FIELD_LABEL: Record<string, string> = {
   full_name: 'прізвище, імʼя, по батькові',
   rnokpp: 'РНОКПП',
+  birth_date: 'дата народження',
   address: 'адреса',
   phone: 'телефон',
   payout_iban: 'IBAN',
@@ -38,7 +48,7 @@ export async function POST() {
     if (!user) return fail('Потрібно увійти', 401)
 
     const p = await dbQuery(
-      `select full_name, rnokpp, address, phone, payout_iban, bank_name, is_fop, revenue_share
+      `select full_name, rnokpp, birth_date, address, phone, payout_iban, bank_name, is_fop, revenue_share
          from author_profiles where user_id = $1 limit 1`,
       [user.id],
     )
