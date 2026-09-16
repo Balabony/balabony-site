@@ -17,6 +17,18 @@ import { useEffect, useState } from 'react'
 const GOLD = '#ef9f27'
 const FONT = "'Montserrat', Arial, sans-serif"
 
+/**
+ * Орудний відмінок назви серіалу: «Стежити за Балабонами», а не
+ * «Стежити за «Балабони»». Лапки в відміненій формі зайві — назва
+ * і так упізнавана, а «за «Балабонами»» читається важко.
+ * Для невідомої назви лишаємо безпечну форму з родовим словом.
+ */
+function followLabel(series: string, seriesTitle: string): string {
+  if (series === 'balabony') return 'Стежити за Балабонами'
+  if (series === 'tysha') return 'Стежити за Тишею'
+  return `Стежити за серіалом «${seriesTitle}»`
+}
+
 function pluralReaders(n: number): string {
   const mod100 = n % 100
   const mod10 = n % 10
@@ -125,7 +137,7 @@ export default function FollowSeriesButton({
           transition: 'background 0.15s, color 0.15s',
         }}
       >
-        {followed ? '✓ Ви стежите за серіалом' : `+ Стежити за «${seriesTitle}»`}
+        {followed ? '✓ Ви стежите за серіалом' : `+ ${followLabel(series, seriesTitle)}`}
       </button>
 
       {ready && (
