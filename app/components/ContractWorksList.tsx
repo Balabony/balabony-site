@@ -138,6 +138,46 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
     setExtra(prev => ({ ...prev, [id]: { ...(prev[id] ?? EMPTY_EXTRA), ...p } }))
   }
 
+  // П. 2.11: минуло 30 днів від долучення, а твору досі немає на Платформі —
+  // Автор має право прибрати його з переліку. Рахуємо від підтвердження, за
+  // його відсутності — від внесення. Сервер перевіряє те саме ще раз.
+  function canWithdraw(w: WorkRow): boolean {
+    if ((w.content_status ?? '') === 'published') return false
+    const since = w.confirmed_at ?? w.added_at
+    if (!since) return false
+    const t = new Date(since).getTime()
+    if (Number.isNaN(t)) return false
+    return Date.now() - t >= 30 * 86_400_000
+  }
+
+  async function withdraw(w: WorkRow) {
+    const ok = window.confirm(
+      `Прибрати «${w.title}» з переліку договору?\n\n` +
+      'Твір перестане бути охопленим договором. Сам текст у редакції залишиться — ' +
+      'якщо захочете, його можна буде долучити знову.',
+    )
+    if (!ok) return
+    setBusy(true)
+    setNote(null)
+    try {
+      const res = await fetch('/api/author/withdraw-work', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workId: w.id }),
+      })
+      const d = (await res.json()) as { ok?: boolean; error?: string }
+      if (!d?.ok) {
+        setNote(d?.error ?? 'Не вдалося відкликати твір.')
+        return
+      }
+      window.location.reload()
+    } catch {
+      setNote('Немає звʼязку. Спробуйте ще раз.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   async function send(items: SendItem[]) {
     if (items.length === 0) return
     setBusy(true)
@@ -335,6 +375,25 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
                   >
                     змінити
                   </button>
+                  {canWithdraw(w) && (
+                    <>
+                      {' · '}
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void withdraw(w)}
+                        title="Минуло 30 днів, а твір не опубліковано — п. 2.11 договору"
+                        style={{
+                          border: 'none', background: 'none', padding: 0,
+                          cursor: busy ? 'default' : 'pointer',
+                          color: BRAND.muted, fontSize: '0.85rem', fontFamily: 'inherit',
+                          textDecoration: 'underline',
+                        }}
+                      >
+                        відкликати
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>
