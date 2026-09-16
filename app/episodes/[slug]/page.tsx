@@ -28,6 +28,7 @@ import { getTeaserHtml } from '@/lib/episode-teaser'
 import ReaderSettings from '@/app/components/ReaderSettings'
 import EpisodeJsonLd from '@/app/components/EpisodeJsonLd'
 import ReviewButton from '@/app/components/ReviewButton'
+import FollowSeriesButton from '@/app/components/FollowSeriesButton'
 
 const GOLD      = '#ef9f27'
 const NAVY_DEEP = '#0a1628'
@@ -452,6 +453,18 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
             contentId={episode.id}
             contentType="series"
             contentTitle={episode.title}
+          />
+        )}
+
+        {/* «Стежити за серіалом». Таблиця series_follows чекала на це з
+            09.09.2026. Стоїть одразу після оцінки, поки читач ще на емоції
+            від прочитаної серії, і ПЕРЕД переходом далі: хто піде читати
+            наступну — піде й так, а хто закриє вкладку, має лишити слід. */}
+        {!isLocked && (
+          <FollowSeriesButton
+            series="balabony"
+            seriesTitle="Балабони"
+            returnTo={`/episodes/${episode.slug}`}
           />
         )}
 
