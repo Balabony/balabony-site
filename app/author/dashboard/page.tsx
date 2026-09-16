@@ -523,8 +523,13 @@ export default async function AuthorDashboardPage() {
         {/* Зведення */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
           <div style={card}><div style={statNum}>{published}</div><div style={statLabel}>опубліковано історій</div></div>
-          <div style={card}><div style={statNum}>{totalCompleted}</div><div style={statLabel}>дочитали до кінця</div></div>
-          <div style={card}><div style={statNum}>{totalReads}</div><div style={statLabel}>прочитань</div></div>
+          {/* Підписи виправлено 16.09.2026. Було навпаки: reads_total стояв під
+              словом «прочитань», хоча це ВІДКРИТТЯ. За п. 1.5 договору
+              прочитанням вважається 70% обсягу плюс час — у базі це
+              reads_completed. Автор бачив 627 «прочитань» там, де за договором
+              їх 141, і саме за цим числом він рахуватиме свою винагороду. */}
+          <div style={card}><div style={statNum}>{totalCompleted}</div><div style={statLabel}>прочитань (п. 1.5)</div></div>
+          <div style={card}><div style={statNum}>{totalReads}</div><div style={statLabel}>відкриттів</div></div>
           <div style={card}><div style={statNum}>{followers}</div><div style={statLabel}>читачів стежать</div></div>
           <div style={{ ...card, background: BRAND.amber }}>
             <div style={{ ...statNum, color: BRAND.ink }}>{uah(balance.balance)} ₴</div>
@@ -607,8 +612,8 @@ export default async function AuthorDashboardPage() {
                         «Дочитали», яке в базі вже є (reads_completed) і яке автору
                         справді цікаве. Сам лічильник не чіпали: він лишається в базі
                         й в аналітиці. */}
-                    <span>Прочитань: <strong style={{ color: BRAND.ink }}>{s.reads_total}</strong></span>
-                    <span>Дочитали: <strong style={{ color: BRAND.ink }}>{s.reads_completed}</strong></span>
+                    <span>Прочитань: <strong style={{ color: BRAND.ink }}>{s.reads_completed}</strong></span>
+                    <span>Відкриттів: <strong style={{ color: BRAND.ink }}>{s.reads_total}</strong></span>
                     <span>Дочитування: <strong style={{ color: BRAND.ink }}>{s.avg_read_percentage}%</strong></span>
                     {/* Голоси показуємо лише там, де вони є: нуль біля кожного
                         твору читався б як докір, а не як інформація. */}

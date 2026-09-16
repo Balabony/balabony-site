@@ -133,6 +133,12 @@ export async function POST(req: Request) {
           article_title:   title,
           completed:       false,
           read_percentage: 0,
+          // Проставляємо явно, хоч замовчування в колонці теж false.
+          // До 16.09.2026 замовчування було true, і 486 рядків про ВІДКРИТТЯ
+          // лежали позначені як такі, що йдуть у виплату — при 141 дочитаному.
+          // Поле, від якого залежать гроші, не має покладатися на налаштування
+          // бази: одна зміна там — і помилка повертається мовчки.
+          counts_for_payout: false,
         },
         { onConflict: 'user_id,content_id,read_date', ignoreDuplicates: true },
       )
