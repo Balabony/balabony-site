@@ -133,6 +133,14 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
             ← Кабінет
           </a>
           <PrintButton />
+          {/* Додаток № 1 обіцяє доступ до чинної редакції переліку в будь-який
+              момент — без цього посилання сторінка була б недосяжною. */}
+          <a
+            href={`/author/contract/${contract.id}/dodatok`}
+            style={{ fontSize: 14, color: '#2c3a52', textDecoration: 'none', border: '1px solid #ccd3de', borderRadius: 8, padding: '9px 16px', fontFamily: 'Arial, sans-serif' }}
+          >
+            Додаток № 1 — перелік творів
+          </a>
         </div>
 
         {blocks.map((b, i) => {
