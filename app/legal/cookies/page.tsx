@@ -18,7 +18,7 @@ export default function CookiesPage() {
   return (
     <>
       <h1>Політика щодо файлів Cookie</h1>
-      <p className="legal-meta">Редакція від 29 липня 2026 року</p>
+      <p className="legal-meta">Редакція від 16 вересня 2026 року</p>
 
       <h2>1. Що таке cookies</h2>
       <p>
@@ -48,6 +48,7 @@ export default function CookiesPage() {
         <li><strong>balabony-font-size</strong> — обраний розмір шрифту.</li>
         <li><strong>balabony-eyecare</strong> — режим дбайливого читання.</li>
         <li><strong>balabony_a11y</strong> — налаштування доступності.</li>
+        <li><strong>balabony_reader_v1</strong> — налаштування читалки: шрифт, інтервал, ширина колонки.</li>
         <li><strong>balabony_reviews</strong>, <strong>balabony_support</strong> — щоб повторно не показувати вікна, які ви вже закрили.</li>
       </ul>
       <p>
@@ -59,6 +60,12 @@ export default function CookiesPage() {
         <li><strong>Google Analytics / gtag</strong> — допомагає нам розуміти, які історії читають, де люди натрапляють на труднощі та що виправити. Збирає знеособлені дані: тип пристрою, країну, поведінку на сторінці.</li>
         <li><strong>Google Ads</strong> — облік результативності наших оголошень.</li>
         <li><strong>Vercel Analytics</strong> — анонімна статистика продуктивності сайту.</li>
+        <li>
+          <strong>bb_pending_amount</strong> і <strong>bb_pending_method</strong> (sessionStorage) —
+          сума й спосіб оплати, які записуються перед переходом до платіжного провайдера і
+          зчитуються на сторінці успішної оплати, щоб зарахувати покупку в статистику. Одразу
+          після цього стираються і зникають із закриттям вкладки.
+        </li>
       </ul>
       <p>
         До того, як ви дасте згоду, ці сервіси працюють у режимі без збереження даних: аналітичні
