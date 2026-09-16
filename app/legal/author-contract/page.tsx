@@ -40,8 +40,8 @@ export const metadata: Metadata = {
 }
 
 // Редакція — звіряти з lib/contract/template.ts після кожної правки договору.
-const REVISION = 'v8.1'
-const REVISION_DATE = '10 вересня 2026'
+const REVISION = 'v8.2'
+const REVISION_DATE = '16 вересня 2026'
 
 function Ref({ children }: { children: React.ReactNode }) {
   return <span className="text-xs text-stone-500"> ({children})</span>
