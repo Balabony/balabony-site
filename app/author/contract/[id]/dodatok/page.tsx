@@ -39,6 +39,7 @@ type Row = {
   added_at: string | null
   content_status: string | null
   published_at: string | null
+  co_authors: string | null
 }
 
 const STATUS: Record<string, string> = {
@@ -97,7 +98,7 @@ export default async function DodatokPage({ params }: { params: Promise<{ id: st
   }
 
   const w = await dbQuery(
-    `select w.title, w.prior_publication, w.confirmed_at, w.added_at,
+    `select w.title, w.prior_publication, w.confirmed_at, w.added_at, w.co_authors,
             t.status::text as content_status, t.published_at
        from contract_works w
        left join content t on t.id = w.content_id
@@ -165,7 +166,8 @@ export default async function DodatokPage({ params }: { params: Promise<{ id: st
                   <th style={{ ...th, width: 92 }}>Статус</th>
                   <th style={{ ...th, width: 82 }}>Дата<br />публікації</th>
                   <th style={{ ...th, width: 82 }}>Строк<br />за п. 4.2</th>
-                  <th style={{ ...th, width: 120 }}>Раніше публікувався</th>
+                  <th style={{ ...th, width: 110 }}>Раніше публікувався</th>
+                  <th style={{ ...th, width: 110 }}>Співавтори</th>
                 </tr>
               </thead>
               <tbody>
@@ -178,6 +180,7 @@ export default async function DodatokPage({ params }: { params: Promise<{ id: st
                     <td style={td}>{d(r.published_at)}</td>
                     <td style={td}>{termEnd(r.published_at)}</td>
                     <td style={td}>{(r.prior_publication ?? '').trim() || '—'}</td>
+                    <td style={td}>{(r.co_authors ?? '').trim() || '—'}</td>
                   </tr>
                 ))}
               </tbody>

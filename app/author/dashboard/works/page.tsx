@@ -48,6 +48,7 @@ export default async function ContractWorksPage(
                   w.audio_sources,
                   w.series_name,
                   w.series_order,
+                  w.co_authors,
                   t.status        as content_status,
                   t.published_at  as published_at,
                   t.type          as content_type,

@@ -18,6 +18,7 @@ type Item = {
   audioSources?: string | null
   seriesName?: string | null
   seriesOrder?: number | null
+  coAuthors?: string | null
 }
 
 export async function POST(req: NextRequest) {
@@ -63,6 +64,14 @@ export async function POST(req: NextRequest) {
       ? it.audioSources.trim().slice(0, 1000)
       : null
 
+    // П. 6.1-1: Автор зазначає співавторство при долученні Твору й гарантує,
+    // що має письмову згоду співавторів. Зберігаємо саме перелік імен, а не
+    // прапорець: прапорець нічого не доводить, якщо співавтор заявить
+    // претензію, а перелік — доводить, що Автор його заявив.
+    const coAuthors = typeof it.coAuthors === 'string' && it.coAuthors.trim()
+      ? it.coAuthors.trim().slice(0, 300)
+      : null
+
     const seriesName = typeof it.seriesName === 'string' && it.seriesName.trim()
       ? it.seriesName.trim().slice(0, 200)
       : null
@@ -79,9 +88,10 @@ export async function POST(req: NextRequest) {
               audio_with_consent = $3,
               audio_sources = $4,
               series_name = $5,
-              series_order = $6
-        where id = $7 and contract_id = $8`,
-      [prior, hasAudio, withConsent, sources, seriesName, seriesOrder, id, contractId],
+              series_order = $6,
+              co_authors = $7
+        where id = $8 and contract_id = $9`,
+      [prior, hasAudio, withConsent, sources, seriesName, seriesOrder, coAuthors, id, contractId],
     )
   }
 

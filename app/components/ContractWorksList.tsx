@@ -29,6 +29,7 @@ export type WorkRow = {
   audio_sources?: string | null
   series_name?: string | null
   series_order?: number | null
+  co_authors?: string | null
 }
 
 type Extra = {
@@ -38,11 +39,12 @@ type Extra = {
   inSeries: boolean
   seriesName: string
   seriesOrder: string
+  coAuthors: string
 }
 
 const EMPTY_EXTRA: Extra = {
   hasAudio: false, consent: 'no', sources: '',
-  inSeries: false, seriesName: '', seriesOrder: '',
+  inSeries: false, seriesName: '', seriesOrder: '', coAuthors: '',
 }
 
 type Props = {
@@ -110,6 +112,7 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
     audioSources: string | null
     seriesName: string | null
     seriesOrder: number | null
+    coAuthors: string | null
   }
 
   function ex(id: string): Extra {
@@ -128,6 +131,7 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
         inSeries: Boolean(w.series_name),
         seriesName: w.series_name ?? '',
         seriesOrder: w.series_order ? String(w.series_order) : '',
+        coAuthors: w.co_authors ?? '',
       },
     }))
     setPrior(prev => ({ ...prev, [w.id]: w.prior_publication ?? '' }))
@@ -207,6 +211,7 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
           audio_sources: it.audioSources,
           series_name: it.seriesName,
           series_order: it.seriesOrder,
+          co_authors: it.coAuthors,
         }
       }))
       setEditing(prev => {
@@ -236,12 +241,13 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
       audioSources: e.hasAudio && e.sources.trim() ? e.sources.trim() : null,
       seriesName: e.inSeries && e.seriesName.trim() ? e.seriesName.trim() : null,
       seriesOrder: Number.isFinite(orderNum) ? orderNum : null,
+      coAuthors: e.coAuthors.trim() ? e.coAuthors.trim() : null,
     }
   }
 
   const cleanCount = pending.filter(w => {
     const e = ex(w.id)
-    return !(prior[w.id] ?? '').trim() && !e.hasAudio && !e.inSeries
+    return !(prior[w.id] ?? '').trim() && !e.hasAudio && !e.inSeries && !e.coAuthors.trim()
   }).length
 
   function confirmOne(w: WorkRow) {
@@ -253,7 +259,7 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
     const items = pending
       .filter(w => {
         const e = ex(w.id)
-        return !(prior[w.id] ?? '').trim() && !e.hasAudio && !e.inSeries
+        return !(prior[w.id] ?? '').trim() && !e.hasAudio && !e.inSeries && !e.coAuthors.trim()
       })
       .map(w => ({
         id: w.id,
@@ -263,6 +269,7 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
         audioSources: null,
         seriesName: null,
         seriesOrder: null,
+        coAuthors: null,
       }))
     void send(items)
   }
@@ -363,6 +370,7 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
                   {w.series_name
                     ? ` · серія: ${w.series_name}${w.series_order ? ` (№${w.series_order})` : ''}`
                     : ''}
+                  {w.co_authors ? ` · співавтори: ${w.co_authors}` : ''}
                   {'  '}
                   <button
                     type="button"
@@ -504,7 +512,28 @@ export default function ContractWorksList({ contractId, contractNumber, works, g
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {/* П. 6.1-1: співавторство Автор заявляє сам, і він же гарантує,
+                  що має письмову згоду співавторів. Поле текстове, бо в спорі
+                  цінність має перелік імен, а не прапорець. Заповнене поле
+                  виводиться позначкою в Додатку № 1. */}
+              <label style={{ display: 'block', marginTop: 10 }}>
+                <span style={{ fontSize: '0.9rem' }}>Співавтори твору</span>
+                <input
+                  type="text"
+                  value={ex(w.id).coAuthors}
+                  onChange={e => patch(w.id, { coAuthors: e.target.value })}
+                  placeholder="Порожньо, якщо твір ваш одноосібно"
+                  style={{ ...inputStyle, width: '100%', marginTop: 5 }}
+                />
+                <span style={hintStyle}>
+                  Якщо твір створено у співавторстві, впишіть імена. Підтверджуючи твір,
+                  ви гарантуєте, що маєте письмову згоду співавторів на передання прав і
+                  на отримання винагороди за всіх (п. 6.1-1). Винагороду ми виплачуємо
+                  одній особі — вам; розрахунки між співавторами ви ведете самі.
+                </span>
+              </label>
+
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
                 <button type="button" onClick={() => confirmOne(w)} disabled={busy} style={secondaryBtn}>
                   {editing[w.id] ? 'Зберегти' : 'Підтвердити'}
                 </button>
