@@ -71,66 +71,23 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
     .filter(([k]) => !String(prof[k] ?? '').trim())
     .map(([, label]) => label)
 
-  if (!contract.signed_at && missing.length > 0) {
-    return (
-      <main style={{ background: '#ffffff', color: '#16202e', minHeight: '60vh', padding: '28px 18px 64px' }}>
-        <div style={{ maxWidth: 620, margin: '0 auto', fontFamily: 'Arial, Helvetica, sans-serif' }}>
-          <a
-            href="/author/dashboard"
-            style={{ fontSize: 14, color: '#2c3a52', textDecoration: 'none', border: '1px solid #ccd3de', borderRadius: 8, padding: '9px 16px', display: 'inline-block', marginBottom: 24 }}
-          >
-            ← Кабінет
-          </a>
+  // ЗРАЗОК ЗАМІСТЬ ЗАГЛУШКИ, 16.09.2026.
+  //
+  // Було: якщо бракує реквізитів, сторінка віддавала повідомлення «Договір
+  // поки не сформовано» і текст не показувала взагалі. Причина була
+  // правильна — документ із прочерками виглядає готовим, а насправді
+  // дефектний.
+  //
+  // Але наслідок виявився гіршим: автор мусив віддати РНОКПП і банківський
+  // рахунок, ЩЕ НЕ ПРОЧИТАВШИ, на що погоджується. Авторка написала прямо:
+  // «ознайомитися з текстом договору до надання цих даних наразі
+  // неможливо», і відмовилася. Вона мала рацію.
+  //
+  // Стало: текст показуємо завжди, але в режимі зразка — з прочерками на
+  // місці реквізитів, банером угорі й БЕЗ контрольної суми (рахувати її від
+  // прочерків безглуздо). Підписують не тут, тож зразок нічого не ламає.
+  const isPreview = !contract.signed_at && missing.length > 0
 
-          <h1 style={{ fontSize: 21, margin: '0 0 14px', lineHeight: 1.3 }}>
-            Договір поки не сформовано
-          </h1>
-
-          <p style={{ fontSize: 15, lineHeight: 1.6, margin: '0 0 14px' }}>
-            У ваших реквізитах не заповнено {missing.length === 1 ? 'одне поле' : `${missing.length} поля`}.
-            Без нього договір вийшов би з прочерком, а такий документ не має сили.
-          </p>
-
-          <ul style={{ fontSize: 15, lineHeight: 1.7, margin: '0 0 20px', paddingLeft: 22 }}>
-            {missing.map((m) => <li key={m}>{m}</li>)}
-          </ul>
-
-          <p style={{ fontSize: 15, lineHeight: 1.6, margin: '0 0 22px' }}>
-            Допишіть у кабінеті — договір сформується одразу, нічого повторно робити не потрібно.
-          </p>
-
-          {/* Умови ПЕРЕД реквізитами. Додано 16.09.2026 після листа авторки:
-              вона відмовилася заповнювати РНОКПП і банківський рахунок, бо не
-              могла спершу прочитати, на що погоджується, — і мала рацію.
-              Умови однакові для всіх і давно відкриті на /legal/author-contract,
-              просто ця сторінка на них не посилалася, і виглядало так, ніби
-              текст показують лише в обмін на персональні дані. */}
-          <div style={{ border: '1px solid #ccd3de', borderRadius: 10, padding: '14px 16px', margin: '0 0 22px' }}>
-            <p style={{ fontSize: 15, lineHeight: 1.6, margin: '0 0 10px' }}>
-              <strong>Умови можна прочитати вже зараз</strong> — реквізитів для цього не потрібно.
-              Вони однакові для всіх авторів: ставка винагороди, формула розрахунку, строк
-              передачі прав, що залишається вам.
-            </p>
-            <a
-              href="/legal/author-contract"
-              style={{ fontSize: 15, color: '#2c3a52', textDecoration: 'underline' }}
-            >
-              Відкрити умови договору
-            </a>
-          </div>
-
-          <a
-            href="/author/dashboard"
-            style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', background: '#14253B', textDecoration: 'none', borderRadius: 8, padding: '12px 22px', display: 'inline-block' }}
-          >
-            Заповнити реквізити
-          </a>
-        </div>
-      </main>
-    )
-  }
-
-  // Контрольна сума поточної редакції: те саме обчислення, що й при підписанні.
   const currentHash = computeDocHash(V, works)
 
   const fill = (t: string) => t.replace(/\{\{(\w+)\}\}/g, (_, k: string) => V[k] ?? DASH)
@@ -171,6 +128,31 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
           </a>
         </div>
 
+        {isPreview && (
+          <div className="no-print" style={{
+            border: '1px solid #e8d9b5', background: '#fdf6e8', borderRadius: 10,
+            padding: '14px 16px', marginBottom: 22, fontFamily: 'Arial, sans-serif',
+          }}>
+            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>
+              Це зразок договору
+            </div>
+            <p style={{ fontSize: 14.5, lineHeight: 1.6, margin: '0 0 8px' }}>
+              Умови тут остаточні — саме їх Ви й підписуватимете. На місці Ваших даних поки
+              стоять прочерки: {missing.join(', ')}. Щойно Ви їх заповните, вони підставляться
+              в текст, і договір можна буде підписати.
+            </p>
+            <p style={{ fontSize: 14.5, lineHeight: 1.6, margin: '0 0 12px' }}>
+              Читайте спокійно й без поспіху — заповнювати щось заздалегідь не треба.
+            </p>
+            <a
+              href="/author/dashboard"
+              style={{ fontSize: 14.5, fontWeight: 700, color: '#ffffff', background: '#14253B', textDecoration: 'none', borderRadius: 8, padding: '10px 18px', display: 'inline-block' }}
+            >
+              Заповнити реквізити
+            </a>
+          </div>
+        )}
+
         {blocks.map((b, i) => {
           const t = b.t
           if (b.k === 'h1') {
@@ -204,7 +186,12 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
           marginTop: 30, paddingTop: 14, borderTop: '1px solid #d8dee8',
           fontSize: 12, color: '#5a6b85', fontFamily: 'Arial, sans-serif', lineHeight: 1.7,
         }}>
-          {snap ? (
+          {isPreview ? (
+            <div>
+              Зразок. Контрольна сума не рахується, поки в реквізитах стоять прочерки:
+              вона фіксує саме той текст, який підписано, а цей ще зміниться.
+            </div>
+          ) : snap ? (
             <>
               <div>
                 Підписана редакція від {fmtDate(contract.doc_snapshot_at)} · творів у Додатку № 1:{' '}
