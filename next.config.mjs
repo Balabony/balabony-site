@@ -64,6 +64,15 @@ const nextConfig = {
         destination: '/tysha/:slug',
         permanent: true,
       },
+      // Розділ казок перейменовано 16.09.2026 («Казки на ніч» — виміряний
+      // попит 10–100 тис./міс проти нуля в старої назви). Стара адреса вже
+      // проіндексована й стоїть у sitemap, тому постійний редирект: він
+      // передає новій сторінці вагу старої, на відміну від 404.
+      {
+        source: '/stories/zhanr/kazka',
+        destination: '/stories/zhanr/kazky-na-nich',
+        permanent: true,
+      },
     ]
   },
   async headers() {
