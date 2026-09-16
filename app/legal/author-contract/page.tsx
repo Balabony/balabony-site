@@ -40,7 +40,7 @@ export const metadata: Metadata = {
 }
 
 // Редакція — звіряти з lib/contract/template.ts після кожної правки договору.
-const REVISION = 'v8.2'
+const REVISION = 'v8.3'
 const REVISION_DATE = '16 вересня 2026'
 
 function Ref({ children }: { children: React.ReactNode }) {
