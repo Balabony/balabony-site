@@ -20,7 +20,10 @@ import {
  * Термін оновлення дорівнює кроку ротації вітрини (3 години): частіше
  * перебудовувати нема сенсу, набір однаково той самий.
  */
-export const revalidate = 10800
+// Кеш головної. Мусить збігатися з кроком ротації (ROTATION_STEP_MS у
+// lib/home-data.ts) і з s-maxage у /api/stories: довший кеш з'їдає ротацію,
+// бо читач отримує стару сторінку. 16.09.2026 усі три зменшено до години.
+export const revalidate = 3600
 
 export default async function HomePage() {
   const [seriesData, freshStories, fairytales, tyshaItems, genreCounts, stats, authors] =

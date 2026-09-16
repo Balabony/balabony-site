@@ -36,7 +36,10 @@ export default function GenresPage() {
   const [rows, setRows]         = useState<Row[]>([])
   const [total, setTotal]       = useState(0)
   const [loading, setLoading]   = useState(true)
-  const [only, setOnly]         = useState<'empty' | 'all'>('empty')
+  // Крім 'empty' і 'all' сюди тепер потрапляє точна назва жанру: щоб
+  // перебрати конкретний розділ, насамперед «Життєві історії» — 143 твори,
+  // у які звалено все підряд (16.09.2026).
+  const [only, setOnly]         = useState<string>('empty')
   const [err, setErr]           = useState('')
   const [busy, setBusy]         = useState(false)
   const [note, setNote]         = useState('')
@@ -47,7 +50,7 @@ export default function GenresPage() {
   const load = useCallback(async () => {
     setLoading(true); setErr('')
     try {
-      const r = await fetch(`/api/admin/genres?only=${only}&limit=${limit}`)
+      const r = await fetch(`/api/admin/genres?only=${encodeURIComponent(only)}&limit=${limit}`)
       if (!r.ok) throw new Error(r.status === 401 ? 'Потрібен вхід в адмінку' : `Помилка ${r.status}`)
       const j = await r.json() as { rows: Row[]; total: number }
       setRows(j.rows); setTotal(j.total)
@@ -132,9 +135,12 @@ export default function GenresPage() {
         </p>
 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 18 }}>
-          <select value={only} onChange={e => setOnly(e.target.value as 'empty' | 'all')} style={{ ...btn, background: NAVY }}>
+          <select value={only} onChange={e => setOnly(e.target.value)} style={{ ...btn, background: NAVY }}>
             <option value="empty">Без жанру</option>
             <option value="all">Усі історії</option>
+            {GENRES.map(g => (
+              <option key={g} value={g}>Зараз: {g}</option>
+            ))}
           </select>
           <button
             onClick={() => suggest(rows.map(r => r.id))}
@@ -169,7 +175,7 @@ export default function GenresPage() {
 
         {!loading && rows.length === 0 && !err && (
           <div style={{ border: `1px solid ${LINE}`, borderRadius: 12, padding: '28px 20px', textAlign: 'center', color: MUTED, fontSize: 13.5 }}>
-            Творів без жанру немає.
+            {only === 'empty' ? 'Творів без жанру немає.' : 'У цьому розділі творів немає.'}
           </div>
         )}
 

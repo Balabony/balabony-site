@@ -18,6 +18,7 @@ import PublishWorkButton from '@/app/components/PublishWorkButton'
 import AddWorkForm from '@/app/components/AddWorkForm'
 import WorksFilter from '@/app/components/WorksFilter'
 import DeleteDraftButton from '@/app/components/DeleteDraftButton'
+import ShareWorkTemplate from '@/app/components/ShareWorkTemplate'
 import RequestUnpublishButton from '@/app/components/RequestUnpublishButton'
 
 export const dynamic = 'force-dynamic'
@@ -646,6 +647,17 @@ export default async function AuthorDashboardPage() {
                     >
                       {s.status === 'draft' ? 'Переглянути чернетку' : 'Відкрити на сайті'}
                     </a>
+                  )}
+
+                  {/* Готовий допис для соцмереж — тільки для опублікованих:
+                      посилання на чернетку читач не відкриє, і поділ ним
+                      обернувся б порожньою сторінкою. */}
+                  {s.status === 'published' && s.slug && (
+                    <ShareWorkTemplate
+                      title={s.title}
+                      slug={s.slug}
+                      votes={votesById.get(s.content_id) ?? 0}
+                    />
                   )}
 
                   {['draft', 'approved', 'published'].includes(s.status) && (

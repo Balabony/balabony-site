@@ -53,7 +53,7 @@ export async function GET(req: Request) {
     // набір змінився б, а межа віддавала старий.
     return NextResponse.json(stories, {
       headers: rotate
-        ? { 'Cache-Control': 'public, s-maxage=10800, stale-while-revalidate=86400' }
+        ? { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' }
         : {},
     })
   } catch {

@@ -16,7 +16,12 @@ export async function GET(req: NextRequest) {
   if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const url   = new URL(req.url)
-  const only  = url.searchParams.get('only') ?? 'empty'   // empty | all
+  // empty | all | точна назва жанру з переліку.
+  // Третій варіант доданий 16.09.2026: «Життєві історії» зібрали 143 твори —
+  // це найбільший розділ платформи і найгірший за віддачею (0,42 відкриття
+  // на твір проти 1,23 у драми). Причина не в жанрі, а в тому, що туди
+  // звалено все підряд. Щоб розібрати купу, потрібен фільтр саме по ній.
+  const only  = url.searchParams.get('only') ?? 'empty'
   const limit = Math.min(300, Math.max(1, Number(url.searchParams.get("limit") ?? 50)))
 
   const db = getSupabaseAdmin()
@@ -29,6 +34,7 @@ export async function GET(req: NextRequest) {
     .limit(limit)
 
   if (only === 'empty') q = q.or('genre.is.null,genre.eq.')
+  else if (only !== 'all' && isGenre(only)) q = q.eq('genre', only)
 
   const { data, error, count } = await q
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
