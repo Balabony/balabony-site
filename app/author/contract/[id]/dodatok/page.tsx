@@ -67,7 +67,7 @@ function termEnd(publishedAt: string | null): string {
 export default async function DodatokPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  if (!user) redirect('/login?next=/author/dashboard')
 
   const { id } = await params
 

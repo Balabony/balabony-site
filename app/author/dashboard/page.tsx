@@ -156,7 +156,7 @@ export default async function AuthorDashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    redirect('/login?next=/author/dashboard')
   }
 
   // Профіль автора (RLS: лише свій). Якщо профілю немає — користувач не автор.

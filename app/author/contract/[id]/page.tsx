@@ -18,7 +18,7 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
   const { id } = await params
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  if (!user) redirect('/login?next=/author/dashboard')
 
   const c = await dbQuery(
     `select id, number, status, rate, is_fop, created_at, signed_at, doc_hash,

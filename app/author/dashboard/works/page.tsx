@@ -19,7 +19,7 @@ export default async function ContractWorksPage(
 ) {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  if (!user) redirect('/login?next=/author/dashboard')
 
   const { contract: contractId } = await searchParams
 

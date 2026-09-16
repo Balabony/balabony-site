@@ -159,6 +159,27 @@ export default function LoginPage() {
             Вхід на Балабони
           </h1>
 
+          {/* Автор тисне в листі посилання на кабінет, сесія відпала — і він
+              бачить форму входу замість своїх даних. Для нього це «сайт не
+              відкривається». Один рядок знімає розгубленість у той момент,
+              коли вона виникає. Показуємо лише тим, кого сюди перекинуло. */}
+          {next?.startsWith('/author') && (
+            <p style={{
+              fontFamily: "'Lora', serif",
+              color: '#0a1628',
+              background: '#fdf6e8',
+              border: '1px solid #e8d9b5',
+              borderRadius: 10,
+              padding: '12px 14px',
+              margin: '0 0 1.25rem',
+              fontSize: '0.98rem',
+              lineHeight: 1.6,
+            }}>
+              Щоб відкрити кабінет автора, спершу увійдіть. Пароля немає:
+              впишіть свою пошту — і на неї прийде посилання для входу.
+            </p>
+          )}
+
           <p style={{
             fontFamily: "'Lora', serif",
             fontStyle: 'italic',
