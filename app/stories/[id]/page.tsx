@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import type { Metadata } from 'next'
@@ -78,6 +78,46 @@ async function getStory(id: string): Promise<StoryRow | null> {
   return data as StoryRow
 }
 
+/**
+ * Пошук твору за СТАРОЮ адресою.
+ *
+ * ЩО СТАЛОСЯ. У транслітерації (lib/slugify.ts) «и» дає «y»: «Камінчик» →
+ * kaminchyk. Раніше та сама літера давала «i», тож у Google лишилися адреси
+ * на кшталт /stories/kaminchik. Після перегенерації slug'ів вони почали
+ * віддавати 404: у Search Console 16.09.2026 таких сторінок 53, і серед них
+ * видно пари одного твору — kaminchik і kaminchyk поруч.
+ *
+ * ЧОМУ НЕ СПИСОК РЕДИРЕКТІВ у next.config. По-перше, 53 рядки руками, і при
+ * кожному новому творі список доведеться доповнювати. По-друге, ми не знаємо
+ * напевно, які саме з 53 — це пара «стара/нова адреса», а які просто зняті
+ * твори. Тут же збіг шукається в базі: якщо твору немає — лишається чесний
+ * 404, як і має бути для знятого.
+ *
+ * ЯК. Обидві адреси зводяться до спільного вигляду (усі «y» → «i») і
+ * порівнюються. Так працює в обидва боки: і стара адреса знаходить новий
+ * твір, і навпаки. Ризик зачепити чужий твір теоретично є — два різні
+ * заголовки, що відрізняються лише цією літерою, — але при 978 творах він
+ * мізерний, а ціна 404 на проіндексованій сторінці цілком реальна.
+ */
+async function findByLegacySlug(id: string): Promise<string | null> {
+  try {
+    const res = await dbQuery(
+      `select slug from content
+        where type = 'story'
+          and status in ('approved','published')
+          and replace(slug, 'y', 'i') = replace($1, 'y', 'i')
+          and slug <> $1
+        limit 1`,
+      [id],
+    )
+    return (res.rows[0]?.slug as string | undefined) ?? null
+  } catch {
+    // Пошук запасної адреси не має права зламати сторінку: не знайшли —
+    // просто буде звичайний 404.
+    return null
+  }
+}
+
 const PUBLIC_STATUSES = ['approved', 'published']
 
 /** Чи бачить цю сторінку хтось, крім автора. */
@@ -135,7 +175,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function StoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const story = await getStory(id)
-  if (!story) notFound()
+  if (!story) {
+    // Стара адреса з попередньою транслітерацією — постійний редирект на
+    // чинну. 301 передає новій сторінці вагу старої, чого 404 не робить.
+    const moved = await findByLegacySlug(id)
+    if (moved) permanentRedirect(`/stories/${moved}`)
+    notFound()
+  }
 
   // Неопублікований твір бачить лише його автор. Для решти — той самий 404,
   // що й раніше: сторонній не має навіть дізнатися, що така адреса існує.
