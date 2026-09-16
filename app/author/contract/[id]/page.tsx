@@ -36,7 +36,7 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
   }
 
   const p = await dbQuery(
-    `select full_name, rnokpp, birth_date, address, phone, payout_iban, bank_name, payout_recipient, pen_name
+    `select full_name, rnokpp, birth_date, address, phone, payout_iban, bank_name, payout_recipient, pen_name, is_fop
        from author_profiles where user_id = $1 limit 1`,
     [user.id],
   )

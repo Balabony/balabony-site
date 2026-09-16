@@ -52,7 +52,7 @@ export async function saveContractSnapshot(contractId: string): Promise<boolean>
     const c = await dbQuery(
       `select c.id, c.number, c.created_at, c.signed_at, c.author_id,
               p.full_name, p.rnokpp, p.birth_date, p.address, p.phone,
-              p.payout_iban, p.bank_name, p.payout_recipient, p.pen_name,
+              p.payout_iban, p.bank_name, p.payout_recipient, p.pen_name, p.is_fop,
               -- Саме u.email, а НЕ coalesce(p.email, u.email): у документ
               -- підставляється пошта, яку автор бачив на сторінці договору,
               -- а сторінка і sign/start беруть її з авторизації. Профільне
@@ -66,7 +66,7 @@ export async function saveContractSnapshot(contractId: string): Promise<boolean>
         limit 1`,
       [contractId],
     )
-    const row = c.rows[0] as Record<string, string | null> | undefined
+    const row = c.rows[0] as Record<string, string | boolean | null> | undefined
     if (!row) return false
 
     const w = await dbQuery(
@@ -79,12 +79,12 @@ export async function saveContractSnapshot(contractId: string): Promise<boolean>
     // тож дату в шапці документа беремо поточну, як її побачить автор.
     const vars = buildVars(
       {
-        number: row.number,
-        created_at: row.created_at,
-        signed_at: row.signed_at ?? new Date().toISOString(),
+        number: row.number as string | null,
+        created_at: row.created_at as string | null,
+        signed_at: (row.signed_at as string | null) ?? new Date().toISOString(),
       },
       row,
-      row.email ?? null,
+      (row.email as string | null) ?? null,
       works.length,
     )
 

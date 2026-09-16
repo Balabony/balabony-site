@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     // doc_hash через coalesce — тобто хибна сума лишається назавжди.
     // Сторінка /author/contract/[id] і lib/contract/snapshot.ts це поле
     // вибирають; ця вибірка мусить збігатися з ними поле в поле.
-    `select full_name, rnokpp, birth_date, address, phone, payout_iban, bank_name, payout_recipient, pen_name
+    `select full_name, rnokpp, birth_date, address, phone, payout_iban, bank_name, payout_recipient, pen_name, is_fop
        from author_profiles where user_id = $1 limit 1`,
     [user.id],
   )

@@ -31,7 +31,8 @@ export type ContractRow = {
   signed_at: string | null
 }
 
-export type ProfileRow = Record<string, string | null>
+// is_fop приходить булевим, решта полів — рядки, тому тип ширший.
+export type ProfileRow = Record<string, string | boolean | null>
 
 export function buildVars(
   contract: ContractRow,
@@ -42,16 +43,23 @@ export function buildVars(
   return {
     NUMBER: contract.number || DASH,
     DATE: fmtDate(contract.signed_at ?? contract.created_at),
-    AUTHOR_NAME: prof.full_name || DASH,
-    AUTHOR_RNOKPP: prof.rnokpp || DASH,
-    AUTHOR_BIRTHDATE: fmtBirthDate(prof.birth_date),
-    AUTHOR_ADDRESS: prof.address || DASH,
-    AUTHOR_PHONE: prof.phone || DASH,
+    AUTHOR_NAME: (prof.full_name as string | null) || DASH,
+    AUTHOR_RNOKPP: (prof.rnokpp as string | null) || DASH,
+    AUTHOR_BIRTHDATE: fmtBirthDate(prof.birth_date as string | null),
+    AUTHOR_ADDRESS: (prof.address as string | null) || DASH,
+    AUTHOR_PHONE: (prof.phone as string | null) || DASH,
     AUTHOR_EMAIL: email || DASH,
-    AUTHOR_IBAN: prof.payout_iban || DASH,
-    AUTHOR_BANK: prof.bank_name || DASH,
-    AUTHOR_RECIPIENT: prof.payout_recipient || prof.full_name || DASH,
-    PEN_NAME: prof.pen_name || '—',
+    AUTHOR_IBAN: (prof.payout_iban as string | null) || DASH,
+    AUTHOR_BANK: (prof.bank_name as string | null) || DASH,
+    AUTHOR_RECIPIENT: (prof.payout_recipient as string | null) || (prof.full_name as string | null) || DASH,
+    PEN_NAME: (prof.pen_name as string | null) || '—',
+    // Статус визначає, яка з двох ставок п. 5.3 стосується Автора, тому в
+    // документі він мусить стояти словами, а не «потрібне підкреслити».
+    // Порожнього значення тут бути не може: is_fop у профілі завжди
+    // булевий, за замовчуванням false.
+    AUTHOR_STATUS: prof.is_fop === true
+      ? 'фізична особа — підприємець'
+      : 'фізична особа',
     WORKS_COUNT: String(worksCount),
   }
 }
