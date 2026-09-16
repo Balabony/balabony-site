@@ -69,9 +69,28 @@ export default function AuthorRequisites({ initial }: Props) {
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
+  // Яке саме поле завалило перевірку. Потрібне, бо повідомлення показувалося
+  // ВНИЗУ, біля кнопки «Зберегти», а поле могло бути на пів екрана вище:
+  // авторка Оксана Кришталева 16.09.2026 вписала дату народження в «Про себе»
+  // й написала «не доганяю, де саме». Тепер форма сама веде до поля.
+  const [badField, setBadField] = useState<string | null>(null)
 
   function set<K extends keyof Requisites>(k: K, v: Requisites[K]) {
     setForm(f => ({ ...f, [k]: v }))
+    // Щойно людина торкнулася проблемного поля — підсвітка зникає.
+    setBadField(cur => (cur === k ? null : cur))
+  }
+
+  /** Прокрутити до поля й поставити в нього курсор. */
+  function focusField(field: string) {
+    if (typeof document === 'undefined') return
+    requestAnimationFrame(() => {
+      const box = document.querySelector<HTMLElement>(`[data-field="${field}"]`)
+      if (!box) return
+      box.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      const input = box.querySelector<HTMLInputElement>('input')
+      if (input) setTimeout(() => input.focus({ preventScroll: true }), 350)
+    })
   }
 
   /**
@@ -83,41 +102,49 @@ export default function AuthorRequisites({ initial }: Props) {
    * зберігаються саме вони. У базі 26 профілів із двослівними іменами, тобто
    * на цьому спіткнеться кожен четвертий.
    */
-  function validate(): string | null {
+  function validate(): { field: string; message: string } | null {
+    const bad = (field: string, message: string) => ({ field, message })
     const name = (form.full_name ?? '').trim()
     const parts = name ? name.split(/\s+/) : []
-    if (parts.length === 0) return 'Поле «Прізвище, імʼя, по батькові»: впишіть повне імʼя. Наприклад: Пуляєва Людмила Іванівна.'
+    if (parts.length === 0) return bad('full_name', 'Поле «Прізвище, імʼя, по батькові»: впишіть повне імʼя. Наприклад: Пуляєва Людмила Іванівна.')
     if (parts.length < 3) {
-      return `Поле «Прізвище, імʼя, по батькові»: бракує по батькові — воно потрібне для договору. Зараз вписано «${name}», а треба на зразок «${parts[0]} ${parts[1] ?? 'Імʼя'} Іванівна».`
+      return bad('full_name', `Поле «Прізвище, імʼя, по батькові»: бракує по батькові — воно потрібне для договору. Зараз вписано «${name}», а треба на зразок «${parts[0]} ${parts[1] ?? 'Імʼя'} Іванівна».`)
     }
     const rnokpp = (form.rnokpp ?? '').replace(/\D/g, '')
-    if (rnokpp.length !== 10) return `Поле «РНОКПП»: потрібно рівно 10 цифр, зараз ${rnokpp.length}.`
+    if (rnokpp.length !== 10) return bad('rnokpp', `Поле «РНОКПП»: потрібно рівно 10 цифр, зараз ${rnokpp.length}.`)
     const iban = (form.payout_iban ?? '').replace(/\s/g, '').toUpperCase()
-    if (!/^UA\d{27}$/.test(iban)) return 'Поле «IBAN»: рахунок починається з UA і має 29 символів. Пробіли можна лишати.'
+    if (!/^UA\d{27}$/.test(iban)) return bad('payout_iban', 'Поле «IBAN»: рахунок починається з UA і має 29 символів. Пробіли можна лишати.')
     const bd = (form.birth_date ?? '').trim()
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(bd)) return 'Поле «Дата народження»: оберіть дату. Вона потрібна для договору.'
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(bd)) return bad('birth_date', 'Оберіть дату народження тут — це окреме поле, у «Про себе» вона не зараховується.')
     const born = new Date(bd)
-    if (isNaN(born.getTime())) return 'Поле «Дата народження»: така дата не існує.'
+    if (isNaN(born.getTime())) return bad('birth_date', 'Така дата не існує.')
     const eighteen = new Date(born.getFullYear() + 18, born.getMonth(), born.getDate())
-    if (eighteen > new Date()) return 'Договір укладається з особами, які досягли 18 років. Напишіть нам — оформимо за згодою батьків.'
-    if ((form.phone ?? '').replace(/\D/g, '').length < 10) return 'Поле «Телефон»: впишіть номер повністю, 10 цифр.'
-    if (!(form.address ?? '').trim()) return 'Поле «Адреса»: впишіть адресу для листування.'
+    if (eighteen > new Date()) return bad('birth_date', 'Договір укладається з особами, які досягли 18 років. Напишіть нам — оформимо за згодою батьків.')
+    if ((form.phone ?? '').replace(/\D/g, '').length < 10) return bad('phone', 'Впишіть номер повністю, 10 цифр.')
+    if (!(form.address ?? '').trim()) return bad('address', 'Впишіть адресу для листування.')
     // Назву банку не перевіряємо на вміст: платіж іде за IBAN, а назва
     // довідкова. Спроба вимагати слово «банк» відсікла б клієнтів ПУМБ і
     // будь-якої установи з назвою без цього слова — заблокувати людину
     // помилково гірше, ніж пропустити неточність у довідковому полі.
     if (!(form.bank_name ?? '').trim()) {
-      return 'Поле «Назва банку»: оберіть банк кнопкою під полем — ПриватБанк, Ощадбанк, monobank — або впишіть назву своєї установи.'
+      return bad('bank_name', 'Оберіть банк кнопкою — ПриватБанк, Ощадбанк, monobank — або впишіть назву своєї установи.')
     }
     const zip = (form.postal_code ?? '').replace(/\D/g, '')
-    if (zip && zip.length !== 5) return `Поле «Поштовий індекс»: потрібно рівно 5 цифр, зараз ${zip.length}.`
+    if (zip && zip.length !== 5) return bad('postal_code', `Потрібно рівно 5 цифр, зараз ${zip.length}.`)
     return null
   }
 
   async function save() {
     const bad = validate()
-    if (bad) { setErr(bad); setNote(null); return }
+    if (bad) {
+      setErr(bad.message)
+      setBadField(bad.field)
+      setNote(null)
+      focusField(bad.field)
+      return
+    }
     setErr(null)
+    setBadField(null)
     setBusy(true)
     try {
       const res = await fetch('/api/author/requisites', {
@@ -239,30 +266,38 @@ export default function AuthorRequisites({ initial }: Props) {
             </p>
           </div>
 
-          <Field label="Прізвище, імʼя, по батькові" value={form.full_name ?? ''} onChange={v => set('full_name', v)} placeholder="Прізвище Імʼя По батькові" />
-          <Field label="РНОКПП (ідентифікаційний код)" value={form.rnokpp ?? ''} onChange={v => set('rnokpp', v)} placeholder="10 цифр" />
-          <div style={{ marginBottom: '0.9rem' }}>
+          <Field label="Прізвище, імʼя, по батькові" value={form.full_name ?? ''} onChange={v => set('full_name', v)} name="full_name" bad={badField === 'full_name'} badMessage={err} placeholder="Прізвище Імʼя По батькові" />
+          <Field label="РНОКПП (ідентифікаційний код)" value={form.rnokpp ?? ''} onChange={v => set('rnokpp', v)} name="rnokpp" bad={badField === 'rnokpp'} badMessage={err} placeholder="10 цифр" />
+          <div style={{ marginBottom: '0.9rem' }} data-field="birth_date">
             <div style={label}>Дата народження</div>
             <input
               type="date"
               value={form.birth_date ?? ''}
               onChange={e => set('birth_date', e.target.value)}
               style={{
-                width: '100%', padding: '0.6rem 0.75rem', border: `1px solid ${UI.fieldBorder}`,
-                borderRadius: 10, background: 'rgba(255,255,255,0.05)', color: BRAND.text, fontSize: '0.95rem',
+                width: '100%', padding: '0.6rem 0.75rem',
+                border: badField === 'birth_date' ? `2px solid ${BRAND.amber}` : `1px solid ${UI.fieldBorder}`,
+                borderRadius: 10,
+                background: badField === 'birth_date' ? 'rgba(239,159,39,0.10)' : 'rgba(255,255,255,0.05)',
+                color: BRAND.text, fontSize: '0.95rem',
                 fontFamily: 'inherit', boxSizing: 'border-box', colorScheme: 'dark',
               }}
             />
-            <p style={{ color: BRAND.muted, fontSize: '0.82rem', lineHeight: 1.6, marginTop: 6 }}>
-              Потрібна для договору: він укладається з особами, які досягли 18 років.
-            </p>
+            {badField === 'birth_date' && err ? (
+              <p style={{ color: BRAND.amber, fontSize: '0.85rem', lineHeight: 1.55, marginTop: 6 }}>{err}</p>
+            ) : (
+              <p style={{ color: BRAND.muted, fontSize: '0.82rem', lineHeight: 1.6, marginTop: 6 }}>
+                Потрібна для договору: він укладається з особами, які досягли 18 років.
+                Це окреме поле — у «Про себе» дата не зараховується.
+              </p>
+            )}
           </div>
-          <Field label="Адреса" value={form.address ?? ''} onChange={v => set('address', v)} placeholder="Місто, вулиця, будинок, квартира" />
-          <Field label="Поштовий індекс" value={form.postal_code ?? ''} onChange={v => set('postal_code', v)} placeholder="5 цифр" />
-          <Field label="Відділення Нової пошти" value={form.np_branch ?? ''} onChange={v => set('np_branch', v)} placeholder="Напр.: 12" />
-          <Field label="Телефон" value={form.phone ?? ''} onChange={v => set('phone', v)} placeholder="+380…" />
-          <Field label="IBAN" value={form.payout_iban ?? ''} onChange={v => set('payout_iban', v)} placeholder="UA…" />
-          <div style={{ marginBottom: '0.9rem' }}>
+          <Field label="Адреса" value={form.address ?? ''} onChange={v => set('address', v)} name="address" bad={badField === 'address'} badMessage={err} placeholder="Місто, вулиця, будинок, квартира" />
+          <Field label="Поштовий індекс" value={form.postal_code ?? ''} onChange={v => set('postal_code', v)} name="postal_code" bad={badField === 'postal_code'} badMessage={err} placeholder="5 цифр" />
+          <Field label="Відділення Нової пошти" value={form.np_branch ?? ''} onChange={v => set('np_branch', v)} name="np_branch" bad={badField === 'np_branch'} badMessage={err} placeholder="Напр.: 12" />
+          <Field label="Телефон" value={form.phone ?? ''} onChange={v => set('phone', v)} name="phone" bad={badField === 'phone'} badMessage={err} placeholder="+380…" />
+          <Field label="IBAN" value={form.payout_iban ?? ''} onChange={v => set('payout_iban', v)} name="payout_iban" bad={badField === 'payout_iban'} badMessage={err} placeholder="UA…" />
+          <div style={{ marginBottom: '0.9rem' }} data-field="bank_name">
             <div style={label}>Назва банку</div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
               {BANKS.map(b => (
@@ -288,8 +323,8 @@ export default function AuthorRequisites({ initial }: Props) {
               }}
             />
           </div>
-          <Field label="Одержувач платежу (якщо відрізняється)" value={form.payout_recipient ?? ''} onChange={v => set('payout_recipient', v)} placeholder="Необовʼязково" />
-          <Field label="Псевдонім для публікації" value={form.pen_name ?? ''} onChange={v => set('pen_name', v)} placeholder="Необовʼязково" />
+          <Field label="Одержувач платежу (якщо відрізняється)" value={form.payout_recipient ?? ''} onChange={v => set('payout_recipient', v)} name="payout_recipient" bad={badField === 'payout_recipient'} badMessage={err} placeholder="Необовʼязково" />
+          <Field label="Псевдонім для публікації" value={form.pen_name ?? ''} onChange={v => set('pen_name', v)} name="pen_name" bad={badField === 'pen_name'} badMessage={err} placeholder="Необовʼязково" />
 
           {err && (
             <p
@@ -335,11 +370,17 @@ export default function AuthorRequisites({ initial }: Props) {
 }
 
 function Field(
-  { label: text, value, onChange, placeholder }:
-  { label: string; value: string; onChange: (v: string) => void; placeholder?: string },
+  { label: text, value, onChange, placeholder, name, bad, badMessage }:
+  {
+    label: string; value: string; onChange: (v: string) => void; placeholder?: string
+    /** Ключ поля — за ним форма знаходить і прокручує до нього. */
+    name?: string
+    bad?: boolean
+    badMessage?: string | null
+  },
 ) {
   return (
-    <div style={{ marginBottom: '0.9rem' }}>
+    <div style={{ marginBottom: '0.9rem' }} data-field={name}>
       <div style={label}>{text}</div>
       <input
         type="text"
@@ -347,11 +388,19 @@ function Field(
         placeholder={placeholder}
         onChange={e => onChange(e.target.value)}
         style={{
-          width: '100%', padding: '0.6rem 0.75rem', border: `1px solid ${UI.fieldBorder}`,
-          borderRadius: 10, background: 'rgba(255,255,255,0.05)', color: BRAND.text, fontSize: '0.95rem',
+          width: '100%', padding: '0.6rem 0.75rem',
+          border: bad ? `2px solid ${BRAND.amber}` : `1px solid ${UI.fieldBorder}`,
+          borderRadius: 10,
+          background: bad ? 'rgba(239,159,39,0.10)' : 'rgba(255,255,255,0.05)',
+          color: BRAND.text, fontSize: '0.95rem',
           fontFamily: 'inherit', boxSizing: 'border-box',
         }}
       />
+      {bad && badMessage && (
+        <p style={{ color: BRAND.amber, fontSize: '0.85rem', lineHeight: 1.55, marginTop: 6 }}>
+          {badMessage}
+        </p>
+      )}
     </div>
   )
 }
