@@ -964,6 +964,25 @@ function ShortContestCard({ c }: { c: ShortContest }) {
         contest={c.id}
         colors={{ title: A.title, body: A.body, edge: A.edge, stripe: A.stripe, line: A.line }}
       />
+
+      {/* Подача просто в картці конкурсу. Кожна картка — це повний опис одного
+          конкурсу на кілька екранів: умови, призи, строки, як оцінюємо. Людина,
+          яка дочитала саме цю картку, вже обрала конкурс — і не мусить шукати
+          спільну кнопку деінде на сторінці. */}
+      <div style={{ marginTop: 24 }}>
+        <Link
+          href="/konkursy/podaty"
+          style={{
+            display: 'inline-block',
+            background: GOLD, color: NAVY_DEEP,
+            fontSize: 15, fontWeight: 700,
+            borderRadius: 11, padding: '13px 26px',
+            textDecoration: 'none',
+          }}
+        >
+          Подати на «{c.title}» →
+        </Link>
+      </div>
     </section>
   )
 }
@@ -1163,9 +1182,17 @@ export default function KonkursyPage() {
             ))}
           </div>
 
+          {/* Виміряно 16.09.2026: сторінку конкурсів відкрили 277 разів зі 142
+              сесій, а до /konkursy/podaty дійшло ЧОТИРИ людини — 2,8%. Причина
+              була тут: усі три кнопки сторінки вели на /become-author, і слова
+              «Подати твір» на екрані не було взагалі. Людина, яка щойно
+              прочитала про нагороду, шукала подачу й бачила реєстрацію.
+              Тепер головна дія — подати; «Стати автором» лишається другою,
+              для тих, хто ще не з нами. «Мій кабінет» прибрано: він є в шапці
+              й на цій сторінці лише відбирав увагу від головної дії. */}
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 24 }}>
             <Link
-              href="/become-author"
+              href="/konkursy/podaty"
               style={{
                 background: GOLD,
                 color: NAVY_DEEP,
@@ -1176,10 +1203,10 @@ export default function KonkursyPage() {
                 textDecoration: 'none',
               }}
             >
-              Стати автором →
+              Подати твір →
             </Link>
             <Link
-              href="/author/dashboard"
+              href="/become-author"
               style={{
                 color: CREAM,
                 fontSize: 15,
@@ -1190,7 +1217,7 @@ export default function KonkursyPage() {
                 textDecoration: 'none',
               }}
             >
-              Мій кабінет
+              Ще не автор?
             </Link>
           </div>
         </div>
@@ -1313,6 +1340,24 @@ export default function KonkursyPage() {
             Суми вказано до оподаткування. Податки утримуються при виплаті згідно із
             законодавством; авторам-ФОП виплата здійснюється в повному обсязі.
           </p>
+          {/* Точка подачі просто там, де в читача виникає бажання подати.
+              Сторінка має одинадцять розділів, і одна кнопка вгорі означала,
+              що людина, яка захотіла подати на п'ятому екрані, мусила
+              прокручувати назад. */}
+          <div style={{ marginTop: 20 }}>
+            <Link
+              href="/konkursy/podaty"
+              style={{
+                display: 'inline-block',
+                background: GOLD, color: NAVY_DEEP,
+                fontSize: 15, fontWeight: 700,
+                borderRadius: 11, padding: '13px 26px',
+                textDecoration: 'none',
+              }}
+            >
+              Подати твір →
+            </Link>
+          </div>
         </Section>
 
         <Section num="5" anchor="yak-vyznachaiemo" title="Як визначаємо переможця">
@@ -1440,21 +1485,40 @@ export default function KonkursyPage() {
           <p style={{ ...P, margin: '0 0 18px' }}>
             Учасників оголошуємо 18 листопада, кожного повідомляємо особисто.
           </p>
-          <Link
-            href="/become-author"
-            style={{
-              display: 'inline-block',
-              background: GOLD,
-              color: NAVY_DEEP,
-              fontSize: 15,
-              fontWeight: 700,
-              borderRadius: 11,
-              padding: '13px 26px',
-              textDecoration: 'none',
-            }}
-          >
-            Стати автором →
-          </Link>
+          {/* Розділ зветься «Як подати» — і кнопка під ним вела на реєстрацію,
+              а не на подачу. Тепер веде туди, про що розділ. */}
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <Link
+              href="/konkursy/podaty"
+              style={{
+                display: 'inline-block',
+                background: GOLD,
+                color: NAVY_DEEP,
+                fontSize: 15,
+                fontWeight: 700,
+                borderRadius: 11,
+                padding: '13px 26px',
+                textDecoration: 'none',
+              }}
+            >
+              Подати твір →
+            </Link>
+            <Link
+              href="/become-author"
+              style={{
+                display: 'inline-block',
+                color: CREAM,
+                fontSize: 15,
+                fontWeight: 700,
+                border: '1px solid rgba(143,163,196,0.4)',
+                borderRadius: 11,
+                padding: '13px 26px',
+                textDecoration: 'none',
+              }}
+            >
+              Ще не автор?
+            </Link>
+          </div>
         </Section>
 
         <Section num="10" anchor="daty" title="Дати першого сезону">
@@ -1659,11 +1723,23 @@ export default function KonkursyPage() {
 
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link
-              href="/become-author"
+              href="/konkursy/podaty"
               style={{
                 display: 'inline-block', textDecoration: 'none',
                 background: GOLD, color: NAVY_DEEP,
                 fontSize: 15, fontWeight: 800, letterSpacing: 0.3,
+                padding: '13px 24px', borderRadius: 10,
+              }}
+            >
+              Подати твір
+            </Link>
+            <Link
+              href="/become-author"
+              style={{
+                display: 'inline-block', textDecoration: 'none',
+                background: 'transparent', color: CREAM,
+                border: `1px solid rgba(245,240,232,0.35)`,
+                fontSize: 15, fontWeight: 700,
                 padding: '13px 24px', borderRadius: 10,
               }}
             >
