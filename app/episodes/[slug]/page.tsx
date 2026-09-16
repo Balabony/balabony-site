@@ -477,11 +477,21 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           </div>
         )}
 
-        {/* 2. Видимий перехід між серіями — головний спосіб на телефоні. */}
+        {/* 2. Перехід між серіями.
+            Наступну тут показуємо ЛИШЕ тоді, коли її не показав гачок вище.
+            16.09.2026 виявилося, що на екрані стоять дві золоті плашки
+            поспіль на ту саму адресу: «Читати Серію N» з EpisodeCliffhanger
+            і «Наступна серія» звідси. Це та сама вада, про яку в самому
+            EpisodeCliffhanger уже написано коментар («два однакові виходи
+            розмивають головну дію») — просто рівнем вище.
+            Умова повторює nextAvailable з гачка в тій частині, яку видно на
+            сервері: кнопка там з'являється, коли наступна серія є і в неї
+            немає майбутньої дати релізу. Є дата — гачок малює відлік замість
+            кнопки, і тоді перехід потрібен тут. */}
         <EpisodeNav
           prevUrl={prevEp ? `/episodes/${prevEp.slug}` : undefined}
           prevTitle={prevEp?.title}
-          nextUrl={nextEp ? `/episodes/${nextEp.slug}` : undefined}
+          nextUrl={nextEp && episode.next_release_date ? `/episodes/${nextEp.slug}` : undefined}
           nextTitle={nextEp?.title}
         />
 

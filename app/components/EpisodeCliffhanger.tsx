@@ -120,7 +120,7 @@ export default function EpisodeCliffhanger({ hook, next, allSeriesUrl = '/series
   return (
     // reader-card: у денній темі колонка стає світлим аркушем; ця картка має
     // власне темне тло і світлий текст, тому лишається темною.
-    <section className="reader-card" style={{ background: colors.bg, padding: '8px 20px 48px' }}>
+    <section className="reader-card" style={{ background: colors.bg, padding: '8px 20px 20px' }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
         <div style={cardStyle}>
 
