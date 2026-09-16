@@ -105,11 +105,23 @@ export default function FairytalesSection({ initial }: { initial?: Fairytale[] }
                 }}>
                   {t.teaser}
                 </p>
-                {t.duration_minutes && (
-                  <div style={{ fontSize: 11, color: GOLD, fontFamily: FONT, marginTop: 4 }}>
-                    {t.duration_minutes} хв
-                  </div>
-                )}
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 5, marginTop: 8 }}>
+                  {t.duration_minutes ? (
+                    <span style={{ fontSize: 11, color: GOLD, fontFamily: FONT }}>
+                      {t.duration_minutes} хв
+                    </span>
+                  ) : null}
+                  <span style={{
+                    marginLeft: 'auto',
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    background: GOLD, color: '#081420',
+                    padding: '5px 12px', borderRadius: 20,
+                    fontSize: 11, fontWeight: 700, fontFamily: FONT,
+                    whiteSpace: 'nowrap',
+                  }}>
+                    Читати →
+                  </span>
+                </div>
               </div>
             </a>
           ))}

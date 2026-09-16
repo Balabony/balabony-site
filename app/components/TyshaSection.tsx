@@ -160,7 +160,7 @@ export default function TyshaSection(
                   {cleanTitle(ep.title)}
                 </div>
                 {ep.description && <p className="ts-teaser">{ep.description}</p>}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 'auto' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 5, marginTop: 'auto' }}>
                   <span style={{ fontSize: 10, fontWeight: 600, color: GOLD, fontFamily: FONT, border: `1px solid ${GOLD}`, padding: '2px 8px', borderRadius: 20 }}>Військова драма</span>
                   {ep.duration_minutes && (
                     <span style={{ fontSize: 10, fontWeight: 600, color: GOLD, fontFamily: FONT, border: `1px solid ${GOLD}`, padding: '2px 8px', borderRadius: 20 }}>{ep.duration_minutes} хв</span>
@@ -168,6 +168,16 @@ export default function TyshaSection(
                   {ep.has_audio && (
                     <span style={{ fontSize: 10, fontWeight: 600, color: GOLD, fontFamily: FONT, border: `1px solid ${GOLD}`, padding: '2px 8px', borderRadius: 20 }}>аудіо</span>
                   )}
+                  <span style={{
+                    marginLeft: 'auto',
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    background: GOLD, color: '#081420',
+                    padding: '5px 12px', borderRadius: 20,
+                    fontSize: 11, fontWeight: 700, fontFamily: FONT,
+                    whiteSpace: 'nowrap',
+                  }}>
+                    Читати →
+                  </span>
                 </div>
               </div>
             </a>
