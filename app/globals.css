@@ -271,3 +271,80 @@ body, body * {
             text-align: center;
           }
         }
+
+/* ============================================================
+   ПАНЕЛЬ ДІЙ ПІД ТЕКСТОМ СЕРІЇ (.ra-*) — див. app/components/ReaderActions.tsx
+   ------------------------------------------------------------
+   Правила з !important навмисно: кнопки всередині (FollowSeriesButton,
+   BookmarkButton, ReviewButton) малюються інлайн-стилями і стоять ще й на
+   інших сторінках, де їхній нинішній вигляд правильний. Тому перефарбовуємо
+   їх ЛИШЕ в межах панелі, а самі компоненти не чіпаємо.
+
+   Принцип кольору: золото = дія, яка веде далі, або стан «вже зроблено».
+   Незроблене — тихе. Було навпаки: золотим було все підряд.
+   ============================================================ */
+.ra {
+  margin: 26px 0 0;
+  padding: 14px 16px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 14px;
+  font-family: 'Montserrat', Arial, sans-serif;
+}
+.ra-legend {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+.ra-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ra-wide { grid-column: 1 / -1; }
+
+/* Кнопки однакової ширини й висоти — рвана права межа зникає.
+   44px — палець дорослої людини, як у панелі читалки. */
+.ra-grid button {
+  width: 100% !important;
+  min-height: 44px;
+  justify-content: center !important;
+  border-radius: 10px !important;
+  padding: 11px 10px !important;
+  font-size: 13.5px !important;
+}
+/* FollowSeriesButton має власний зовнішній відступ і кладе підпис у рядок —
+   у панелі підпис має стояти ПІД кнопкою. */
+.ra-wide > div { display: block !important; margin: 0 !important; }
+.ra-wide span { display: block; margin-top: 7px; font-size: 12px !important; }
+
+/* Тихий стан: дія ще не зроблена. */
+.ra-cell button:not([aria-pressed='true']):not(:disabled) {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  background: transparent !important;
+  color: #d8d2c6 !important;
+}
+/* Зроблено — золотом. Саме тут воно щось означає. */
+.ra-cell button[aria-pressed='true'],
+.ra-cell button:disabled {
+  border: 1px solid rgba(239, 159, 39, 0.55) !important;
+  background: rgba(239, 159, 39, 0.14) !important;
+  color: #ef9f27 !important;
+  opacity: 1 !important;
+}
+/* «Стежити» — головна дія панелі, тому золота рамка навіть до натискання,
+   а після — залита. */
+.ra-wide button {
+  border: 1px solid rgba(239, 159, 39, 0.5) !important;
+  background: rgba(239, 159, 39, 0.1) !important;
+  color: #ef9f27 !important;
+}
+.ra-wide button[aria-pressed='true'] {
+  background: #ef9f27 !important;
+  border-color: #ef9f27 !important;
+  color: #0e1a2b !important;
+}
+.ra-share { margin-top: 14px; }
+
+@media (max-width: 380px) {
+  .ra-grid { grid-template-columns: 1fr; }
+}

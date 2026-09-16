@@ -19,6 +19,7 @@ import BackToTop from '@/app/components/BackToTop'
 import ReaderKeyboardNav from '@/app/components/ReaderKeyboardNav'
 import EpisodeNav from '@/app/components/EpisodeNav'
 import SeasonToc from '@/app/components/SeasonToc'
+import ReaderActions from '@/app/components/ReaderActions'
 import StoryEmailCapture from '@/app/components/StoryEmailCapture'
 import AudioPlayer from '@/app/components/AudioPlayer'
 import { leadCssDeclarations, fitsLead } from '@/lib/reader-typography'
@@ -484,30 +485,34 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           nextTitle={nextEp?.title}
         />
 
-        {/* 3. «Стежити за серіалом» — для того, хто далі зараз не піде:
-            хто закриє вкладку, має лишити слід. */}
-        {!isLocked && (
-          <FollowSeriesButton
-            series="balabony"
-            seriesTitle="Балабони"
-            returnTo={`/episodes/${episode.slug}`}
-          />
-        )}
+        {/* 3. Прохання ДО читача — усі в одній панелі (16.09.2026).
+            Доти «стежити», «відгук», «зберегти» і «поділитись» стояли
+            чотирма окремими обведеними елементами підряд, кожен своєї
+            ширини і всі золоті. Читач бачив чотири однаково гучні прохання
+            і не робив жодного. Тепер це одна тиха коробка з однаковими
+            кнопками, а золото лишилося за «наступною серією» вище.
+            На замкненій серії стежити/оцінювати нема чого — лишаються
+            тільки закладка й поділитися. */}
+        <ReaderActions
+          follow={!isLocked ? (
+            <FollowSeriesButton
+              series="balabony"
+              seriesTitle="Балабони"
+              returnTo={`/episodes/${episode.slug}`}
+            />
+          ) : undefined}
+          bookmark={<BookmarkButton slug={episode.slug} title={episode.title} path={`/episodes/${episode.slug}`} />}
+          review={!isLocked ? (
+            <ReviewButton
+              contentId={episode.id}
+              contentType="series"
+              contentTitle={episode.title}
+            />
+          ) : undefined}
+          share={<ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} storyId={episode.id} season={episode.season_number} compact />}
+        />
 
-        {/* 4. Оцінка серії — «Не зайшло … Чудово».
-            Кнопка існувала з першого дня і навіть мала заготовлений режим
-            contentType="series", але стояла ЛИШЕ на /stories/[id]. Тобто про
-            серіал, який і є обличчям платформи, читача не питали взагалі.
-            На замкненій серії не показуємо: оцінювати нічого. */}
-        {!isLocked && (
-          <ReviewButton
-            contentId={episode.id}
-            contentType="series"
-            contentTitle={episode.title}
-          />
-        )}
-
-        {/* 5. Зміст сезону: увесь список під рукою, без повернення в каталог.
+        {/* 4. Зміст сезону: увесь список під рукою, без повернення в каталог.
             Стоїть після переходу «наступна» навмисно — список із двадцяти
             назв перед однією кнопкою «далі» це вибір замість дії. */}
         <SeasonToc
@@ -515,15 +520,6 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           currentSlug={episode.slug}
           heading={`Сезон ${episode.season_number}`}
         />
-
-        {/* 6. Зберегти й поділитися. */}
-        <div style={{ marginTop: 40 }}>
-          <BookmarkButton slug={episode.slug} title={episode.title} path={`/episodes/${episode.slug}`} />
-        </div>
-
-        <div style={{ marginTop: 20 }}>
-          <ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} storyId={episode.id} season={episode.season_number} />
-        </div>
 
         {/* 7. Збір пошти. Головна точка втримання: саме сюди веде QR з газети,
             і без цього блока читач із паперу зникає назавжди. Але просимо

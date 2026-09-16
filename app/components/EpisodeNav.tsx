@@ -26,15 +26,27 @@ export default function EpisodeNav({
 }) {
   if (!prevUrl && !nextUrl) return null
 
+  // Дві однакові напівпрозорі картки поруч не показували читачеві, куди
+  // йти: «попередня» виглядала так само вагомо, як «наступна». Тепер
+  // наступна — залита золотом (єдина дія на екрані, що веде далі), а
+  // попередня лишається тихою: нею користуються рідко, і вона потрібна
+  // радше пошуковому роботу, ніж людині.
   const box: React.CSSProperties = {
     flex: '1 1 220px',
     minWidth: 0,
     display: 'block',
     padding: '14px 16px',
     borderRadius: 12,
-    border: `1px solid ${gold}55`,
-    background: `${gold}0d`,
+    border: '1px solid rgba(255,255,255,0.14)',
+    background: 'transparent',
     textDecoration: 'none',
+  }
+
+  const boxNext: React.CSSProperties = {
+    ...box,
+    border: `1px solid ${gold}`,
+    background: gold,
+    textAlign: 'right',
   }
 
   const label: React.CSSProperties = {
@@ -42,9 +54,12 @@ export default function EpisodeNav({
     fontWeight: 700,
     letterSpacing: 0.6,
     textTransform: 'uppercase',
-    color: gold,
+    color: '#94a3b8',
     marginBottom: 6,
   }
+
+  // На золотому тлі світлий текст дав би 1,9:1. Темно-синій — 8,8:1.
+  const labelNext: React.CSSProperties = { ...label, color: 'rgba(14,26,43,0.72)' }
 
   const title: React.CSSProperties = {
     fontSize: 15,
@@ -56,13 +71,13 @@ export default function EpisodeNav({
     whiteSpace: 'nowrap',
   }
 
+  const titleNext: React.CSSProperties = { ...title, color: '#0e1a2b', fontWeight: 700 }
+
   return (
     <nav
       aria-label="Перехід між серіями"
       style={{
-        maxWidth: 720,
-        margin: '28px auto 0',
-        padding: '0 20px',
+        margin: '28px 0 0',
         display: 'flex',
         gap: 10,
         flexWrap: 'wrap',
@@ -76,9 +91,9 @@ export default function EpisodeNav({
       )}
 
       {nextUrl && (
-        <Link href={nextUrl} style={{ ...box, textAlign: 'right' }}>
-          <div style={label}>Наступна →</div>
-          <div style={title}>{nextTitle || 'Наступна серія'}</div>
+        <Link href={nextUrl} style={boxNext}>
+          <div style={labelNext}>Наступна серія</div>
+          <div style={titleNext}>{nextTitle || 'Наступна серія'} →</div>
         </Link>
       )}
     </nav>

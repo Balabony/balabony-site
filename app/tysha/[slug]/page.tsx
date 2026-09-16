@@ -22,6 +22,7 @@ import EpisodeJsonLd from '@/app/components/EpisodeJsonLd'
 import ReviewButton from '@/app/components/ReviewButton'
 import FollowSeriesButton from '@/app/components/FollowSeriesButton'
 import BookmarkButton from '@/app/components/BookmarkButton'
+import ReaderActions from '@/app/components/ReaderActions'
 import ShareButtons from '@/app/components/ShareButtons'
 import StoryEmailCapture from '@/app/components/StoryEmailCapture'
 
@@ -358,8 +359,11 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
         </div>
       )}
 
+      {/* Нижній відступ обов'язковий: у денній темі текст лежить на світлому
+          аркуші, і без зазору золоте посилання прилипало до його верхнього
+          краю — виглядало як заголовок аркуша, а не як окреме посилання. */}
       {prev && (
-        <div style={{ maxWidth: 720, margin: '16px auto 0', padding: '0 20px' }}>
+        <div style={{ maxWidth: 720, margin: '16px auto 18px', padding: '0 20px' }}>
           <Link
             href={`/tysha/${prev.slug}`}
             style={{ display: 'inline-block', fontSize: 14, fontWeight: 600, color: GOLD, textDecoration: 'none', borderBottom: `1px solid ${GOLD}55` }}
@@ -452,49 +456,49 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
         </div>
       )}
 
-      {/* 2. Видимий перехід між серіями. */}
-      <EpisodeNav
-        prevUrl={prev ? `/tysha/${prev.slug}` : undefined}
-        prevTitle={prev?.title}
-        nextUrl={next ? `/tysha/${next.slug}` : undefined}
-        nextTitle={next?.title}
-        gold={GOLD}
-      />
-
-      {/* 3. «Стежити за серіалом» — окремо від «Балабонів»: читач воєнної
-          драми 18+ не має отримувати листи про сільську комедію. */}
-      {!locked && (
-        <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px' }}>
-          <FollowSeriesButton
-            series="tysha"
-            seriesTitle="Тиша"
-            returnTo={`/tysha/${ep.slug}`}
-          />
-        </div>
-      )}
-
-      {/* 4. Оцінка серії. */}
-      {!locked && (
-        <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px' }}>
-          <ReviewButton
-            contentId={ep.id}
-            contentType="series"
-            contentTitle={ep.title}
-          />
-        </div>
-      )}
-
-      {/* 5. Зберегти й поділитися. */}
-      <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '24px 20px 0' }}>
-        <BookmarkButton slug={ep.slug} title={ep.title} path={`/tysha/${ep.slug}`} />
+      {/* 2. Видимий перехід між серіями. Колонку задає обгортка: сам
+          EpisodeNav її більше не задає, інакше в /episodes виходив
+          подвійний відступ і блок був вужчий за текст над ним. */}
+      <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px' }}>
+        <EpisodeNav
+          prevUrl={prev ? `/tysha/${prev.slug}` : undefined}
+          prevTitle={prev?.title}
+          nextUrl={next ? `/tysha/${next.slug}` : undefined}
+          nextTitle={next?.title}
+          gold={GOLD}
+        />
       </div>
 
-      <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '16px 20px 0' }}>
-        <ShareButtons
-          url={`https://balabony.com/tysha/${ep.slug}`}
-          title={ep.title}
-          storyId={ep.id}
-          season={ep.season_number ?? undefined}
+      {/* 3. Прохання ДО читача — усі в одній панелі, як у «Балабонах»
+          (16.09.2026). Стежити за «Тишею» лишається окремо від
+          «Балабонів»: читач воєнної драми 18+ не має отримувати листи про
+          сільську комедію. */}
+      <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px' }}>
+        <ReaderActions
+          follow={!locked ? (
+            <FollowSeriesButton
+              series="tysha"
+              seriesTitle="Тиша"
+              returnTo={`/tysha/${ep.slug}`}
+            />
+          ) : undefined}
+          bookmark={<BookmarkButton slug={ep.slug} title={ep.title} path={`/tysha/${ep.slug}`} />}
+          review={!locked ? (
+            <ReviewButton
+              contentId={ep.id}
+              contentType="series"
+              contentTitle={ep.title}
+            />
+          ) : undefined}
+          share={(
+            <ShareButtons
+              url={`https://balabony.com/tysha/${ep.slug}`}
+              title={ep.title}
+              storyId={ep.id}
+              season={ep.season_number ?? undefined}
+              compact
+            />
+          )}
         />
       </div>
 

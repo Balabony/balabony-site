@@ -32,26 +32,21 @@ export default function SeasonToc({
   if (items.length < 2) return null
 
   return (
-    <details
-      style={{
-        maxWidth: 720,
-        margin: '28px auto 0',
-        padding: '0 20px',
-      }}
-    >
+    <details style={{ margin: '24px 0 0' }}>
+      {/* Заголовок навмисно тихий і БЕЗ капсу (16.09.2026): це навігація,
+          а не дія. Золотим капсом він кричав голосніше за кнопку «наступна
+          серія», яка поруч і яка й має вести читача далі. */}
       <summary
         style={{
           cursor: 'pointer',
           fontSize: 13,
-          fontWeight: 700,
-          letterSpacing: 0.4,
-          textTransform: 'uppercase',
-          color: gold,
+          fontWeight: 500,
+          color: '#94a3b8',
           padding: '10px 0',
           listStyle: 'none',
         }}
       >
-        {heading} — {items.length} {items.length % 10 === 1 && items.length % 100 !== 11 ? 'серія' : 'серій'}
+        {heading} — {items.length} {items.length % 10 === 1 && items.length % 100 !== 11 ? 'серія' : 'серій'} ⌄
       </summary>
 
       <ol
