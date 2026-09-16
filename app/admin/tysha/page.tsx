@@ -196,6 +196,15 @@ export default function TyshaMaisternia() {
   const [hkMsg, setHkMsg] = useState('')
   const [hkSkipped, setHkSkipped] = useState<{ label: string; reason: string }[]>([])
 
+  // ── Пакетна генерація гачків «ДАЛІ БУДЕ» (next_teaser).
+  const [ntRunning, setNtRunning] = useState(false)
+  const [ntDone, setNtDone] = useState(0)
+  const [ntTotal, setNtTotal] = useState(0)
+  const [ntLast, setNtLast] = useState('')
+  const [ntText, setNtText] = useState('')
+  const [ntMsg, setNtMsg] = useState('')
+  const [ntSkipped, setNtSkipped] = useState<{ label: string }[]>([])
+
   const [loadingList, setLoadingList] = useState(true)
   const [loadingItem, setLoadingItem] = useState(false)
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
@@ -616,6 +625,64 @@ export default function TyshaMaisternia() {
     }
   }
 
+  // Пакетна генерація гачків «ДАЛІ БУДЕ». Той самий патерн, що й гачки картки,
+  // разом із обходом блокувань Gemini: пропущені серії накопичуються в skipIds,
+  // інакше вибірка щоразу поверталася б на ту саму й цикл завис би.
+  async function runNextTeaserBatch() {
+    if (ntRunning) return
+    if (!confirm('Згенерувати гачки «Далі буде» для всіх серій «Тиші» без гачка? Уже наявні не змінюються. Остання серія сезону пропускається.')) return
+    setNtRunning(true); setNtDone(0); setNtTotal(0); setNtLast(''); setNtText(''); setNtMsg(''); setNtSkipped([])
+
+    const skipIds: string[] = []
+    const skippedInfo: { label: string }[] = []
+    let safety = 0
+
+    try {
+      while (safety < 300) {
+        safety++
+        const res = await fetch('/api/admin/tysha-next-teaser-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ skipIds }),
+        })
+        const data = await res.json() as {
+          done?: boolean; total?: number; remaining?: number
+          processed?: { id?: string; title?: string; season?: number; episode?: number; teaser?: string } | null
+          skipped?: { id?: string; title?: string; season?: number; episode?: number } | null
+          error?: string
+        }
+
+        if (!res.ok || data.error) {
+          setNtMsg(`Помилка: ${data.error ?? 'невідома'}. Зупинено. Можна запустити знову — продовжить з місця.`)
+          break
+        }
+        if (data.total) setNtTotal(data.total)
+        if (data.done) {
+          setNtMsg(skippedInfo.length > 0
+            ? `Готово. Пропущено серій: ${skippedInfo.length} — для них гачок треба написати вручну.`
+            : 'Готово — усі серії мають гачок «Далі буде».')
+          break
+        }
+        if (data.skipped?.id) {
+          skipIds.push(data.skipped.id)
+          skippedInfo.push({ label: `E${data.skipped.episode ?? '?'} · ${data.skipped.title ?? ''}` })
+          setNtSkipped([...skippedInfo])
+        }
+        if (data.processed) {
+          setNtDone(d => d + 1)
+          setNtLast(`E${data.processed.episode ?? '?'} · ${data.processed.title ?? ''}`)
+          if (data.processed.teaser) setNtText(data.processed.teaser)
+        }
+      }
+    } catch {
+      setNtMsg("Помилка з'єднання. Зупинено. Можна запустити знову — продовжить з місця.")
+    } finally {
+      setNtRunning(false)
+      void loadList()
+    }
+  }
+
   async function suggestTitles() {
     setTitleBusy(true); setErr(''); setTitleSugg(null)
     try {
@@ -869,6 +936,30 @@ export default function TyshaMaisternia() {
         <button onClick={runHookBatch} disabled={hkRunning} style={{ display: 'block', width: '100%', marginBottom: 8, padding: '7px 11px', borderRadius: 8, cursor: hkRunning ? 'default' : 'pointer', background: hkRunning ? 'rgba(255,255,255,0.06)' : GOLD, color: hkRunning ? 'rgba(245,240,232,0.6)' : '#0a1628', border: 'none', fontSize: 12.5, fontWeight: 700, fontFamily: FONT }}>
           {hkRunning ? '⏳ Генерую гачки…' : '✦ Згенерувати всі гачки'}
         </button>
+
+        <button onClick={runNextTeaserBatch} disabled={ntRunning} style={{ display: 'block', width: '100%', marginBottom: 8, padding: '7px 11px', borderRadius: 8, cursor: ntRunning ? 'default' : 'pointer', background: ntRunning ? 'rgba(255,255,255,0.06)' : 'transparent', color: ntRunning ? 'rgba(245,240,232,0.6)' : GOLD, border: `1px solid ${GOLD}88`, fontSize: 12.5, fontWeight: 700, fontFamily: FONT }}>
+          {ntRunning ? '⏳ Генерую «Далі буде»…' : '➜ Згенерувати всі «Далі буде»'}
+        </button>
+
+        {(ntRunning || ntDone > 0 || ntMsg) && (
+          <div style={{ marginBottom: 10, padding: '8px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', fontSize: 11.5, lineHeight: 1.5 }}>
+            <div style={{ color: GOLD, fontWeight: 700 }}>
+              «Далі буде» згенеровано: {ntDone}{ntTotal ? ` (усього серій: ${ntTotal})` : ''}
+            </div>
+            {ntLast && <div style={{ color: 'rgba(245,240,232,0.6)', marginTop: 3 }}>Останній: {ntLast}</div>}
+            {ntText && <div style={{ color: 'rgba(245,240,232,0.85)', marginTop: 5, fontStyle: 'italic' }}>{ntText}</div>}
+            {ntSkipped.length > 0 && (
+              <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ color: '#e0a34d', fontWeight: 700 }}>Пропущено: {ntSkipped.length}</div>
+                {ntSkipped.map((s, i) => (
+                  <div key={i} style={{ color: 'rgba(245,240,232,0.55)', marginTop: 2 }}>{s.label}</div>
+                ))}
+                <div style={{ color: 'rgba(245,240,232,0.45)', marginTop: 3 }}>Для них гачок пишеться вручну в редакторі серії.</div>
+              </div>
+            )}
+            {ntMsg && <div style={{ color: 'rgba(245,240,232,0.75)', marginTop: 5 }}>{ntMsg}</div>}
+          </div>
+        )}
 
         {(hkRunning || hkDone > 0 || hkMsg) && (
           <div style={{ marginBottom: 10, padding: '8px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', fontSize: 11.5, lineHeight: 1.5 }}>
