@@ -141,6 +141,14 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
           >
             Додаток № 1 — перелік творів
           </a>
+          {/* П. 16.13: «Автор має право будь-коли отримати копію витягу
+              в Особистому кабінеті» — ось вона. */}
+          <a
+            href={`/author/contract/${contract.id}/vytiah`}
+            style={{ fontSize: 14, color: '#2c3a52', textDecoration: 'none', border: '1px solid #ccd3de', borderRadius: 8, padding: '9px 16px', fontFamily: 'Arial, sans-serif' }}
+          >
+            Додаток № 2 — витяг англійською
+          </a>
         </div>
 
         {blocks.map((b, i) => {

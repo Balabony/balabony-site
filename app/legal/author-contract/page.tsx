@@ -1,3 +1,4 @@
+import { CONTRACT_REVISION, CONTRACT_REVISION_DATE } from '@/lib/contract/template'
 // FILE: app/legal/author-contract/page.tsx
 // Серверний компонент. Публічна сторінка умов авторського договору.
 //
@@ -40,8 +41,8 @@ export const metadata: Metadata = {
 }
 
 // Редакція — звіряти з lib/contract/template.ts після кожної правки договору.
-const REVISION = 'v8.4'
-const REVISION_DATE = '16 вересня 2026'
+const REVISION = CONTRACT_REVISION
+const REVISION_DATE = CONTRACT_REVISION_DATE
 
 function Ref({ children }: { children: React.ReactNode }) {
   return <span className="text-xs text-stone-500"> ({children})</span>
