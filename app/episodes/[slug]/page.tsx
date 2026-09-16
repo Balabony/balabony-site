@@ -437,76 +437,22 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           />
         )}
 
-        {/* Оцінка серії — «Не зайшло … Чудово».
-            Додано 16.09.2026. Кнопка існувала з першого дня і навіть мала
-            заготовлений режим contentType="series" із заголовком «Як тобі ця
-            серія?», але стояла ЛИШЕ на /stories/[id]. Тобто про серіал, який
-            і є обличчям платформи, читача не питали взагалі.
-            Привід: зі 124 читачів першої серії до другої дійшло 8, і причини
-            ми не знали, бо ніде не питали.
-            Місце: одразу під текстом, ПЕРЕД змістом сезону й переходом до
-            наступної серії — поки читач ще під враженням, а не після того,
-            як вибирає, куди йти далі.
-            На замкненій серії не показуємо: оцінювати нічого. */}
-        {!isLocked && (
-          <ReviewButton
-            contentId={episode.id}
-            contentType="series"
-            contentTitle={episode.title}
-          />
-        )}
+        {/* ─────────────────────────────────────────────────────────────
+            ПОРЯДОК БЛОКІВ ПІСЛЯ ТЕКСТУ, перебудовано 16.09.2026.
 
-        {/* «Стежити за серіалом». Таблиця series_follows чекала на це з
-            09.09.2026. Стоїть одразу після оцінки, поки читач ще на емоції
-            від прочитаної серії, і ПЕРЕД переходом далі: хто піде читати
-            наступну — піде й так, а хто закриє вкладку, має лишити слід. */}
-        {!isLocked && (
-          <FollowSeriesButton
-            series="balabony"
-            seriesTitle="Балабони"
-            returnTo={`/episodes/${episode.slug}`}
-          />
-        )}
+            Було: оцінка → стежити → зміст сезону → навігація → ДАЛІ БУДЕ
+            → пошта → опитування. Тобто в найсильнішу секунду сесії —
+            коли читач щойно дочитав кліфгенгер — його просили ОЦІНИТИ
+            серію, а обіцянку наступної він бачив аж п'ятим блоком,
+            прогорнувши повз чотири прохання щось зробити.
 
-        {/* Зміст сезону: увесь список під рукою, без повернення в каталог. */}
-        <SeasonToc
-          items={seasonEpisodes}
-          currentSlug={episode.slug}
-          heading={`Сезон ${episode.season_number}`}
-        />
+            Стало: спершу те, що веде ДАЛІ (гачок, перехід, підписка на
+            серіал), потім те, що просить ВІД читача (оцінка, збереження,
+            пошта). Прохання адресуємо вже розігрітому, а не тому, хто
+            ще не вирішив, чи читатиме далі.
+            ───────────────────────────────────────────────────────────── */}
 
-        {/* Видимий перехід між серіями — головний спосіб на телефоні. */}
-        <EpisodeNav
-          prevUrl={prevEp ? `/episodes/${prevEp.slug}` : undefined}
-          prevTitle={prevEp?.title}
-          nextUrl={nextEp ? `/episodes/${nextEp.slug}` : undefined}
-          nextTitle={nextEp?.title}
-        />
-
-        {/* Смужка прогресу вгорі й стрілки ← → між серіями. */}
-        {!isLocked && <ReadingProgressBar />}
-        {!isLocked && <BackToTop />}
-
-        <ReaderKeyboardNav
-          prevUrl={prevEp ? `/episodes/${prevEp.slug}` : undefined}
-          nextUrl={nextEp ? `/episodes/${nextEp.slug}` : undefined}
-        />
-
-        {/* Позиція читання. Тільки для відкритої серії: у замкненій читач
-            бачить тізер, і повертати його «туди, де спинився» немає куди. */}
-        {!isLocked && (
-          <ReadingPosition
-            slug={episode.slug}
-            title={episode.title}
-            path={`/episodes/${episode.slug}`}
-            contentId={episode.id}
-          />
-        )}
-
-        {/* Гачок і перехід на наступну серію — одразу під текстом.
-            Раніше стояв після пошти й шерингу: читач мусив пройти два
-            блоки, перш ніж дізнавався, що буде далі. Тепер найсильніший
-            мотиватор іде першим, а пошту просимо вже в розігрітого.
+        {/* 1. Гачок і наступна серія. Найсильніший мотиватор — першим.
 
             Гачок — це кінцівка ПОТОЧНОЇ серії, тож на замкненій його
             не показуємо: інакше читач без доступу безкоштовно отримує
@@ -514,7 +460,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
             й обкладинка лишаються — вони нічого не спойлерять і саме
             вони продають передплату. */}
         {((!isLocked && episode.hook) || episode.next_teaser || nextEp) && (
-          <div style={{ marginTop: 44, marginLeft: -20, marginRight: -20 }}>
+          <div style={{ marginTop: 32, marginLeft: -20, marginRight: -20 }}>
             <EpisodeCliffhanger
               hook={!isLocked ? (episode.hook ?? undefined) : undefined}
               next={(episode.next_teaser || nextEp) ? {
@@ -531,18 +477,47 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
           </div>
         )}
 
-        {/* Збір пошти. Головна точка втримання: саме сюди веде QR з газети,
-            і без цього блока читач із паперу зникає назавжди. Стоїть перед
-            опитуванням — його бачать усі, а опитування лише ті, кому відкрито
-            серію цілком. */}
-        <StoryEmailCapture slug={slug} />
+        {/* 2. Видимий перехід між серіями — головний спосіб на телефоні. */}
+        <EpisodeNav
+          prevUrl={prevEp ? `/episodes/${prevEp.slug}` : undefined}
+          prevTitle={prevEp?.title}
+          nextUrl={nextEp ? `/episodes/${nextEp.slug}` : undefined}
+          nextTitle={nextEp?.title}
+        />
 
-        {/* Три питання — лише тому, хто побачив серію цілком.
-            Умова замка повторює EpisodePaywall: перші дві серії сезону вільні. */}
-        {(isAdmin || (!episode.is_premium && seasonPosition <= 2)) && (
-          <ReaderPulse contentId={episode.id} />
+        {/* 3. «Стежити за серіалом» — для того, хто далі зараз не піде:
+            хто закриє вкладку, має лишити слід. */}
+        {!isLocked && (
+          <FollowSeriesButton
+            series="balabony"
+            seriesTitle="Балабони"
+            returnTo={`/episodes/${episode.slug}`}
+          />
         )}
 
+        {/* 4. Оцінка серії — «Не зайшло … Чудово».
+            Кнопка існувала з першого дня і навіть мала заготовлений режим
+            contentType="series", але стояла ЛИШЕ на /stories/[id]. Тобто про
+            серіал, який і є обличчям платформи, читача не питали взагалі.
+            На замкненій серії не показуємо: оцінювати нічого. */}
+        {!isLocked && (
+          <ReviewButton
+            contentId={episode.id}
+            contentType="series"
+            contentTitle={episode.title}
+          />
+        )}
+
+        {/* 5. Зміст сезону: увесь список під рукою, без повернення в каталог.
+            Стоїть після переходу «наступна» навмисно — список із двадцяти
+            назв перед однією кнопкою «далі» це вибір замість дії. */}
+        <SeasonToc
+          items={seasonEpisodes}
+          currentSlug={episode.slug}
+          heading={`Сезон ${episode.season_number}`}
+        />
+
+        {/* 6. Зберегти й поділитися. */}
         <div style={{ marginTop: 40 }}>
           <BookmarkButton slug={episode.slug} title={episode.title} path={`/episodes/${episode.slug}`} />
         </div>
@@ -550,6 +525,37 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
         <div style={{ marginTop: 20 }}>
           <ShareButtons url={`https://balabony.com/episodes/${slug}`} title={episode.title} storyId={episode.id} season={episode.season_number} />
         </div>
+
+        {/* 7. Збір пошти. Головна точка втримання: саме сюди веде QR з газети,
+            і без цього блока читач із паперу зникає назавжди. Але просимо
+            пошту ОСТАННЬОЮ — коли читач уже або пішов у наступну серію, або
+            дійшов сюди, тобто лишився з нами до кінця сторінки. */}
+        <StoryEmailCapture slug={slug} />
+
+        {/* 8. Три питання — лише тому, хто побачив серію цілком.
+            Умова замка повторює EpisodePaywall: перші дві серії сезону вільні. */}
+        {(isAdmin || (!episode.is_premium && seasonPosition <= 2)) && (
+          <ReaderPulse contentId={episode.id} />
+        )}
+
+        {/* Технічне, поза візуальним потоком: смужка прогресу, кнопка
+            «нагору», стрілки ← → і збереження позиції читання. */}
+        {!isLocked && <ReadingProgressBar />}
+        {!isLocked && <BackToTop />}
+
+        <ReaderKeyboardNav
+          prevUrl={prevEp ? `/episodes/${prevEp.slug}` : undefined}
+          nextUrl={nextEp ? `/episodes/${nextEp.slug}` : undefined}
+        />
+
+        {!isLocked && (
+          <ReadingPosition
+            slug={episode.slug}
+            title={episode.title}
+            path={`/episodes/${episode.slug}`}
+            contentId={episode.id}
+          />
+        )}
 
         <div style={{ marginTop: 52, paddingTop: 24, borderTop: '0.5px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div style={{ fontSize: 13, color: 'var(--on-dark-muted)', fontFamily: FONT }}>
