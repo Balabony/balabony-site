@@ -275,15 +275,25 @@ export default function SeriesListPage() {
 
   // Батч-генерація шортів-скриптів: той самий патерн, що й recap.
   // Кожен виклик обробляє один епізод без short_script → нема Vercel-timeout, є прогрес.
-  const runShortBatch = async () => {
+  // force=true перероблює й уже наявні шорти. Потрібне після зміни формату
+  // 16.09.2026: було 70-90 слів, стало не більше 25 (ролик до десяти секунд).
+  // Без цього дев'яносто старих довгих текстів так і лишилися б у базі.
+  const runShortBatch = async (force = false) => {
     if (ssRunning) return
-    if (!confirm('Згенерувати шорти-гачки для всіх епізодів без шорту? Уже наявні не змінюються. Це може зайняти кілька хвилин.')) return
+    const question = force
+      ? 'ПЕРЕРОБИТИ шорти для всіх епізодів під новий формат (до 25 слів, ~10 секунд)? Наявні тексти буде замінено. Це може зайняти кілька хвилин.'
+      : 'Згенерувати шорти-гачки для епізодів без шорту? Уже наявні не змінюються. Це може зайняти кілька хвилин.'
+    if (!confirm(question)) return
     setSsRunning(true); setSsDone(0); setSsTotal(0); setSsLast(''); setSsText(''); setSsMsg('')
     let safety = 0
     try {
       while (safety < 500) {
         safety++
-        const res = await fetch('/api/admin/short-script-batch', { method: 'POST' })
+        const res = await fetch('/api/admin/short-script-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ force }),
+        })
         const data = await res.json() as {
           done?: boolean; total?: number; remaining?: number
           processed?: { title?: string; season?: number; episode?: number; short_script?: string } | null
@@ -619,7 +629,7 @@ export default function SeriesListPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <button
               type="button"
-              onClick={runShortBatch}
+              onClick={() => void runShortBatch(false)}
               disabled={ssRunning}
               style={{
                 fontSize: 13, fontWeight: 700, fontFamily: FONT,
@@ -629,7 +639,21 @@ export default function SeriesListPage() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {ssRunning ? '⏳ Генерую шорти…' : '🎬 Згенерувати всі шорти-гачки'}
+              {ssRunning ? '⏳ Генерую шорти…' : '🎬 Згенерувати шорти для нових серій'}
+            </button>
+            <button
+              onClick={() => void runShortBatch(true)}
+              disabled={ssRunning}
+              style={{
+                padding: '9px 14px', borderRadius: 10, fontSize: 13, fontWeight: 600,
+                border: '1px solid rgba(255,255,255,0.18)', background: 'transparent',
+                color: '#d8d2c6', fontFamily: FONT,
+                cursor: ssRunning ? 'default' : 'pointer', opacity: ssRunning ? 0.7 : 1,
+                marginLeft: 8,
+              }}
+              title="Замінює наявні тексти на короткі, до 25 слів"
+            >
+              Переробити всі під 10 секунд
             </button>
             <span style={{ fontSize: 12, color: '#8899bb', fontFamily: FONT }}>
               Тизер-гачок без спойлера (~70-90 слів). Тільки для епізодів без шорту. Аудіо — пізніше.

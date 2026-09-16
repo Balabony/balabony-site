@@ -47,6 +47,20 @@ type Row = {
   cover_url: string | null
 }
 
+/**
+ * Готовий пост для Telegram, Facebook чи опису під роликом: гачок, назва
+ * серії й посилання. Збирається тут, а не пишеться руками щоразу.
+ *
+ * Хештегів навмисно три і всі українські: довгі хмари тегів не дають
+ * охоплення, а виглядають як спам.
+ */
+function postText(body: string, title: string, url: string, isTysha: boolean): string {
+  const tags = isTysha
+    ? '#тиша #українськапроза #воєннадрама'
+    : '#балабони #українськігісторії #гумор'
+  return `${body}\n\n«${title}» — читати: ${url}\n\n${tags}`
+}
+
 /** Слів у тексті — за ними рахується тривалість озвучення. */
 function words(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length
@@ -213,7 +227,18 @@ export default async function ShortsPage({
                       тільки гачок, повного шорту немає
                     </span>
                   )}
-                  <CopyText text={body} />
+                  <CopyText text={body} label="Копіювати гачок" />
+                  <CopyText
+                    text={postText(
+                      body,
+                      r.title ?? r.slug,
+                      r.type === 'tysha'
+                        ? `https://balabony.com/tysha/${r.slug}`
+                        : `https://balabony.com/episodes/${r.slug}`,
+                      r.type === 'tysha',
+                    )}
+                    label="Копіювати пост"
+                  />
                   <a
                     href={r.type === 'tysha' ? `/tysha/${r.slug}` : `/episodes/${r.slug}`}
                     target="_blank"
