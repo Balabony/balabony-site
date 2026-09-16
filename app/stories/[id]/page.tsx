@@ -8,7 +8,6 @@ import BookmarkButton from '@/app/components/BookmarkButton'
 import FollowAuthorButton from '@/app/components/FollowAuthorButton'
 import VoiceVoteButton from '@/app/components/VoiceVoteButton'
 import ReviewButton from '@/app/components/ReviewButton'
-import ReaderPulse from '@/app/components/ReaderPulse'
 import StoryReadTracker from '@/app/components/StoryReadTracker'
 import ReadingPosition from '@/app/components/ReadingPosition'
 import ReadingProgressBar from '@/app/components/ReadingProgressBar'
@@ -474,8 +473,11 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
             де його можна втримати. */}
         <StoryEmailCapture slug={id} />
 
-        {/* Три питання тому, хто дочитав */}
-        <ReaderPulse contentId={story.id} />
+        {/* Опитування «Як вам ця історія?» (ReaderPulse) прибрано 16.09.2026:
+            той самий дубль, що на серіях — вище вже стоїть кнопка відгуку
+            з оцінкою «Не зайшло … Чудово». Компонент живий, повернути можна
+            одним рядком; про втрату 50 балів за опитування див. коментар
+            у /episodes/[slug]/page.tsx. */}
 
         {/* Що читати далі: твори того самого автора і того самого жанру.
             Раніше під текстом не було жодного посилання на інший твір —

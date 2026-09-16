@@ -13,7 +13,6 @@ import BackToTop from '@/app/components/BackToTop'
 import ReaderKeyboardNav from '@/app/components/ReaderKeyboardNav'
 import EpisodeNav from '@/app/components/EpisodeNav'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
-import ReaderPulse from '@/app/components/ReaderPulse'
 import TyshaProgressTracker from '@/app/components/TyshaProgressTracker'
 import TyshaAgeGate from '@/app/components/TyshaAgeGate'
 import { leadCssDeclarations, fitsLead } from '@/lib/reader-typography'
@@ -512,12 +511,15 @@ export default async function TyshaEpisodePage({ params }: { params: Promise<{ s
         />
       )}
 
-      {/* 7. Три питання тому, хто дочитав серію цілком. */}
-      {!locked && (
-        <div className="reader-col" style={{ maxWidth: 720, margin: '0 auto', padding: '0 20px 48px' }}>
-          <ReaderPulse contentId={ep.id} />
-        </div>
-      )}
+      {/* Опитування «Як вам ця історія?» (ReaderPulse) прибрано 16.09.2026,
+          рішення Богдана. Причина — дубль: на тій самій сторінці стояла
+          кнопка відгуку з оцінкою «Не зайшло … Чудово», а нижче опитування
+          питало те саме іншими словами й іншою шкалою. Читач бачив це як
+          збій, а не як два різні інструменти.
+          НАСЛІДОК, який лишається відкритим: опитування давало 50 балів
+          (kind='survey' у lib/points.ts) — найбільше нарахування на сайті
+          після реферала. Тепер цього способу заробити бали немає.
+          Компонент і роут живі, повернути можна одним рядком. */}
       {/* Шрифт, розмір літер, день/ніч */}
       <ReaderSettings />
     </div>

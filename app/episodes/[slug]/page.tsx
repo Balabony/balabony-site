@@ -9,7 +9,6 @@ import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ShareButtons from '@/app/components/ShareButtons'
 import BookmarkButton from '@/app/components/BookmarkButton'
 import EpisodeCliffhanger from '@/app/components/EpisodeCliffhanger'
-import ReaderPulse from '@/app/components/ReaderPulse'
 import StreakTracker from '@/app/components/StreakTracker'
 import ReadTracker from '@/app/components/ReadTracker'
 import Link from 'next/link'
@@ -532,11 +531,15 @@ export default async function EpisodePage({ params }: { params: Promise<{ slug: 
             дійшов сюди, тобто лишився з нами до кінця сторінки. */}
         <StoryEmailCapture slug={slug} />
 
-        {/* 8. Три питання — лише тому, хто побачив серію цілком.
-            Умова замка повторює EpisodePaywall: перші дві серії сезону вільні. */}
-        {(isAdmin || (!episode.is_premium && seasonPosition <= 2)) && (
-          <ReaderPulse contentId={episode.id} />
-        )}
+        {/* Опитування «Як вам ця історія?» (ReaderPulse) прибрано 16.09.2026,
+            рішення Богдана. Причина — дубль: на тій самій сторінці стояла
+            кнопка відгуку з оцінкою «Не зайшло … Чудово», а нижче опитування
+            питало те саме іншими словами й іншою шкалою. Читач бачив це як
+            збій, а не як два різні інструменти.
+            НАСЛІДОК, який лишається відкритим: опитування давало 50 балів
+            (kind='survey' у lib/points.ts) — найбільше нарахування на сайті
+            після реферала. Тепер цього способу заробити бали немає.
+            Компонент і роут живі, повернути можна одним рядком. */}
 
         {/* Технічне, поза візуальним потоком: смужка прогресу, кнопка
             «нагору», стрілки ← → і збереження позиції читання. */}
