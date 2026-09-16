@@ -53,7 +53,13 @@ export async function POST(req: NextRequest) {
   // Робиться саме тут, у момент підпису — далі перелік може змінитися,
   // але підписаною лишається та редакція, суму якої записано.
   const p = await dbQuery(
-    `select full_name, rnokpp, address, phone, payout_iban, bank_name, payout_recipient, pen_name
+    // birth_date ОБОВʼЯЗКОВО в цій вибірці: buildVars підставляє його в
+    // {{AUTHOR_BIRTHDATE}} (п. 6.1-2). Без нього vars дістають прочерк, сума
+    // рахується від тексту, якого автор не бачив, і далі snapshot.ts пише
+    // doc_hash через coalesce — тобто хибна сума лишається назавжди.
+    // Сторінка /author/contract/[id] і lib/contract/snapshot.ts це поле
+    // вибирають; ця вибірка мусить збігатися з ними поле в поле.
+    `select full_name, rnokpp, birth_date, address, phone, payout_iban, bank_name, payout_recipient, pen_name
        from author_profiles where user_id = $1 limit 1`,
     [user.id],
   )

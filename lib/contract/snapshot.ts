@@ -53,7 +53,12 @@ export async function saveContractSnapshot(contractId: string): Promise<boolean>
       `select c.id, c.number, c.created_at, c.signed_at, c.author_id,
               p.full_name, p.rnokpp, p.birth_date, p.address, p.phone,
               p.payout_iban, p.bank_name, p.payout_recipient, p.pen_name,
-              coalesce(p.email, u.email) as email
+              -- Саме u.email, а НЕ coalesce(p.email, u.email): у документ
+              -- підставляється пошта, яку автор бачив на сторінці договору,
+              -- а сторінка і sign/start беруть її з авторизації. Профільне
+              -- p.email автор не редагує (його проставляють імпортом), тож
+              -- coalesce давав інший текст і, як наслідок, іншу суму.
+              u.email as email
          from author_contracts c
          left join author_profiles p on p.user_id = c.author_id
          left join auth.users u      on u.id      = c.author_id
@@ -92,12 +97,24 @@ export async function saveContractSnapshot(contractId: string): Promise<boolean>
     }
 
     // coalesce: якщо знімок уже є, не перезаписуємо — підписана редакція одна.
+    //
+    // doc_hash пишеться ІНАКШЕ, ніж решта. Раніше тут теж стояв coalesce, і це
+    // було хибно: sign/start завжди встигає записати doc_hash першим, тож
+    // coalesce ЗАВЖДИ лишав суму зі старту. А вона рахується до підписання,
+    // коли signed_at ще порожній, тому дата в шапці там — день створення
+    // договору, а в знімку — день підпису. Договір, підписаний не того дня,
+    // коли створений, гарантовано давав дві різні суми.
+    //
+    // Головною має бути сума знімка: знімок — це і є текст, який лишається в
+    // базі, і сума мусить бути сумою саме його. Одноразовість збережена:
+    // перезапис відбувається лише тоді, коли знімка ще не було. SET читає
+    // СТАРЕ значення doc_snapshot, тобто стан до цього ж UPDATE.
     await dbQuery(
       `update author_contracts
           set doc_snapshot    = coalesce(doc_snapshot, $1::jsonb),
               doc_snapshot_at = coalesce(doc_snapshot_at, now()),
-              doc_hash        = coalesce(doc_hash, $2),
-              doc_hash_at     = coalesce(doc_hash_at, now())
+              doc_hash        = case when doc_snapshot is null then $2 else doc_hash end,
+              doc_hash_at     = case when doc_snapshot is null then now() else doc_hash_at end
         where id = $3`,
       [JSON.stringify(snapshot), snapshot.hash, contractId],
     )
