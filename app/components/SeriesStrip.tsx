@@ -114,6 +114,24 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
                           {s.durationMinutes} хв
                         </span>
                       ) : null}
+                      {/* Кнопка в ЗГОРНУТОМУ рядку. Доти «Читати» жило лише
+                          всередині розгорнутої панелі: щоб дійти до дії, читач
+                          мусив здогадатися клацнути рядок — крок, якого ніщо
+                          не підказувало. Тепер шлях на серію один клік. */}
+                      <a
+                        href={s.url}
+                        onClick={(e) => { e.stopPropagation(); trackStoryEvent(s.id, s.title, 'open') }}
+                        style={{
+                          marginLeft: 'auto',
+                          display: 'inline-flex', alignItems: 'center', gap: 6,
+                          background: GOLD, color: '#081420',
+                          padding: '6px 14px', borderRadius: 20,
+                          fontSize: 12, fontWeight: 700, fontFamily: FONT,
+                          textDecoration: 'none', whiteSpace: 'nowrap',
+                        }}
+                      >
+                        Читати →
+                      </a>
                     </div>
                   </div>
                 </div>

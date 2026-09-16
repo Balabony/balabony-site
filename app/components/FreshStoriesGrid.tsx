@@ -269,12 +269,28 @@ export default function FreshStoriesGrid({
                   ].filter(Boolean) as string[]
                   if (!displayTags.length) return null
                   return (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 'auto' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 5, marginTop: 'auto' }}>
                       {displayTags.map(tag => (
                         <span key={tag} style={{ fontSize: 10, fontWeight: 600, color: GOLD, fontFamily: FONT, border: `1px solid ${GOLD}`, padding: '2px 8px', borderRadius: 20 }}>
                           {tag}
                         </span>
                       ))}
+                      {/* Уся картка і так є посиланням, але про це знає лише
+                          той, хто звик до сучасних сайтів. Наша аудиторія —
+                          зокрема літні читачі — чекає видимої кнопки, і без
+                          неї частина просто не розуміє, що робити далі.
+                          Кнопка нічого не перехоплює: клік по ній іде тим
+                          самим посиланням, що й клік по картці. */}
+                      <span style={{
+                        marginLeft: 'auto',
+                        display: 'inline-flex', alignItems: 'center', gap: 5,
+                        background: GOLD, color: '#081420',
+                        padding: '5px 12px', borderRadius: 20,
+                        fontSize: 11, fontWeight: 700, fontFamily: FONT,
+                        whiteSpace: 'nowrap',
+                      }}>
+                        Читати →
+                      </span>
                     </div>
                   )
                 })()}
