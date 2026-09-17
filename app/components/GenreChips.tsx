@@ -25,6 +25,34 @@ interface GenreCount {
   count: number
 }
 
+/**
+ * ЧИТАЦЬКА НАЗВА НА ЧІПАХ (17.09.2026).
+ *
+ * Чіпи показували назву жанру З БАЗИ: «Казка», «Детектив», «Драма». Але
+ * сторінки, на які вони ведуть, мають інші заголовки — «Казки на ніч»,
+ * «Українські детективи», «Сумні історії», — і саме ці фрази люди вводять
+ * у пошук. Розходження коштувало двічі: читач на головній не впізнавав
+ * розділ, а внутрішнє посилання підказувало Google слово, за яким нас не
+ * шукають («казка» проти «казки на ніч» — 10–100 тис./міс).
+ *
+ * Текст посилання — найсильніший сигнал, який одна сторінка передає іншій,
+ * тож він має збігатися із заголовком сторінки-адресата.
+ */
+function chipLabel(genre: string): string {
+  return isGenre(genre) ? GENRE_PAGES[genre].title : genre
+}
+
+/**
+ * Казки ведуть на /fairytales — вона канонічна з 17.09 (та сама добірка
+ * плюс секція оповідань для дітей). Посилати на неканонічну адресу зі
+ * сторінки, яка має найбільшу вагу на сайті, — витрачати її намарно.
+ */
+function chipHref(genre: string): string {
+  if (!isGenre(genre)) return `/stories?genre=${encodeURIComponent(genre)}`
+  if (genre === 'Казка') return '/fairytales'
+  return `/stories/zhanr/${GENRE_PAGES[genre].slug}`
+}
+
 export default function GenreChips({ initial }: { initial?: GenreCount[] } = {}) {
   // Готовий перелік із сервера: інакше дев'ять посилань на сторінки жанрів
   // з'являлися лише в браузері, і пошуковик по них не переходив.
@@ -70,7 +98,7 @@ export default function GenreChips({ initial }: { initial?: GenreCount[] } = {})
         {genres.map(({ genre, count }) => (
           <Link
             key={genre}
-            href={isGenre(genre) ? `/stories/zhanr/${GENRE_PAGES[genre].slug}` : `/stories?genre=${encodeURIComponent(genre)}`}
+            href={chipHref(genre)}
             style={{
               fontSize: 15,
               fontWeight: 700,
@@ -89,7 +117,7 @@ export default function GenreChips({ initial }: { initial?: GenreCount[] } = {})
               textAlign: 'center',
             }}
           >
-            {genre}
+            {chipLabel(genre)}
             <span style={{ fontWeight: 400, opacity: 0.75, marginLeft: 7, fontSize: 13 }}>
               {count}
             </span>
