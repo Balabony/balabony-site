@@ -131,7 +131,24 @@ export async function POST(req: NextRequest) {
 
   const results: Array<{ id: string; genre: string | null; confidence: number; why: string; error?: string }> = []
 
-  for (const row of rows ?? []) {
+  /**
+   * ПАРАЛЕЛЬНО, А НЕ ПО ОДНОМУ (17.09.2026).
+   *
+   * Було два послідовні місця одразу: клієнт слав по п'ять запитів один за
+   * одним, а сервер усередині кожного питав модель по одному твору. На
+   * партію в п'ятдесят виходило п'ятдесят викликів поспіль — кілька хвилин
+   * очікування, протягом яких сторінку не можна закрити.
+   *
+   * Тепер твори з одного запиту опрацьовуються разом. Ліміт у 20 id на запит
+   * лишається: він і обмежує одночасність, щоб не впертися в ліміт
+   * запитів Gemini за хвилину. Якщо почнуть приходити 429 — зменшувати
+   * партію на клієнті, а не тут.
+   */
+  async function classify(row: {
+    id: string; title: string | null; text: string | null
+    corrected_text: string | null; humanized_text: string | null
+    published_version: string | null
+  }) {
     const v = row.published_version ?? 'original'
     const source =
       (v === 'humanized' || v === 'corrected_humanized') && row.humanized_text
@@ -142,12 +159,10 @@ export async function POST(req: NextRequest) {
 
     const sample = sampleChunks(toPlainText(source ?? ''))
     if (!sample.trim()) {
-      results.push({ id: row.id, genre: null, confidence: 0, why: '', error: 'Порожній текст' })
-      continue
+      return { id: row.id, genre: null, confidence: 0, why: '', error: 'Порожній текст' }
     }
 
     const prompt = buildPrompt(row.title ?? '', sample)
-    let done = false
     // Що саме відповіла модель, коли відповідь не лягла в перелік. Без цього
     // редактор бачив глухе «не дала відповіді» й не міг зрозуміти причину.
     let lastRaw = ''
@@ -169,16 +184,14 @@ export async function POST(req: NextRequest) {
           continue
         }
 
-        results.push({
+        return {
           id: row.id,
           genre,
           confidence: Math.max(0, Math.min(100, Number(answer.confidence) || 0)),
           // Якщо жанр довелося приводити до канону, показуємо це редакторові.
           why: (isGenre(said) ? '' : `(${said}) `) +
                (typeof answer.why === 'string' ? answer.why.slice(0, 60) : ''),
-        })
-        done = true
-        break
+        }
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Помилка'
         if (isBlocked(err)) {
@@ -190,21 +203,19 @@ export async function POST(req: NextRequest) {
         }
         if (/not found|404|unsupported/i.test(msg)) { lastErr = `модель ${model} недоступна`; continue }
         if (err instanceof SyntaxError) { lastErr = 'відповідь не JSON'; continue }
-        results.push({ id: row.id, genre: null, confidence: 0, why: '', error: msg })
-        done = true
-        break
+        return { id: row.id, genre: null, confidence: 0, why: '', error: msg }
       }
     }
 
-    if (!done) {
-      const why = lastRaw
-        ? `Модель каже «${lastRaw}» — такого жанру немає в переліку`
-        : lastErr
-          ? `Не вдалося: ${lastErr}`
-          : 'Модель не дала відповіді'
-      results.push({ id: row.id, genre: null, confidence: 0, why: '', error: why })
-    }
+    const why = lastRaw
+      ? `Модель каже «${lastRaw}» — такого жанру немає в переліку`
+      : lastErr
+        ? `Не вдалося: ${lastErr}`
+        : 'Модель не дала відповіді'
+    return { id: row.id, genre: null, confidence: 0, why: '', error: why }
   }
+
+  results.push(...await Promise.all((rows ?? []).map(r => classify(r))))
 
   return NextResponse.json({ results })
 }

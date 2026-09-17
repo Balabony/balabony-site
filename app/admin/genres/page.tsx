@@ -62,13 +62,20 @@ export default function GenresPage() {
 
   useEffect(() => { void load() }, [load])
 
-  /** Питаємо модель партіями: так видно поступ і менше ризик обірваного запиту. */
+  /**
+   * Питаємо модель партіями: так видно поступ і менше ризик обірваного запиту.
+   *
+   * По десять, а не по п'ять (17.09.2026). Разом із паралельним опрацюванням
+   * на сервері партія з п'ятдесяти проходить за п'ять запитів замість десяти,
+   * і всередині кожного твори йдуть одночасно, а не по черзі.
+   * Якщо Gemini почне віддавати 429 — зменшувати саме це число.
+   */
   async function suggest(ids: string[]) {
     if (ids.length === 0) return
     setBusy(true); setNote('')
     try {
-      for (let i = 0; i < ids.length; i += 5) {
-        const part = ids.slice(i, i + 5)
+      for (let i = 0; i < ids.length; i += 10) {
+        const part = ids.slice(i, i + 10)
         const r = await fetch('/api/admin/suggest-genre', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -86,7 +93,7 @@ export default function GenresPage() {
           for (const res of j.results ?? []) if (res.genre) next[res.id] = res.genre
           return next
         })
-        setNote(`Опрацьовано ${Math.min(i + 5, ids.length)} із ${ids.length}`)
+        setNote(`Опрацьовано ${Math.min(i + 10, ids.length)} із ${ids.length}`)
       }
       setNote('Готово. Перевір і збережи.')
     } catch (e) {
