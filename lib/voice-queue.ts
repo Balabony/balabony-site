@@ -48,6 +48,22 @@ const ELIGIBLE = `
   )
 `
 
+/**
+ * Автори платформи — не учасники рейтингів у кабінеті (17.09.2026).
+ *
+ * Назар Колодій — псевдонім засновника, під ним виходять «Балабони» і «Тиша»:
+ * 206 творів проти двадцяти-тридцяти у звичайного автора. У змаганні авторів
+ * це виглядає як участь судді у власному конкурсі.
+ *
+ * Виключення діє ЛИШЕ у двох функціях рейтингів кабінету —
+ * getQueueWithTrend() і getAuthorVotes(). У getQueue(), яка живить сторінку
+ * /cherga, серіали лишаються: читач голосує за їхнє озвучення, і воно
+ * планується.
+ */
+const NOT_RANKED_SQL = ["Назар Колодій"]
+  .map(n => `'${n.replace(/'/g, "''")}'`)
+  .join(', ')
+
 export interface QueueRow {
   id: string
   title: string
@@ -107,6 +123,7 @@ export async function getQueueWithTrend(limit = 20): Promise<QueueTrendRow[]> {
          from voice_votes v
          join content c on c.id = v.content_id
         where ${ELIGIBLE}
+          and coalesce(c.author_name, '') not in (${NOT_RANKED_SQL})
         group by c.id, c.title, c.slug, c.type, c.author_name
         order by votes desc, c.title
         limit $1`,
@@ -157,6 +174,7 @@ export async function getAuthorVotes(limit = 100): Promise<AuthorVoteRow[]> {
               )::int                                           as recent
          from eligible e
          left join voice_votes v on v.content_id = e.id
+        where coalesce(e.author_name, '') not in (${NOT_RANKED_SQL})
         group by e.author_name
         order by votes desc, works desc, e.author_name
         limit $1`,
