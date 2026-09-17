@@ -36,6 +36,22 @@ export async function GET(req: NextRequest) {
   if (only === 'empty') q = q.or('genre.is.null,genre.eq.')
   else if (only !== 'all' && isGenre(only)) q = q.eq('genre', only)
 
+  // ПЕРЕГЛЯНУТІ НЕ ПОКАЗУЄМО (17.09.2026).
+  //
+  // Список брав найсвіжіші 50 із розділу, а збереження лишало підтверджені
+  // твори в тому самому розділі — і наступна партія на дві третини
+  // складалася з тих самих назв. На 265 творах «Сімейної історії» розбір не
+  // мав кінця: за чотири прогони по п'ятдесят вибуло лише 59 творів, решта
+  // були повторами.
+  //
+  // genre_reviewed_at ставиться при збереженні ВСІМ показаним творам, а не
+  // лише тим, кому змінили жанр: «лишити як є» — теж рішення редактора, і
+  // питати про нього вдруге не треба.
+  //
+  // Щоб переглянути розділ наново (змінився промпт, додано жанр) — скинути
+  // позначку: update content set genre_reviewed_at = null where genre = '…'
+  if (only !== 'all') q = q.is('genre_reviewed_at', null)
+
   const { data, error, count } = await q
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
@@ -45,9 +61,14 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json() as { items?: Array<{ id: string; genre: string }> }
+  const body = await req.json() as {
+    items?: Array<{ id: string; genre: string }>
+    /** Усі id, які редактор бачив у партії — позначаємо переглянутими. */
+    seen?: string[]
+  }
   const items = Array.isArray(body.items) ? body.items : []
-  if (items.length === 0) {
+  const seen = Array.isArray(body.seen) ? body.seen : []
+  if (items.length === 0 && seen.length === 0) {
     return NextResponse.json({ error: 'Нічого зберігати' }, { status: 400 })
   }
 
@@ -59,11 +80,25 @@ export async function PATCH(req: NextRequest) {
   }
 
   const db = getSupabaseAdmin()
+  const now = new Date().toISOString()
   let saved = 0
-  for (const item of items) {
-    const { error } = await db.from('content').update({ genre: item.genre }).eq('id', item.id)
+
+  // Зміна жанру й позначка перегляду — одним оновленням на твір.
+  await Promise.all(items.map(async (item) => {
+    const { error } = await db
+      .from('content')
+      .update({ genre: item.genre, genre_reviewed_at: now })
+      .eq('id', item.id)
     if (!error) saved++
+  }))
+
+  // Решта показаних — жанр не міняли, але переглянули. Без цього вони
+  // повертатимуться в кожну наступну партію.
+  const changed = new Set(items.map(i => i.id))
+  const rest = seen.filter(id => !changed.has(id))
+  if (rest.length > 0) {
+    await db.from('content').update({ genre_reviewed_at: now }).in('id', rest)
   }
 
-  return NextResponse.json({ ok: true, saved })
+  return NextResponse.json({ ok: true, saved, reviewed: saved + rest.length })
 }

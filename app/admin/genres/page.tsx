@@ -105,14 +105,19 @@ export default function GenresPage() {
     const items = Object.entries(chosen)
       .filter(([, g]) => g)
       .map(([id, genre]) => ({ id, genre }))
-    if (items.length === 0) { setNote('Немає що зберігати'); return }
+
+    // Разом зі змінами шлемо ВСІ показані id: сервер позначить їх
+    // переглянутими, і наступна партія буде з нових творів, а не з тих
+    // самих. Без цього розбір великого розділу не має кінця.
+    const seen = rows.map(r => r.id)
+    if (items.length === 0 && seen.length === 0) { setNote('Немає що зберігати'); return }
 
     setBusy(true); setNote('')
     try {
       const r = await fetch('/api/admin/genres', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({ items, seen }),
       })
       const j = await r.json() as { saved?: number; error?: string }
       if (!r.ok) throw new Error(j.error ?? `Помилка ${r.status}`)
