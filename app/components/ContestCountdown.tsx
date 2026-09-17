@@ -29,8 +29,9 @@ const SERIF = 'Georgia, "Times New Roman", serif'
 /** «Це довга історія»: подання заявок. */
 const LONG_OPEN = new Date('2026-09-01T00:00:00+03:00')
 const LONG_CLOSE = new Date('2026-10-31T23:59:59+02:00')
-/** Запуск платформи — з нього стартують перші серії. */
-const LAUNCH = new Date('2026-11-25T00:00:00+02:00')
+/** Перші серії конкурсу. НЕ дата запуску платформи: та 23.11.2026, а конкурсні
+ *  публікації стартують 25.11.2026 і зумисне з нею не збігаються. */
+const FIRST_EPISODES = new Date('2026-11-25T00:00:00+02:00')
 /** «П'ять вечорів»: прийом робіт і оголошення переможців. */
 const FIVE_OPEN = new Date('2026-09-01T00:00:00+03:00')
 const FIVE_CLOSE = new Date('2026-10-20T23:59:59+03:00')
@@ -74,7 +75,7 @@ function buildCards(now: Date): Card[] {
   // ── «Це довга історія» ──
   if (now < LONG_OPEN) {
     const d = daysUntil(LONG_OPEN, now)
-    const perEpisode = Math.floor(daysUntil(LAUNCH, now) / 10)
+    const perEpisode = Math.floor(daysUntil(FIRST_EPISODES, now) / 10)
     out.push({
       name: 'Це довга історія',
       href: '/konkursy#dovha-istoriya',
@@ -82,7 +83,7 @@ function buildCards(now: Date): Card[] {
       value: days(d),
       what: `10 серій · 1500–1800 слів · ${topPrize(findContest('ce-dovha-istoriya')!)}`,
       hint: perEpisode >= 2
-        ? `Заявка — це синопсис і перша серія. Але писати варто вже зараз: до першої публікації ${days(daysUntil(LAUNCH, now))}, а далі серія щотижня.`
+        ? `Заявка — це синопсис і перша серія. Але писати варто вже зараз: до першої публікації ${days(daysUntil(FIRST_EPISODES, now))}, а далі серія щотижня.`
         : 'Заявка — це синопсис і повний текст першої серії.',
       urgent: d <= 14,
     })
@@ -96,12 +97,12 @@ function buildCards(now: Date): Card[] {
       hint: 'Подання відкрите. Потрібні синопсис на сторінку і повний текст першої серії.',
       urgent: true,
     })
-  } else if (now < LAUNCH) {
+  } else if (now < FIRST_EPISODES) {
     out.push({
       name: 'Це довга історія',
       href: '/konkursy#dovha-istoriya',
       label: 'До перших серій',
-      value: days(daysUntil(LAUNCH, now)),
+      value: days(daysUntil(FIRST_EPISODES, now)),
       what: '10 серій · одна на тиждень',
       hint: 'Заявки закрито. Учасників оголошуємо 18 листопада, перші серії виходять 25 листопада — 1 грудня.',
       urgent: false,
