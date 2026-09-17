@@ -1,5 +1,7 @@
 'use client'
 
+import { GENRE_PAGES, isGenre } from '@/lib/genres'
+
 import SectionHead from './SectionHead'
 import { coverStyle } from '@/lib/cover-frame'
 import CoverImage from './CoverImage'
@@ -263,8 +265,20 @@ export default function FreshStoriesGrid({
                   {cleanTeaser(story.teaser)}
                 </p>
                 {(() => {
+                  // МІТКА ПОКАЗУЄ ЧИТАЦЬКУ НАЗВУ, А НЕ НАЗВУ В БАЗІ (17.09.2026).
+                  //
+                  // У базі лежить 'Дитяче оповідання', а розділ зветься
+                  // «Оповідання для дітей»; так само 'Драма' проти «Сумних
+                  // історій» і 'Детектив' проти «Українських детективів».
+                  // Читач бачив на картці одне слово, а в заголовку розділу,
+                  // куди вона веде, — інше. Назву в базі міняти не можна: за
+                  // нею проставлені твори й працюють фільтри, тому підміна
+                  // тут, з того самого довідника, що й заголовки сторінок.
+                  const genreLabel = isGenre(story.genre)
+                    ? GENRE_PAGES[story.genre].title
+                    : story.genre
                   const displayTags = [
-                    story.genre,
+                    genreLabel,
                     story.duration_minutes ? `${story.duration_minutes} хв` : null,
                   ].filter(Boolean) as string[]
                   if (!displayTags.length) return null

@@ -159,17 +159,20 @@ export default function BrandCover({
         </text>
       ))}
 
-      {/* Риска відділяє підпис від назви — інакше вони читаються одним блоком. */}
+      {/* Риска відділяє підпис від назви — інакше вони читаються одним блоком.
+          Підпис кремовий, не золотий: золото 12 кеглем із розрідженням 4,5
+          на навії виявилося надто тонким і в стрічці читалося як пляма. */}
       <rect x={(W - RULE) / 2} y={H - PAD - FOOT} width={RULE} height="1.5" fill={GOLD} fillOpacity="0.7" />
       <text
         x={W / 2}
         y={H - PAD - FOOT + (shape === 'wide' ? 26 : 32)}
         textAnchor="middle"
         fontFamily="Montserrat, Arial, sans-serif"
-        fontSize={shape === 'wide' ? 12 : 13}
+        fontSize={shape === 'wide' ? 13 : 14}
         fontWeight="700"
         letterSpacing="4.5"
-        fill={GOLD}
+        fill={CREAM}
+        fillOpacity="0.92"
       >
         БАЛАБОНИ
       </text>
