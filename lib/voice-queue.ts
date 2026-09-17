@@ -118,6 +118,56 @@ export async function getQueueWithTrend(limit = 20): Promise<QueueTrendRow[]> {
   }
 }
 
+export interface AuthorVoteRow {
+  author_name: string
+  votes: number
+  recent: number
+  works: number
+}
+
+/**
+ * РЕЙТИНГ АВТОРІВ ЗА ГОЛОСАМИ — для кабінету.
+ *
+ * getQueueWithTrend() показує черга ТВОРІВ, і в неї потрапляє лише те, за що
+ * вже проголосували. Автор, за якого не голосував ніхто, у тій таблиці не
+ * бачив ні себе, ні свого місця — тобто не бачив, наскільки він відстав і
+ * від кого. Змагання без видимої таблиці не змагання.
+ *
+ * Тут навпаки: беремо ВСІХ авторів, у яких є що озвучувати, і лівим
+ * приєднанням додаємо голоси. Нулі лишаються в списку — саме вони й
+ * показують авторові, де він стоїть.
+ *
+ * Порядок: більше голосів вище, за рівних — більше творів, далі за абеткою.
+ * Без останніх двох правил сотня авторів із нулем шикувалася б випадково і
+ * місця стрибали б при кожному оновленні сторінки.
+ */
+export async function getAuthorVotes(limit = 100): Promise<AuthorVoteRow[]> {
+  try {
+    const r = await dbQuery(
+      `with eligible as (
+         select c.id, c.author_name
+           from content c
+          where ${ELIGIBLE}
+       )
+       select e.author_name,
+              count(distinct e.id)::int                        as works,
+              count(v.user_id)::int                            as votes,
+              count(v.user_id) filter (
+                where v.created_at >= now() - interval '7 days'
+              )::int                                           as recent
+         from eligible e
+         left join voice_votes v on v.content_id = e.id
+        group by e.author_name
+        order by votes desc, works desc, e.author_name
+        limit $1`,
+      [limit],
+    )
+    return r.rows as AuthorVoteRow[]
+  } catch {
+    return []
+  }
+}
+
 export interface AuthorRow {
   author_name: string
   works: number

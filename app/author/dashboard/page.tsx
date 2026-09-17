@@ -15,7 +15,7 @@ import AuthorProfileEditor from '@/app/components/AuthorProfileEditor'
 import { dbQuery } from '@/lib/db'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import PublishWorkButton from '@/app/components/PublishWorkButton'
-import { getQueueWithTrend } from '@/lib/voice-queue'
+import { getAuthorVotes, getQueueWithTrend } from '@/lib/voice-queue'
 import AddWorkForm from '@/app/components/AddWorkForm'
 import WorksFilter from '@/app/components/WorksFilter'
 import DeleteDraftButton from '@/app/components/DeleteDraftButton'
@@ -223,6 +223,11 @@ export default async function AuthorDashboardPage() {
   // показує чужі перемоги й нічого більше. Коли черга переросте двадцятку,
   // сюди доведеться додати рядок власного твору поза видимою частиною.
   const queueTop = await getQueueWithTrend(20)
+
+  // Рейтинг АВТОРІВ — окремо від черги творів. Черга показує лише те, за що
+  // вже голосували; тут є всі, зокрема з нулем, і автор бачить своє місце
+  // серед усіх, а не лише переможців.
+  const authorVotes = await getAuthorVotes(100)
 
   const votesById = new Map<string, number>()
 
@@ -502,6 +507,54 @@ export default async function AuthorDashboardPage() {
               </div>
             </div>
           )}
+
+          {authorVotes.length > 0 && (() => {
+            const meIdx = authorVotes.findIndex(
+              a => (a.author_name ?? '').trim().toLowerCase() === myName.trim().toLowerCase(),
+            )
+            // Десятка плюс власний рядок, якщо він за її межами: повний
+            // перелік на сто авторів у кабінеті нічого не пояснює.
+            const shown = authorVotes.slice(0, 10)
+            const extra = meIdx >= 10 ? [authorVotes[meIdx]] : []
+            return (
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ color: '#f5f0e8', fontWeight: 700, fontSize: '0.92rem', marginBottom: 8 }}>
+                  Рейтинг авторів за голосами
+                  <span style={{ color: '#9fb0c6', fontWeight: 400 }}>
+                    {' · '}усі автори платформи, у дужках — за тиждень
+                  </span>
+                </div>
+                {[...shown, ...extra].map((a) => {
+                  const pos = authorVotes.indexOf(a) + 1
+                  const mine = (a.author_name ?? '').trim().toLowerCase() === myName.trim().toLowerCase()
+                  return (
+                    <div key={a.author_name} style={{
+                      display: 'flex', justifyContent: 'space-between', gap: 12,
+                      padding: '7px 10px', borderRadius: 8, marginBottom: 3,
+                      background: mine ? 'rgba(239,159,39,0.14)' : 'rgba(10,22,40,0.45)',
+                      border: mine ? '1px solid rgba(239,159,39,0.45)' : '1px solid transparent',
+                    }}>
+                      <span style={{ color: '#e8eef7', fontSize: '0.9rem' }}>
+                        {pos}. {mine ? 'Ви' : a.author_name}
+                        <span style={{ color: '#9fb0c6' }}>{' · '}{a.works} творів</span>
+                      </span>
+                      <span style={{ color: '#FAC775', fontWeight: 700, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
+                        {a.votes}
+                        {a.recent > 0 && (
+                          <span style={{ color: '#97C459' }}>{' (+'}{a.recent}{')'}</span>
+                        )}
+                      </span>
+                    </div>
+                  )
+                })}
+                {meIdx >= 10 && (
+                  <div style={{ color: '#9fb0c6', fontSize: '0.85rem', marginTop: 6 }}>
+                    Ваш рядок показано окремо — він поза десяткою.
+                  </div>
+                )}
+              </div>
+            )
+          })()}
 
           <a
             href="/cherga"
