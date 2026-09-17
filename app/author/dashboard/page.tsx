@@ -340,6 +340,43 @@ export default async function AuthorDashboardPage() {
   // до нього — у getNarrationOrder(), lib/voice-queue.ts.
   const narration = await getNarrationOrder(25)
 
+  // ЩО НАБИРАЄ ЗАРАЗ — рух за тиждень (17.09.2026).
+  //
+  // Усі інші дошки показують накопичене: за весь час або за 30 днів. Автор,
+  // який учора виклав твір, бачить угорі тих, хто стоїть там місяцями, і не
+  // має жодного сигналу, що його текст пішов. Тиждень — єдиний зріз, у якому
+  // новий твір може опинитися першим, і єдиний, який показує НАСЛІДОК допису
+  // в соцмережах: поділився в понеділок — побачив у середу.
+  //
+  // Сім днів беремо по `read_date` (київська доба), а не по read_at: саме за
+  // цією колонкою стоїть індекс і рахується унікальність рядка.
+  //
+  // Десять рядків, а не двадцять п'ять: за тиждень на платформі набирається
+  // кілька десятків дочитувань, і хвіст складався б із нулів — та сама
+  // помилка, через яку прибрали дошку авторів за голосами.
+  type WeekWork = { id: string; slug: string | null; title: string; type: string | null; author_name: string; reads: number }
+  let weekWorks: WeekWork[] = []
+  try {
+    const ww = await dbQuery(
+      `select c.id::text as id, c.slug, c.title, c.type,
+              coalesce(c.author_name, '') as author_name,
+              count(*)::int as reads
+         from article_reads r
+         join content c on c.id = r.content_id
+        where r.completed = true
+          and r.read_date >= (now() at time zone 'Europe/Kyiv')::date - 7
+          and c.status in ('approved', 'published')
+          and coalesce(c.author_name, '') <> 'Назар Колодій'
+          and (c.author_id is null or r.user_id <> c.author_id)
+        group by c.id, c.slug, c.title, c.type, c.author_name
+        order by count(*) desc, max(r.read_at) desc
+        limit 10`,
+    )
+    weekWorks = ww.rows as WeekWork[]
+  } catch {
+    // Дошка не критична: якщо запит упав, блок просто не з'явиться.
+  }
+
   // Реферальний код автора — для мітки в шаблоні допису.
   // Лежить у `users`, генерується при реєстрації; та сама колонка, з якої
   // будується посилання «Запросити друзів» у /profile.
@@ -623,6 +660,58 @@ export default async function AuthorDashboardPage() {
             )
           })()}
 
+          {weekWorks.length > 0 && (() => {
+            const maxW = Math.max(1, ...weekWorks.map(w => w.reads))
+            const isMineName = (n: string) =>
+              n.trim().toLowerCase() === myName.trim().toLowerCase()
+            return (
+              <RankBoard
+                title="Що набирає зараз"
+                accent="#5FB3C4"
+                hint={<>Десять творів, які найбільше дочитували за останні сім днів.
+                  Тут новий текст може бути першим — на відміну від дощок вище,
+                  де виграє накопичене за місяці.</>}
+              >
+                {weekWorks.map((w, i) => {
+                  const mine = isMineName(w.author_name)
+                  return (
+                    <div key={w.id} style={{ marginBottom: 7 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: '0.86rem', marginBottom: 3 }}>
+                        <span style={{ color: mine ? '#FAC775' : '#e8eef7', fontWeight: mine ? 700 : 400 }}>
+                          {i + 1}.{' '}
+                          {w.slug ? (
+                            <a
+                              href={workPath(w.type, w.slug)}
+                              style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px dotted rgba(143,163,196,0.5)' }}
+                            >
+                              {w.title}
+                            </a>
+                          ) : w.title}
+                          <span style={{ color: '#9fb0c6' }}>
+                            {' · '}{mine ? 'ваш твір' : w.author_name}
+                          </span>
+                        </span>
+                        <span style={{ color: '#5FB3C4', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                          {w.reads} за тиждень
+                        </span>
+                      </div>
+                      <div style={{
+                        height: 10, borderRadius: 5, overflow: 'hidden',
+                        background: 'rgba(143,163,196,0.16)',
+                        border: mine ? '1px solid rgba(239,159,39,0.55)' : '1px solid transparent',
+                      }}>
+                        <div style={{
+                          width: `${Math.max(6, Math.round((w.reads / maxW) * 100))}%`,
+                          height: '100%', background: mine ? '#FAC775' : '#5FB3C4', borderRadius: 5,
+                        }} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </RankBoard>
+            )
+          })()}
+
           {/* РЕЙТИНГ АВТОРІВ ЗА ГОЛОСАМИ — З'ЯВЛЯЄТЬСЯ САМ (17.09.2026).
               Дошка творів переїхала вище, в «Порядок озвучення». Сума голосів
               по авторові лишається корисною, але ЛИШЕ коли є що сумувати:
@@ -765,6 +854,13 @@ export default async function AuthorDashboardPage() {
               день поспіль, {POINTS.review} за відгук, {POINTS.survey} за опитування,
               плюс бали за приведеного друга. Тобто голос — це приблизно п&apos;ять
               дочитаних текстів.
+            </p>
+
+            <p style={{ margin: '0 0 10px' }}>
+              <strong style={{ color: '#5FB3C4' }}>«Що набирає зараз»</strong>{' '}
+              — та сама величина, лише за останні сім днів. Це єдина дошка, де
+              новий твір може стати першим, і найшвидший спосіб побачити, чи
+              спрацював ваш допис у соцмережах.
             </p>
 
             <p style={{ margin: '0 0 10px' }}>
