@@ -189,22 +189,56 @@ export interface NarrationRow {
  * Псевдонім засновника виключено, як і в решті дощок кабінету: 206 творів
  * «Балабонів» і «Тиші» зайняли б усі двадцять п'ять рядків.
  */
+/**
+ * Скільки творів одного автора показуємо в дошці.
+ *
+ * Без обмеження дошка перестає бути дошкою платформи. 17.09.2026, щойно
+ * виправили читання згоди, Зоряна Грабар повернулася в чергу з 37 творами
+ * і зайняла 15 рядків із 25: автор, який відкривав кабінет, бачив список
+ * однієї людини й не знаходив у ньому себе — рівно те, заради чого дошку
+ * й робили. Та сама причина, з якої виключено псевдонім засновника.
+ *
+ * На РЕАЛЬНИЙ порядок озвучення це не впливає: коли дійде до запису, беремо
+ * за голосами з повного списку, а не з видимої частини.
+ */
+const PER_AUTHOR_CAP = 3
+
 export async function getNarrationOrder(limit = 25): Promise<NarrationRow[]> {
   try {
+    /**
+     * Обмеження «не більше трьох на автора» робиться віконною функцією, а не
+     * в TypeScript після вибірки: інакше довелося б тягнути всі 1132 твори,
+     * щоб відсіяти зайве, і limit втратив би сенс. row_number() рахує місце
+     * твору всередині автора за тим самим правилом, що й уся дошка —
+     * спершу голоси, потім дочитування.
+     */
     const r = await dbQuery(
-      `select c.id::text, c.title, c.slug, c.type, c.author_name,
-              (select count(*) from voice_votes v
-                where v.content_id = c.id)::int as votes,
-              (select count(*) from article_reads r
-                where r.content_id = c.id
-                  and r.completed = true
-                  and (c.author_id is null or r.user_id <> c.author_id))::int as reads
-         from content c
-        where ${ELIGIBLE}
-          and coalesce(c.author_name, '') not in (${NOT_RANKED_SQL})
-        order by votes desc, reads desc, c.title
+      `with scored as (
+         select c.id::text as id, c.title, c.slug, c.type, c.author_name,
+                (select count(*) from voice_votes v
+                  where v.content_id = c.id)::int as votes,
+                (select count(*) from article_reads r
+                  where r.content_id = c.id
+                    and r.completed = true
+                    and (c.author_id is null or r.user_id <> c.author_id))::int as reads
+           from content c
+          where ${ELIGIBLE}
+            and coalesce(c.author_name, '') not in (${NOT_RANKED_SQL})
+       ),
+       ranked as (
+         select s.*,
+                row_number() over (
+                  partition by s.author_name
+                      order by s.votes desc, s.reads desc, s.title
+                ) as rn
+           from scored s
+       )
+       select id, title, slug, type, author_name, votes, reads
+         from ranked
+        where rn <= $2
+        order by votes desc, reads desc, title
         limit $1`,
-      [limit],
+      [limit, PER_AUTHOR_CAP],
     )
     return r.rows as NarrationRow[]
   } catch {

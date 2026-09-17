@@ -358,18 +358,32 @@ export default async function AuthorDashboardPage() {
   let weekWorks: WeekWork[] = []
   try {
     const ww = await dbQuery(
-      `select c.id::text as id, c.slug, c.title, c.type,
-              coalesce(c.author_name, '') as author_name,
-              count(*)::int as reads
-         from article_reads r
-         join content c on c.id = r.content_id
-        where r.completed = true
-          and r.read_date >= (now() at time zone 'Europe/Kyiv')::date - 7
-          and c.status in ('approved', 'published')
-          and coalesce(c.author_name, '') <> 'Назар Колодій'
-          and (c.author_id is null or r.user_id <> c.author_id)
-        group by c.id, c.slug, c.title, c.type, c.author_name
-        order by count(*) desc, max(r.read_at) desc
+      `with week as (
+         select c.id::text as id, c.slug, c.title, c.type,
+                coalesce(c.author_name, '') as author_name,
+                count(*)::int as reads,
+                max(r.read_at) as last_read
+           from article_reads r
+           join content c on c.id = r.content_id
+          where r.completed = true
+            and r.read_date >= (now() at time zone 'Europe/Kyiv')::date - 7
+            and c.status in ('approved', 'published')
+            and coalesce(c.author_name, '') <> 'Назар Колодій'
+            and (c.author_id is null or r.user_id <> c.author_id)
+          group by c.id, c.slug, c.title, c.type, c.author_name
+       ),
+       ranked as (
+         select w.*,
+                row_number() over (
+                  partition by w.author_name
+                      order by w.reads desc, w.last_read desc
+                ) as rn
+           from week w
+       )
+       select id, slug, title, type, author_name, reads
+         from ranked
+        where rn <= 2
+        order by reads desc, last_read desc
         limit 10`,
     )
     weekWorks = ww.rows as WeekWork[]
@@ -612,7 +626,9 @@ export default async function AuthorDashboardPage() {
                 accent="#ef9f27"
                 hint={<>Двадцять п&apos;ять творів, які стоять першими. Спершу голоси; у кого
                   голосів порівну — вище той, кого більше дочитали. Смуга показує
-                  дочитування, бо голосів поки одиниці.</>}
+                  дочитування, бо голосів поки одиниці. Від одного автора в дошці
+                  не більше трьох творів — інакше один плідний автор займав би її
+                  всю; на справжній порядок запису це не впливає.</>}
               >
                 {narration.map((w, i) => {
                   const mine = isMineName(w.author_name)
@@ -669,8 +685,8 @@ export default async function AuthorDashboardPage() {
                 title="Що набирає зараз"
                 accent="#5FB3C4"
                 hint={<>Десять творів, які найбільше дочитували за останні сім днів.
-                  Тут новий текст може бути першим — на відміну від дощок вище,
-                  де виграє накопичене за місяці.</>}
+                  Тут новий текст може бути першим — на відміну від дошки вище,
+                  де виграє накопичене за місяці. Від одного автора — не більше двох.</>}
               >
                 {weekWorks.map((w, i) => {
                   const mine = isMineName(w.author_name)
