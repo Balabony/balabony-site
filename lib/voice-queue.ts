@@ -59,15 +59,6 @@ const ELIGIBLE = `
   and c.type::text in ('story', 'balabony', 'tysha')
   and c.author_name is not null
   and (c.audio_status is null or c.audio_status::text <> 'ready')
-  -- 17.09.2026: «Інтерв'ю» з черги виключено. Жанр заведено того ж дня для
-  -- журналістських матеріалів, які лежали в каталозі серед художньої прози
-  -- (розмови з Dorofeeva й пасічником Романом Біланом). Одна з них одразу
-  -- стала четвертою в черзі на озвучення — а черга існує, щоб озвучувати
-  -- ІСТОРІЇ. Начитувати інтерв'ю голосом диктора немає сенсу: там питання,
-  -- відповіді й фактаж, а не сюжет.
-  --
-  -- Фільтр за жанром, а не за типом: тип у них 'story', як у всіх.
-  and coalesce(c.genre, '') <> 'Інтерв''ю'
   and coalesce((
     select ac.status::text
       from author_consents ac
@@ -106,15 +97,49 @@ export interface QueueRow {
 /** Твори з найбільшою кількістю голосів. Уже озвучені не показуємо. */
 export async function getQueue(limit = 20): Promise<QueueRow[]> {
   try {
+    /**
+     * ПЕРЕПИСАНО 17.09.2026. Було `from voice_votes join content` — тобто
+     * черга показувала ЛИШЕ те, за що вже хтось проголосував. Голос на
+     * платформі один, тож читач, який заходив на /cherga, бачив один рядок
+     * і не мав за що голосувати далі. У кабінеті автора при цьому стояло
+     * двадцять п'ять творів, і кнопка «Уся черга й голосування» вела з
+     * двадцяти п'яти рядків на один.
+     *
+     * Тепер починаємо з content і голоси підставляємо збоку: у списку є
+     * всі допущені твори, і кожен можна підняти голосом із нуля.
+     *
+     * Порядок — те саме правило, що ухвалене для кабінету: спершу голоси,
+     * при рівності — дочитування. Власні дочитування автора не рахуються.
+     *
+     * Обмеження трьох творів на автора лишається й тут: 206 серій
+     * «Балабонів» інакше заповнили б усю двадцятку. Серіали, на відміну
+     * від рейтингів кабінету, НЕ виключаються — читач голосує і за них,
+     * і це рішення від 17.09.
+     */
     const r = await dbQuery(
-      `select c.id::text, c.title, c.slug, c.type,
-              c.author_name,
-              count(v.user_id)::int as votes
-         from voice_votes v
-         join content c on c.id = v.content_id
-        where ${ELIGIBLE}
-        group by c.id, c.title, c.slug, c.type, c.author_name
-        order by votes desc, c.title
+      `with scored as (
+         select c.id::text as id, c.title, c.slug, c.type, c.author_name,
+                (select count(*) from voice_votes v
+                  where v.content_id = c.id)::int as votes,
+                (select count(*) from article_reads r
+                  where r.content_id = c.id
+                    and r.completed = true
+                    and (c.author_id is null or r.user_id <> c.author_id))::int as reads
+           from content c
+          where ${ELIGIBLE}
+       ),
+       ranked as (
+         select s.*,
+                row_number() over (
+                  partition by s.author_name
+                      order by s.votes desc, s.reads desc, s.title
+                ) as rn
+           from scored s
+       )
+       select id, title, slug, type, author_name, votes
+         from ranked
+        where rn <= 3
+        order by votes desc, reads desc, title
         limit $1`,
       [limit],
     )
