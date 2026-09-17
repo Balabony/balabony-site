@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import NarrationOrderForm from '@/app/components/NarrationOrderForm'
@@ -15,7 +16,9 @@ import AuthorProfileEditor from '@/app/components/AuthorProfileEditor'
 import { dbQuery } from '@/lib/db'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import PublishWorkButton from '@/app/components/PublishWorkButton'
-import { getAuthorVotes, getQueueWithTrend } from '@/lib/voice-queue'
+import { getAuthorVotes, getNarrationOrder, VOTE_COST } from '@/lib/voice-queue'
+import { POINTS } from '@/lib/points'
+import { workPath } from '@/lib/rss'
 import AddWorkForm from '@/app/components/AddWorkForm'
 import WorksFilter from '@/app/components/WorksFilter'
 import DeleteDraftButton from '@/app/components/DeleteDraftButton'
@@ -140,6 +143,48 @@ function uah(n: number) {
 }
 
 // Верхня смуга з лого — щоб кабінет відчувався частиною сайту
+/**
+ * ОДНА ДОШКА РЕЙТИНГУ — окрема картка (17.09.2026).
+ *
+ * До цього три рейтинги йшли суцільним стовпчиком: заголовок такого ж
+ * розміру, як підпис, і жодної межі між дошками. Око читало це як один
+ * довгий список, у якому «Рейтинг авторів» — просто рядок посередині.
+ *
+ * Картка з власним тлом, рамкою і кольоровою рискою зліва каже те саме без
+ * пояснень: це окремий рахунок, з окремим правилом. Колір риски — та сама
+ * мова, що й у смугах: золото = голоси, зелень = дочитування.
+ */
+function RankBoard({ title, hint, accent, children }: {
+  title: string
+  hint: ReactNode
+  accent: string
+  children: ReactNode
+}) {
+  return (
+    <section style={{
+      marginBottom: 16,
+      padding: '14px 16px 12px',
+      borderRadius: 12,
+      background: 'rgba(8,20,38,0.45)',
+      border: '1px solid rgba(143,163,196,0.22)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
+        <span style={{ width: 4, height: 20, borderRadius: 2, background: accent, flex: '0 0 auto' }} />
+        <h3 style={{
+          margin: 0, color: '#FFF8EE', fontWeight: 800,
+          fontSize: '1.05rem', lineHeight: 1.2, letterSpacing: '0.01em',
+        }}>
+          {title}
+        </h3>
+      </div>
+      <div style={{ color: '#9fb0c6', fontSize: '0.82rem', lineHeight: 1.6, marginBottom: 12 }}>
+        {hint}
+      </div>
+      {children}
+    </section>
+  )
+}
+
 function BrandBar() {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem' }}>
@@ -207,23 +252,7 @@ export default async function AuthorDashboardPage() {
   const coverById = new Map<string, string | null>()
   for (const c of coverRows ?? []) coverById.set(c.id, c.cover_url)
 
-  // Голоси читачів за озвучення кожного твору.
-  //
-  // Автору це потрібніше, ніж будь-кому: черга на /cherga показує спільний
-  // список усіх авторів, і щоб побачити свої твори, він мусив шукати себе
-  // серед інших. А саме він розповідатиме читачам «проголосуйте за мене».
-  //
-  // Окремим запитом через dbQuery, а не .in() зі списком id: у Богдана 138
-  // творів, і довгий IN() у проєкті вже підводив (див. ways-of-working).
-  // ВСЯ ЧЕРГА ПРЯМО В КАБІНЕТІ (17.09.2026).
-  // Доти кабінет мав лише посилання «Подивитися чергу →», і автор не бачив
-  // ані того, хто попереду, ані наскільки він відстав. Побачити суперника —
-  // єдине, що перетворює чергу з оголошення на змагання.
-  // Двадцять, а не п'ять: автор має знайти в списку СЕБЕ, інакше таблиця
-  // показує чужі перемоги й нічого більше. Коли черга переросте двадцятку,
-  // сюди доведеться додати рядок власного твору поза видимою частиною.
-  const queueTop = await getQueueWithTrend(20)
-
+  // Голоси читачів за озвучення кожного твору автора — для карток нижче.
   // Рейтинг АВТОРІВ — окремо від черги творів. Черга показує лише те, за що
   // вже голосували; тут є всі, зокрема з нулем, і автор бачить своє місце
   // серед усіх, а не лише переможців.
@@ -275,7 +304,7 @@ export default async function AuthorDashboardPage() {
   //
   // Дані вже є в author_month_stats (30 днів) — тими самими, що на /avtory.
   // Бракує лише імен: у таблиці лежить author_id.
-  const topReadIds = ranked.slice(0, 12).map(r => r.author_id)
+  const topReadIds = ranked.slice(0, 40).map(r => r.author_id)
   const { data: topReadProfiles } = topReadIds.length
     ? await admin
         .from('author_profiles')
@@ -293,13 +322,23 @@ export default async function AuthorDashboardPage() {
   const readBoard = ranked
     .filter(r => readNameById.has(r.author_id))
     .filter(r => (readNameById.get(r.author_id) ?? '') !== 'Назар Колодій')
-    .slice(0, 10)
+    .slice(0, 25)
     .map(r => ({
       name: readNameById.get(r.author_id) ?? 'Автор',
       reads: r.reads_completed,
       depth: r.avg_percentage,
       isMe: r.author_id === user.id,
     }))
+
+  // ПОРЯДОК ОЗВУЧЕННЯ — окрема дошка (17.09.2026).
+  //
+  // Дошка «Рейтинг творів» рахувала самі голоси, а голос на платформі один:
+  // автор відкривав кабінет і бачив список із одного рядка. Питання «що з
+  // наших творів озвучуватимуть» лишалося без відповіді, хоча дані для неї є.
+  //
+  // Правило: голоси, при рівності — дочитування. Розрахунок і всі застереження
+  // до нього — у getNarrationOrder(), lib/voice-queue.ts.
+  const narration = await getNarrationOrder(25)
 
   // Баланс
   const { data: bal } = await supabase
@@ -487,9 +526,14 @@ export default async function AuthorDashboardPage() {
           marginBottom: '1.5rem', padding: '1rem 1.25rem', borderRadius: 12,
           background: 'rgba(143,163,196,0.10)', border: '1px solid rgba(143,163,196,0.35)',
         }}>
-          <div style={{ color: '#f5f0e8', fontWeight: 700, marginBottom: 6 }}>
+          {/* Заголовок усього блоку має бути помітно більшим за заголовки
+              окремих дощок, інакше їхня ієрархія не читається. */}
+          <h2 style={{
+            margin: '0 0 8px', color: '#FFF8EE', fontWeight: 800,
+            fontSize: '1.35rem', lineHeight: 1.25,
+          }}>
             Що озвучимо першим — вирішують читачі
-          </div>
+          </h2>
           <div style={{ color: '#e8eef7', lineHeight: 1.7, fontSize: '0.95rem', marginBottom: 12 }}>
             Ми не вибираємо самі, кого озвучити. На платформі є черга: читач витрачає
             бали, зароблені читанням, і віддає голос за твір, який хоче почути. Коли
@@ -499,12 +543,80 @@ export default async function AuthorDashboardPage() {
             Тому просування ваших історій — це не лише читачі, а й місце в черзі на
             озвучення. Розкажіть про свої твори там, де вас читають: кожен новий читач
             може віддати голос саме за вас.
+            <br /><br />
+            Порядок такий: спершу голоси, а серед творів із однаковою кількістю
+            голосів вище стоїть той, кого більше дочитали. Голосів поки одиниці,
+            тому сьогодні черга майже повністю вишикувана за дочитуваннями — і
+            саме її ви бачите нижче.
           </div>
-          {/* ДВА РЕЙТИНГИ ГОЛОСІВ, смугами (17.09.2026).
-              Списком цифра голосів читалася разом із кількістю творів автора
-              і плуталася з нею; смуга показує різницю без пояснень.
-              Третій рейтинг — за дочитуваннями — нижче, зеленим: це інша
-              величина, і однаковий колір злив би їх в одну таблицю. */}
+          {/* ДОШКА ПОРЯДКУ ОЗВУЧЕННЯ.
+              Смуга малюється за ДОЧИТУВАННЯМИ, а не за голосами: за голосами
+              вона була б порожньою в усіх рядках, крім одного. Голоси стоять
+              числом ліворуч від дочитувань — саме вони вирішують порядок,
+              щойно з'являться. */}
+          {narration.length > 0 && (() => {
+            const maxR = Math.max(1, ...narration.map(w => w.reads))
+            const isMineName = (n: string | null) =>
+              (n ?? '').trim().toLowerCase() === myName.trim().toLowerCase()
+            return (
+              <RankBoard
+                title="Порядок озвучення"
+                accent="#ef9f27"
+                hint={<>Двадцять п&apos;ять творів, які стоять першими. Спершу голоси; у кого
+                  голосів порівну — вище той, кого більше дочитали. Смуга показує
+                  дочитування, бо голосів поки одиниці.</>}
+              >
+                {narration.map((w, i) => {
+                  const mine = isMineName(w.author_name)
+                  return (
+                    <div key={w.id} style={{ marginBottom: 7 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: '0.86rem', marginBottom: 3 }}>
+                        <span style={{ color: mine ? '#FAC775' : '#e8eef7', fontWeight: mine ? 700 : 400 }}>
+                          {i + 1}.{' '}
+                          {w.slug ? (
+                            <a
+                              href={workPath(w.type, w.slug)}
+                              style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px dotted rgba(143,163,196,0.5)' }}
+                            >
+                              {w.title}
+                            </a>
+                          ) : w.title}
+                          <span style={{ color: '#9fb0c6' }}>
+                            {' · '}{mine ? 'ваш твір' : (w.author_name ?? '')}
+                          </span>
+                        </span>
+                        <span style={{ whiteSpace: 'nowrap' }}>
+                          <span style={{ color: w.votes > 0 ? '#FAC775' : '#8296ad', fontWeight: 700 }}>
+                            {w.votes} гол.
+                          </span>
+                          <span style={{ color: '#9fb0c6' }}>{' · '}</span>
+                          <span style={{ color: '#97C459', fontWeight: 700 }}>
+                            {w.reads} дочит.
+                          </span>
+                        </span>
+                      </div>
+                      <div style={{
+                        height: 10, borderRadius: 5, overflow: 'hidden',
+                        background: 'rgba(143,163,196,0.16)',
+                        border: mine ? '1px solid rgba(239,159,39,0.55)' : '1px solid transparent',
+                      }}>
+                        <div style={{
+                          width: `${w.reads > 0 ? Math.max(6, Math.round((w.reads / maxR) * 100)) : 0}%`,
+                          height: '100%', background: mine ? '#FAC775' : '#97C459', borderRadius: 5,
+                        }} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </RankBoard>
+            )
+          })()}
+
+          {/* РЕЙТИНГ АВТОРІВ ЗА ГОЛОСАМИ.
+              Дошка творів переїхала вище, в «Порядок озвучення»: голоси й
+              дочитування в одному рядку показують те саме, тільки чесніше.
+              Тут лишилася сума голосів по авторові — вона з рядків творів
+              не складається очима. */}
           {(() => {
             const Bar = ({ pos, label, sub, votes, recent, mine, max }: {
               pos: number; label: string; sub?: string
@@ -542,44 +654,22 @@ export default async function AuthorDashboardPage() {
             const isMine = (n: string | null) =>
               (n ?? '').trim().toLowerCase() === myName.trim().toLowerCase()
 
-            const works = queueTop.slice(0, 10)
-            const maxWork = Math.max(1, ...works.map(w => w.votes))
             const authors = authorVotes.slice(0, 10)
             const maxAuthor = Math.max(1, ...authors.map(a => a.votes))
 
             return (
               <>
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ color: '#f5f0e8', fontWeight: 700, fontSize: '0.92rem', marginBottom: 2 }}>
-                    Рейтинг творів
-                  </div>
-                  <div style={{ color: '#9fb0c6', fontSize: '0.82rem', marginBottom: 10 }}>
-                    Скільки читачів проголосували за озвучення кожного тексту. Зеленим — за тиждень.
-                  </div>
-                  {works.length === 0 ? (
-                    <div style={{ color: '#9fb0c6', fontSize: '0.86rem' }}>
-                      За жоден твір поки не проголосували.
-                    </div>
-                  ) : works.map((w, i) => (
-                    <Bar key={w.id} pos={i + 1} label={w.title}
-                      sub={isMine(w.author_name) ? 'ваш твір' : (w.author_name ?? '')}
-                      votes={w.votes} recent={w.recent} mine={isMine(w.author_name)} max={maxWork} />
-                  ))}
-                </div>
-
-                <div style={{ marginBottom: 14 }}>
-                  <div style={{ color: '#f5f0e8', fontWeight: 700, fontSize: '0.92rem', marginBottom: 2 }}>
-                    Рейтинг авторів
-                  </div>
-                  <div style={{ color: '#9fb0c6', fontSize: '0.82rem', marginBottom: 10 }}>
-                    Сума голосів за всі твори автора.
-                  </div>
+                <RankBoard
+                  title="Рейтинг авторів за голосами"
+                  accent="#ef9f27"
+                  hint="Сума голосів за всі твори автора."
+                >
                   {authors.map((a, i) => (
                     <Bar key={a.author_name} pos={i + 1}
                       label={isMine(a.author_name) ? 'Ви' : a.author_name}
                       votes={a.votes} recent={a.recent} mine={isMine(a.author_name)} max={maxAuthor} />
                   ))}
-                </div>
+                </RankBoard>
               </>
             )
           })()}
@@ -587,13 +677,12 @@ export default async function AuthorDashboardPage() {
           {readBoard.length > 0 && (() => {
             const maxRead = Math.max(1, ...readBoard.map(r => r.reads))
             return (
-              <div style={{ marginBottom: 14, paddingTop: 12, borderTop: '1px solid rgba(143,163,196,0.22)' }}>
-                <div style={{ color: '#f5f0e8', fontWeight: 700, fontSize: '0.92rem', marginBottom: 2 }}>
-                  Рейтинг за дочитуваннями
-                </div>
-                <div style={{ color: '#9fb0c6', fontSize: '0.82rem', marginBottom: 10 }}>
-                  Скільки читачів довели текст щонайменше до 70% за останні 30 днів. Це інша величина, ніж голоси: не «хочу почути», а «прочитав».
-                </div>
+              <RankBoard
+                title="Рейтинг авторів за дочитуваннями"
+                accent="#97C459"
+                hint={<>Двадцять п&apos;ять авторів за дочитуваннями їхніх текстів за останні
+                  30 днів. Це інша величина, ніж голоси: не «хочу почути», а «прочитав».</>}
+              >
                 {readBoard.map((r, i) => (
                   <div key={r.name} style={{ marginBottom: 7 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: '0.86rem', marginBottom: 3 }}>
@@ -617,9 +706,118 @@ export default async function AuthorDashboardPage() {
                     </div>
                   </div>
                 ))}
-              </div>
+              </RankBoard>
             )
           })()}
+
+          {/* ПОЯСНЕННЯ ПІД ДОШКАМИ (17.09.2026).
+              Три рейтинги поруч читалися як одне «місце автора», і питання
+              «як мене озвучать» лишалося без відповіді. Тут єдине джерело
+              правди для автора: що на що впливає, скільки коштує голос і
+              що саме він може зробити. Цифри беруться з POINTS і VOTE_COST —
+              якщо їх змінять у lib/points.ts чи lib/voice-queue.ts, текст
+              треба поправити разом. */}
+          <section style={{
+            marginBottom: 16, padding: '14px 16px 12px', borderRadius: 12,
+            background: 'rgba(8,20,38,0.45)',
+            border: '1px solid rgba(143,163,196,0.22)',
+            color: '#c9d6e6', fontSize: '0.86rem', lineHeight: 1.7,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              <span style={{ width: 4, height: 20, borderRadius: 2, background: '#8FA3C4', flex: '0 0 auto' }} />
+              <h3 style={{
+                margin: 0, color: '#FFF8EE', fontWeight: 800,
+                fontSize: '1.05rem', lineHeight: 1.2, letterSpacing: '0.01em',
+              }}>
+                Що на що впливає
+              </h3>
+            </div>
+
+            <p style={{ margin: '0 0 10px' }}>
+              <strong>Правило черги.</strong>{' '}
+              Спершу голоси: твір із двома голосами стоїть вище за твір з одним,
+              скільки б його не читали. Серед творів з однаковою кількістю голосів
+              вище той, кого більше дочитали. Сьогодні голос на платформі майже
+              скрізь нуль, тож порядок фактично задають дочитування — але щойно
+              голоси підуть, вони переважать.
+            </p>
+
+            <p style={{ margin: '0 0 10px' }}>
+              <strong style={{ color: '#FAC775' }}>Голоси.</strong>{' '}
+              Один читач може віддати за
+              твір один голос, і голос коштує йому {VOTE_COST} балів. Бали читач
+              заробляє читанням: {POINTS.read} за дочитаний текст, {POINTS.streak} за
+              день поспіль, {POINTS.review} за відгук, {POINTS.survey} за опитування,
+              плюс бали за приведеного друга. Тобто голос — це приблизно п&apos;ять
+              дочитаних текстів.
+            </p>
+
+            <p style={{ margin: '0 0 10px' }}>
+              <strong style={{ color: '#97C459' }}>Дочитування.</strong>{' '}
+              Дочитування зараховується, коли
+              читач довів текст щонайменше до 70% і провів на сторінці понад
+              15 секунд; один читач дає одне зарахування за твір на добу. Відкриття
+              сторінки не рахується, власні відкриття автора теж ні. Це та сама
+              величина, за якою рахується винагорода за договором.
+            </p>
+
+            <p style={{ margin: '0 0 10px' }}>
+              <strong>Хто взагалі бере участь у голосуванні.</strong>{' '}
+              Усі опубліковані твори авторів, які підписали згоду. Уже озвучені
+              з черги зникають. Автори, які згоду відкликали, не беруть участі:
+              озвучувати їх ми не маємо права.
+            </p>
+
+            <p style={{ margin: '0 0 10px' }}>
+              <strong>Як просунути свій твір уперед.</strong>{' '}
+              Спосіб один — привести читачів. Редакція місць у черзі не роздає і
+              порядок не міняє: ні за стаж, ні за кількість творів, ні на прохання.
+              Розкажіть про свою історію там, де вас уже читають, — кожен новий
+              читач, який дочитає кілька текстів, отримає голос і зможе віддати
+              його саме за вас. Готовий допис для соцмереж є вище в кабінеті.
+            </p>
+
+            {/* ІНСТРУКЦІЯ ДЛЯ ЧИТАЧА, а не для автора (17.09.2026).
+                Автор питає «як мене озвучать», але зробити сам він може одне —
+                пояснити механіку своїм читачам. Доти ці кроки жили лише на
+                /cherga, куди читач не зайде, поки хтось його не покличе. */}
+            <div style={{
+              margin: '0 0 12px', padding: '10px 12px', borderRadius: 10,
+              background: 'rgba(143,163,196,0.10)',
+            }}>
+              <div style={{ color: '#f5f0e8', fontWeight: 700, marginBottom: 6 }}>
+                Як читач голосує — перекажіть це своїм читачам
+              </div>
+              <ol style={{ margin: 0, paddingLeft: '1.1rem' }}>
+                <li style={{ marginBottom: 4 }}>
+                  Зареєструватися на сайті. Без акаунта бали не нараховуються й голос не зарахується.
+                </li>
+                <li style={{ marginBottom: 4 }}>
+                  Читати. {POINTS.read} балів за дочитаний текст, {POINTS.streak} за читання
+                  кілька днів поспіль, {POINTS.review} за відгук, {POINTS.survey} за опитування,
+                  плюс бали за друга, який прийшов за запрошенням.
+                </li>
+                <li style={{ marginBottom: 4 }}>
+                  Відкрити сторінку{' '}
+                  <a href="/cherga" style={{ color: '#FAC775' }}>balabony.com/cherga</a>,
+                  вибрати зі списку автора, а потім його твір.
+                </li>
+                <li>
+                  Натиснути «Проголосувати»: спишеться {VOTE_COST} балів. За кожен твір —
+                  один раз, тож голоси варто розкласти на кілька текстів.
+                </li>
+              </ol>
+              <div style={{ color: '#9fb0c6', marginTop: 6 }}>
+                Коротко: приблизно п&apos;ять дочитаних текстів — один голос.
+              </div>
+            </div>
+
+            <p style={{ margin: 0, color: '#9fb0c6' }}>
+              Коштів на озвучення зараз немає — ми про це казали чесно. Черга
+              потрібна, щоб у день, коли гроші з&apos;являться, не вирішувала
+              редакція.
+            </p>
+          </section>
 
           <a
             href="/cherga"

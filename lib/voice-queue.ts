@@ -135,6 +135,62 @@ export async function getQueueWithTrend(limit = 20): Promise<QueueTrendRow[]> {
   }
 }
 
+export interface NarrationRow {
+  id: string
+  title: string
+  slug: string | null
+  type: string
+  author_name: string | null
+  votes: number
+  reads: number
+}
+
+/**
+ * ПОРЯДОК ОЗВУЧЕННЯ — єдина дошка замість трьох здогадок (17.09.2026).
+ *
+ * ПРАВИЛО, ухвалене Богданом: спершу голоси, при рівності — дочитування.
+ * Голос лишається головним: читач витратив за нього 50 балів, і відібрати
+ * в нього вирішальне слово заднім числом не можна. Але поки голос на
+ * платформі один, рівність — це стан майже всієї черги, тож фактичний
+ * порядок сьогодні задають дочитування. Обидві цифри показуємо поруч, щоб
+ * автор бачив, що саме підняло твір угору.
+ *
+ * ЧОМУ НЕ getQueue(). Та функція починає з voice_votes і показує ЛИШЕ те,
+ * за що вже голосували, — сьогодні це один рядок. Тут навпаки: беремо всі
+ * твори, які взагалі допущені до озвучення, і голоси підставляємо збоку.
+ * Автор має бачити свій твір у списку ДО першого голосу, інакше дошка
+ * нічого йому не каже.
+ *
+ * ВЛАСНІ ДОЧИТУВАННЯ АВТОРА не рахуються — те саме правило, що в конкурсі
+ * (lib/contest-reads.ts). Інакше порядок озвучення можна було б підняти,
+ * відкриваючи власний текст щодня.
+ *
+ * Псевдонім засновника виключено, як і в решті дощок кабінету: 206 творів
+ * «Балабонів» і «Тиші» зайняли б усі двадцять п'ять рядків.
+ */
+export async function getNarrationOrder(limit = 25): Promise<NarrationRow[]> {
+  try {
+    const r = await dbQuery(
+      `select c.id::text, c.title, c.slug, c.type, c.author_name,
+              (select count(*) from voice_votes v
+                where v.content_id = c.id)::int as votes,
+              (select count(*) from article_reads r
+                where r.content_id = c.id
+                  and r.completed = true
+                  and (c.author_id is null or r.user_id <> c.author_id))::int as reads
+         from content c
+        where ${ELIGIBLE}
+          and coalesce(c.author_name, '') not in (${NOT_RANKED_SQL})
+        order by votes desc, reads desc, c.title
+        limit $1`,
+      [limit],
+    )
+    return r.rows as NarrationRow[]
+  } catch {
+    return []
+  }
+}
+
 export interface AuthorVoteRow {
   author_name: string
   votes: number
