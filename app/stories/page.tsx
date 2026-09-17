@@ -10,6 +10,7 @@ import Breadcrumbs from '../components/Breadcrumbs'
 import { toExcerpt } from '@/lib/plain-text'
 import { redirect } from 'next/navigation'
 import { normalizeGenre, GENRE_PAGES } from '@/lib/genres'
+import { orderWithCycles } from '@/lib/cycle-order'
 
 /**
  * Сторінка перебудовується сама з бази, без деплою: перший відвідувач після
@@ -90,8 +91,19 @@ async function getStories(): Promise<Story[]> {
     approved_at: string | null
     created_at: string
   })[]
-  rows.sort((a, b) => sortDate(b) - sortDate(a))
-  return rows.map((s) => ({
+  /**
+   * 17.09.2026: та сама правка, що на сторінці жанру. Каталог сортувався
+   * чистою датою заливки, тому частини циклів стояли врозсип. Тут автори
+   * НЕ розводяться (`spread: false`): у повному каталозі це лише рвало б
+   * порядок, а зміщення однакових підписів вирішує сам обсяг списку.
+   */
+  const ordered = orderWithCycles(rows, {
+    titleOf: (r) => r.title,
+    dateOf: sortDate,
+    authorOf: (r) => r.author_name ?? '',
+    spread: false,
+  })
+  return ordered.map((s) => ({
     id: s.slug,
     title: s.title,
     author: s.author_name,

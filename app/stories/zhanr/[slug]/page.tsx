@@ -11,6 +11,7 @@ import StoriesPaged from '../../../components/StoriesPaged'
 import Breadcrumbs from '../../../components/Breadcrumbs'
 import { toExcerpt } from '@/lib/plain-text'
 import { GENRES, GENRE_PAGES, genreBySlug } from '@/lib/genres'
+import { orderWithCycles } from '@/lib/cycle-order'
 
 /**
  * Сторінка одного жанру: /stories/zhanr/humor
@@ -92,31 +93,6 @@ function sortDate(s: { published_at: string | null; approved_at: string | null; 
   return new Date(s.published_at ?? s.approved_at ?? s.created_at).getTime()
 }
 
-/**
- * Розсуває твори одного автора.
- *
- * Твори заливаються партіями, тому за чистою датою десяток робіт одного
- * автора лягає підряд і сторінка жанру виглядає як його персональна добірка.
- * Порядок за свіжістю лишається, але однакові підписи розводяться: беремо
- * наступного автора, якщо попередній щойно був.
- */
-function spreadByAuthor(rows: StoryRow[]): void {
-  const out: StoryRow[] = []
-  const pool = [...rows]
-  let prev: string | null = null
-
-  while (pool.length > 0) {
-    let i = pool.findIndex((r) => (r.author_name ?? '') !== prev)
-    if (i === -1) i = 0
-    const [taken] = pool.splice(i, 1)
-    out.push(taken)
-    prev = taken.author_name ?? ''
-  }
-
-  rows.length = 0
-  rows.push(...out)
-}
-
 async function getStoriesByGenre(genre: string): Promise<Story[]> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
@@ -127,9 +103,18 @@ async function getStoriesByGenre(genre: string): Promise<Story[]> {
     .eq('genre', genre)
   if (error || !data) return []
 
-  const rows = data as StoryRow[]
-  rows.sort((a, b) => sortDate(b) - sortDate(a))
-  spreadByAuthor(rows)
+  /**
+   * 17.09.2026: було `sort(за датою) + spreadByAuthor(по творах)`.
+   * На «Фантастиці» це дало 37 частин «Менталеса» й «Зворотної сепарації»
+   * у порядку 15, 14, 16, 9 — читач не бачив, з чого починати. Тепер цикл
+   * збирається в блок і сортується за номером частини, а розведення
+   * авторів працює поверх блоків (див. lib/cycle-order.ts).
+   */
+  const rows = orderWithCycles(data as StoryRow[], {
+    titleOf: (r) => r.title,
+    dateOf: sortDate,
+    authorOf: (r) => r.author_name ?? '',
+  })
   return rows.map((s) => ({
     id: s.slug,
     title: s.title,
