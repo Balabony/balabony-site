@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ContestReads from '@/app/components/ContestReads'
-import { CONTESTS, findContest, isOpen, type Contest, prizeLine } from '@/lib/contests'
+import { CONTESTS, findContest, isOpen, type Contest, prizeFund, prizeLine, topPrize } from '@/lib/contests'
 
 /**
  * Окрема сторінка одного конкурсу — під QR-код у газеті.
@@ -29,6 +29,19 @@ import { CONTESTS, findContest, isOpen, type Contest, prizeLine } from '@/lib/co
  */
 
 export const revalidate = 3600
+
+/**
+ * Короткий рядок призів для шапки картки.
+ *
+ * prizeLine() перелічує ВСІ місця. У конкурсах на три призи це один рядок,
+ * а в казковому їх одинадцять — і шапка розтягалася на три рядки золотого
+ * тексту, з якого не видно головного числа. Тому від чотирьох місць і
+ * більше показуємо перше місце й фонд, а повний перелік лишається в умовах.
+ */
+function shortPrize(c: Contest): string {
+  if (c.awards.length <= 3) return prizeLine(c)
+  return `${topPrize(c)} перше місце · призовий фонд ${prizeFund(c)}`
+}
 
 export function generateStaticParams() {
   return CONTESTS.map(c => ({ contest: c.id }))
@@ -70,7 +83,7 @@ export async function generateMetadata(
   if (!c) return { title: 'Конкурс — Balabony' }
 
   const title = `${c.name} — конкурс Balabony`
-  const description = `${c.tagline} ${prizeLine(c)}. Заявки до ${humanDate(c.closesAt)}.`
+  const description = `${c.tagline} ${shortPrize(c)}. Заявки до ${humanDate(c.closesAt)}.`
 
   return {
     title,
@@ -107,15 +120,18 @@ export default async function ContestPage(
   const facts: { k: string; v: string }[] = [
     {
       k: 'Обсяг',
-      v: c.episodes > 1
-        ? `${c.episodes} серій по ${c.minWords}–${c.maxWords} слів`
-        : `одна історія ${c.minWords}–${c.maxWords} слів`,
+      v: c.volumeLabel
+        ?? (c.episodes > 1
+          ? `${c.episodes} серій по ${c.minWords}–${c.maxWords} слів`
+          : `одна історія ${c.minWords}–${c.maxWords} слів`),
     },
     ...(c.episodes > 1
       ? [{ k: 'Як надсилати', v: c.atOnce ? 'усі серії за один раз' : 'серії можна досилати по черзі' }]
       : []),
     { k: 'Прийом', v: `${humanDate(c.opensAt)} — ${humanDate(c.closesAt)}` },
-    ...(c.stages.publishFrom ? [{ k: 'Перша серія', v: humanDate(c.stages.publishFrom) }] : []),
+    ...(c.stages.publishFrom
+      ? [{ k: c.episodes > 1 ? 'Перша серія' : 'Публікація', v: humanDate(c.stages.publishFrom) }]
+      : []),
     ...(c.stages.resultsAt ? [{ k: 'Підсумки', v: humanDate(c.stages.resultsAt) }] : []),
   ]
 
@@ -153,7 +169,7 @@ export default async function ContestPage(
             marginTop: 20, padding: '14px 16px', borderRadius: 10,
             background: NAVY_DEEP, borderLeft: `3px solid ${GOLD}`,
           }}>
-            <div style={{ fontSize: 17, fontWeight: 700, color: GOLD_SOFT }}>{prizeLine(c)}</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: GOLD_SOFT }}>{shortPrize(c)}</div>
             <div style={{ fontSize: 14, color: MUTED, marginTop: 5 }}>{acceptance(c)}</div>
           </div>
 

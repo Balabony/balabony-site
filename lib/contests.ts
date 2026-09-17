@@ -25,6 +25,14 @@ export interface Contest {
   episodes: number
   minWords: number
   maxWords: number
+  /**
+   * Підпис обсягу для картки конкурсу. Потрібен там, де minWords/maxWords
+   * не описують форму твору: у казковому конкурсі це ТРИ казки в одному
+   * файлі, а не «одна історія 2400-4500 слів», як вивело б стандартне
+   * правило за episodes: 1. Без цього автор надсилає одну довгу казку.
+   * Порожньо — підпис збирається автоматично з episodes і меж слів.
+   */
+  volumeLabel?: string
   /** true — всі серії за один раз; false — можна досилати по черзі. */
   atOnce: boolean
   /** Прийом заявок, включно з обома датами. */
@@ -221,6 +229,7 @@ export const CONTESTS: Contest[] = [
     episodes: 1,
     minWords: 2400,
     maxWords: 4500,
+    volumeLabel: 'три казки в одному файлі, кожна 800–1500 слів',
     atOnce: true,
     opensAt: '2026-10-25',
     closesAt: '2026-11-15',
