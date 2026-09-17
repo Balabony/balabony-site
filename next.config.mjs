@@ -73,6 +73,24 @@ const nextConfig = {
         destination: '/stories/zhanr/kazky-na-nich',
         permanent: true,
       },
+      // Три розділи перейменовано 17.09.2026 за виміром попиту (див. коментарі
+      // в lib/genres.ts). Старі адреси проіндексовані й стоять у sitemap —
+      // постійний редирект передає новій сторінці вагу старої.
+      {
+        source: '/stories/zhanr/detektyv',
+        destination: '/stories/zhanr/ukrainski-detektyvy',
+        permanent: true,
+      },
+      {
+        source: '/stories/zhanr/drama',
+        destination: '/stories/zhanr/sumni-istorii',
+        permanent: true,
+      },
+      {
+        source: '/stories/zhanr/dytiachi-opovidannia',
+        destination: '/stories/zhanr/opovidannia-dlia-ditei',
+        permanent: true,
+      },
     ]
   },
   async headers() {
