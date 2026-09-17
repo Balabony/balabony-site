@@ -267,6 +267,40 @@ export default async function AuthorDashboardPage() {
   const myIndex = ranked.findIndex((r) => r.author_id === user.id)
   const mine = myIndex >= 0 ? ranked[myIndex] : null
 
+  // ТРЕТІЙ РЕЙТИНГ — ЗА ДОЧИТУВАННЯМИ (17.09.2026).
+  //
+  // Два попередні рахують ГОЛОСИ за озвучення: це те, чого читач хоче, а не
+  // те, що він прочитав. Дочитування — інша величина й інша заслуга: 70%
+  // тексту, доведені до кінця. Тому окремий блок, а не колонка в наявному.
+  //
+  // Дані вже є в author_month_stats (30 днів) — тими самими, що на /avtory.
+  // Бракує лише імен: у таблиці лежить author_id.
+  const topReadIds = ranked.slice(0, 12).map(r => r.author_id)
+  const { data: topReadProfiles } = topReadIds.length
+    ? await admin
+        .from('author_profiles')
+        .select('user_id, display_name, pen_name, hide_from_directory')
+        .in('user_id', topReadIds) as {
+          data: { user_id: string; display_name: string | null; pen_name: string | null; hide_from_directory: boolean | null }[] | null
+        }
+    : { data: [] }
+
+  const readNameById = new Map(
+    (topReadProfiles ?? []).map(p => [p.user_id, (p.pen_name?.trim() || p.display_name || 'Автор').trim()]),
+  )
+
+  // Псевдонім засновника з рейтингів прибрано — як і в голосуванні.
+  const readBoard = ranked
+    .filter(r => readNameById.has(r.author_id))
+    .filter(r => (readNameById.get(r.author_id) ?? '') !== 'Назар Колодій')
+    .slice(0, 10)
+    .map(r => ({
+      name: readNameById.get(r.author_id) ?? 'Автор',
+      reads: r.reads_completed,
+      depth: r.avg_percentage,
+      isMe: r.author_id === user.id,
+    }))
+
   // Баланс
   const { data: bal } = await supabase
     .from('author_balance')
@@ -466,114 +500,130 @@ export default async function AuthorDashboardPage() {
             озвучення. Розкажіть про свої твори там, де вас читають: кожен новий читач
             може віддати голос саме за вас.
           </div>
-          {/* ДВА ОКРЕМІ РЕЙТИНГИ (17.09.2026): твори й автори.
-              Озвучують конкретний текст, тому головний рейтинг — по творах.
-              Рейтинг авторів потрібен окремо: автор має бачити, де він серед
-              усіх, а не лише те, чий твір попереду. Вигляд однаковий, щоб
-              читалися як одна панель. */}
-
-          {(() => {
-            // Спільна смуга для обох рейтингів: підпис, число, шкала.
-            const Bar = ({ pos, label, sub, votes, recent, mine, max }: {
-              pos: number; label: string; sub?: string
-              votes: number; recent: number; mine: boolean; max: number
-            }) => {
-              const w = votes > 0 ? Math.max(6, Math.round((votes / max) * 100)) : 0
-              const word = votes === 1
-                ? 'голос'
-                : votes % 10 >= 2 && votes % 10 <= 4 && (votes < 10 || votes > 20)
-                  ? 'голоси'
-                  : 'голосів'
-              return (
-                <div style={{ marginBottom: 7 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: '0.86rem', marginBottom: 3 }}>
-                    <span style={{ color: mine ? '#FAC775' : '#e8eef7', fontWeight: mine ? 700 : 400 }}>
-                      {pos}. {label}
-                      {sub && <span style={{ color: '#9fb0c6' }}>{' · '}{sub}</span>}
-                    </span>
-                    <span style={{ color: '#FAC775', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                      {votes} {word}
-                      {recent > 0 && <span style={{ color: '#97C459' }}>{' +'}{recent}</span>}
-                    </span>
-                  </div>
-                  <div style={{
-                    height: 10, borderRadius: 5, overflow: 'hidden',
-                    background: 'rgba(143,163,196,0.16)',
-                    border: mine ? '1px solid rgba(239,159,39,0.55)' : '1px solid transparent',
+          {queueTop.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ color: '#f5f0e8', fontWeight: 700, fontSize: '0.92rem', marginBottom: 8 }}>
+                Черга зараз
+                <span style={{ color: '#9fb0c6', fontWeight: 400 }}>
+                  {' · '}у дужках — голоси за останній тиждень
+                </span>
+              </div>
+              {queueTop.map((q, i) => {
+                const mine =
+                  (q.author_name ?? '').trim().toLowerCase() === myName.trim().toLowerCase()
+                return (
+                  <div key={q.id} style={{
+                    display: 'flex', justifyContent: 'space-between', gap: 12,
+                    padding: '8px 10px', borderRadius: 8, marginBottom: 4,
+                    background: mine ? 'rgba(239,159,39,0.14)' : 'rgba(10,22,40,0.45)',
+                    border: mine ? '1px solid rgba(239,159,39,0.45)' : '1px solid transparent',
                   }}>
-                    <div style={{ width: `${w}%`, height: '100%', background: mine ? '#FAC775' : '#ef9f27', borderRadius: 5 }} />
+                    <span style={{ color: '#e8eef7', fontSize: '0.9rem' }}>
+                      {i + 1}. {q.title}
+                      <span style={{ color: '#9fb0c6' }}>
+                        {' · '}{mine ? 'ваш твір' : q.author_name}
+                      </span>
+                    </span>
+                    <span style={{ color: '#FAC775', fontWeight: 700, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
+                      {q.votes}{' '}
+                      {q.votes === 1 ? 'голос' : q.votes < 5 ? 'голоси' : 'голосів'}
+                      {q.recent > 0 && (
+                        <span style={{ color: '#97C459' }}>{' (+'}{q.recent}{')'}</span>
+                      )}
+                    </span>
                   </div>
-                </div>
-              )
-            }
+                )
+              })}
+              <div style={{ color: '#9fb0c6', fontSize: '0.85rem', marginTop: 8 }}>
+                {queueTop.some(q => (q.author_name ?? '').trim().toLowerCase() === myName.trim().toLowerCase())
+                  ? 'Ваш твір у черзі. Щоб утримати місце, продовжуйте ділитися посиланням — кнопка «Текст для соцмереж» під кожним твором.'
+                  : `Ваших творів у черзі поки немає: у неї потрапляє твір, за який проголосував хоча б один читач. Кнопка «Текст для соцмереж» під кожним твором дає готовий допис із проханням проголосувати.`}
+              </div>
+            </div>
+          )}
 
-            const isMine = (n: string | null) =>
-              (n ?? '').trim().toLowerCase() === myName.trim().toLowerCase()
-
-            const works = queueTop.slice(0, 10)
-            const maxWork = Math.max(1, ...works.map(w => w.votes))
-
-            const meIdx = authorVotes.findIndex(a => isMine(a.author_name))
-            const authors = authorVotes.slice(0, 10)
-            const maxAuthor = Math.max(1, ...authors.map(a => a.votes))
-
+          {authorVotes.length > 0 && (() => {
+            const meIdx = authorVotes.findIndex(
+              a => (a.author_name ?? '').trim().toLowerCase() === myName.trim().toLowerCase(),
+            )
+            // Десятка плюс власний рядок, якщо він за її межами: повний
+            // перелік на сто авторів у кабінеті нічого не пояснює.
+            const shown = authorVotes.slice(0, 10)
+            const extra = meIdx >= 10 ? [authorVotes[meIdx]] : []
             return (
-              <>
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ color: '#f5f0e8', fontWeight: 700, fontSize: '0.92rem', marginBottom: 2 }}>
-                    Рейтинг творів
-                  </div>
-                  <div style={{ color: '#9fb0c6', fontSize: '0.82rem', marginBottom: 10 }}>
-                    Скільки читачів проголосували за озвучення кожного тексту. Зеленим — за тиждень.
-                  </div>
-                  {works.length === 0 ? (
-                    <div style={{ color: '#9fb0c6', fontSize: '0.86rem' }}>
-                      За жоден твір поки не проголосували.
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ color: '#f5f0e8', fontWeight: 700, fontSize: '0.92rem', marginBottom: 8 }}>
+                  Рейтинг авторів за голосами
+                  <span style={{ color: '#9fb0c6', fontWeight: 400 }}>
+                    {' · '}усі автори платформи, у дужках — за тиждень
+                  </span>
+                </div>
+                {[...shown, ...extra].map((a) => {
+                  const pos = authorVotes.indexOf(a) + 1
+                  const mine = (a.author_name ?? '').trim().toLowerCase() === myName.trim().toLowerCase()
+                  return (
+                    <div key={a.author_name} style={{
+                      display: 'flex', justifyContent: 'space-between', gap: 12,
+                      padding: '7px 10px', borderRadius: 8, marginBottom: 3,
+                      background: mine ? 'rgba(239,159,39,0.14)' : 'rgba(10,22,40,0.45)',
+                      border: mine ? '1px solid rgba(239,159,39,0.45)' : '1px solid transparent',
+                    }}>
+                      <span style={{ color: '#e8eef7', fontSize: '0.9rem' }}>
+                        {pos}. {mine ? 'Ви' : a.author_name}
+                        <span style={{ color: '#9fb0c6' }}>{' · '}{a.works} творів</span>
+                      </span>
+                      <span style={{ color: '#FAC775', fontWeight: 700, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
+                        {a.votes}
+                        {a.recent > 0 && (
+                          <span style={{ color: '#97C459' }}>{' (+'}{a.recent}{')'}</span>
+                        )}
+                      </span>
                     </div>
-                  ) : works.map((w, i) => (
-                    <Bar
-                      key={w.id}
-                      pos={i + 1}
-                      label={w.title}
-                      sub={isMine(w.author_name) ? 'ваш твір' : (w.author_name ?? '')}
-                      votes={w.votes}
-                      recent={w.recent}
-                      mine={isMine(w.author_name)}
-                      max={maxWork}
-                    />
-                  ))}
-                </div>
+                  )
+                })}
+                {meIdx >= 10 && (
+                  <div style={{ color: '#9fb0c6', fontSize: '0.85rem', marginTop: 6 }}>
+                    Ваш рядок показано окремо — він поза десяткою.
+                  </div>
+                )}
+              </div>
+            )
+          })()}
 
-                <div style={{ marginBottom: 14 }}>
-                  <div style={{ color: '#f5f0e8', fontWeight: 700, fontSize: '0.92rem', marginBottom: 2 }}>
-                    Рейтинг авторів
-                  </div>
-                  <div style={{ color: '#9fb0c6', fontSize: '0.82rem', marginBottom: 10 }}>
-                    Сума голосів за всі твори автора. Показано десятку; ваш рядок — окремо, якщо він нижче.
-                  </div>
-                  {authors.map((a, i) => (
-                    <Bar
-                      key={a.author_name}
-                      pos={i + 1}
-                      label={isMine(a.author_name) ? 'Ви' : a.author_name}
-                      votes={a.votes}
-                      recent={a.recent}
-                      mine={isMine(a.author_name)}
-                      max={maxAuthor}
-                    />
-                  ))}
-                  {meIdx >= 10 && (
-                    <Bar
-                      pos={meIdx + 1}
-                      label="Ви"
-                      votes={authorVotes[meIdx].votes}
-                      recent={authorVotes[meIdx].recent}
-                      mine
-                      max={maxAuthor}
-                    />
-                  )}
+          {readBoard.length > 0 && (() => {
+            const maxRead = Math.max(1, ...readBoard.map(r => r.reads))
+            return (
+              <div style={{ marginBottom: 14, paddingTop: 12, borderTop: '1px solid rgba(143,163,196,0.22)' }}>
+                <div style={{ color: '#f5f0e8', fontWeight: 700, fontSize: '0.92rem', marginBottom: 2 }}>
+                  Рейтинг за дочитуваннями
                 </div>
-              </>
+                <div style={{ color: '#9fb0c6', fontSize: '0.82rem', marginBottom: 10 }}>
+                  Скільки читачів довели текст щонайменше до 70% за останні 30 днів. Це інша величина, ніж голоси: не «хочу почути», а «прочитав».
+                </div>
+                {readBoard.map((r, i) => (
+                  <div key={r.name} style={{ marginBottom: 7 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: '0.86rem', marginBottom: 3 }}>
+                      <span style={{ color: r.isMe ? '#FAC775' : '#e8eef7', fontWeight: r.isMe ? 700 : 400 }}>
+                        {i + 1}. {r.isMe ? 'Ви' : r.name}
+                        <span style={{ color: '#9fb0c6' }}>{' · '}глибина {r.depth}%</span>
+                      </span>
+                      <span style={{ color: '#FAC775', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                        {r.reads} дочитувань
+                      </span>
+                    </div>
+                    <div style={{
+                      height: 10, borderRadius: 5, overflow: 'hidden',
+                      background: 'rgba(143,163,196,0.16)',
+                      border: r.isMe ? '1px solid rgba(239,159,39,0.55)' : '1px solid transparent',
+                    }}>
+                      <div style={{
+                        width: `${Math.max(6, Math.round((r.reads / maxRead) * 100))}%`,
+                        height: '100%', background: r.isMe ? '#FAC775' : '#97C459', borderRadius: 5,
+                      }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
             )
           })()}
 
