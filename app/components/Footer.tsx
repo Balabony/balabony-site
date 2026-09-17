@@ -2,10 +2,40 @@
 
 import { Fragment } from 'react'
 import { FooterLegalSection } from './FooterLegalSection'
+import { GENRE_PAGES, type Genre } from '@/lib/genres'
 
 const E_USER = 'nazar'
 const E_HOST = 'balabony'
 const E_TLD  = 'com'
+
+/**
+ * ЖАНРОВІ РОЗДІЛИ В ПІДВАЛІ (17.09.2026).
+ *
+ * ПРИЧИНА — вимір, не бажання. Search Console за 28 днів: 49 кліків, з них
+ * 10 за словом «балабони» і 4 за календарем. Каталог у пошуку практично не
+ * існує. Коли подивилися чому, виявилося, що на жанрові розділи НЕМАЄ
+ * ЖОДНОГО внутрішнього посилання з усього сайту: головна має самі якорі
+ * (#tysha, #series), у підвалі були лише службові сторінки. Тобто розділи,
+ * перейменовані 16–17.09 під виміряний попит («казки на ніч» 10–100 тис./міс,
+ * «українські детективи» 1–10 тис.), не отримували ваги нізвідки.
+ *
+ * Підвал обрано першим, бо він стоїть на всіх 1132 сторінках: кожен твір
+ * тепер передає вагу своєму розділу, і це одна правка замість тисячі.
+ *
+ * Назви беремо з GENRE_PAGES — там читацькі заголовки, а не назви жанрів
+ * із бази; порядок ручний, за виміряним попитом, а не алфавітний.
+ *
+ * ВИНЯТОК: казки ведуть на /fairytales, а не на /stories/zhanr/kazky-na-nich.
+ * Це та сама добірка, але повніша (плюс секція оповідань для дітей), і саме
+ * вона оголошена канонічною 17.09.
+ */
+const FOOTER_GENRES: { label: string; href: string }[] = [
+  { label: GENRE_PAGES['Казка'].title,              href: '/fairytales' },
+  ...(['Життєві історії', 'Детектив', 'Містика', 'Драма', 'Гумор',
+       'Про кохання', 'Сімейна історія', 'Спогади',
+       'Дитяче оповідання', 'Військова проза'] as Genre[])
+    .map(g => ({ label: GENRE_PAGES[g].title, href: `/stories/zhanr/${GENRE_PAGES[g].slug}` })),
+]
 
 /**
  * Email у вигляді клікабельного посилання mailto:.
@@ -441,6 +471,32 @@ export default function Footer() {
                 </a>
               </li>
             ))}
+          </ul>
+        </div>
+
+        {/* ════════ ЩО ПОЧИТАТИ — ЖАНРОВІ РОЗДІЛИ ════════ */}
+        <div>
+          <h3 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            Що почитати
+          </h3>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {FOOTER_GENRES.map(item => (
+              <li key={item.href} style={{ marginBottom: 5 }}>
+                <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 14 }}>
+                  {item.label}
+                </a>
+              </li>
+            ))}
+            <li style={{ marginBottom: 5 }}>
+              <a href="/top" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+                Що читають найбільше
+              </a>
+            </li>
+            <li style={{ marginBottom: 5 }}>
+              <a href="/avtory" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+                Автори
+              </a>
+            </li>
           </ul>
         </div>
       </div>
