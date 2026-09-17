@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import QrBlock from '@/app/components/QrBlock'
 import PrintButton from '@/app/components/PrintButton'
-import { CONTESTS, isOpen, type Contest, prizeLine } from '@/lib/contests'
+import { CONTESTS, isOpen, type Contest, prizeFund, prizeLine, topPrize } from '@/lib/contests'
 
 /**
  * Зведена афіша: усі конкурси з довідника на одному аркуші A4, один QR.
@@ -140,7 +140,14 @@ export default async function AllContestsAfisha(
               </div>
             </div>
             <div style={{ fontSize: 14.5, lineHeight: 1.6, margin: '4px 0 0' }}>{c.tagline}</div>
-            <div style={{ fontSize: 14.5, fontWeight: 700, margin: '3px 0 0' }}>{prizeLine(c)}</div>
+            {/* Від чотирьох місць перелік не вміщається в блок аркуша A4:
+                у казковому конкурсі це одинадцять сум у три рядки. Показуємо
+                перше місце й фонд, як на сторінці конкурсу. */}
+            <div style={{ fontSize: 14.5, fontWeight: 700, margin: '3px 0 0' }}>
+              {c.awards.length <= 3
+                ? prizeLine(c)
+                : `${topPrize(c)} перше місце · призовий фонд ${prizeFund(c)}`}
+            </div>
           </div>
         ))}
 
@@ -149,7 +156,7 @@ export default async function AllContestsAfisha(
           <div style={{ flex: '1 1 230px', minWidth: 0 }}>
             <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 8 }}>Наведіть камеру телефона</div>
             <div style={{ fontSize: 14.5, lineHeight: 1.65, marginBottom: 10 }}>
-              Умови всіх чотирьох конкурсів і форма подачі.
+              Умови всіх конкурсів і форма подачі.
             </div>
             <div style={{ fontSize: 15, fontWeight: 700, wordBreak: 'break-all' }}>{human}</div>
           </div>
