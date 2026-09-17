@@ -2,6 +2,11 @@ import Link from "next/link";
 import PurchaseTracker from "./PurchaseTracker";
 
 export const metadata = {
+  // 17.09.2026, аудит: сторінка подяки не має бути в пошуку. Вона показує
+  // результат ЧУЖОЇ оплати поза контекстом — людина з Google побачила б
+  // «дякуємо за підтримку», нічого не оплативши. У sitemap її й не було,
+  // але відсутність у sitemap не заважає Google знайти адресу з редиректу.
+  robots: { index: false, follow: false },
   title: "Дякуємо за підтримку — Balabony",
   description: "Оплата успішно отримана. Ваша підписка активується протягом хвилини.",
 };

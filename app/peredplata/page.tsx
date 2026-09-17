@@ -35,6 +35,18 @@ export default function PeredplataPage() {
   return (
     <main style={{ background: '#0a1628', minHeight: '100vh' }}>
       <Breadcrumbs items={[{ label: 'Передплата' }]} />
+
+      {/* 17.09.2026, аудит: сторінка не мала h1 узагалі — починалася з h2
+          усередині PricingSection. Комерційна сторінка в sitemap без
+          заголовка першого рівня: і для пошуку, і для зчитувача екрана це
+          сторінка без назви. Візуально не додаємо нічого нового — h1
+          повторює те, що вже стоїть у заголовку вкладки. */}
+      <h1 style={{
+        margin: '0 0 6px', fontSize: 'clamp(1.6rem, 4vw, 2.2rem)',
+        lineHeight: 1.2, color: '#FFF8EE', fontWeight: 800,
+      }}>
+        Передплата на Балабони
+      </h1>
       <PricingSection variant="full" />
       <div style={{ padding: '0 5% 40px' }}>
         <FAQ only="money" showAllLink />

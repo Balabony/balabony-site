@@ -93,6 +93,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/accessibility`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     // Як поставити сайт на екран телефона. Окрема адреса, бо це інформаційний
     // запит («як встановити застосунок»), на який відповідає підвал.
+    // 17.09.2026, аудит: сторінка «Як підписати договір» має власні метадані
+    // й відповідає на живе питання авторів, але в sitemap її не було й
+    // посилань на неї теж — існувала лише для тих, кому дали пряму адресу.
+    { url: `${BASE_URL}/yak-pidpysaty`,        lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE_URL}/vstanovyty`,            lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/peredplata`,            lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/inclusivevoice`,        lastModified: now, changeFrequency: 'monthly', priority: 0.6 },

@@ -14,15 +14,11 @@ import type { ReactNode } from 'react'
  * і рендеринг від цього не змінюється — layout просто віддає children.
  */
 export const metadata: Metadata = {
-  title: 'Опитування читачів — Балабони',
-  description: 'Коротке опитування: що ви читаєте, чого бракує на Балабонах і що озвучити першим.',
-  alternates: { canonical: '/survey' },
-  openGraph: {
-    title: 'Опитування читачів — Балабони',
-    description: 'Коротке опитування: що ви читаєте, чого бракує на Балабонах і що озвучити першим.',
-    url: 'https://balabony.com/survey',
-    type: 'website',
-  },
+  title: 'Замовлення прийнято — Балабони',
+  description: 'Сторінка підтвердження замовлення календаря.',
+  // Сторінка-подяка: у пошуку вона не потрібна й показувала б чужий
+  // результат поза контекстом.
+  robots: { index: false, follow: false },
 }
 
 export default function Layout({ children }: { children: ReactNode }) {

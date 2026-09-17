@@ -1,22 +1,30 @@
 import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 
+/**
+ * МЕТАДАНІ ДЛЯ КЛІЄНТСЬКОЇ СТОРІНКИ (17.09.2026, за результатом аудиту).
+ *
+ * Сама сторінка — `'use client'`, а Next.js не дозволяє клієнтському
+ * компоненту експортувати `metadata`. Через це 22 сторінки в sitemap
+ * успадковували title і description із app/layout.tsx, тобто в пошуку всі
+ * звалися «Українські історії, казки й серіали онлайн — Балабони».
+ *
+ * Розбивати кожну сторінку на серверну обгортку й клієнтський компонент не
+ * знадобилося: `layout.tsx` у тій самій папці метадані експортувати МОЖЕ,
+ * і рендеринг від цього не змінюється — layout просто віддає children.
+ */
 export const metadata: Metadata = {
-  title: 'Доступність — Balabony™',
-  description:
-    'Рівний доступ до української літератури: аудіоверсії серій, підтримка дислексії, високий контраст і стандарти WCAG. Безкоштовний та пільговий доступ для незрячих, слабозорих, людей з інвалідністю, ветеранів і ВПО.',
+  title: 'Доступність для читача — Балабони',
+  description: 'Як читати Балабони людям із порушеннями зору, слуху чи моторики: розмір шрифту, контраст, керування з клавіатури, сумісність зі зчитувачами екрана.',
   alternates: { canonical: '/accessibility' },
   openGraph: {
-    type: 'website',
+    title: 'Доступність для читача — Балабони',
+    description: 'Як читати Балабони людям із порушеннями зору, слуху чи моторики: розмір шрифту, контраст, керування з клавіатури, сумісність зі зчитувачами екрана.',
     url: 'https://balabony.com/accessibility',
-    title: 'Доступність — Balabony™',
-    description:
-      'Рівний доступ до української літератури: аудіо, підтримка дислексії, високий контраст, стандарти WCAG.',
-    images: [{ url: 'https://balabony.com/og-image.jpg', width: 1200, height: 630 }],
-    locale: 'uk_UA',
-    siteName: 'Balabony™',
+    type: 'website',
   },
 }
 
-export default function AccessibilityLayout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }: { children: ReactNode }) {
   return children
 }
