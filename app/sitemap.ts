@@ -53,7 +53,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/stories`,               lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
     // Сторінки жанрів. Їх дев'ять і вони незмінні, тому перелічуємо статично:
     // саме через них пошук знаходить розділи на кшталт «смішні історії».
-    ...GENRES.map((g) => ({
+    // «Казка» тут пропущена навмисно (17.09.2026): ті самі твори показує
+    // /fairytales, і вона оголошена канонічною. Сторінка в sitemap, яка
+    // веде на неканонічну адресу, — це прохання до Google індексувати
+    // дубль.
+    ...GENRES.filter((g) => g !== 'Казка').map((g) => ({
       url: `${BASE_URL}/stories/zhanr/${GENRE_PAGES[g].slug}`,
       lastModified: now,
       changeFrequency: 'weekly' as const,

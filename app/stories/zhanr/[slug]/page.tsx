@@ -44,10 +44,24 @@ export async function generateMetadata({
 
   const page = GENRE_PAGES[genre]
   const url = `https://balabony.com/stories/zhanr/${page.slug}`
+
+  /**
+   * КАЗКИ — ВИНЯТОК (17.09.2026).
+   *
+   * Сторінка /fairytales існує з першого дня й показує ті самі твори
+   * (genre = 'Казка') плюс другу секцію з оповіданнями для дітей. Коли
+   * 16.09 жанр перейменували в «Казки на ніч», у нас вийшло дві адреси
+   * під один запит — вони конкурують між собою, і Google ділить вагу
+   * навпіл. Розділ лишаємо робочим (на нього ведуть мітки жанру на
+   * картках і фільтр у /stories), але канонічною оголошуємо /fairytales:
+   * вона повніша. У sitemap її теж немає — див. app/sitemap.ts.
+   */
+  const canonical = genre === 'Казка' ? '/fairytales' : `/stories/zhanr/${page.slug}`
+
   return {
     title: `${page.title} — читати онлайн українською | Балабони`,
     description: page.description,
-    alternates: { canonical: `/stories/zhanr/${page.slug}` },
+    alternates: { canonical },
     openGraph: {
       title: `${page.title} — Балабони`,
       description: page.description,
