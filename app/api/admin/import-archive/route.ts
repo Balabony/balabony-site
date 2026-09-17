@@ -95,6 +95,33 @@ export async function POST(req: NextRequest) {
     )
     if (dup.rowCount && dup.rowCount > 0) { duplicates++; continue }
 
+    // ДРУГА ПЕРЕВІРКА — ЗА АВТОРОМ І НАЗВОЮ (17.09.2026).
+    //
+    // Мітки storriss:<source_id> НЕ ДОСИТЬ. У липні 2026 той самий текст
+    // зайшов двічі: одного разу з адреси-джерела (slugFromUrl бере хвіст
+    // URL, а на Storriss слаг має номер статті — звідси `...698`, `...369`),
+    // другого — з назви. На Storriss це були дві статті з різними id, тож
+    // перша перевірка нічого не побачила. Результат — дев'ять пар дублікатів
+    // у каталозі, кожна з двома проіндексованими адресами, що конкурували
+    // між собою в пошуку. Знайшли випадково, через розбір жанрів.
+    //
+    // Порівнюємо нормалізовано: лапки, кома чи тире в заголовку робили
+    // «Я бачу!» і «"Я бачу!"» різними рядками. Регулярний вираз той самий,
+    // яким шукали дублі в базі.
+    const NORM = `regexp_replace(lower($1), '[^а-щьюяєіїґa-z0-9]+', '', 'g')`
+    const sameTitle = await dbQuery(
+      `select id from content
+        where lower(trim(author_name)) = lower(trim($2))
+          and regexp_replace(lower(title), '[^а-щьюяєіїґa-z0-9]+', '', 'g') = ${NORM}
+        limit 1`,
+      [title, author],
+    )
+    if (sameTitle.rowCount && sameTitle.rowCount > 0) {
+      duplicates++
+      problems.push(`вже є твір із такою назвою в цього автора: ${title.slice(0, 40)}`)
+      continue
+    }
+
     let slug = slugFromUrl(it.source_url, title)
     for (let i = 0; i < 12; i++) {
       const busy = await dbQuery(`select id from content where slug = $1 limit 1`, [slug])
