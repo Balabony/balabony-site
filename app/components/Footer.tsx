@@ -54,7 +54,7 @@ const READ_LINKS = [
   { label: 'Історії читачів',   href: '/stories' },
   { label: 'Казки',             href: '/fairytales' },
   // Розділи, зроблені 09.09.2026: без посилання в підвалі їх ніхто не знайде.
-  { label: 'Дитячі оповідання', href: '/stories/zhanr/dytiachi-opovidannia' },
+  { label: 'Оповідання для дітей', href: '/stories/zhanr/opovidannia-dlia-ditei' },
   { label: 'Що читають',        href: '/top' },
   { label: 'Черга на озвучення', href: '/cherga' },
   { label: 'Ігри для мозку',    href: '/games' },

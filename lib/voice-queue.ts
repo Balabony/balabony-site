@@ -78,6 +78,46 @@ export async function getQueue(limit = 20): Promise<QueueRow[]> {
   }
 }
 
+export interface QueueTrendRow extends QueueRow {
+  /** Голоси за останні 7 днів — «рух» позиції за тиждень. */
+  recent: number
+}
+
+/**
+ * Черга з приростом за тиждень — для кабінету автора.
+ *
+ * getQueue() показує статичну картину: скільки голосів усього. Автор із неї
+ * не бачить, чи його твір рухається, чи стоїть — а рухається він рівно тоді,
+ * коли автор поділився посиланням. Без цієї колонки кнопка «Текст для
+ * соцмереж» лишається дією без наслідку, який видно.
+ *
+ * Рух рахуємо з voice_votes.created_at, а не зі знімків позицій: колонка
+ * вже є, і історія в ній повна з першого голосу. Знімки довелося б
+ * накопичувати, і рух з'явився б лише за тиждень після запуску.
+ */
+export async function getQueueWithTrend(limit = 20): Promise<QueueTrendRow[]> {
+  try {
+    const r = await dbQuery(
+      `select c.id::text, c.title, c.slug, c.type,
+              c.author_name,
+              count(v.user_id)::int as votes,
+              count(v.user_id) filter (
+                where v.created_at >= now() - interval '7 days'
+              )::int as recent
+         from voice_votes v
+         join content c on c.id = v.content_id
+        where ${ELIGIBLE}
+        group by c.id, c.title, c.slug, c.type, c.author_name
+        order by votes desc, c.title
+        limit $1`,
+      [limit],
+    )
+    return r.rows as QueueTrendRow[]
+  } catch {
+    return []
+  }
+}
+
 export interface AuthorRow {
   author_name: string
   works: number

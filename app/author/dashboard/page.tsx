@@ -15,7 +15,7 @@ import AuthorProfileEditor from '@/app/components/AuthorProfileEditor'
 import { dbQuery } from '@/lib/db'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import PublishWorkButton from '@/app/components/PublishWorkButton'
-import { getQueue } from '@/lib/voice-queue'
+import { getQueueWithTrend } from '@/lib/voice-queue'
 import AddWorkForm from '@/app/components/AddWorkForm'
 import WorksFilter from '@/app/components/WorksFilter'
 import DeleteDraftButton from '@/app/components/DeleteDraftButton'
@@ -215,11 +215,14 @@ export default async function AuthorDashboardPage() {
   //
   // Окремим запитом через dbQuery, а не .in() зі списком id: у Богдана 138
   // творів, і довгий IN() у проєкті вже підводив (див. ways-of-working).
-  // ПЕРШІ П'ЯТЬ ЧЕРГИ ПРЯМО В КАБІНЕТІ (17.09.2026).
+  // ВСЯ ЧЕРГА ПРЯМО В КАБІНЕТІ (17.09.2026).
   // Доти кабінет мав лише посилання «Подивитися чергу →», і автор не бачив
   // ані того, хто попереду, ані наскільки він відстав. Побачити суперника —
   // єдине, що перетворює чергу з оголошення на змагання.
-  const queueTop = await getQueue(5)
+  // Двадцять, а не п'ять: автор має знайти в списку СЕБЕ, інакше таблиця
+  // показує чужі перемоги й нічого більше. Коли черга переросте двадцятку,
+  // сюди доведеться додати рядок власного твору поза видимою частиною.
+  const queueTop = await getQueueWithTrend(20)
 
   const votesById = new Map<string, number>()
 
@@ -460,7 +463,10 @@ export default async function AuthorDashboardPage() {
           {queueTop.length > 0 && (
             <div style={{ marginBottom: 12 }}>
               <div style={{ color: '#f5f0e8', fontWeight: 700, fontSize: '0.92rem', marginBottom: 8 }}>
-                Зараз попереду
+                Черга зараз
+                <span style={{ color: '#9fb0c6', fontWeight: 400 }}>
+                  {' · '}у дужках — голоси за останній тиждень
+                </span>
               </div>
               {queueTop.map((q, i) => {
                 const mine =
@@ -481,14 +487,17 @@ export default async function AuthorDashboardPage() {
                     <span style={{ color: '#FAC775', fontWeight: 700, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
                       {q.votes}{' '}
                       {q.votes === 1 ? 'голос' : q.votes < 5 ? 'голоси' : 'голосів'}
+                      {q.recent > 0 && (
+                        <span style={{ color: '#97C459' }}>{' (+'}{q.recent}{')'}</span>
+                      )}
                     </span>
                   </div>
                 )
               })}
               <div style={{ color: '#9fb0c6', fontSize: '0.85rem', marginTop: 8 }}>
                 {queueTop.some(q => (q.author_name ?? '').trim().toLowerCase() === myName.trim().toLowerCase())
-                  ? 'Ваш твір у п’ятірці. Щоб утримати місце, продовжуйте ділитися посиланням.'
-                  : `Щоб потрапити в цю п’ятірку, вашому твору потрібно ${queueTop[queueTop.length - 1].votes + 1} ${queueTop[queueTop.length - 1].votes + 1 === 1 ? 'голос' : 'голоси'}. Кнопка «Текст для соцмереж» під кожним твором дає готовий допис із проханням проголосувати.`}
+                  ? 'Ваш твір у черзі. Щоб утримати місце, продовжуйте ділитися посиланням — кнопка «Текст для соцмереж» під кожним твором.'
+                  : `Ваших творів у черзі поки немає: у неї потрапляє твір, за який проголосував хоча б один читач. Кнопка «Текст для соцмереж» під кожним твором дає готовий допис із проханням проголосувати.`}
               </div>
             </div>
           )}
