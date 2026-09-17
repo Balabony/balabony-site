@@ -318,6 +318,27 @@ export async function castVote(userId: string, contentId: string): Promise<VoteR
   }
 
   try {
+    /**
+     * ЗА ВЛАСНИЙ ТВІР ГОЛОСУВАТИ НЕ МОЖНА (17.09.2026).
+     *
+     * Досі перевірки не було, і разом із міткою `?ref=` у шаблоні допису це
+     * склалося в готовий шлях накрутки: автор приводить знайомого, дістає
+     * за нього 50 балів — рівно ціну голосу — і ставить його собі. Десять
+     * приведених родичів = десять голосів, і «Порядок озвучення» показує
+     * не вибір читачів, а вміння автора агітувати сім'ю.
+     *
+     * Бали за приведеного читача лишаються: він справді прийшов. Не можна
+     * тільки замкнути їх на себе. Другий акаунт це обійде — від нього тут
+     * захисту немає й не буде, як і в підрахунку конкурсу.
+     */
+    const own = await dbQuery(
+      `select 1 from content where id = $1 and author_id = $2 limit 1`,
+      [contentId, userId],
+    )
+    if (own.rowCount && own.rowCount > 0) {
+      return { ok: false, error: 'За власний твір голосувати не можна.' }
+    }
+
     const exists = await dbQuery(
       `select 1 from voice_votes where user_id = $1 and content_id = $2 limit 1`,
       [userId, contentId],
