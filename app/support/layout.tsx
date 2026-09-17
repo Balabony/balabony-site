@@ -1,30 +1,22 @@
 import type { Metadata } from 'next'
-import type { ReactNode } from 'react'
 
-/**
- * МЕТАДАНІ ДЛЯ КЛІЄНТСЬКОЇ СТОРІНКИ (17.09.2026, за результатом аудиту).
- *
- * Сама сторінка — `'use client'`, а Next.js не дозволяє клієнтському
- * компоненту експортувати `metadata`. Через це 22 сторінки в sitemap
- * успадковували title і description із app/layout.tsx, тобто в пошуку всі
- * звалися «Українські історії, казки й серіали онлайн — Балабони».
- *
- * Розбивати кожну сторінку на серверну обгортку й клієнтський компонент не
- * знадобилося: `layout.tsx` у тій самій папці метадані експортувати МОЖЕ,
- * і рендеринг від цього не змінюється — layout просто віддає children.
- */
 export const metadata: Metadata = {
-  title: 'Підтримати проєкт — Балабони',
-  description: 'Як підтримати українську літературну платформу Балабони: разовий внесок, регулярна підтримка, реквізити для переказу з України та з-за кордону.',
+  title: 'Підтримати — Balabony™',
+  description:
+    'Підтримайте Balabony — українську платформу історій із безкоштовним і пільговим доступом для незрячих, ветеранів та ВПО. Дізнайтеся, на що підуть кошти, і зробіть свій внесок.',
   alternates: { canonical: '/support' },
   openGraph: {
-    title: 'Підтримати проєкт — Балабони',
-    description: 'Як підтримати українську літературну платформу Балабони: разовий внесок, регулярна підтримка, реквізити для переказу з України та з-за кордону.',
-    url: 'https://balabony.com/support',
     type: 'website',
+    url: 'https://balabony.com/support',
+    title: 'Підтримати — Balabony™',
+    description:
+      'Підтримайте українську платформу історій Balabony з безкоштовним і пільговим доступом для тих, хто цього потребує.',
+    images: [{ url: 'https://balabony.com/og-image.jpg', width: 1200, height: 630 }],
+    locale: 'uk_UA',
+    siteName: 'Balabony™',
   },
 }
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default function SupportLayout({ children }: { children: React.ReactNode }) {
   return children
 }
