@@ -82,9 +82,10 @@ const READ_LINKS = [
   { label: 'Серіал «Балабони»', href: '/episodes' },
   { label: 'Серіал «Тиша» 18+', href: '/tysha' },
   { label: 'Історії читачів',   href: '/stories' },
-  { label: 'Казки',             href: '/fairytales' },
-  // Розділи, зроблені 09.09.2026: без посилання в підвалі їх ніхто не знайде.
-  { label: 'Оповідання для дітей', href: '/stories/zhanr/opovidannia-dlia-ditei' },
+  // 17.09.2026: «Казки» (/fairytales) і «Оповідання для дітей» звідси
+  // прибрано — вони тепер у списку «Жанри» нижче, у тій самій колонці,
+  // з читацькими назвами («Казки на ніч»). Двічі те саме посилання за
+  // п'ять рядків одне від одного виглядало як недогляд, бо й було ним.
   { label: 'Що читають',        href: '/top' },
   { label: 'Черга на озвучення', href: '/cherga' },
   { label: 'Ігри для мозку',    href: '/games' },
@@ -250,6 +251,26 @@ export default function Footer() {
           </h3>
           <ul style={{ listStyle: 'none', padding: 0, marginBottom: 14 }}>
             {READ_LINKS.map(item => (
+              <li key={item.href} style={{ marginBottom: 5 }}>
+                <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 14 }}>
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          {/* ЖАНРОВІ РОЗДІЛИ — у колонці «Читати», а не окремою колонкою.
+              17.09.2026 цей блок стояв п'ятим елементом сітки
+              repeat(auto-fit, minmax(220px,1fr)): чотири колонки заповнювали
+              рядок, і п'ятий переносився вниз, розтягуючись на всю ширину
+              підвалу. Виглядало як окремий поверх під усім іншим.
+              Місце тут правильне й по суті: жанри — це продовження
+              списку «Читати», а не сусід «Про нас». */}
+          <h3 style={{ color: 'var(--accent-gold)', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            Жанри
+          </h3>
+          <ul style={{ listStyle: 'none', padding: 0, marginBottom: 14 }}>
+            {FOOTER_GENRES.map(item => (
               <li key={item.href} style={{ marginBottom: 5 }}>
                 <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 14 }}>
                   {item.label}
@@ -472,10 +493,12 @@ export default function Footer() {
           </h3>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {[
-              { label: 'Конкурси',    href: '/konkursy' },
+              // 17.09.2026: прибрано «Конкурси» (є в «Для авторів» як
+              // «Літературні конкурси») і «Історії» (є в «Читати» як
+              // «Історії читачів»). Одне й те саме посилання двічі в
+              // підвалі не додає ваги, лише робить його довшим.
               { label: 'Безкоштовно', href: '/free'     },
               { label: 'Подарунок',   href: '/gift'     },
-              { label: 'Історії',     href: '/stories'  },
               { label: 'Тарифи',      href: '/peredplata' },
               { label: 'Часті питання', href: '/faq'    },
               { label: 'Календар 2027 роздрукувати', href: '/kalendar-2027' },
@@ -490,31 +513,6 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* ════════ ЩО ПОЧИТАТИ — ЖАНРОВІ РОЗДІЛИ ════════ */}
-        <div>
-          <h3 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-            Що почитати
-          </h3>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {FOOTER_GENRES.map(item => (
-              <li key={item.href} style={{ marginBottom: 5 }}>
-                <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 14 }}>
-                  {item.label}
-                </a>
-              </li>
-            ))}
-            <li style={{ marginBottom: 5 }}>
-              <a href="/top" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
-                Що читають найбільше
-              </a>
-            </li>
-            <li style={{ marginBottom: 5 }}>
-              <a href="/avtory" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
-                Автори
-              </a>
-            </li>
-          </ul>
-        </div>
       </div>
 
       {/* ════════ БЛОК «ПРО БАЛАБОНІВ» ════════ */}
