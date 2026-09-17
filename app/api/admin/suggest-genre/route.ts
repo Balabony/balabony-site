@@ -144,6 +144,11 @@ export async function POST(req: NextRequest) {
    * запитів Gemini за хвилину. Якщо почнуть приходити 429 — зменшувати
    * партію на клієнті, а не тут.
    */
+  // Ключ у власній змінній з явним типом: усередині classify TypeScript
+  // втрачає звуження, зроблене перевіркою вище, бо функція може бути
+  // викликана будь-коли — і збірка падала на `string | undefined`.
+  const key: string = apiKey
+
   async function classify(row: {
     id: string; title: string | null; text: string | null
     corrected_text: string | null; humanized_text: string | null
@@ -170,7 +175,7 @@ export async function POST(req: NextRequest) {
 
     for (const model of MODELS) {
       try {
-        const answer = await askModel(apiKey, model, prompt)
+        const answer = await askModel(key, model, prompt)
         const said = typeof answer.genre === 'string' ? answer.genre.trim() : ''
 
         // Спершу точний збіг, далі — приведення синонімів. Модель часто
