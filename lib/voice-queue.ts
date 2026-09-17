@@ -59,6 +59,15 @@ const ELIGIBLE = `
   and c.type::text in ('story', 'balabony', 'tysha')
   and c.author_name is not null
   and (c.audio_status is null or c.audio_status::text <> 'ready')
+  -- 17.09.2026: «Інтерв'ю» з черги виключено. Жанр заведено того ж дня для
+  -- журналістських матеріалів, які лежали серед художньої прози (розмови з
+  -- Dorofeeva й пасічником Романом Біланом). Один із них одразу став п'ятим
+  -- у черзі — а черга існує, щоб озвучувати ІСТОРІЇ: в інтерв'ю питання,
+  -- відповіді й фактаж, а не сюжет.
+  --
+  -- Фільтр за жанром, а не за типом: тип у них 'story', як у всіх.
+  -- Апостроф у назві прямий (ascii 39) — перевірено в базі 17.09.
+  and coalesce(c.genre, '') <> 'Інтерв''ю'
   and coalesce((
     select ac.status::text
       from author_consents ac
