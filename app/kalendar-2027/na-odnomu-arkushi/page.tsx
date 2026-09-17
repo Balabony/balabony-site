@@ -164,6 +164,37 @@ export default function NaOdnomuArkushiPage() {
           <Link href="/kalendar" style={{ color: GOLD }}>Настінний календар-планер А3 →</Link>
         </p>
 
+
+        {/* МІСТОК ІЗ КАЛЕНДАРЯ В КАТАЛОГ (17.09.2026).
+
+            Календар — друга за кліками сторінка сайту (6 кліків із 52 показів
+            за 28 днів), але глухий кут: вона посилалася лише на себе й на два
+            PDF. Людина завантажувала аркуш і йшла, жодного разу не побачивши,
+            що тут є читання.
+
+            Ведемо саме в казки, а не в каталог загалом: той, хто друкує
+            планер для дитячої кімнати, і той, хто шукає «казки на ніч»
+            (10–100 тис./міс), — часто одна й та сама людина. Каталог
+            загалом такого збігу не має. */}
+        <div style={{
+          marginTop: '2rem', padding: '1.1rem 1.25rem', borderRadius: 12,
+          background: 'rgba(239,159,39,0.07)',
+          border: '1px solid rgba(239,159,39,0.22)',
+        }}>
+          <h2 style={{ ...h2, marginTop: 0 }}>Що почитати дитині ввечері</h2>
+          <p style={{ marginBottom: '0.9rem' }}>
+            Поки календар друкується — у нас є казки на ніч і оповідання для
+            дітей. Усе українською, читати безкоштовно, без реєстрації.
+          </p>
+          <p style={{ margin: 0 }}>
+            <Link href="/fairytales" style={{ color: GOLD, fontWeight: 700 }}>Казки на ніч →</Link>
+            <span style={{ color: MUTED }}>{'  ·  '}</span>
+            <Link href="/stories/zhanr/opovidannia-dlia-ditei" style={{ color: GOLD }}>Оповідання для дітей →</Link>
+            <span style={{ color: MUTED }}>{'  ·  '}</span>
+            <Link href="/top" style={{ color: GOLD }}>Що читають найбільше →</Link>
+          </p>
+        </div>
+
         <p style={{ color: MUTED, fontSize: '.88rem', marginTop: '1.8rem' }}>
           Календарі безкоштовні для особистого користування. Перепродаж і
           розміщення файлів на інших сайтах заборонені.

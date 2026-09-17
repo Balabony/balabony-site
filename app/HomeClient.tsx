@@ -166,6 +166,48 @@ export default function HomeClient({
           <FAQ limit={3} showAllLink />
         </div>
 
+        {/* КАЛЕНДАР НА ГОЛОВНІЙ (17.09.2026).
+
+            Календар 2027 — друга за кліками сторінка сайту (6 кліків із
+            52 показів за 28 днів, позиція 6,9), і при цьому з головної на
+            нього не вело жодного посилання: він жив тільки в підвалі.
+            Це наш власний продукт, не чуже вкладення, і сторінка з таким
+            попитом має бути видимою.
+
+            Стоїть після бонусів, а не вгорі: головна — про читання, і
+            календар не має відтісняти історії. Але й ховати те, що
+            справді шукають, немає сенсу. */}
+        <section style={{
+          margin: '28px 0', padding: '20px 22px', borderRadius: 14,
+          background: 'rgba(239,159,39,0.07)',
+          border: '1px solid rgba(239,159,39,0.22)',
+        }}>
+          <h2 style={{
+            margin: '0 0 8px', color: 'var(--accent-gold)',
+            fontSize: 22, fontWeight: 800, lineHeight: 1.25,
+          }}>
+            Календар 2027 від Балабонів
+          </h2>
+          <p style={{ margin: '0 0 12px', color: 'var(--on-dark, #e8eef7)', lineHeight: 1.7 }}>
+            Наш календар на 2027 рік — роздрукувати на А4 вдома, безкоштовно.
+            Є варіант на одному аркуші, дитячий із котом і настінний планер А3.
+            Усередині — літературні дати року.
+          </p>
+          <p style={{ margin: 0 }}>
+            <a href="/kalendar-2027/na-odnomu-arkushi" style={{ color: 'var(--accent-gold)', fontWeight: 700, textDecoration: 'none' }}>
+              Календар 2027 на одному аркуші →
+            </a>
+            <span style={{ color: '#8899bb' }}>{'  ·  '}</span>
+            <a href="/kalendar-2027/dytiachyi" style={{ color: 'var(--accent-gold)', textDecoration: 'none' }}>
+              Дитячий →
+            </a>
+            <span style={{ color: '#8899bb' }}>{'  ·  '}</span>
+            <a href="/kalendar-2027" style={{ color: 'var(--accent-gold)', textDecoration: 'none' }}>
+              Усі макети й літературні дати →
+            </a>
+          </p>
+        </section>
+
         <BonusSection />
 
         <PwaSection />      <ChannelsSection />
