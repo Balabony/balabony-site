@@ -29,6 +29,18 @@ const SHORT: Record<string, string> = {
   'pyat-vechoriv': "П'ять вечорів — 5 серій",
   'odyn-den': 'Один день, який усе змінив — одна історія',
   'z-viterczem': 'З вітерцем — одна історія, гумор',
+  'odnoho-razu-pered-rizdvom': 'Одного разу перед Різдвом — три казки на ніч',
+}
+
+const MONTHS = [
+  'січня', 'лютого', 'березня', 'квітня', 'травня', 'червня',
+  'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня',
+]
+
+/** 2026-11-01 → 1 листопада. Рік не пишемо: усі прийоми в межах сезону. */
+function shortDate(iso: string): string {
+  const [, m, d] = iso.split('-').map(Number)
+  return m && d ? `${d} ${MONTHS[m - 1]}` : ''
 }
 
 export default function ContestIntent() {
@@ -37,7 +49,17 @@ export default function ContestIntent() {
   const [busy, setBusy] = useState<string | null>(null)
   const [err, setErr] = useState('')
 
-  const list = CONTESTS.filter(c => isOpen(c) || acceptsEpisodes(c))
+  // ПОКАЗУЄМО ВСІ КОНКУРСИ, А НЕ ЛИШЕ ВІДКРИТІ (17.09.2026).
+  //
+  // Доти список фільтрувався по isOpen, і в кабінеті висіли два конкурси з
+  // п'яти. Але намір — це питання НАПЕРЕД: планування редактури має сенс саме
+  // для тих конкурсів, прийом у яких ще не почався. Фільтр робив блок
+  // безкорисним рівно там, де він потрібен.
+  //
+  // Закриті конкурси (прийом уже минув) прибираємо: намір там ні на що не
+  // впливає, а галочка виглядала б як можливість подати.
+  const today = new Date().toISOString().slice(0, 10)
+  const list = CONTESTS.filter(c => today <= c.closesAt || acceptsEpisodes(c))
 
   const load = useCallback(async () => {
     try {
@@ -131,6 +153,11 @@ export default function ContestIntent() {
             />
             <span style={{ color: checked ? BRAND.amberSoft : BRAND.text }}>
               {SHORT[c.id] ?? c.name}
+              {!isOpen(c) && (
+                <span style={{ color: BRAND.muted }}>
+                  {' · '}прийом з {shortDate(c.opensAt)}
+                </span>
+              )}
             </span>
           </label>
         )

@@ -15,6 +15,7 @@ import AuthorProfileEditor from '@/app/components/AuthorProfileEditor'
 import { dbQuery } from '@/lib/db'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import PublishWorkButton from '@/app/components/PublishWorkButton'
+import { getQueue } from '@/lib/voice-queue'
 import AddWorkForm from '@/app/components/AddWorkForm'
 import WorksFilter from '@/app/components/WorksFilter'
 import DeleteDraftButton from '@/app/components/DeleteDraftButton'
@@ -214,7 +215,17 @@ export default async function AuthorDashboardPage() {
   //
   // Окремим запитом через dbQuery, а не .in() зі списком id: у Богдана 138
   // творів, і довгий IN() у проєкті вже підводив (див. ways-of-working).
+  // ПЕРШІ П'ЯТЬ ЧЕРГИ ПРЯМО В КАБІНЕТІ (17.09.2026).
+  // Доти кабінет мав лише посилання «Подивитися чергу →», і автор не бачив
+  // ані того, хто попереду, ані наскільки він відстав. Побачити суперника —
+  // єдине, що перетворює чергу з оголошення на змагання.
+  const queueTop = await getQueue(5)
+
   const votesById = new Map<string, number>()
+
+  // Ім'я, під яким твори автора лежать у content.author_name — саме за ним
+  // порівнюємо рядки черги, щоб підсвітити його власний твір.
+  const myName = (profile.pen_name?.trim() || profile.display_name || '').trim()
   try {
     const v = await dbQuery(
       `select v.content_id::text as id, count(*)::int as votes
@@ -350,6 +361,31 @@ export default async function AuthorDashboardPage() {
 
         <BrandBar />
 
+        {/* ТЕСТОВИЙ РЕЖИМ — НАЙПЕРШИЙ БЛОК КАБІНЕТУ (17.09.2026).
+
+            Кабінет показує баланс, «нараховано» і «до виплати». Автор бачить
+            суму, не отримує грошей і робить єдиний можливий висновок — що його
+            обманюють. Причина в тому, що передплата ще не продається, і сказати
+            це мусимо ми першими, до того як про це спитають.
+
+            Дата 30.11.2026 — та сама, що й старт передплати й озвучення.
+            Міняється разом з ними, у трьох місцях одночасно. */}
+        <div style={{
+          marginBottom: '1.5rem', padding: '0.9rem 1.2rem', borderRadius: 12,
+          background: 'rgba(239,159,39,0.12)', border: '1px solid rgba(239,159,39,0.45)',
+        }}>
+          <div style={{ color: '#FAC775', fontWeight: 700, marginBottom: 6 }}>
+            Платформа в тестовому режимі
+          </div>
+          <div style={{ color: '#e8eef7', lineHeight: 1.7, fontSize: '0.93rem' }}>
+            Орієнтовна дата запуску — 30 листопада 2026 року. До того передплата
+            не продається, тож виплат авторам поки немає: нарахування в кабінеті
+            ви бачите, але це механіка, а не гроші. Перші виплати — після старту
+            передплати. Усе інше — публікація творів, конкурси, черга на
+            озвучення — працює по-справжньому.
+          </div>
+        </div>
+
         {/* Заголовок сторінки */}
         <div style={{ marginBottom: '1.5rem' }}>
           <h1 style={{ fontFamily: SERIF, fontSize: '2.1rem', color: 'white', margin: 0 }}>Кабінет автора</h1>
@@ -421,6 +457,42 @@ export default async function AuthorDashboardPage() {
             озвучення. Розкажіть про свої твори там, де вас читають: кожен новий читач
             може віддати голос саме за вас.
           </div>
+          {queueTop.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ color: '#f5f0e8', fontWeight: 700, fontSize: '0.92rem', marginBottom: 8 }}>
+                Зараз попереду
+              </div>
+              {queueTop.map((q, i) => {
+                const mine =
+                  (q.author_name ?? '').trim().toLowerCase() === myName.trim().toLowerCase()
+                return (
+                  <div key={q.id} style={{
+                    display: 'flex', justifyContent: 'space-between', gap: 12,
+                    padding: '8px 10px', borderRadius: 8, marginBottom: 4,
+                    background: mine ? 'rgba(239,159,39,0.14)' : 'rgba(10,22,40,0.45)',
+                    border: mine ? '1px solid rgba(239,159,39,0.45)' : '1px solid transparent',
+                  }}>
+                    <span style={{ color: '#e8eef7', fontSize: '0.9rem' }}>
+                      {i + 1}. {q.title}
+                      <span style={{ color: '#9fb0c6' }}>
+                        {' · '}{mine ? 'ваш твір' : q.author_name}
+                      </span>
+                    </span>
+                    <span style={{ color: '#FAC775', fontWeight: 700, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
+                      {q.votes}{' '}
+                      {q.votes === 1 ? 'голос' : q.votes < 5 ? 'голоси' : 'голосів'}
+                    </span>
+                  </div>
+                )
+              })}
+              <div style={{ color: '#9fb0c6', fontSize: '0.85rem', marginTop: 8 }}>
+                {queueTop.some(q => (q.author_name ?? '').trim().toLowerCase() === myName.trim().toLowerCase())
+                  ? 'Ваш твір у п’ятірці. Щоб утримати місце, продовжуйте ділитися посиланням.'
+                  : `Щоб потрапити в цю п’ятірку, вашому твору потрібно ${queueTop[queueTop.length - 1].votes + 1} ${queueTop[queueTop.length - 1].votes + 1 === 1 ? 'голос' : 'голоси'}. Кнопка «Текст для соцмереж» під кожним твором дає готовий допис із проханням проголосувати.`}
+              </div>
+            </div>
+          )}
+
           <a
             href="/cherga"
             style={{
@@ -430,7 +502,7 @@ export default async function AuthorDashboardPage() {
               border: '1px solid rgba(239,159,39,0.5)',
             }}
           >
-            Подивитися чергу →
+            Уся черга й голосування →
           </a>
         </div>
 

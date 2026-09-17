@@ -49,6 +49,8 @@ type Props = { initial: Requisites }
 // Поля договору: без них документ виходить із прочерками. Цей список має
 // збігатися з двома іншими — app/api/contracts/create/route.ts і
 // app/author/contract/[id]/page.tsx (масив missing).
+const RED = '#e06666'
+
 const REQUIRED: (keyof Requisites)[] = ['full_name', 'rnokpp', 'birth_date', 'address', 'phone', 'payout_iban', 'bank_name']
 
 // Поштові поля потрібні НЕ для договору, а для паперової розсилки (1 жовтня).
@@ -195,6 +197,18 @@ export default function AuthorRequisites({ initial }: Props) {
 
   const complete = isComplete(form)
 
+  // ЧЕРВОНА РАМКА НА НЕЗАПОВНЕНИХ ОБОВ'ЯЗКОВИХ ПОЛЯХ (17.09.2026).
+  //
+  // Доти підсвічувалося лише поле, на якому спіткнулася перевірка при
+  // збереженні, — по одному за раз і тільки бурштиновим. Автор відкривав
+  // форму, бачив десяток однакових порожніх рамок і не знав, які з них
+  // блокують договір, а які необов'язкові. Тепер видно одразу.
+  //
+  // Бурштиновий лишається за помилкою валідації і має перевагу: «введено
+  // неправильно» — інша біда, ніж «не введено», і плутати їх не можна.
+  const missing = (k: keyof Requisites) =>
+    REQUIRED.includes(k) && !String(form[k] ?? '').trim()
+
   return (
     <section style={{
       background: BRAND.cream, borderRadius: 14, padding: '1.25rem 1.5rem',
@@ -266,19 +280,28 @@ export default function AuthorRequisites({ initial }: Props) {
             </p>
           </div>
 
-          <Field label="Прізвище, імʼя, по батькові" value={form.full_name ?? ''} onChange={v => set('full_name', v)} name="full_name" bad={badField === 'full_name'} badMessage={err} placeholder="Прізвище Імʼя По батькові" />
-          <Field label="РНОКПП (ідентифікаційний код)" value={form.rnokpp ?? ''} onChange={v => set('rnokpp', v)} name="rnokpp" bad={badField === 'rnokpp'} badMessage={err} placeholder="10 цифр" />
+          <Field label="Прізвище, імʼя, по батькові" value={form.full_name ?? ''} onChange={v => set('full_name', v)} name="full_name" empty={missing('full_name')} bad={badField === 'full_name'} badMessage={err} placeholder="Прізвище Імʼя По батькові" />
+          <Field label="РНОКПП (ідентифікаційний код)" value={form.rnokpp ?? ''} onChange={v => set('rnokpp', v)} name="rnokpp" empty={missing('rnokpp')} bad={badField === 'rnokpp'} badMessage={err} placeholder="10 цифр" />
           <div style={{ marginBottom: '0.9rem' }} data-field="birth_date">
-            <div style={label}>Дата народження</div>
+            <div style={label}>
+              Дата народження
+              {missing('birth_date') && badField !== 'birth_date' && (
+                <span style={{ color: RED, fontWeight: 700 }}>{' · '}не заповнено</span>
+              )}
+            </div>
             <input
               type="date"
               value={form.birth_date ?? ''}
               onChange={e => set('birth_date', e.target.value)}
               style={{
                 width: '100%', padding: '0.6rem 0.75rem',
-                border: badField === 'birth_date' ? `2px solid ${BRAND.amber}` : `1px solid ${UI.fieldBorder}`,
+                border: badField === 'birth_date' ? `2px solid ${BRAND.amber}`
+                      : missing('birth_date') ? `2px solid ${RED}`
+                      : `1px solid ${UI.fieldBorder}`,
                 borderRadius: 10,
-                background: badField === 'birth_date' ? 'rgba(239,159,39,0.10)' : 'rgba(255,255,255,0.05)',
+                background: badField === 'birth_date' ? 'rgba(239,159,39,0.10)'
+                          : missing('birth_date') ? 'rgba(224,102,102,0.08)'
+                          : 'rgba(255,255,255,0.05)',
                 color: BRAND.text, fontSize: '0.95rem',
                 fontFamily: 'inherit', boxSizing: 'border-box', colorScheme: 'dark',
               }}
@@ -292,11 +315,11 @@ export default function AuthorRequisites({ initial }: Props) {
               </p>
             )}
           </div>
-          <Field label="Адреса" value={form.address ?? ''} onChange={v => set('address', v)} name="address" bad={badField === 'address'} badMessage={err} placeholder="Місто, вулиця, будинок, квартира" />
+          <Field label="Адреса" value={form.address ?? ''} onChange={v => set('address', v)} name="address" empty={missing('address')} bad={badField === 'address'} badMessage={err} placeholder="Місто, вулиця, будинок, квартира" />
           <Field label="Поштовий індекс" value={form.postal_code ?? ''} onChange={v => set('postal_code', v)} name="postal_code" bad={badField === 'postal_code'} badMessage={err} placeholder="5 цифр" />
           <Field label="Відділення Нової пошти" value={form.np_branch ?? ''} onChange={v => set('np_branch', v)} name="np_branch" bad={badField === 'np_branch'} badMessage={err} placeholder="Напр.: 12" />
-          <Field label="Телефон" value={form.phone ?? ''} onChange={v => set('phone', v)} name="phone" bad={badField === 'phone'} badMessage={err} placeholder="+380…" />
-          <Field label="IBAN" value={form.payout_iban ?? ''} onChange={v => set('payout_iban', v)} name="payout_iban" bad={badField === 'payout_iban'} badMessage={err} placeholder="UA…" />
+          <Field label="Телефон" value={form.phone ?? ''} onChange={v => set('phone', v)} name="phone" empty={missing('phone')} bad={badField === 'phone'} badMessage={err} placeholder="+380…" />
+          <Field label="IBAN" value={form.payout_iban ?? ''} onChange={v => set('payout_iban', v)} name="payout_iban" empty={missing('payout_iban')} bad={badField === 'payout_iban'} badMessage={err} placeholder="UA…" />
           <div style={{ marginBottom: '0.9rem' }} data-field="bank_name">
             <div style={label}>Назва банку</div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
@@ -317,8 +340,11 @@ export default function AuthorRequisites({ initial }: Props) {
               placeholder="Або впишіть свій банк"
               onChange={e => set('bank_name', e.target.value)}
               style={{
-                width: '100%', padding: '0.6rem 0.75rem', border: `1px solid ${UI.fieldBorder}`,
-                borderRadius: 10, background: 'rgba(255,255,255,0.05)', color: BRAND.text, fontSize: '0.95rem',
+                width: '100%', padding: '0.6rem 0.75rem',
+                border: missing('bank_name') ? `2px solid ${RED}` : `1px solid ${UI.fieldBorder}`,
+                borderRadius: 10,
+                background: missing('bank_name') ? 'rgba(224,102,102,0.08)' : 'rgba(255,255,255,0.05)',
+                color: BRAND.text, fontSize: '0.95rem',
                 fontFamily: 'inherit', boxSizing: 'border-box',
               }}
             />
@@ -370,18 +396,25 @@ export default function AuthorRequisites({ initial }: Props) {
 }
 
 function Field(
-  { label: text, value, onChange, placeholder, name, bad, badMessage }:
+  { label: text, value, onChange, placeholder, name, bad, badMessage, empty }:
   {
     label: string; value: string; onChange: (v: string) => void; placeholder?: string
     /** Ключ поля — за ним форма знаходить і прокручує до нього. */
     name?: string
     bad?: boolean
     badMessage?: string | null
+    /** Обов'язкове й порожнє. Бурштинова помилка валідації має перевагу. */
+    empty?: boolean
   },
 ) {
   return (
     <div style={{ marginBottom: '0.9rem' }} data-field={name}>
-      <div style={label}>{text}</div>
+      <div style={label}>
+        {text}
+        {empty && !bad && (
+          <span style={{ color: RED, fontWeight: 700 }}>{' · '}не заповнено</span>
+        )}
+      </div>
       <input
         type="text"
         value={value}
@@ -389,9 +422,13 @@ function Field(
         onChange={e => onChange(e.target.value)}
         style={{
           width: '100%', padding: '0.6rem 0.75rem',
-          border: bad ? `2px solid ${BRAND.amber}` : `1px solid ${UI.fieldBorder}`,
+          border: bad ? `2px solid ${BRAND.amber}`
+                : empty ? `2px solid ${RED}`
+                : `1px solid ${UI.fieldBorder}`,
           borderRadius: 10,
-          background: bad ? 'rgba(239,159,39,0.10)' : 'rgba(255,255,255,0.05)',
+          background: bad ? 'rgba(239,159,39,0.10)'
+                    : empty ? 'rgba(224,102,102,0.08)'
+                    : 'rgba(255,255,255,0.05)',
           color: BRAND.text, fontSize: '0.95rem',
           fontFamily: 'inherit', boxSizing: 'border-box',
         }}
