@@ -340,6 +340,17 @@ export default async function AuthorDashboardPage() {
   // до нього — у getNarrationOrder(), lib/voice-queue.ts.
   const narration = await getNarrationOrder(25)
 
+  // Реферальний код автора — для мітки в шаблоні допису.
+  // Лежить у `users`, генерується при реєстрації; та сама колонка, з якої
+  // будується посилання «Запросити друзів» у /profile.
+  const { data: refRow } = await admin
+    .from('users')
+    .select('referral_code')
+    .eq('id', user.id)
+    .maybeSingle() as { data: { referral_code: string | null } | null }
+
+  const myRefCode = refRow?.referral_code ?? null
+
   // Баланс
   const { data: bal } = await supabase
     .from('author_balance')
@@ -1070,6 +1081,8 @@ export default async function AuthorDashboardPage() {
                     <ShareWorkTemplate
                       title={s.title}
                       slug={s.slug}
+                      type={s.type}
+                      refCode={myRefCode}
                       votes={votesById.get(s.content_id) ?? 0}
                     />
                   )}
