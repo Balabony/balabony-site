@@ -34,6 +34,29 @@ function checkAuth(req: NextRequest): boolean {
 
 type Target = { email: string; followerId: string }
 
+/**
+ * СЕРІАЛЬНА ГІЛКА (17.09.2026).
+ *
+ * До цього роут шле листи лише підписникам АВТОРА (author_follows). Для
+ * серіалів цього не досить: кнопки «Стежити за автором» на них свідомо не
+ * ставили — автор один на «Балабонів» і «Тишу», і читач сільського гумору
+ * отримував би листи про воєнну драму 18+. Замість неї 16.09 зробили
+ * підписку на СЕРІАЛ (series_follows) і кнопку «Стежити», яка обіцяє
+ * повідомити про нову серію. Обіцянку ніхто не виконував: таблицю
+ * наповнювали, читав її ніхто.
+ *
+ * Тепер тип твору вирішує, у кого брати адреси: серії й «Тиша» — із
+ * series_follows, усе інше — з author_follows, як було.
+ *
+ * Значення 'balabony' і 'tysha' мусять збігатися з check-обмеженням
+ * таблиці та з SERIES у app/api/series/follow/route.ts.
+ */
+function seriesOf(type: string): 'balabony' | 'tysha' | null {
+  if (type === 'episode') return 'balabony'
+  if (type === 'tysha') return 'tysha'
+  return null
+}
+
 /** Публічна адреса твору. Типи лежать на різних маршрутах. */
 function readUrl(type: string, slug: string | null): string {
   if (!slug) return SITE
@@ -47,15 +70,19 @@ function letter(opts: {
   title: string
   url: string
   teaser: string | null
+  /** true — лист підписникам серіалу, а не автора. Різниться перший рядок. */
+  isSeries?: boolean
 }): string {
-  const { authorName, title, url, teaser } = opts
+  const { authorName, title, url, teaser, isSeries } = opts
   return `<!DOCTYPE html>
 <html lang="uk">
 <body style="font-family:Arial,sans-serif;background:#0a1628;color:#f5f0e8;padding:32px;max-width:640px;margin:0 auto;">
   <div style="background:#0f1e3a;border-radius:16px;padding:28px;border:1px solid rgba(239,159,39,0.3);">
     <div style="font-size:22px;font-weight:700;color:${GOLD};margin-bottom:24px;">Balabony</div>
 
-    <p style="color:#c8d4e8;margin:0 0 6px;">Автор, за яким ви стежите, опублікував нове.</p>
+    <p style="color:#c8d4e8;margin:0 0 6px;">${isSeries
+      ? 'Вийшла нова серія серіалу, за яким ви стежите.'
+      : 'Автор, за яким ви стежите, опублікував нове.'}</p>
 
     <div style="font-size:20px;font-weight:700;color:#f5f0e8;margin:18px 0 4px;">${title}</div>
     <div style="font-size:14px;color:#8899bb;margin-bottom:20px;">${authorName}</div>
@@ -92,15 +119,26 @@ export async function GET(req: NextRequest) {
       const { rows } = await dbQuery(
         `select c.id, c.title, c.type, c.slug, c.created_at,
                 coalesce(p.pen_name, p.display_name, 'Автор') as author_name,
-                (select count(*)::int from author_follows f
-                  where f.author_user_id = c.author_id) as followers,
+                case
+                  when c.type = 'episode' then (select count(*)::int from series_follows f where f.series = 'balabony')
+                  when c.type = 'tysha'   then (select count(*)::int from series_follows f where f.series = 'tysha')
+                  else (select count(*)::int from author_follows f where f.author_user_id = c.author_id)
+                end                                     as followers,
                 (select sent_at from notification_log n
                   where n.content_id = c.id)            as sent_at
            from content c
            join author_profiles p on p.user_id = c.author_id
           where c.status <> 'draft'
-            and exists (select 1 from author_follows f
-                         where f.author_user_id = c.author_id)
+            -- Серії й «Тиша» потрапляють у список за підписниками СЕРІАЛУ:
+            -- інакше вони не показувалися тут ніколи, бо на них немає
+            -- підписок на автора (і не буде — рішення від 16.09.2026).
+            and (
+              case
+                when c.type = 'episode' then exists (select 1 from series_follows f where f.series = 'balabony')
+                when c.type = 'tysha'   then exists (select 1 from series_follows f where f.series = 'tysha')
+                else exists (select 1 from author_follows f where f.author_user_id = c.author_id)
+              end
+            )
           order by c.created_at desc
           limit 60`,
       )
@@ -117,8 +155,11 @@ export async function GET(req: NextRequest) {
     const { rows } = await dbQuery(
       `select c.id, c.title, c.slug, c.status, c.author_id,
               coalesce(p.pen_name, p.display_name, 'Автор') as author_name,
-              (select count(*)::int from author_follows f
-                where f.author_user_id = c.author_id)        as followers,
+              case
+                when c.type = 'episode' then (select count(*)::int from series_follows f where f.series = 'balabony')
+                when c.type = 'tysha'   then (select count(*)::int from series_follows f where f.series = 'tysha')
+                else (select count(*)::int from author_follows f where f.author_user_id = c.author_id)
+              end                                            as followers,
               (select sent_at from notification_log n
                 where n.content_id = c.id)                   as already_sent
          from content c
@@ -202,15 +243,25 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 2. Підписники з поштою
-    const { rows: raw } = await dbQuery(
-      `select f.follower_id, u.email
-         from author_follows f
-         join auth.users u on u.id = f.follower_id
-        where f.author_user_id = $1::uuid
-          and u.email is not null`,
-      [item.author_id],
-    )
+    // 2. Підписники з поштою. Джерело залежить від типу — див. seriesOf().
+    const series = seriesOf(item.type)
+    const { rows: raw } = series
+      ? await dbQuery(
+          `select f.user_id as follower_id, u.email
+             from series_follows f
+             join auth.users u on u.id = f.user_id
+            where f.series = $1
+              and u.email is not null`,
+          [series],
+        )
+      : await dbQuery(
+          `select f.follower_id, u.email
+             from author_follows f
+             join auth.users u on u.id = f.follower_id
+            where f.author_user_id = $1::uuid
+              and u.email is not null`,
+          [item.author_id],
+        )
     const targets: Target[] = raw
       .map((r: { follower_id: string; email: string }) => ({
         followerId: r.follower_id,
@@ -219,7 +270,10 @@ export async function POST(req: NextRequest) {
       .filter((t: Target) => t.email.includes('@'))
 
     if (!targets.length) {
-      return NextResponse.json({ sent: 0, failed: 0, note: 'У автора ще немає підписників' })
+      return NextResponse.json({
+        sent: 0, failed: 0,
+        note: series ? 'За цим серіалом ще ніхто не стежить' : 'У автора ще немає підписників',
+      })
     }
 
     // 3. Розсилка
@@ -233,6 +287,7 @@ export async function POST(req: NextRequest) {
       title: item.title,
       url,
       teaser: item.hook,
+      isSeries: Boolean(series),
     })
 
     let ok = 0
@@ -242,7 +297,9 @@ export async function POST(req: NextRequest) {
         await resend.emails.send({
           from,
           to: t.email,
-          subject: `${item.author_name} — «${item.title}»`,
+          subject: series
+            ? `Нова серія: «${item.title}»`
+            : `${item.author_name} — «${item.title}»`,
           html,
         })
         ok++
