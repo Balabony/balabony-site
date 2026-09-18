@@ -294,10 +294,12 @@ export default function LoginPage() {
                   autoComplete="one-time-code"
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))}
-                  placeholder="123456"
+                  // 18.09.2026: був зразок «123456» — на тесті його сприйняли за вже
+                  // введений код. Тепер підказка словами. Код у Supabase 8-значний.
+                  placeholder="Цифри з листа"
                   style={{
                     width: '100%', boxSizing: 'border-box', padding: '0.8rem 1rem',
-                    fontSize: '1.4rem', letterSpacing: '0.3em', textAlign: 'center',
+                    fontSize: code ? '1.4rem' : '1rem', letterSpacing: code ? '0.3em' : 'normal', textAlign: 'center',
                     border: '2px solid #f0e0c0', borderRadius: '10px', color: '#0a1628',
                     fontFamily: "'Montserrat', sans-serif", outline: 'none',
                   }}
