@@ -1,4 +1,6 @@
-// FILE: app/pysmennytskyi-horoskop/page.tsx
+// FILE: app/znaky-zodiaku/page.tsx
+// Адреса змінена 18.09.2026 з /pysmennytskyi-horoskop (редирект у next.config.mjs):
+// ядро запиту з попитом — «знаки зодіаку» (по місяцях 1–10 тис./міс).
 // Письменницький гороскоп: 12 знаків, гумор про робочі звички авторів,
 // виклик, класики під знаком, документований випадок і один твір із каталогу.
 // Серверний компонент, інлайн-стилі за зразком /pro-balabony.
@@ -21,11 +23,11 @@ export const metadata: Metadata = {
   title: "Знаки зодіаку по місяцях і датах. Письменницький гороскоп на 2027 рік — Balabony",
   description:
     "Знаки зодіаку по місяцях і датах у таблиці, а далі — письменницький гороскоп на 2027 рік: звички, прогноз і виклик для кожного знака, відомі письменники під ним.",
-  alternates: { canonical: "https://balabony.com/pysmennytskyi-horoskop" },
+  alternates: { canonical: "https://balabony.com/znaky-zodiaku" },
   openGraph: {
     title: "Дванадцять способів не дописати роман",
     description: "Письменницький гороскоп, у який ми не віримо. Знайдіть свій знак.",
-    url: "https://balabony.com/pysmennytskyi-horoskop",
+    url: "https://balabony.com/znaky-zodiaku",
     siteName: "Balabony",
     locale: "uk_UA",
     type: "article",
@@ -175,7 +177,7 @@ const JSON_LD = {
   image: "https://balabony.com/og-horoskop.png",
   inLanguage: "uk",
   datePublished: "2026-09-18",
-  mainEntityOfPage: "https://balabony.com/pysmennytskyi-horoskop",
+  mainEntityOfPage: "https://balabony.com/znaky-zodiaku",
   author: { "@type": "Organization", name: "Balabony", url: "https://balabony.com" },
   publisher: { "@type": "Organization", name: "Balabony", url: "https://balabony.com" },
   about: SIGNS.map(s => ({ "@type": "Thing", name: `${s.name} (${s.dates})` })),
@@ -192,7 +194,7 @@ export default function HoroskopPage() {
     <main style={{ background: "#161412", padding: "24px 16px calc(88px + env(safe-area-inset-bottom, 0px))" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <div style={{ maxWidth: 768, margin: "0 auto 16px" }}>
-        <Breadcrumbs items={[{ label: "Письменницький гороскоп" }]} />
+        <Breadcrumbs items={[{ label: "Знаки зодіаку" }]} />
       </div>
       <article
         style={{

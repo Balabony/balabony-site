@@ -81,8 +81,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/about`,                 lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/games`,                 lastModified: now, changeFrequency: 'weekly',  priority: 0.7 },
     { url: `${BASE_URL}/pro-balabony`,          lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
-    // Письменницький гороскоп: пошукового попиту немає, живе розсилкою авторам.
-    { url: `${BASE_URL}/pysmennytskyi-horoskop`, lastModified: now, changeFrequency: 'yearly',  priority: 0.4 },
+    // Знаки зодіаку + письменницький гороскоп. Запит «знаки зодіаку по місяцях»
+    // має 1–10 тис./міс (Планувальник, 18.09.2026).
+    { url: `${BASE_URL}/znaky-zodiaku`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     // Послуги з розробки сайтів. У головному меню сторінки свідомо немає —
     // на неї ведуть оголошення і пошук, тож у карті сайту вона потрібна.
     { url: `${BASE_URL}/vydannya`,              lastModified: now, changeFrequency: 'monthly', priority: 0.7 },

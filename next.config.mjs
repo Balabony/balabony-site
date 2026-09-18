@@ -59,6 +59,12 @@ const nextConfig = {
   // адреси новій — на відміну від простого 404.
   async redirects() {
     return [
+      // Гороскоп переїхав 18.09.2026 на адресу з пошуковим ключем.
+      {
+        source: '/pysmennytskyi-horoskop',
+        destination: '/znaky-zodiaku',
+        permanent: true,
+      },
       {
         source: '/stories/:slug(tysha-s1e\\d+)',
         destination: '/tysha/:slug',
