@@ -47,6 +47,9 @@ type Row = {
   readers: number
   finished: number
   median_percent: number
+  chars: number | null
+  known: number
+  outside: number
 }
 
 const TYPE_LABEL: Record<string, string> = {
@@ -66,6 +69,11 @@ const hint: React.CSSProperties = {
   lineHeight: 1.35,
   color: 'rgba(245,240,232,0.45)',
   marginTop: 3,
+}
+
+/** Довжина в тисячах знаків: 12 400 → «12,4 тис.» */
+function kChars(n: number): string {
+  return `${(n / 1000).toLocaleString('uk-UA', { maximumFractionDigits: 1 })} тис.`
 }
 
 /** Колір частки дочитувань: зелений добре, жовтий середньо, червоний погано. */
@@ -128,9 +136,21 @@ export default async function DochytuvanniaPage({
            (select percentile_cont(0.5) within group (order by rp.percent)
               from reading_progress rp
              where rp.slug = ar.article_slug and rp.percent >= 3), 0
-         )::int                                                     as median_percent
+         )::int                                                     as median_percent,
+         -- 18.09.2026. Дві колонки, щоб відділити сюжет від інших причин
+         -- дочитування. Довжина: поріг — 70% обсягу, коротке дочитати легше.
+         max(length(coalesce(nullif(trim(c.corrected_text), ''), c.text)))::int as chars,
+         -- «Прийшли ззовні просто на твір»: перша сторінка першого візиту
+         -- (user_acquisition, перший дотик браузера) — саме цей твір. Так
+         -- приходять за посиланням, яким поділився автор, — його коло.
+         -- Рахуємо по різних людях і лише серед тих, чиє джерело відоме.
+         count(distinct ar.user_id) filter (where ua.user_id is not null)::int as known,
+         count(distinct ar.user_id) filter (
+           where position(ar.article_slug in coalesce(ua.landing_path, '')) > 0
+         )::int                                                     as outside
        from article_reads ar
        left join content c on c.id = ar.content_id
+       left join user_acquisition ua on ua.user_id::text = ar.user_id::text
        -- Автор, який читає власний твір, у статистику не йде: з 11.09.2026
        -- йому не зараховують і подію прочитання.
        where (c.author_id is null or ar.user_id::text <> c.author_id::text)
@@ -240,7 +260,10 @@ export default async function DochytuvanniaPage({
                 <div key={r.slug} style={{ fontSize: 13, lineHeight: 1.5, marginBottom: 6 }}>
                   <span style={{ color: '#22c55e', fontWeight: 700 }}>{pct(r.finished, r.readers)}%</span>{' '}
                   {r.title ?? r.slug}
-                  <span style={{ color: 'rgba(245,240,232,0.45)' }}> · {r.readers} чит.</span>
+                  <span style={{ color: 'rgba(245,240,232,0.45)' }}>
+                    {' '}· {r.readers} чит.{r.chars ? ` · ${kChars(r.chars)}` : ''}
+                    {r.known > 0 ? ` · ззовні ${pct(r.outside, r.known)}%` : ''}
+                  </span>
                 </div>
               ))}
             </div>
@@ -260,7 +283,13 @@ export default async function DochytuvanniaPage({
                 <div key={r.slug} style={{ fontSize: 13, lineHeight: 1.5, marginBottom: 6 }}>
                   <span style={{ color: '#ef4444', fontWeight: 700 }}>{pct(r.finished, r.readers)}%</span>{' '}
                   {r.title ?? r.slug}
-                  <span style={{ color: 'rgba(245,240,232,0.45)' }}> · кидають близько {r.median_percent}%</span>
+                  <span style={{ color: 'rgba(245,240,232,0.45)' }}>
+                    {' '}· {r.median_percent > 0
+                      ? `кидають близько ${r.median_percent}%`
+                      // 0 означає «немає даних про глибину» (жодного залогіненого
+                      // з прогресом ≥3%), а не «ніхто не кидає» — так читалось раніше.
+                      : 'де кидають — невідомо (немає залогінених)'}
+                  </span>
                 </div>
               ))}
             </div>
@@ -291,6 +320,14 @@ export default async function DochytuvanniaPage({
                   <div style={hint}>дочитали ÷ читачів</div>
                 </th>
                 <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'right' }}>
+                  Довжина
+                  <div style={hint}>тис. знаків;<br />коротке дочитати легше</div>
+                </th>
+                <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'right' }}>
+                  Ззовні
+                  <div style={hint}>прийшли просто на твір<br />(коло автора) · з відомих</div>
+                </th>
+                <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'right' }}>
                   Медіана
                   <div style={hint}>де кидає середній,<br />лише залогінені</div>
                 </th>
@@ -315,13 +352,18 @@ export default async function DochytuvanniaPage({
                     <td style={{ padding: '9px 12px', textAlign: 'right' }}>{r.readers}</td>
                     <td style={{ padding: '9px 12px', textAlign: 'right' }}>{r.finished}</td>
                     <td style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: shareColor(share) }}>{share}%</td>
-                    <td style={{ padding: '9px 12px', textAlign: 'right', color: 'rgba(245,240,232,0.6)' }}>{r.median_percent}%</td>
+                    <td style={{ padding: '9px 12px', textAlign: 'right', color: 'rgba(245,240,232,0.6)' }}>{r.chars ? kChars(r.chars) : '—'}</td>
+                    <td style={{ padding: '9px 12px', textAlign: 'right', color: 'rgba(245,240,232,0.75)' }}>
+                      {r.known > 0 ? `${pct(r.outside, r.known)}%` : '—'}
+                      {r.known > 0 && <div style={{ fontSize: 10.5, color: 'rgba(245,240,232,0.4)' }}>{r.outside} з {r.known}</div>}
+                    </td>
+                    <td style={{ padding: '9px 12px', textAlign: 'right', color: 'rgba(245,240,232,0.6)' }}>{r.median_percent > 0 ? `${r.median_percent}%` : '—'}</td>
                   </tr>
                 )
               })}
               {visible.length === 0 && !error && (
                 <tr>
-                  <td colSpan={6} style={{ padding: 20, textAlign: 'center', color: 'rgba(245,240,232,0.5)' }}>
+                  <td colSpan={8} style={{ padding: 20, textAlign: 'center', color: 'rgba(245,240,232,0.5)' }}>
                     Немає творів, які прочитали щонайменше {minReaders} осіб. Спробуйте знизити поріг.
                   </td>
                 </tr>
@@ -334,6 +376,12 @@ export default async function DochytuvanniaPage({
           Медіана показує, на якому відсотку стоїть середній читач. Низька медіана при великій
           кількості читачів означає, що твір кидають, і приблизно вказує де. Цифри мають сенс
           від десятка читачів на твір — нижче це випадковість, а не закономірність.
+          <br /><br />
+          <strong>Як шукати причину, чому твір дочитують.</strong> Спершу відкиньте дві сторонні:
+          «Довжина» (коротке дочитати легше — поріг 70% обсягу) і «Ззовні» (висока частка —
+          це читачі, що прийшли за посиланням автора, тобто його знайомі). Лише коли твори
+          схожої довжини з «чужими» читачами дочитують по-різному — різниця справді в тексті.
+          «Ззовні» рахується серед тих, чиє джерело відоме; «3 з 4» — ще не висновок.
           <br /><br />
           Ці цифри вищі за «глибину читання» на сторінці Аналітики, і так і має бути: там
           прочитання зараховується за повним правилом договору — 70% обсягу <em>і</em> мінімум
