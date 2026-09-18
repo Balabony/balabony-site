@@ -158,6 +158,12 @@ const SIGNS: Sign[] = [
 ];
 
 const GOLD = "#B5710C";
+const GOLD_BRIGHT = "#EF9F27";
+const SERIF = "'Lora', Georgia, serif";
+const capsLabel: React.CSSProperties = {
+  display: "block", fontSize: 11.5, fontWeight: 800, letterSpacing: "1.4px",
+  textTransform: "uppercase", color: "#8a5a10", margin: "0 0 4px",
+};
 
 // Розмітка статті. Даних про людей тут немає — лише сам матеріал.
 const JSON_LD = {
@@ -173,7 +179,6 @@ const JSON_LD = {
   publisher: { "@type": "Organization", name: "Balabony", url: "https://balabony.com" },
   about: SIGNS.map(s => ({ "@type": "Thing", name: `${s.name} (${s.dates})` })),
 };
-const label: React.CSSProperties = { fontWeight: 700, color: "#1c1917" };
 const pStyle: React.CSSProperties = { margin: "0 0 12px" };
 const navLink: React.CSSProperties = {
   display: "inline-block", padding: "6px 10px", margin: "0 6px 8px 0",
@@ -203,7 +208,12 @@ export default function HoroskopPage() {
         </p>
         <p style={pStyle}>
           Зорі на ваш текст не впливають. А от звички впливають, і вони в кожного свої. Знайдіть свій знак,
-          впізнайте себе, прийміть виклик, а заодно прочитайте, як із ним упоралися автори Balabony.
+          впізнайте себе й прийміть виклик.
+        </p>
+        <p style={{ ...pStyle, fontSize: 15, color: "#57534e" }}>
+          Під кожним знаком ми поставили один твір із каталогу Balabony. Його дібрано за темою виклику,
+          а не за днем народження автора: прочитайте, як про це пише хтось із наших авторів, а тоді
+          спробуйте самі.
         </p>
 
         <nav aria-label="Знаки зодіаку" style={{ margin: "20px 0 8px" }}>
@@ -215,26 +225,54 @@ export default function HoroskopPage() {
         </nav>
 
         {SIGNS.map(s => (
-          <section key={s.id} id={s.id} style={{ marginTop: 36, paddingTop: 24, borderTop: "1px solid #e2d9c8", scrollMarginTop: 80 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 16, margin: "0 0 14px" }}>
-              <ZodiacBadge sign={s.id} size={72} />
-              <div>
-                <h2 style={{ fontSize: 24, fontWeight: 700, color: "#1c1917", margin: "0 0 2px" }}>{s.name}</h2>
-                <p style={{ margin: 0, fontSize: 14, color: "#78716c" }}>
-                  {s.dates} · <em>{s.motto}</em>
+          <section key={s.id} id={s.id} style={{ marginTop: 40, paddingTop: 28, borderTop: "1px solid #e2d9c8", scrollMarginTop: 80 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 18, margin: "0 0 16px" }}>
+              <ZodiacBadge sign={s.id} size={84} />
+              <div style={{ minWidth: 0 }}>
+                <h2 style={{ fontFamily: SERIF, fontSize: 30, fontWeight: 700, color: "#1c1917", margin: 0, lineHeight: 1.15 }}>{s.name}</h2>
+                <p style={{ margin: "4px 0 0", fontSize: 13, letterSpacing: "0.6px", textTransform: "uppercase", color: "#78716c" }}>
+                  {s.dates}
                 </p>
               </div>
             </div>
-            <p style={pStyle}>{s.portrait}</p>
-            <p style={pStyle}><span style={label}>Виклик:</span> {s.challenge}</p>
-            <p style={pStyle}><span style={label}>Під цим знаком народилися:</span> {s.born}</p>
-            <p style={pStyle}><span style={label}>Був випадок.</span> {s.story}</p>
-            <p style={{ margin: 0 }}>
-              <span style={label}>Почитати:</span>{" "}
-              <a href={`/stories/${s.work.slug}`} style={{ color: GOLD, fontWeight: 700 }}>
-                «{s.work.title}»
-              </a>{" "}
-              — <a href={`/avtor/${authorSlug(s.work.author)}`} style={{ color: "#292524" }}>{s.work.author}</a>
+
+            <p style={{ margin: "0 0 12px", fontSize: 15, fontWeight: 700, color: GOLD }}>{s.motto}</p>
+
+            <p style={{ margin: "0 0 18px", fontFamily: SERIF, fontSize: 18.5, lineHeight: 1.7, color: "#1c1917" }}>
+              {s.portrait}
+            </p>
+
+            <div style={{ margin: "0 0 18px", padding: "14px 18px", background: "#fbecd0", borderLeft: `4px solid ${GOLD_BRIGHT}`, borderRadius: "0 10px 10px 0" }}>
+              <div style={capsLabel}>Виклик знака</div>
+              <div style={{ fontSize: 17, fontWeight: 600, color: "#1c1917", lineHeight: 1.5 }}>
+                {s.challenge.charAt(0).toUpperCase() + s.challenge.slice(1)}
+              </div>
+            </div>
+
+            <div style={{ margin: "0 0 16px", paddingLeft: 16, borderLeft: "2px solid #d6cdbd" }}>
+              <div style={capsLabel}>Був випадок</div>
+              <p style={{ margin: 0, fontStyle: "italic", color: "#44403c" }}>{s.story}</p>
+            </div>
+
+            <p style={{ margin: "0 0 16px", fontSize: 14.5, color: "#57534e" }}>
+              <span style={{ fontWeight: 700 }}>Під цим знаком народилися:</span> {s.born}
+            </p>
+
+            <a
+              href={`/stories/${s.work.slug}`}
+              style={{
+                display: "block", padding: "14px 18px", background: "#fffaf1",
+                border: "1px solid #e2d9c8", borderRadius: 12, textDecoration: "none", color: "#292524",
+              }}
+            >
+              <span style={capsLabel}>На тему виклику · з каталогу Balabony</span>
+              <span style={{ display: "block", fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: GOLD, margin: "2px 0 2px" }}>
+                «{s.work.title}» →
+              </span>
+              <span style={{ fontSize: 14.5, color: "#57534e" }}>{s.work.author}</span>
+            </a>
+            <p style={{ margin: "6px 0 0", fontSize: 13.5 }}>
+              <a href={`/avtor/${authorSlug(s.work.author)}`} style={{ color: "#78716c" }}>Усі твори автора</a>
             </p>
           </section>
         ))}
