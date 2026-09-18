@@ -1164,6 +1164,43 @@ export default function KonkursyPage() {
 
         <Breadcrumbs items={[{ label: 'Конкурси' }]} />
 
+        {/* ─── Швидкий старт ─── 18.09.2026. Внутрішня аналітика: /konkursy — і
+            головний вхід (~145 сесій із Facebook), і головний вихід (~135):
+            люди приходять, бачать довгу сторінку правил і йдуть. Тут одна
+            думка й одна дія для того, хто чує про нас уперше; правила — нижче. */}
+        <section
+          aria-label="Коротко про конкурси"
+          className="k-no-print"
+          style={{
+            marginTop: 18, padding: '22px 22px 20px', borderRadius: 18,
+            background: NAVY, border: `1px solid ${GOLD}`,
+          }}
+        >
+          <div style={{ fontFamily: SERIF, fontSize: 'clamp(22px, 4.5vw, 28px)', color: CREAM, fontWeight: 700, margin: '0 0 10px' }}>
+            Літературні конкурси Балабонів
+          </div>
+          <ul style={{ margin: '0 0 18px', paddingLeft: 20, color: SOFT, fontSize: 16, lineHeight: 1.7 }}>
+            <li>П'ять конкурсів, призи до 20 000 ₴, участь безкоштовна.</li>
+            <li>Потрібен новий твір — історія, серіал чи казки, які ще ніде не публікувалися.</li>
+            <li>Перший крок — безкоштовний кабінет автора.</li>
+          </ul>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px' }}>
+            <Link
+              href="/become-author"
+              style={{
+                background: GOLD, color: NAVY_DEEP, fontSize: 16, fontWeight: 800,
+                borderRadius: 11, padding: '13px 26px', textDecoration: 'none',
+              }}
+            >
+              Хочу взяти участь →
+            </Link>
+            <Link href="/konkursy/podaty" style={{ color: SOFT, fontSize: 14.5, textDecoration: 'underline', textUnderlineOffset: 3 }}>
+              Уже маю кабінет — подати твір
+            </Link>
+          </div>
+          <div style={{ marginTop: 14, fontSize: 13.5, color: MUTED }}>Умови кожного конкурсу — нижче ↓</div>
+        </section>
+
         {/* Три конкурси поруч: видно різницю до того, як читати умови. */}
         <div style={{ marginTop: 18 }}>
           <ContestPicker />
