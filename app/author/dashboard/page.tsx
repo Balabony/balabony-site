@@ -498,6 +498,44 @@ export default async function AuthorDashboardPage() {
   const statNum: React.CSSProperties = { fontSize: '2rem', fontWeight: 700, color: BRAND.ink, lineHeight: 1 }
   const statLabel: React.CSSProperties = { fontSize: '0.88rem', color: '#b9c6db', fontWeight: 600, marginTop: 6 }
 
+
+  // Відгуки читачів на твори автора. Рішення 18.09.2026: автор бачить відгуки
+  // сам — дослідження мотивації авторів показують, що визнання від читачів
+  // тримає довше за гроші. Показуємо текст лише відгуків з оцінкою 3+;
+  // нижчі входять у кількість і середню оцінку, але без тексту, щоб різкий
+  // коментар не прилітав авторові без редакції. Хто залишив відгук — не
+  // показуємо ніколи.
+  type AuthorReview = { title: string; slug: string | null; rating: number; comment: string | null; created_at: string }
+  let myReviews: AuthorReview[] = []
+  let reviewStats = { total: 0, avg: null as number | null }
+  try {
+    const rs = await dbQuery(
+      `select count(*)::int as total, round(avg(r.rating)::numeric, 1)::float8 as avg
+         from reviews r
+         join content c on c.id::text = r.content_id::text
+        where c.author_id = $1
+          and (r.user_id is null or r.user_id::text <> $1::text)`,
+      [user.id],
+    )
+    const row = rs.rows[0] as { total: number; avg: number | null } | undefined
+    reviewStats = { total: row?.total ?? 0, avg: row?.avg ?? null }
+    const rv = await dbQuery(
+      `select c.title, c.slug, r.rating, r.comment, r.created_at
+         from reviews r
+         join content c on c.id::text = r.content_id::text
+        where c.author_id = $1
+          and r.rating >= 3
+          and coalesce(trim(r.comment), '') <> ''
+          and (r.user_id is null or r.user_id::text <> $1::text)
+        order by r.created_at desc
+        limit 20`,
+      [user.id],
+    )
+    myReviews = rv.rows as AuthorReview[]
+  } catch {
+    // Блок не критичний: якщо запит упав, його просто не буде.
+  }
+
   return (
     <main style={{ padding: '2rem 1rem', background: BRAND.navy }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
@@ -573,6 +611,41 @@ export default async function AuthorDashboardPage() {
               Переглянути й підтвердити
             </a>
           </div>
+        )}
+
+        {/* Відгуки читачів (18.09.2026). */}
+        {reviewStats.total > 0 && (
+          <section style={{
+            marginBottom: '1.5rem', padding: '1rem 1.25rem', borderRadius: 12,
+            background: 'rgba(239,159,39,0.08)', border: '1px solid rgba(239,159,39,0.35)',
+          }}>
+            <h2 style={{ margin: '0 0 6px', color: '#FFF8EE', fontWeight: 800, fontSize: '1.35rem', lineHeight: 1.25 }}>
+              Що кажуть читачі
+            </h2>
+            <div style={{ color: '#c9d6e6', fontSize: '0.9rem', marginBottom: 12 }}>
+              Відгуків на ваші твори: <strong style={{ color: '#FAC775' }}>{reviewStats.total}</strong>
+              {reviewStats.avg !== null && <> · середня оцінка <strong style={{ color: '#FAC775' }}>{reviewStats.avg}</strong> з 5</>}
+            </div>
+            {myReviews.length > 0 ? (
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 10 }}>
+                {myReviews.map((r, i) => (
+                  <li key={i} style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(8,20,38,0.45)', border: '1px solid rgba(143,163,196,0.22)' }}>
+                    <div style={{ color: '#FAC775', fontSize: '0.85rem', marginBottom: 4 }}>
+                      {'★'.repeat(Math.max(0, Math.min(5, Math.round(r.rating))))}
+                      <span style={{ color: '#9fb0c6' }}>
+                        {' · '}
+                        {r.slug ? <a href={`/stories/${r.slug}`} style={{ color: '#9fb0c6' }}>«{r.title}»</a> : <>«{r.title}»</>}
+                        {' · '}{new Date(r.created_at).toLocaleDateString('uk-UA')}
+                      </span>
+                    </div>
+                    <div style={{ color: '#e8eef7', lineHeight: 1.6, fontSize: '0.95rem', whiteSpace: 'pre-line' }}>{r.comment}</div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div style={{ color: '#9fb0c6', fontSize: '0.88rem' }}>Читачі поставили оцінки, але текстових відгуків ще немає.</div>
+            )}
+          </section>
         )}
 
         {/* Додати свою історію. Стоїть перед чергою на озвучення: автори
