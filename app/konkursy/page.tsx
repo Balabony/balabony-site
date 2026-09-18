@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ContestReads from '@/app/components/ContestReads'
+import WinnerBadge from '@/app/components/WinnerBadge'
+import { AWARDS as WINNERS, PLACE_LABEL } from '@/lib/contest-winners'
 import { CONTESTS, findContest, isOpen, prizeFund, prizeLine, topPrize, type Contest } from '@/lib/contests'
 
 /**
@@ -1294,6 +1296,66 @@ export default function KonkursyPage() {
             </Link>
           </div>
         </div>
+
+        {/* ─── Підсумки ─── 18.09.2026: перші оголошені переможці. Стоїть одразу
+            після головного конкурсу навмисно: автор, який вагається, бачить,
+            що конкурси реально завершуються й людей реально нагороджують.
+            Дані — lib/contest-winners.ts, той самий файл дає знак на сторінці автора. */}
+        <section
+          id="pidsumky"
+          aria-labelledby="pidsumky-title"
+          style={{
+            background: NAVY,
+            border: '1px solid rgba(239,159,39,0.35)',
+            borderRadius: 18,
+            padding: '26px 24px',
+            marginBottom: 26,
+            scrollMarginTop: 90,
+          }}
+        >
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: 'uppercase', color: GOLD }}>
+            Підсумки
+          </div>
+          <h2 id="pidsumky-title" style={{ fontFamily: SERIF, fontSize: 'clamp(24px, 4.5vw, 32px)', color: CREAM, margin: '8px 0 10px' }}>
+            Переможці конкурсу «Зірковий старт-2025»
+          </h2>
+          <p style={{ fontSize: 15.5, color: SOFT, lineHeight: 1.6, margin: '0 0 18px', maxWidth: 680 }}>
+            Інститут громадянського суспільства підбив підсумки Всеукраїнського конкурсу історій
+            українців. Учасники надіслали новели, оповідання й історії про людські долі, почуття та
+            моменти, що залишають слід у серці. Щиро вітаємо переможців і дякуємо всім, хто взяв участь.
+          </p>
+          <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+            {WINNERS.filter(a => a.contest === 'Зірковий старт-2025').map(a => (
+              <li
+                key={a.place}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  background: NAVY_DEEP, borderRadius: 12, padding: '12px 14px',
+                  borderLeft: a.place === 1 ? `3px solid ${GOLD}` : '3px solid rgba(239,159,39,0.35)',
+                }}
+              >
+                <WinnerBadge place={a.place} size={52} />
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 12, letterSpacing: 1.2, textTransform: 'uppercase', color: GOLD_SOFT }}>
+                    {PLACE_LABEL[a.place]}
+                  </div>
+                  <div style={{ fontFamily: SERIF, fontSize: 19, color: CREAM, lineHeight: 1.3 }}>
+                    {a.authorSlug ? (
+                      <Link href={`/avtor/${a.authorSlug}`} style={{ color: CREAM, textDecorationColor: 'rgba(239,159,39,0.6)' }}>
+                        {a.name}
+                      </Link>
+                    ) : a.name}
+                  </div>
+                  {a.realName && <div style={{ fontSize: 13, color: MUTED }}>{a.realName}</div>}
+                </div>
+              </li>
+            ))}
+          </ol>
+          <p style={{ fontSize: 14.5, color: MUTED, margin: '18px 0 0' }}>
+            Наступним може бути ваше ім'я.{' '}
+            <Link href="/konkursy/podaty" style={{ color: GOLD, fontWeight: 700 }}>Подати твір →</Link>
+          </p>
+        </section>
 
         {/* ─── Коротко ─── */}
         <div

@@ -12,6 +12,8 @@ import FollowAuthorButton from '@/app/components/FollowAuthorButton'
 import { toExcerpt } from '@/lib/plain-text'
 import { pickPublishedText } from '@/lib/published-text'
 import { authorSlug } from '@/lib/author-slug'
+import WinnerBadge from '@/app/components/WinnerBadge'
+import { awardsForAuthor, PLACE_LABEL } from '@/lib/contest-winners'
 
 /**
  * Публічна сторінка автора: /avtor/[slug]
@@ -346,6 +348,26 @@ export default async function AuthorPage({
           >
             {name}
           </h1>
+
+          {/* Знак переможця конкурсу. Дані — lib/contest-winners.ts. */}
+          {awardsForAuthor(authorSlug(name)).map(a => (
+            <a
+              key={a.contest + a.place}
+              href="/konkursy#pidsumky"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 10,
+                margin: '4px 12px 12px 0', padding: '6px 14px 6px 6px',
+                border: '1px solid rgba(239,159,39,0.45)', borderRadius: 999,
+                background: 'rgba(239,159,39,0.08)', textDecoration: 'none',
+                fontFamily: "'Montserrat', sans-serif", fontSize: 13.5, color: '#f5f0e8',
+              }}
+            >
+              <WinnerBadge place={a.place} size={34} />
+              <span>
+                <strong style={{ color: 'var(--accent-gold)' }}>{PLACE_LABEL[a.place]}</strong> · {a.contest}
+              </span>
+            </a>
+          ))}
 
           <p
             style={{
