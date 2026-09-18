@@ -59,6 +59,13 @@ const nextConfig = {
   // адреси новій — на відміну від простого 404.
   async redirects() {
     return [
+      // 18.09.2026: старі адреси творів із звіту Search Console «Не знайдено (404)».
+      // Твори живі, змінили лише адресу — постійний редирект передає вагу новій.
+      // Решта 404 з того звіту свідомі (відкликані згоди), їх НЕ перенаправляти.
+      { source: '/stories/chi-prihodit-svyatij-mikolaj-do-studentiv11', destination: '/stories/chi-prihodit-svyatij-mikolaj-do-studentiv', permanent: true },
+      { source: '/stories/pomichnik-boga', destination: '/stories/pomichnik-boga333', permanent: true },
+      { source: '/stories/slipe-kohannya', destination: '/stories/slipe-kohannya892', permanent: true },
+      { source: '/stories/usinovlennya2', destination: '/stories/usinovlennya', permanent: true },
       // 18.09.2026: у дописах Facebook посилання злипалося з наступним словом
       // («balabony.com/konkursyПитання», «…/konkursyБажаємо») — люди з Facebook
       // потрапляли на 404. Будь-який «хвіст», приклеєний до /konkursy без
