@@ -21,7 +21,14 @@ import { normalizeEmail } from '@/lib/normalize-email'
  * було б використати для перевірки, хто зареєстрований на сайті.
  */
 
-type Body = { email?: string }
+type Body = { email?: string; next?: string | null }
+
+/** Лише внутрішні шляхи: «//host» і «https://host» — це чужий сайт. */
+function safeNext(value: string | null | undefined): string | null {
+  if (!value) return null
+  if (!value.startsWith('/') || value.startsWith('//')) return null
+  return value
+}
 
 export async function POST(req: NextRequest) {
   let body: Body
@@ -57,10 +64,18 @@ export async function POST(req: NextRequest) {
   }
 
   const origin = new URL(req.url).origin
+  const next = safeNext(body.next)
   const supabase = await createSupabaseServerClient()
   const { error } = await supabase.auth.signInWithOtp({
     email: target,
-    options: { emailRedirectTo: `${origin}/auth/callback` },
+    // ?next той самий, що вже розуміє /auth/callback (посилання з адмінки
+    // несуть ?next=/author/dashboard і працюють — значить, Supabase такий
+    // redirect пропускає).
+    options: {
+      emailRedirectTo: next
+        ? `${origin}/auth/callback?next=${encodeURIComponent(next)}`
+        : `${origin}/auth/callback`,
+    },
   })
 
   if (error) {

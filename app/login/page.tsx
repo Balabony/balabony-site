@@ -66,7 +66,10 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        // next — куди повернути після входу (напр. /konkursy/podaty).
+        // Для Google він уже йшов у /auth/callback; для листа не йшов,
+        // і людина з конкурсної форми опинялася в профілі читача.
+        body: JSON.stringify({ email, next }),
       })
       const d = (await res.json()) as { ok: boolean; error?: string }
       if (!d.ok) {

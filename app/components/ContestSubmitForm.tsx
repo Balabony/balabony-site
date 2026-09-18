@@ -139,11 +139,12 @@ export default function ContestSubmitForm() {
           Спершу увійдіть
         </h2>
         <p style={{ color: BRAND.text, lineHeight: 1.7 }}>
-          Заявку приймаємо від автора, який увійшов у кабінет — так ми точно знаємо, хто подав,
-          і надішлемо підтвердження на вашу пошту. Вхід без пароля, за посиланням із листа.
+          Заявку приймаємо від автора, який увійшов — так ми точно знаємо, хто подав,
+          і надішлемо підтвердження на вашу пошту. Вхід без пароля: через Google або за
+          посиланням із листа. Після входу ви повернетеся просто сюди, до форми.
         </p>
         <a
-          href="/login"
+          href="/login?next=/konkursy/podaty"
           style={{
             display: 'inline-block', padding: '10px 18px', borderRadius: 9,
             background: BRAND.amber, color: '#0a1628', fontWeight: 700, textDecoration: 'none',

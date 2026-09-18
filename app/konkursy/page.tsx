@@ -1182,11 +1182,14 @@ export default function KonkursyPage() {
           <ul style={{ margin: '0 0 18px', paddingLeft: 20, color: SOFT, fontSize: 16, lineHeight: 1.7 }}>
             <li>П'ять конкурсів, призи до 20 000 ₴, участь безкоштовна.</li>
             <li>Потрібен новий твір — історія, серіал чи казки, які ще ніде не публікувалися.</li>
-            <li>Перший крок — безкоштовний кабінет автора.</li>
+            <li>Перший крок — вхід через Google або пошту, без пароля. Одразу після входу — форма подачі.</li>
           </ul>
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 20px' }}>
+            {/* 18.09.2026: вела на /become-author — сторінку без форми, де треба
+                самому писати лист. Подача на конкурс кабінету автора не потребує:
+                /api/contest/submit приймає будь-кого, хто увійшов. */}
             <Link
-              href="/become-author"
+              href="/konkursy/podaty"
               style={{
                 background: GOLD, color: NAVY_DEEP, fontSize: 16, fontWeight: 800,
                 borderRadius: 11, padding: '13px 26px', textDecoration: 'none',
@@ -1194,8 +1197,8 @@ export default function KonkursyPage() {
             >
               Хочу взяти участь →
             </Link>
-            <Link href="/konkursy/podaty" style={{ color: SOFT, fontSize: 14.5, textDecoration: 'underline', textUnderlineOffset: 3 }}>
-              Уже маю кабінет — подати твір
+            <Link href="/become-author" style={{ color: SOFT, fontSize: 14.5, textDecoration: 'underline', textUnderlineOffset: 3 }}>
+              Хочу публікуватися й поза конкурсами
             </Link>
           </div>
           <div style={{ marginTop: 14, fontSize: 13.5, color: MUTED }}>Умови кожного конкурсу — нижче ↓</div>

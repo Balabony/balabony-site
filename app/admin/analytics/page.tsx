@@ -27,7 +27,20 @@ interface PaywallHit { user_id: string; limit_type: string; hit_at: string }
 interface RevenueEvent { user_id?: string | null; source: string; plan?: string | null; provider?: string; amount_kopecks: number; occurred_at: string }
 interface Acquisition { user_id: string; utm_source?: string | null; utm_medium?: string | null; utm_campaign?: string | null; referrer?: string | null }
 
+interface ReaderAccounts { total: number; new7: number; new30: number; entered: number; never: number; active30: number; google: number }
+interface AuthorAccounts { total: number; active: number; new7: number; new30: number; entered: number; active30: number; withWorks: number }
+interface AccountsBlock {
+  readers?: ReaderAccounts
+  authors?: AuthorAccounts
+  by_day?:  { date: string; readers: number; authors: number }[]
+  readers_by_channel?: { name: string; value: number }[]
+  authors_by_channel?: { name: string; value: number }[]
+  readers_landing?:    { name: string; value: number }[]
+  error?:   string
+}
+
 interface AnalyticsData {
+  accounts?:      AccountsBlock
   surveys:        SurveyRow[]
   page_views:     PageView[]
   story_events:   StoryEvent[]
@@ -492,6 +505,7 @@ export default function AnalyticsPage() {
   const { surveys, page_views, story_events } = data
   const reviewRows = data.reviews ?? []
   const rev5 = buildReviews(reviewRows, data.title_by_id ?? {})
+  const acc  = data.accounts
 
   const ageData      = countBy(surveys as Record<string, unknown>[], 'age')
   const genderData   = countBy(surveys as Record<string, unknown>[], 'gender')
@@ -544,6 +558,88 @@ export default function AnalyticsPage() {
           <StatCard label="Шерингів"       value={totalShares} />
           <StatCard label="Сер. читання"   value={avgDur ? `${Math.floor(avgDur / 60)}хв ${avgDur % 60}с` : '—'} />
         </div>
+
+        {/* ─── Акаунти (18.09.2026) ───
+             Читачі — усі облікові записи без профілю автора.
+             Кабінети авторів створює редакція, тож їхній приріст — це темп
+             нашої роботи, а не реакція на дописи. */}
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
+          Акаунти читачів і кабінети авторів
+        </div>
+        {acc?.error && (
+          <div style={{ color: '#fca5a5', fontSize: 13, marginBottom: 16 }}>
+            Не вдалося порахувати акаунти: {acc.error}
+          </div>
+        )}
+        {acc?.readers && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 12 }}>
+            <StatCard label="Акаунтів читачів" value={acc.readers.total} sub={`${acc.readers.google} через Google`} />
+            <StatCard label="Нових за 7 днів"  value={acc.readers.new7} />
+            <StatCard label="Нових за 30 днів" value={acc.readers.new30} />
+            <StatCard label="Увійшли хоч раз"  value={acc.readers.entered} sub={`${acc.readers.active30} заходили за 30 днів`} />
+            <StatCard label="Не завершили вхід" value={acc.readers.never} sub="запросили посилання, але не увійшли" />
+          </div>
+        )}
+        {acc?.authors && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 16 }}>
+            <StatCard label="Кабінетів авторів" value={acc.authors.total} sub={`${acc.authors.active} активних · створює редакція`} />
+            <StatCard label="Нових за 7 днів"   value={acc.authors.new7} />
+            <StatCard label="Нових за 30 днів"  value={acc.authors.new30} />
+            <StatCard label="Заходили в кабінет" value={acc.authors.entered} sub={`${acc.authors.active30} за 30 днів`} />
+            <StatCard label="З опублікованими творами" value={acc.authors.withWorks} />
+          </div>
+        )}
+        {acc?.by_day && acc.by_day.length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16, marginBottom: 24 }}>
+            <ChartCard title="Нові акаунти по днях (30 днів)">
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={acc.by_day} margin={{ left: -20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="date" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 9 }} interval={4} />
+                  <YAxis stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 11 }} allowDecimals={false} />
+                  {/* Стандартна підказка: DarkTooltip показує лише першу лінію */}
+                  <Tooltip contentStyle={{ background: '#1e3a5f', border: '1px solid rgba(208, 163, 85,0.4)', borderRadius: 8, fontFamily: FONT, fontSize: 12 }} labelStyle={{ color: GOLD, fontWeight: 700 }} />
+                  <Legend />
+                  <Line type="monotone" dataKey="readers" name="Читачі" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="authors" name="Автори" stroke={GOLD} strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          </div>
+        )}
+
+        {/* Звідки прийшли нові акаунти (30 днів). Перший дотик браузера:
+            utm_source, інакше сайт-реферер. «невідомо» — акаунт без запису
+            про джерело (створений до 16.09.2026 або автор ще не входив). */}
+        {acc && !acc.error && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16, marginBottom: 24 }}>
+            {([
+              ['Звідки нові читачі (30 днів)',       withShare(acc.readers_by_channel ?? []), '#3b82f6'],
+              ['Звідки нові автори (30 днів)',       withShare(acc.authors_by_channel ?? []), GOLD],
+              ['Перша сторінка нових читачів',       withShare(acc.readers_landing ?? []),    '#22c55e'],
+            ] as const).map(([title, rows, color]) => (
+              <ChartCard key={title} title={title}>
+                {rows.length === 0 ? (
+                  <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Немає нових акаунтів за 30 днів</div>
+                ) : (
+                  <div style={{ display: 'grid', gap: 8 }}>
+                    {rows.map(r => (
+                      <div key={r.name}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#cbd5e1', marginBottom: 3 }}>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '75%' }}>{r.name}</span>
+                          <span>{r.value} · {r.share}%</span>
+                        </div>
+                        <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3 }}>
+                          <div style={{ width: `${r.share}%`, height: '100%', background: color, borderRadius: 3 }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ChartCard>
+            ))}
+          </div>
+        )}
 
         {/* ─── Відгуки ───
              Додано 09.09.2026. Механіка відгуків існувала з початку, але
