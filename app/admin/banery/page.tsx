@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { channelOf as sharedChannelOf } from '@/lib/channel'
 
 /**
  * /admin/banery — що дає кожен банер і кожен зовнішній канал.
@@ -64,18 +65,9 @@ const LABELS: Record<string, string> = {
   'gazeta-balabony-e01': 'газета · QR на першу серію',
 }
 
-/** Канал: utm_source, або хост реферера, або «прямий». */
+/** Канал — спільне правило з lib/channel.ts; тут «прямий захід». */
 function channelOf(a: Acq): string {
-  if (a.utm_source) return a.utm_source.toLowerCase()
-  const ref = a.referrer
-  if (!ref) return 'прямий захід'
-  try {
-    const host = new URL(ref).hostname.replace(/^www\./, '')
-    if (host.includes('balabony')) return 'прямий захід'
-    return host
-  } catch {
-    return 'прямий захід'
-  }
+  return sharedChannelOf(a, 'прямий захід')
 }
 
 /** Рахує лійку для довільного групування рядків набуття. */

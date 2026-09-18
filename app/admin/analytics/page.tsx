@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { channelOf } from '@/lib/channel'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend,
@@ -232,17 +233,7 @@ function revenueByDay(events: RevenueEvent[], days = 30): { date: string; uah: n
   return Object.entries(result).map(([date, uah]) => ({ date, uah: Math.round(uah) }))
 }
 
-// Канал залучення: utm_source, або хост реферера, або 'прямий'.
-function channelOf(a: { utm_source?: string | null; referrer?: string | null }): string {
-  if (a.utm_source) return a.utm_source.toLowerCase()
-  const ref = a.referrer
-  if (!ref) return 'прямий'
-  try {
-    const host = new URL(ref).hostname.replace(/^www\./, '')
-    if (host.includes('balabony')) return 'прямий'
-    return host
-  } catch { return 'прямий' }
-}
+// Канал — спільне правило з lib/channel.ts (18.09.2026: Facebook і пошта більше не розсипаються на хости).
 
 // Користувачі та виручка за каналом залучення (join по user_id).
 function buildChannels(acq: Acquisition[], revenue: RevenueEvent[]) {
@@ -443,6 +434,12 @@ function buildReviews(rows: ReviewRow[], titleById: Record<string, string>) {
   const low = rows.filter(r => r.rating <= 2).length
 
   return { total, avg, dist, weak, withText, low }
+}
+
+/** Підпис легенди кругової діаграми: «Жінка · 100%». */
+function pieLegend(value: string, entry: { payload?: unknown }): string {
+  const p = entry.payload as { percent?: number } | undefined
+  return typeof p?.percent === 'number' ? `${value} · ${Math.round(p.percent * 100)}%` : value
 }
 
 function ChartCard({ title, children, span2 }: { title: string; children: React.ReactNode; span2?: boolean }) {
@@ -941,10 +938,12 @@ export default function AnalyticsPage() {
           <ChartCard title="Стать">
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
-                <Pie data={genderData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                <Pie data={genderData} cx="50%" cy="45%" outerRadius={70} dataKey="value">
                   {genderData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip content={<DarkTooltip />} />
+                {/* 18.09.2026: підписи збоку кола обрізалися («інка 100%»). Тепер легенда знизу. */}
+                <Legend formatter={pieLegend} wrapperStyle={{ fontSize: 12 }} />
               </PieChart>
             </ResponsiveContainer>
           </ChartCard>
@@ -952,10 +951,12 @@ export default function AnalyticsPage() {
           <ChartCard title="Пристрій">
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
-                <Pie data={deviceData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                <Pie data={deviceData} cx="50%" cy="45%" outerRadius={70} dataKey="value">
                   {deviceData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip content={<DarkTooltip />} />
+                {/* 18.09.2026: підписи збоку кола обрізалися («інка 100%»). Тепер легенда знизу. */}
+                <Legend formatter={pieLegend} wrapperStyle={{ fontSize: 12 }} />
               </PieChart>
             </ResponsiveContainer>
           </ChartCard>

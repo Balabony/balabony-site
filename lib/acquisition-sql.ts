@@ -19,10 +19,13 @@ export const ACQUISITION_CHANNEL_SQL = String.raw`
            when raw is null                             then 'інше'
            when raw ~ '(facebook|^fb$|^fb\.)'           then 'facebook'
            when raw ~ '(instagram|^ig$)'                then 'instagram'
+           -- пошта ДО google: mail.google.com і com.google.android.gm (див. lib/channel.ts)
+           when raw ~ '(ukr\.net|mail\.google\.|\.gm$|outlook\.|live\.com|^i\.ua$|mail|email|newsletter)' then 'пошта'
            when raw ~ '(^|\.)google\.' or raw = 'google' then 'google'
            when raw ~ '(telegram|^t\.me$|^tg$)'         then 'telegram'
            when raw ~ 'viber'                           then 'viber'
            when raw ~ 'tiktok'                          then 'tiktok'
+           when raw ~ 'storriss'                        then 'storriss'
            when raw ~ 'balabony'                        then 'прямий'
            else regexp_replace(raw, '^(www|m|l|lm|mobile)\.', '')
          end as channel

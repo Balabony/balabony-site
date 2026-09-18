@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { fetchAll } from '@/lib/fetch-all'
 import { dbQuery } from '@/lib/db'
+import { ACQUISITION_CHANNEL_SQL } from '@/lib/acquisition-sql'
 
 function checkAuth(req: NextRequest): boolean {
   const cookie = req.cookies.get('admin_session')?.value
@@ -46,31 +47,7 @@ async function loadAccounts() {
     -- переноситься при вході з 16.09.2026 (lib/reader-id.ts, mergeAnonInto),
     -- тож у старіших акаунтів і в кабінетів, куди автор ще не входив, його
     -- немає — це «невідомо», а не «прямий».
-    src as (
-      select a.user_id::text as id,
-             case
-               when coalesce(a.utm_source, '') <> '' then lower(a.utm_source)
-               when coalesce(a.referrer, '') = '' then 'прямий'
-               else lower(substring(a.referrer from '^https?://([^/:?#]+)'))
-             end as raw,
-             nullif(split_part(coalesce(a.landing_path, ''), '?', 1), '') as landing
-        from user_acquisition a
-    ),
-    ch as (
-      select id, landing,
-             case
-               when raw is null                                  then 'інше'
-               when raw ~ '(facebook|^fb$|^fb\\.)'                  then 'facebook'
-               when raw ~ '(instagram|^ig$)'                      then 'instagram'
-               when raw ~ '(^|\\.)google\\.' or raw = 'google'        then 'google'
-               when raw ~ '(telegram|^t\\.me$|^tg$)'                then 'telegram'
-               when raw ~ 'viber'                                 then 'viber'
-               when raw ~ 'tiktok'                                then 'tiktok'
-               when raw ~ 'balabony'                              then 'прямий'
-               else regexp_replace(raw, '^(www|m|l|lm|mobile)\\.', '')
-             end as channel
-        from src
-    ),
+    ch as (${ACQUISITION_CHANNEL_SQL}),
     r30 as (
       select coalesce(ch.channel, 'невідомо') as channel, ch.landing
         from rd left join ch on ch.id = rd.id::text
