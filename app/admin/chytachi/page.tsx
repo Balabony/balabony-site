@@ -30,6 +30,7 @@
 // пошти неможливо написати тим десятьом, на яких тримається конкурс.
 
 import { dbQuery } from '@/lib/db'
+import { ACQUISITION_CHANNEL_SQL } from '@/lib/acquisition-sql'
 
 export const metadata = {
   title: 'Залогінені читачі — адмінка',
@@ -52,7 +53,11 @@ type Reader = {
   finished_works: number
   authors: number
   last_read: string | null
+  channel: string | null
+  landing: string | null
 }
+
+type ChannelRow = { channel: string; n: number }
 
 type WeekRow = { week: string; signups: number }
 
@@ -77,6 +82,7 @@ function Stat({ value, label, note, accent }: { value: number; label: string; no
 export default async function ChytachiPage() {
   let readers: Reader[] = []
   let weeks: WeekRow[] = []
+  let channels: ChannelRow[] = []
   let error = ''
 
   try {
@@ -96,9 +102,12 @@ export default async function ChytachiPage() {
               u.created_at                     as created_at,
               coalesce(a.finished_works, 0)::int as finished_works,
               coalesce(a.authors, 0)::int        as authors,
-              a.last_read                      as last_read
+              a.last_read                      as last_read,
+              ch.channel                       as channel,
+              ch.landing                       as landing
          from users u
          left join acts a on a.user_id = u.id
+         left join (${ACQUISITION_CHANNEL_SQL}) ch on ch.id = u.id::text
         order by u.created_at desc nulls last
         limit 1000`,
     )
@@ -121,6 +130,22 @@ export default async function ChytachiPage() {
     // Зростання — довідкова частина: якщо запит упав, таблиця читачів усе одно
     // має показатися. Мовчазний catch тут навмисний.
   }
+
+  // Звідки прийшли ті, хто зареєструвався за 30 днів (18.09.2026).
+  try {
+    const res = await dbQuery(
+      `select coalesce(ch.channel, 'невідомо') as channel, count(*)::int as n
+         from users u
+         left join (${ACQUISITION_CHANNEL_SQL}) ch on ch.id = u.id::text
+        where u.created_at >= now() - interval '30 days'
+        group by 1
+        order by 2 desc`,
+    )
+    channels = res.rows as ChannelRow[]
+  } catch {
+    // довідкова частина, як і тижні
+  }
+  const maxCh = Math.max(1, ...channels.map(c => c.n))
 
   const total = readers.length
   const read = readers.filter(r => r.last_read).length
@@ -175,6 +200,30 @@ export default async function ChytachiPage() {
           )}
         </section>
 
+        <section style={{ marginTop: 34 }}>
+          <h2 style={{ fontSize: 17, color: GOLD, margin: '0 0 4px' }}>Звідки прийшли (реєстрації за 30 днів)</h2>
+          <p style={{ color: MUTED, fontSize: 12.5, margin: '0 0 14px', lineHeight: 1.6, maxWidth: 760 }}>
+            Перший дотик браузера: мітка utm_source, інакше сайт, з якого перейшли. «невідомо» —
+            джерело не записане (до акаунта його прив’язуємо лише з 16.09.2026).
+            Facebook часто не передає, звідки перехід, — такі люди видні як «прямий».
+          </p>
+          {channels.length === 0 ? (
+            <div style={{ color: MUTED, fontSize: 13 }}>За 30 днів жодної реєстрації.</div>
+          ) : (
+            <div style={{ display: 'grid', gap: 7 }}>
+              {channels.map(c => (
+                <div key={c.channel} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 42px', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 12.5, color: c.channel === 'невідомо' ? MUTED : CREAM }}>{c.channel}</span>
+                  <span style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 5, height: 16 }}>
+                    <span style={{ display: 'block', height: 16, borderRadius: 5, background: c.channel === 'невідомо' ? 'rgba(185,198,219,0.35)' : '#3b82f6', width: `${Math.round((c.n / maxCh) * 100)}%` }} />
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{c.n}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
         <section style={{ marginTop: 36 }}>
           <h2 style={{ fontSize: 17, color: GOLD, margin: '0 0 4px' }}>Список</h2>
           <p style={{ color: MUTED, fontSize: 12.5, margin: '0 0 14px' }}>
@@ -188,6 +237,7 @@ export default async function ChytachiPage() {
                 <tr style={{ background: NAVY, textAlign: 'left' }}>
                   <th style={{ padding: '10px 12px', fontWeight: 700 }}>Пошта</th>
                   <th style={{ padding: '10px 12px', fontWeight: 700 }}>Зареєстрований</th>
+                  <th style={{ padding: '10px 12px', fontWeight: 700 }}>Звідки</th>
                   <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'right' }}>Дочитав творів</th>
                   <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'right' }}>Авторів</th>
                   <th style={{ padding: '10px 12px', fontWeight: 700 }}>Востаннє читав</th>
@@ -199,6 +249,11 @@ export default async function ChytachiPage() {
                   <tr key={r.id} style={{ borderTop: `1px solid ${LINE}` }}>
                     <td style={{ padding: '9px 12px' }}>{r.email || <span style={{ color: MUTED }}>без пошти</span>}</td>
                     <td style={{ padding: '9px 12px', color: MUTED }}>{d(r.created_at)}</td>
+                    <td style={{ padding: '9px 12px' }}>
+                      {r.channel
+                        ? <>{r.channel}{r.landing && <div style={{ fontSize: 11, color: MUTED }}>{r.landing}</div>}</>
+                        : <span style={{ color: MUTED }}>невідомо</span>}
+                    </td>
                     <td style={{ padding: '9px 12px', textAlign: 'right' }}>{r.finished_works}</td>
                     <td style={{ padding: '9px 12px', textAlign: 'right' }}>{r.authors}</td>
                     <td style={{ padding: '9px 12px', color: MUTED }}>{d(r.last_read)}</td>
@@ -210,7 +265,7 @@ export default async function ChytachiPage() {
                   </tr>
                 ))}
                 {readers.length === 0 && !error && (
-                  <tr><td colSpan={6} style={{ padding: '16px 12px', color: MUTED }}>Жодного акаунта.</td></tr>
+                  <tr><td colSpan={7} style={{ padding: '16px 12px', color: MUTED }}>Жодного акаунта.</td></tr>
                 )}
               </tbody>
             </table>
