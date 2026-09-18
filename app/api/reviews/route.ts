@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { dbQuery } from '@/lib/db'
 import { resolveReaderId } from '@/lib/reader-id'
 import { awardPoints, POINTS } from '@/lib/points'
+import { isAdminRequest } from '@/lib/require-admin'
 
 /**
  * 09.09.2026. Цей роут мав ВЛАСНИЙ `new Pool(...)`, окремий від lib/db.ts —
@@ -92,6 +93,15 @@ export async function GET(request: NextRequest) {
       // Кнопка — не головне на сторінці твору: якщо запит упав, ховаємо її.
       return NextResponse.json({ ok: false })
     }
+  }
+
+  // 18.09.2026: повний список відгуків — лише для адмінки. До цього будь-хто
+  // міг відкрити /api/reviews і забрати всі відгуки разом з ідентифікаторами
+  // читачів. Кнопці на сторінці твору (?state=1 вище) пароль не потрібен:
+  // вона отримує лише кількість і середню оцінку. Адмінка /admin/reviews
+  // передає куку admin_session сама — той самий fetch на тому ж домені.
+  if (!(await isAdminRequest())) {
+    return NextResponse.json({ error: 'Доступ лише для редакції' }, { status: 401 })
   }
 
   try {
