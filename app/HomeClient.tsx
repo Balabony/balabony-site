@@ -17,7 +17,6 @@ import FreshStoriesGrid, { type Story } from './components/FreshStoriesGrid'
 import type { TyshaItem, GenreCount, SiteStats, StripAuthor } from '@/lib/home-data'
 import KonkursyBanner from './components/KonkursyBanner'
 import TyshaSection from './components/TyshaSection'
-import InclusivitySection from './components/InclusivitySection'
 import BonusSection from './components/BonusSection'
 import AuthorSection from './components/AuthorSection'
 import AboutBalabonySection from './components/AboutBalabonySection'
@@ -112,6 +111,15 @@ export default function HomeClient({
         </a>
       </nav>
 
+      {/* Місійна пропозиція з першого екрана (18.09.2026). Сам тариф нижче, у
+          PricingSection (#pricing) — тут лише один рядок-вказівник, щоб ВПО,
+          ветерани й люди з інвалідністю не гортали всю сторінку. */}
+      <p style={{ maxWidth: 1100, margin: '0 auto', padding: '4px 20px 18px', textAlign: 'center', fontSize: 15 }}>
+        <a href="#pricing" style={{ color: 'var(--accent-gold)', fontWeight: 700, textDecoration: 'underline', textUnderlineOffset: 3 }}>
+          Для ВПО, ветеранів і людей з інвалідністю — 1&nbsp;₴ на рік →
+        </a>
+      </p>
+
       <FreeBanner />
 
       <KonkursyBanner />
@@ -153,7 +161,11 @@ export default function HomeClient({
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 0' }}>
         <AboutBalabonySection />
-        <InclusivitySection />
+        {/* InclusivitySection («Балабони доступні всім») знято 18.09.2026:
+            третій поспіль блок про те саме — 1 ₴ уже є в PricingSection нижче,
+            а його картка «Зір» стояла під «Соціальним тарифом», хоча пільга за
+            Офертою лише для УБД, ВПО й людей з інвалідністю. Файл компонента
+            лишився, на сторінці не використовується. */}
       </div>
 
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 0' }}>
