@@ -127,8 +127,11 @@ export default function BecomeAuthorPage() {
           <SectionCard>
             <SectionTitle>Кабінет автора</SectionTitle>
             <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.85)', lineHeight: 1.65, marginTop: 0, marginBottom: 16 }}>
-              Кабінет відкривається одразу після реєстрації — у ньому ти заповнюєш реквізити й
-              підписуєш угоду. Після підписання там з&apos;являється усе про твої історії:
+              {/* 18.09.2026: було «відкривається одразу після реєстрації». Самореєстрації
+                  авторів немає — кабінет заводить редакція (/admin/create-author). */}
+              Кабінет відкриває редакція, коли прочитає твою пробну історію: на пошту прийде
+              посилання для входу. У кабінеті ти заповнюєш реквізити й підписуєш угоду.
+              Після підписання там з&apos;являється усе про твої історії:
             </p>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               <CheckItem>Історії та їхній статус: на розгляді, опубліковано, не опубліковано</CheckItem>
@@ -189,8 +192,13 @@ export default function BecomeAuthorPage() {
                 Прикріпи одну пробну історію
               </StepItem>
             </ul>
-            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginBottom: 24 }}>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginBottom: 16 }}>
               Ми відповімо протягом 5 робочих днів.
+            </p>
+            <p style={{ fontSize: 14.5, color: 'rgba(255,255,255,0.8)', lineHeight: 1.65, marginBottom: 24 }}>
+              Хочеш у <a href="/konkursy" style={{ color: GOLD }}>літературний конкурс</a>?
+              Кабінет автора для цього не потрібен — увійди через Google або пошту й{' '}
+              <a href="/konkursy/podaty" style={{ color: GOLD, fontWeight: 700 }}>подай твір одразу</a>.
             </p>
             <a
               href="/contact"

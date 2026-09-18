@@ -78,6 +78,20 @@ export default function CookieConsent() {
 
   if (!visible || silent) return null
 
+  // 18.09.2026: банер став низькою смужкою біля нижнього краю. Раніше це була
+  // картка висотою ~135 px, піднята на 88 px, і на ноутбуці вона сідала
+  // посередині головної — просто на блок із кнопкою «Читати».
+  // Відступ знизу: на телефоні — над нижньою панеллю (--bb-offset задає
+  // BottomBar), на комп'ютері, де панелі немає, — 12 px.
+  const btn: React.CSSProperties = {
+    padding: '8px 16px',
+    borderRadius: 9,
+    fontSize: 14,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    whiteSpace: 'nowrap',
+  }
+
   return (
     <div
       role="dialog"
@@ -86,61 +100,41 @@ export default function CookieConsent() {
         position: 'fixed',
         left: 12,
         right: 12,
-        bottom: 'calc(88px + env(safe-area-inset-bottom, 0px))',
+        bottom: 'calc(var(--bb-offset, 0px) + 12px)',
         zIndex: 9999,
-        maxWidth: 720,
+        maxWidth: 760,
         margin: '0 auto',
         background: NAVY,
         border: `1px solid ${GOLD}`,
-        borderRadius: 14,
-        padding: '16px 18px',
-        boxShadow: '0 18px 44px rgba(0,0,0,0.45)',
+        borderRadius: 12,
+        padding: '10px 14px',
+        boxShadow: '0 12px 32px rgba(0,0,0,0.45)',
         fontFamily: "'Montserrat', Arial, sans-serif",
         color: '#f5f0e8',
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        gap: '8px 14px',
       }}
     >
-      {/* Текст скорочено 13.09.2026: банер накривав блок конкурсів на головній,
-          і чим він вищий, тим більше ховає. */}
-      <p style={{ margin: '0 0 10px', fontSize: 15, lineHeight: 1.55 }}>
-        Порахувати, які історії читають?
-      </p>
-      <p style={{ margin: '0 0 12px', fontSize: 12, lineHeight: 1.5, color: '#8899bb' }}>
-        <a href="/legal/cookies" style={{ color: GOLD, fontWeight: 600 }}>
+      <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45, flex: '1 1 220px' }}>
+        Порахувати, які історії читають?{' '}
+        <a href="/legal/cookies" style={{ color: GOLD, fontWeight: 600, fontSize: 12.5 }}>
           Політика Cookies
         </a>
       </p>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <button
           type="button"
           onClick={() => decide('granted')}
-          style={{
-            padding: '10px 20px',
-            background: GOLD,
-            color: '#0a1628',
-            border: 'none',
-            borderRadius: 10,
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-          }}
+          style={{ ...btn, background: GOLD, color: '#0a1628', border: 'none', fontWeight: 700 }}
         >
           Прийняти аналітику
         </button>
         <button
           type="button"
           onClick={() => decide('denied')}
-          style={{
-            padding: '10px 20px',
-            background: 'transparent',
-            color: '#f5f0e8',
-            border: '1px solid rgba(255,255,255,0.35)',
-            borderRadius: 10,
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-          }}
+          style={{ ...btn, background: 'transparent', color: '#f5f0e8', border: '1px solid rgba(255,255,255,0.35)', fontWeight: 600 }}
         >
           Тільки необхідні
         </button>

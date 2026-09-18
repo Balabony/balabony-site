@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import Script from 'next/script'
 
@@ -41,6 +41,21 @@ export default function GoogleAnalytics() {
             analytics_storage: 'denied',
             wait_for_update: 500
           });
+          // 18.09.2026: згода, дана раніше, вмикається ТУТ, до config.
+          // CookieConsent теж її вмикає, але робить це одразу після
+          // гідрації, а цей скрипт (lazyOnload) приходить пізніше — тоді
+          // window.gtag ще не існувало, і постійні читачі, що погодились,
+          // у GA не потрапляли зовсім.
+          try {
+            if (localStorage.getItem('balabony_cookie_consent') === 'granted') {
+              gtag('consent', 'update', {
+                ad_storage: 'granted',
+                ad_user_data: 'granted',
+                ad_personalization: 'granted',
+                analytics_storage: 'granted'
+              });
+            }
+          } catch (e) {}
           gtag('js', new Date());
           gtag('config', '${GA_ID}');
         `}
