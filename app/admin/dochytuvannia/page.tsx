@@ -12,9 +12,8 @@
 //   дочитали — completed: 70% обсягу І мінімум 15 секунд на кожні 1000 знаків.
 //              Це повне правило п. 1.5 договору, за яким нараховується
 //              винагорода. Те саме число автор бачить у кабінеті.
-//   медіана  — на якому відсотку стоїть середній читач. Береться з
-//              reading_progress, бо реальна глибина прогортання є лише там;
-//              отже це єдиний показник сторінки по залогінених.
+//   довжина і «ззовні» — додано 18.09.2026 замість медіани глибини
+//              (див. коментар у запиті).
 //
 // ЩО НЕ ЗБІГАЄТЬСЯ І ЧОМУ. У story_events подій 'read' 245, тут дочитувань
 // 141. Причина ще не зʼясована станом на 16.09.2026 — не спирайся на числа
@@ -46,7 +45,6 @@ type Row = {
   author_name: string | null
   readers: number
   finished: number
-  median_percent: number
   chars: number | null
   known: number
   outside: number
@@ -111,10 +109,6 @@ export default async function DochytuvanniaPage({
       // що бачить автор у кабінеті, і з тим, за що нараховується винагорода.
       // Раніше числа розходилися: 80 тут проти 141 у кабінеті.
       //
-      // Медіана глибини лишається з reading_progress: тільки там є реальний
-      // відсоток прогортання. У article_reads read_percentage дорівнює 0 у
-      // рядках про відкриття, і медіана по ньому була б завжди нульова.
-      // Це єдиний показник на сторінці, який рахується по залогінених.
       `select
          ar.article_slug                                            as slug,
          max(ar.article_title)                                      as title,
@@ -132,11 +126,12 @@ export default async function DochytuvanniaPage({
          max(c.author_name)                                         as author_name,
          count(*)::int                                              as readers,
          count(*) filter (where ar.completed)::int                  as finished,
-         coalesce(
-           (select percentile_cont(0.5) within group (order by rp.percent)
-              from reading_progress rp
-             where rp.slug = ar.article_slug and rp.percent >= 3), 0
-         )::int                                                     as median_percent,
+         -- 18.09.2026 ПРИБРАНО «медіану глибини» з reading_progress. Вона
+         -- міряла ОСТАННЄ місце на ВСІЙ сторінці (з блоками під текстом),
+         -- а не пройдену частку тексту, і дала хибну тривогу: «100% глибини,
+         -- 0% дочитувань» виглядало як збій обліку. Перевірка лічильником
+         -- (?readcheck=1 на /episodes/s1e02) показала: облік справний,
+         -- просто прогортали швидше за 15 с/1000 знаків.
          -- 18.09.2026. Дві колонки, щоб відділити сюжет від інших причин
          -- дочитування. Довжина: поріг — 70% обсягу, коротке дочитати легше.
          max(length(coalesce(nullif(trim(c.corrected_text), ''), c.text)))::int as chars,
@@ -201,7 +196,7 @@ export default async function DochytuvanniaPage({
           Скільки читачів дійшли до кінця. Рахується з article_reads — тієї самої таблиці,
           що й винагорода авторам: «дочитали» означає 70% обсягу і час за п. 1.5 договору,
           тож ці числа збігаються з кабінетом автора. «Читачі» — усі, хто відкривав твір,
-          зокрема гості без акаунта. Медіана рахується окремо, по залогінених читачах.
+          зокрема гості без акаунта.
         </p>
 
         {error && (
@@ -270,9 +265,8 @@ export default async function DochytuvanniaPage({
             <div style={{ padding: 16, borderRadius: 12, background: '#14253b', border: '1px solid rgba(239,68,68,0.3)' }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#ef4444', marginBottom: 2 }}>Кидають найчастіше</div>
               <div style={{ ...hint, marginBottom: 10 }}>
-                «Кидають близько N%» — медіана глибини: на цьому місці тексту
-                опинявся середній читач. Низька при багатьох читачах означає,
-                що втрачаємо на початку.
+                Частка дочитувань нижче 50%. Поруч — довжина і скільки читачів
+                прийшли ззовні: довгий текст і «чужі» читачі дочитують рідше.
               </div>
               {worst.length === 0 && (
                 <div style={{ fontSize: 12.5, color: 'rgba(245,240,232,0.5)' }}>
@@ -284,11 +278,8 @@ export default async function DochytuvanniaPage({
                   <span style={{ color: '#ef4444', fontWeight: 700 }}>{pct(r.finished, r.readers)}%</span>{' '}
                   {r.title ?? r.slug}
                   <span style={{ color: 'rgba(245,240,232,0.45)' }}>
-                    {' '}· {r.median_percent > 0
-                      ? `кидають близько ${r.median_percent}%`
-                      // 0 означає «немає даних про глибину» (жодного залогіненого
-                      // з прогресом ≥3%), а не «ніхто не кидає» — так читалось раніше.
-                      : 'де кидають — невідомо (немає залогінених)'}
+                    {' '}· {r.readers} чит.{r.chars ? ` · ${kChars(r.chars)}` : ''}
+                    {r.known > 0 ? ` · ззовні ${pct(r.outside, r.known)}%` : ''}
                   </span>
                 </div>
               ))}
@@ -327,10 +318,6 @@ export default async function DochytuvanniaPage({
                   Ззовні
                   <div style={hint}>прийшли просто на твір<br />(коло автора) · з відомих</div>
                 </th>
-                <th style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'right' }}>
-                  Медіана
-                  <div style={hint}>де кидає середній,<br />лише залогінені</div>
-                </th>
               </tr>
             </thead>
             <tbody>
@@ -357,13 +344,12 @@ export default async function DochytuvanniaPage({
                       {r.known > 0 ? `${pct(r.outside, r.known)}%` : '—'}
                       {r.known > 0 && <div style={{ fontSize: 10.5, color: 'rgba(245,240,232,0.4)' }}>{r.outside} з {r.known}</div>}
                     </td>
-                    <td style={{ padding: '9px 12px', textAlign: 'right', color: 'rgba(245,240,232,0.6)' }}>{r.median_percent > 0 ? `${r.median_percent}%` : '—'}</td>
                   </tr>
                 )
               })}
               {visible.length === 0 && !error && (
                 <tr>
-                  <td colSpan={8} style={{ padding: 20, textAlign: 'center', color: 'rgba(245,240,232,0.5)' }}>
+                  <td colSpan={7} style={{ padding: 20, textAlign: 'center', color: 'rgba(245,240,232,0.5)' }}>
                     Немає творів, які прочитали щонайменше {minReaders} осіб. Спробуйте знизити поріг.
                   </td>
                 </tr>
@@ -373,9 +359,10 @@ export default async function DochytuvanniaPage({
         </div>
 
         <p style={{ fontSize: 12.5, lineHeight: 1.6, color: 'rgba(245,240,232,0.45)', marginTop: 18, maxWidth: 720 }}>
-          Медіана показує, на якому відсотку стоїть середній читач. Низька медіана при великій
-          кількості читачів означає, що твір кидають, і приблизно вказує де. Цифри мають сенс
-          від десятка читачів на твір — нижче це випадковість, а не закономірність.
+          Цифри мають сенс від десятка читачів на твір — нижче це випадковість, а не закономірність.
+          «Не дочитали» часто означає «прогорнули швидше, ніж 15 секунд на 1000 знаків»: так
+          договір і задуманий. Перевірити облік на будь-якому творі можна, дописавши до адреси
+          <code> ?readcheck=1</code> — унизу з'явиться лічильник.
           <br /><br />
           <strong>Як шукати причину, чому твір дочитують.</strong> Спершу відкиньте дві сторонні:
           «Довжина» (коротке дочитати легше — поріг 70% обсягу) і «Ззовні» (висока частка —
