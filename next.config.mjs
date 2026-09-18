@@ -59,6 +59,15 @@ const nextConfig = {
   // адреси новій — на відміну від простого 404.
   async redirects() {
     return [
+      // 18.09.2026: у дописах Facebook посилання злипалося з наступним словом
+      // («balabony.com/konkursyПитання», «…/konkursyБажаємо») — люди з Facebook
+      // потрапляли на 404. Будь-який «хвіст», приклеєний до /konkursy без
+      // скісної риски, ведемо на сторінку конкурсів. /konkursy/podaty не чіпає.
+      {
+        source: '/konkursy:tail([^/]+)',
+        destination: '/konkursy',
+        permanent: false,
+      },
       // Гороскоп переїхав 18.09.2026 на адресу з пошуковим ключем.
       {
         source: '/pysmennytskyi-horoskop',
