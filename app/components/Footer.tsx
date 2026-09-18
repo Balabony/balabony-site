@@ -388,6 +388,20 @@ export default function Footer() {
           >
             Голоси платформи →
           </a>
+          {/* 18.09.2026: письменницький гороскоп. Пошукового попиту на нього
+              немає (перевірено Планувальником), тож без внутрішніх посилань
+              сторінку знайшов би лише той, кому дали адресу. */}
+          <a
+            href="/pysmennytskyi-horoskop"
+            className="footer-link"
+            style={{
+              display: 'block', marginTop: 6,
+              color: 'var(--accent-gold)', fontSize: 14, fontWeight: 600,
+              textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
+            }}
+          >
+            Письменницький гороскоп →
+          </a>
         </div>
 
         {/* ───── КОЛОНКА 3: ВИДІЛЕНІ КАРТКИ ─ ІНКЛЮЗИВНІСТЬ + ДОСТУПНІСТЬ ───── */}
