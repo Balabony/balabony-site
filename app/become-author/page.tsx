@@ -142,7 +142,7 @@ export default function BecomeAuthorPage() {
               <CheckItem>Підписані угоди з датою підпису</CheckItem>
             </ul>
             <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.65, marginTop: 16, marginBottom: 0 }}>
-              Там же — коротке опитування: що незручно, чого не хватає, що додати. Ми його читаємо.
+              Там же — коротке опитування: що незручно, чого бракує, що додати. Ми його читаємо.
             </p>
           </SectionCard>
 

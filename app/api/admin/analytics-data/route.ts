@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { fetchAll } from '@/lib/fetch-all'
 import { dbQuery } from '@/lib/db'
 
 function checkAuth(req: NextRequest): boolean {
@@ -145,54 +146,57 @@ export async function GET(req: NextRequest) {
   const accountsPromise = loadAccounts()
 
   const [surveys, pageViews, storyEvents, sessions, paywall, subs, revenue, acquisition, works, reviews] = await Promise.all([
-    db.from('survey_responses')
+    // fetchAll — бо Supabase віддає максимум 1000 рядків за запит (див. lib/fetch-all.ts).
+    fetchAll((a, b) => db.from('survey_responses')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(5000),
-    db.from('page_views')
+      .range(a, b), 5000),
+    fetchAll((a, b) => db.from('page_views')
       .select('url, timestamp, device, country, session_id')
       .order('timestamp', { ascending: false })
-      .limit(20000),
-    db.from('story_events')
+      .range(a, b), 20000),
+    fetchAll((a, b) => db.from('story_events')
       .select('story_id, story_title, event_type, duration_seconds, created_at')
       .order('created_at', { ascending: false })
-      .limit(20000),
-    db.from('user_sessions')
+      .range(a, b), 20000),
+    fetchAll((a, b) => db.from('user_sessions')
       .select('device, city, start_time, end_time')
       .order('start_time', { ascending: false })
-      .limit(5000),
-    db.from('paywall_hits')
+      .range(a, b), 5000),
+    fetchAll((a, b) => db.from('paywall_hits')
       .select('user_id, limit_type, hit_at')
       .order('hit_at', { ascending: false })
-      .limit(20000),
+      .range(a, b), 20000),
     db.from('app_subscriptions')
       .select('user_id')
       .eq('status', 'active')
       .gt('expires_at', new Date().toISOString()),
-    db.from('revenue_events')
+    fetchAll((a, b) => db.from('revenue_events')
       .select('user_id, source, plan, provider, amount_kopecks, occurred_at')
       .eq('status', 'success')
       .order('occurred_at', { ascending: false })
-      .limit(20000),
-    db.from('user_acquisition')
+      .range(a, b), 20000),
+    fetchAll((a, b) => db.from('user_acquisition')
       .select('user_id, utm_source, utm_medium, utm_campaign, referrer')
-      .limit(20000),
+      .order('user_id')
+      .range(a, b), 20000),
     // Жанр не зберігається в подіях читання, тому тягнемо довідник творів
     // і зіставляємо вже на сторінці. Без цього «популярні жанри» рахувалися
     // з анкет — тобто з того, що читачі про себе кажуть, а не з того,
     // що вони насправді читають.
-    db.from('content')
+    fetchAll((a, b) => db.from('content')
       .select('id, genre, title')
       .eq('type', 'story')
       .in('status', ['approved', 'published'])
-      .limit(5000),
+      .order('id')
+      .range(a, b), 5000),
     // Відгуки. Додано 09.09.2026: механіка існувала з самого початку, але
     // ReviewModal ніде не викликався — залишити відгук було неможливо, і
     // аналітика про відгуки не знала взагалі.
-    db.from('reviews')
+    fetchAll((a, b) => db.from('reviews')
       .select('content_type, content_id, rating, comment, created_at')
       .order('created_at', { ascending: false })
-      .limit(5000),
+      .range(a, b), 5000),
   ])
 
   // Унікальні user_id активних підписників (той самий balabony_uid, що й у paywall_hits) —

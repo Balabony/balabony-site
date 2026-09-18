@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { fetchAll } from '@/lib/fetch-all'
 
 /**
  * Дані для /admin/banery — ефективність кожного банера і кожного каналу.
@@ -27,17 +28,21 @@ export async function GET(req: NextRequest) {
   const db = getSupabaseAdmin()
 
   const [acq, reads, subs] = await Promise.all([
-    db.from('user_acquisition')
+    // fetchAll — бо Supabase віддає максимум 1000 рядків за запит (див. lib/fetch-all.ts).
+    fetchAll((a, b) => db.from('user_acquisition')
       .select('user_id, utm_source, utm_medium, utm_campaign, referrer, landing_path')
-      .limit(50000),
-    db.from('article_reads')
+      .order('user_id')
+      .range(a, b), 50000),
+    fetchAll((a, b) => db.from('article_reads')
       .select('user_id, completed')
-      .limit(50000),
-    db.from('app_subscriptions')
+      .order('read_date').order('user_id').order('content_id')
+      .range(a, b), 50000),
+    fetchAll((a, b) => db.from('app_subscriptions')
       .select('user_id')
       .eq('status', 'active')
       .gt('expires_at', new Date().toISOString())
-      .limit(20000),
+      .order('user_id')
+      .range(a, b), 20000),
   ])
 
   return NextResponse.json({

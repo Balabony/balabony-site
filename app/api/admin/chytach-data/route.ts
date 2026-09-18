@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { fetchAll } from '@/lib/fetch-all'
 
 /**
  * Дані для /admin/chytach — шлях читача після першої серії.
@@ -28,31 +29,37 @@ export async function GET(req: NextRequest) {
   const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
 
   const [reads, paywall, acq, episodes, catalog, subs] = await Promise.all([
-    db.from('article_reads')
+    // fetchAll — бо Supabase віддає максимум 1000 рядків за запит (див. lib/fetch-all.ts).
+    fetchAll((a, b) => db.from('article_reads')
       .select('user_id, content_id, article_slug, article_title, completed, read_percentage, read_date, time_spent_seconds')
       .gte('read_date', since.toISOString().slice(0, 10))
-      .limit(50000),
-    db.from('paywall_hits')
+      .order('read_date').order('user_id').order('content_id')
+      .range(a, b), 50000),
+    fetchAll((a, b) => db.from('paywall_hits')
       .select('user_id, limit_type, hit_at, content_id, content_type')
       .gte('hit_at', since.toISOString())
-      .limit(20000),
-    db.from('user_acquisition')
+      .order('hit_at')
+      .range(a, b), 20000),
+    fetchAll((a, b) => db.from('user_acquisition')
       .select('user_id, utm_source, utm_medium, utm_campaign')
-      .limit(50000),
+      .order('user_id')
+      .range(a, b), 50000),
     // Перелік серій, щоб знати порядок і назви
     db.from('content')
       .select('id, slug, title, season_number, episode_number, type')
       .not('episode_number', 'is', null)
       .limit(500),
     // Увесь опублікований каталог — потрібні жанр і автор, щоб бачити смаки
-    db.from('content')
+    fetchAll((a, b) => db.from('content')
       .select('slug, title, genre, author_name, type')
       .in('status', ['approved', 'published'])
-      .limit(2000),
+      .order('slug')
+      .range(a, b), 5000),
     // Підписки — щоб знати, хто з читачів лишив пошту
-    db.from('subscribers')
+    fetchAll((a, b) => db.from('subscribers')
       .select('email, source, created_at')
-      .limit(20000),
+      .order('email')
+      .range(a, b), 20000),
   ])
 
   return NextResponse.json({

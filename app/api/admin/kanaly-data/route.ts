@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { fetchAll } from '@/lib/fetch-all'
 
 /**
  * Дані для сторінки /admin/kanaly — звіт по каналах приходу.
@@ -35,11 +36,12 @@ export async function GET(req: NextRequest) {
     db.from('qr_links')
       .select('code, target, campaign, is_active, channel')
       .order('code'),
-    db.from('qr_hits')
+    // fetchAll — бо Supabase віддає максимум 1000 рядків за запит (див. lib/fetch-all.ts).
+    fetchAll((a, b) => db.from('qr_hits')
       .select('code, created_at, user_agent')
       .gte('created_at', since)
       .order('created_at', { ascending: false })
-      .limit(20000),
+      .range(a, b), 20000),
     db.from('paper_issues')
       .select('id, issue_date, paper_name, print_run, code, note')
       .order('issue_date', { ascending: false })
@@ -48,15 +50,16 @@ export async function GET(req: NextRequest) {
       .select('id, sent_at, subject, from_email, recipients, code, note')
       .order('sent_at', { ascending: false })
       .limit(200),
-    db.from('subscribers')
+    fetchAll((a, b) => db.from('subscribers')
       .select('email, source, created_at')
       .gte('created_at', since)
       .order('created_at', { ascending: false })
-      .limit(20000),
-    db.from('article_reads')
+      .range(a, b), 20000),
+    fetchAll((a, b) => db.from('article_reads')
       .select('article_slug, article_title, completed, read_date, read_percentage')
       .gte('read_date', since.slice(0, 10))
-      .limit(20000),
+      .order('read_date').order('user_id').order('content_id')
+      .range(a, b), 20000),
   ])
 
   return NextResponse.json({
