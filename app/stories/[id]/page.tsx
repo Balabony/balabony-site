@@ -21,6 +21,7 @@ import Link from 'next/link'
 import { authorSlug } from '@/lib/author-slug'
 import ReaderSettings from '@/app/components/ReaderSettings'
 import RelatedStories from '@/app/components/RelatedStories'
+import StoryRecipe from '@/app/components/StoryRecipe'
 import ContestBadge from '@/app/components/ContestBadge'
 import { dbQuery } from '@/lib/db'
 import { CONTESTS } from '@/lib/contests'
@@ -69,7 +70,7 @@ async function getStory(id: string): Promise<StoryRow | null> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('id, slug, title, author_name, author_id, genre, status, text, corrected_text, humanized_text, published_version, cover_url, images, is_adult, is_free, is_premium, approved_at, updated_at, audio_url, audio_status')
+    .select('id, slug, title, author_name, author_id, genre, status, text, corrected_text, humanized_text, published_version, cover_url, images, is_adult, is_free, is_premium, approved_at, updated_at, audio_url, audio_status, recipe')
     .eq('type', 'story')
     .eq('slug', id)
     .maybeSingle()
@@ -496,6 +497,10 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         <StoryReadTracker contentId={story.id} slug={id} title={story.title} charCount={charCount} selfRead={isOwnAuthor} guest={!user} />
         <ReadingProgressBar />
         <BackToTop />
+
+        {/* Рецепт до історії — лише там, де заповнено content.recipe (пілот 18.09.2026).
+            Стоїть ПІСЛЯ маркера кінця тексту: рецепт не має зараховуватися як дочитування. */}
+        <StoryRecipe recipe={(story as { recipe?: string | null }).recipe} />
 
 
         {/* Позиція читання: де людина спинилася минулого разу. */}
