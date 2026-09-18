@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
-import { dbQuery } from '@/lib/db'
-import { normalizeEmail } from '@/lib/normalize-email'
+import { resolveLoginEmail, safeNext } from '@/lib/login-email'
 
 /**
  * Надсилання листа для входу.
@@ -23,13 +22,6 @@ import { normalizeEmail } from '@/lib/normalize-email'
 
 type Body = { email?: string; next?: string | null }
 
-/** Лише внутрішні шляхи: «//host» і «https://host» — це чужий сайт. */
-function safeNext(value: string | null | undefined): string | null {
-  if (!value) return null
-  if (!value.startsWith('/') || value.startsWith('//')) return null
-  return value
-}
-
 export async function POST(req: NextRequest) {
   let body: Body
   try {
@@ -43,34 +35,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Перевірте адресу' }, { status: 400 })
   }
 
-  const canonical = normalizeEmail(raw)
-  let target = canonical
-
-  // Якщо звірка з базою не вдалась, лишаємось на канонічній формі:
-  // вхід має працювати навіть коли запит не пройшов.
-  try {
-    const res = await dbQuery(
-      `select email
-         from auth.users
-        where lower(email) in ($1, $2)
-        order by (lower(email) = $1) desc
-        limit 1`,
-      [raw, canonical],
-    )
-    const found = (res.rows[0]?.email ?? '').trim().toLowerCase()
-    if (found !== '') target = found
-  } catch {
-    // лишаємо canonical
-  }
+  // Вибір адреси — у lib/login-email.ts (спільний із входом кодом).
+  const target = await resolveLoginEmail(raw)
 
   const origin = new URL(req.url).origin
   const next = safeNext(body.next)
   const supabase = await createSupabaseServerClient()
   const { error } = await supabase.auth.signInWithOtp({
     email: target,
-    // ?next той самий, що вже розуміє /auth/callback (посилання з адмінки
-    // несуть ?next=/author/dashboard і працюють — значить, Supabase такий
-    // redirect пропускає).
+    // ?next той самий, що вже розуміє /auth/callback. УВАГА: Supabase пускає
+    // таку адресу лише тому, що 18.09.2026 в Authentication → URL Configuration
+    // додано https://balabony.com/auth/callback** . Без цього рядка Supabase
+    // мовчки підставляє Site URL без next, і людина опиняється в /profile.
     options: {
       emailRedirectTo: next
         ? `${origin}/auth/callback?next=${encodeURIComponent(next)}`

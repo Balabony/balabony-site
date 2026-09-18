@@ -11,6 +11,32 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState('')
   const [google, setGoogle] = useState(false)
   const [next, setNext] = useState<string | null>(null)
+  // Вхід кодом із листа (18.09.2026) — див. /api/auth/verify.
+  const [code, setCode] = useState('')
+  const [codeBusy, setCodeBusy] = useState(false)
+  const [codeError, setCodeError] = useState('')
+
+  async function handleCode(e: React.FormEvent) {
+    e.preventDefault()
+    setCodeBusy(true)
+    setCodeError('')
+    try {
+      const res = await fetch('/api/auth/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code, next }),
+      })
+      const d = (await res.json()) as { ok: boolean; error?: string; destination?: string }
+      if (d.ok) {
+        window.location.href = d.destination || '/profile'
+        return
+      }
+      setCodeError(d.error ?? 'Не вдалося увійти')
+    } catch {
+      setCodeError('Немає звʼязку з сервером')
+    }
+    setCodeBusy(false)
+  }
 
   // Куди повернути після входу. Той самий параметр, який уже розуміє
   // /auth/callback: одноразові посилання з адмінки несуть ?next=/author/dashboard.
@@ -253,9 +279,56 @@ export default function LoginPage() {
                 Готово!
               </strong>
               <p style={{ marginTop: '0.75rem', marginBottom: 0, fontSize: '0.95rem', lineHeight: 1.5 }}>
-                Перевір пошту <strong>{email}</strong>.
+                Ми надіслали лист на <strong>{email}</strong>.
                 <br />
-                Посилання дійсне годину.
+                Введи код із листа тут — або натисни кнопку в самому листі.
+              </p>
+
+              <form onSubmit={handleCode} style={{ marginTop: '1.1rem' }}>
+                <label htmlFor="otp" style={{ display: 'block', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.4rem' }}>
+                  Код із листа
+                </label>
+                <input
+                  id="otp"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))}
+                  placeholder="123456"
+                  style={{
+                    width: '100%', boxSizing: 'border-box', padding: '0.8rem 1rem',
+                    fontSize: '1.4rem', letterSpacing: '0.3em', textAlign: 'center',
+                    border: '2px solid #f0e0c0', borderRadius: '10px', color: '#0a1628',
+                    fontFamily: "'Montserrat', sans-serif", outline: 'none',
+                  }}
+                  disabled={codeBusy}
+                />
+                <button
+                  type="submit"
+                  disabled={codeBusy || code.length < 6}
+                  style={{
+                    width: '100%', marginTop: '0.75rem', padding: '0.85rem',
+                    background: codeBusy || code.length < 6 ? '#cbb88a' : '#ef9f27',
+                    color: 'white', border: 'none', borderRadius: '10px',
+                    fontSize: '1rem', fontWeight: 700, cursor: codeBusy || code.length < 6 ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {codeBusy ? 'Перевіряємо…' : 'Увійти з кодом'}
+                </button>
+                {codeError && (
+                  <div style={{ marginTop: '0.75rem', color: '#991b1b', fontSize: '0.9rem' }}>{codeError}</div>
+                )}
+              </form>
+
+              <p style={{ marginTop: '1rem', marginBottom: 0, fontSize: '0.85rem', color: '#6b6355', lineHeight: 1.5 }}>
+                Листа немає за кілька хвилин? Загляньте в «Спам».{' '}
+                <button
+                  type="button"
+                  onClick={() => { setStatus('idle'); setCode(''); setCodeError('') }}
+                  style={{ background: 'none', border: 'none', padding: 0, color: '#b4690e', textDecoration: 'underline', cursor: 'pointer', fontSize: 'inherit' }}
+                >
+                  Надіслати ще раз або змінити адресу
+                </button>
               </p>
             </div>
           ) : (
