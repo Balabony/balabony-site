@@ -153,7 +153,8 @@ export default async function ChytachiPage() {
   // Хто приводить читачів за своїм посиланням-запрошенням (?ref=КОД).
   // 18.09.2026. «Прийшло» — гості й читачі, чий перший візит був за кодом
   // (пишеться з цього дня, див. AnalyticsTracker); «зареєструвались» —
-  // users.referred_by, збирається з 09.09; «дочитали» — серед тих, хто прийшов.
+  // users.referred_by, збирається з 09.09; «зареєстр. і дочитали» — серед зареєстрованих за кодом; це число відбору
+  // трійки місяця, те саме, що в кабінеті автора (lib/referral.ts).
   try {
     const res = await dbQuery(
       `with inv as (
@@ -172,12 +173,12 @@ export default async function ChytachiPage() {
        select inv.name, inv.is_author,
               (select count(*) from vis where vis.code = inv.code)::int as visitors,
               (select count(*) from users r where r.referred_by::text = inv.id)::int as registered,
-              (select count(distinct ar.user_id)
-                 from article_reads ar
-                 join vis on vis.uid = ar.user_id::text
-                where vis.code = inv.code and ar.completed)::int as finished
+              (select count(*) from users r
+                where r.referred_by::text = inv.id
+                  and exists (select 1 from article_reads ar
+                               where ar.user_id::text = r.id::text and ar.completed))::int as finished
          from inv
-        order by 3 desc, 4 desc`,
+        order by 5 desc, 4 desc, 3 desc`,
     )
     inviters = (res.rows as InviterRow[]).filter(r => r.visitors > 0 || r.registered > 0).slice(0, 50)
   } catch {
@@ -277,7 +278,7 @@ export default async function ChytachiPage() {
                     <th style={{ padding: '10px 12px' }}>Хто запросив</th>
                     <th style={{ padding: '10px 12px', textAlign: 'right' }}>Прийшло</th>
                     <th style={{ padding: '10px 12px', textAlign: 'right' }}>Зареєструвались</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>Дочитали</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>Зареєстр. і дочитали</th>
                   </tr>
                 </thead>
                 <tbody>

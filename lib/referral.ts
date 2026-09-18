@@ -139,6 +139,28 @@ export async function countInvited(userId: string): Promise<number> {
   }
 }
 
+/**
+ * Скільки з приведених читачів ЗАРЕЄСТРУВАЛИСЯ Й ДОЧИТАЛИ хоч один твір.
+ * Саме за цим числом редакція щомісяця обирає трійку авторів (рішення
+ * Богдана 18.09.2026). Одне визначення для кабінету й /admin/chytachi,
+ * щоб автор бачив рівно те число, за яким його відбирають.
+ */
+export async function countInvitedFinished(userId: string): Promise<number> {
+  try {
+    const r = await dbQuery(
+      `select count(*)::int as n
+         from users u
+        where u.referred_by = $1
+          and exists (select 1 from article_reads ar
+                       where ar.user_id::text = u.id::text and ar.completed)`,
+      [userId],
+    )
+    return (r.rows[0] as { n: number } | undefined)?.n ?? 0
+  } catch {
+    return 0
+  }
+}
+
 /** Використовується у профілі, щоб не збирати посилання руками. */
 export function inviteLink(code: string): string {
   return `https://balabony.com/?ref=${encodeURIComponent(code)}`

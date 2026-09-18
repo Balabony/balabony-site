@@ -19,7 +19,7 @@ import PublishWorkButton from '@/app/components/PublishWorkButton'
 import { getAuthorVotes, getNarrationOrder, VOTE_COST } from '@/lib/voice-queue'
 import { POINTS } from '@/lib/points'
 import { workPath } from '@/lib/rss'
-import { countInvited } from '@/lib/referral'
+import { countInvited, countInvitedFinished } from '@/lib/referral'
 import AddWorkForm from '@/app/components/AddWorkForm'
 import WorksFilter from '@/app/components/WorksFilter'
 import DeleteDraftButton from '@/app/components/DeleteDraftButton'
@@ -407,6 +407,7 @@ export default async function AuthorDashboardPage() {
   // (users.referred_by). Показуємо в блоці просування — щоб автор бачив те
   // саме число, за яким редакція обирає трійку місяця.
   const myInvited = await countInvited(user.id)
+  const myInvitedFinished = await countInvitedFinished(user.id)
 
   // Баланс
   const { data: bal } = await supabase
@@ -1089,8 +1090,13 @@ export default async function AuthorDashboardPage() {
               Коли читач приходить за ним, реєструється й дочитує твір, наша аналітика
               зараховує його саме вам — не за кліки, а за реальних читачів.
             </div>
+            {/* Два числа, бо відбір — за другим. Одне число «привели» обіцяло б
+                більше, ніж ми рахуємо (вирівняно 18.09.2026). */}
             <div style={{ marginTop: 8, color: '#4ade80', fontWeight: 800 }}>
-              Ви вже привели читачів з акаунтом: {myInvited}
+              Зареєструвалися за вашим посиланням: {myInvited}
+            </div>
+            <div style={{ marginTop: 2, color: '#4ade80', fontWeight: 800 }}>
+              З них дочитали твір: {myInvitedFinished} — саме це число враховуємо у відборі
             </div>
           </div>
         </div>
