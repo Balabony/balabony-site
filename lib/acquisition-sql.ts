@@ -26,6 +26,7 @@ export const ACQUISITION_CHANNEL_SQL = String.raw`
            when raw ~ 'viber'                           then 'viber'
            when raw ~ 'tiktok'                          then 'tiktok'
            when raw ~ 'storriss'                        then 'storriss'
+           when raw = 'ref'                             then 'запрошення'
            when raw ~ 'balabony'                        then 'прямий'
            else regexp_replace(raw, '^(www|m|l|lm|mobile)\.', '')
          end as channel

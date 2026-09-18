@@ -59,6 +59,8 @@ type Reader = {
 
 type ChannelRow = { channel: string; n: number }
 
+type InviterRow = { name: string; is_author: boolean; visitors: number; registered: number; finished: number }
+
 type WeekRow = { week: string; signups: number }
 
 /** Дата в людському вигляді; порожнє значення не ламає рядок. */
@@ -83,6 +85,7 @@ export default async function ChytachiPage() {
   let readers: Reader[] = []
   let weeks: WeekRow[] = []
   let channels: ChannelRow[] = []
+  let inviters: InviterRow[] = []
   let error = ''
 
   try {
@@ -146,6 +149,40 @@ export default async function ChytachiPage() {
     // довідкова частина, як і тижні
   }
   const maxCh = Math.max(1, ...channels.map(c => c.n))
+
+  // Хто приводить читачів за своїм посиланням-запрошенням (?ref=КОД).
+  // 18.09.2026. «Прийшло» — гості й читачі, чий перший візит був за кодом
+  // (пишеться з цього дня, див. AnalyticsTracker); «зареєструвались» —
+  // users.referred_by, збирається з 09.09; «дочитали» — серед тих, хто прийшов.
+  try {
+    const res = await dbQuery(
+      `with inv as (
+         select u.id::text as id, upper(u.referral_code) as code,
+                coalesce(nullif(ap.display_name, ''), u.email, 'без імені') as name,
+                (ap.user_id is not null) as is_author
+           from users u
+           left join author_profiles ap on ap.user_id = u.id
+          where u.referral_code is not null
+       ),
+       vis as (
+         select upper(utm_campaign) as code, user_id::text as uid
+           from user_acquisition
+          where utm_source = 'ref' and utm_campaign is not null
+       )
+       select inv.name, inv.is_author,
+              (select count(*) from vis where vis.code = inv.code)::int as visitors,
+              (select count(*) from users r where r.referred_by::text = inv.id)::int as registered,
+              (select count(distinct ar.user_id)
+                 from article_reads ar
+                 join vis on vis.uid = ar.user_id::text
+                where vis.code = inv.code and ar.completed)::int as finished
+         from inv
+        order by 3 desc, 4 desc`,
+    )
+    inviters = (res.rows as InviterRow[]).filter(r => r.visitors > 0 || r.registered > 0).slice(0, 50)
+  } catch {
+    // довідкова частина
+  }
 
   const total = readers.length
   const read = readers.filter(r => r.last_read).length
@@ -220,6 +257,43 @@ export default async function ChytachiPage() {
                   <span style={{ fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{c.n}</span>
                 </div>
               ))}
+            </div>
+          )}
+        </section>
+
+        <section style={{ marginTop: 34 }}>
+          <h2 style={{ fontSize: 17, color: GOLD, margin: '0 0 4px' }}>Хто приводить читачів</h2>
+          <p style={{ color: MUTED, fontSize: 12.5, margin: '0 0 14px', lineHeight: 1.6, maxWidth: 760 }}>
+            За особистим посиланням-запрошенням (кнопка «поділитися» в кабінеті автора, «Запросити
+            друзів» у профілі). «Прийшло» рахується з 18.09.2026, «зареєструвались» — з 09.09.2026.
+          </p>
+          {inviters.length === 0 ? (
+            <div style={{ color: MUTED, fontSize: 13 }}>Поки ніхто нікого не привів за посиланням.</div>
+          ) : (
+            <div style={{ overflowX: 'auto', border: `1px solid ${LINE}`, borderRadius: 12 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: NAVY, textAlign: 'left' }}>
+                    <th style={{ padding: '10px 12px' }}>Хто запросив</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>Прийшло</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>Зареєструвались</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>Дочитали</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {inviters.map((r, i) => (
+                    <tr key={i} style={{ borderTop: `1px solid ${LINE}` }}>
+                      <td style={{ padding: '9px 12px' }}>
+                        {r.name}
+                        {r.is_author && <span style={{ marginLeft: 8, fontSize: 11, color: GOLD }}>автор</span>}
+                      </td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right' }}>{r.visitors}</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right' }}>{r.registered}</td>
+                      <td style={{ padding: '9px 12px', textAlign: 'right' }}>{r.finished}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </section>

@@ -48,11 +48,18 @@ export default function AnalyticsTracker() {
     try {
       if (!localStorage.getItem('bly_acq_sent')) {
         const p = new URLSearchParams(window.location.search)
+        // 18.09.2026: посилання-запрошення (?ref=КОД) — з кабінету автора
+        // й з профілю читача — теж є джерелом. Раніше код ішов лише в cookie
+        // і рахувався тільки для тих, хто ЗАРЕЄСТРУВАВСЯ; гостей, яких привів
+        // автор, не видно було ніде. Тепер перший дотик пише ref як канал,
+        // а код — як кампанію. utm, якщо є, має перевагу.
+        const ref = (p.get('ref') || '').trim().toUpperCase()
+        const viaRef = !p.get('utm_source') && ref !== ''
         post({
           type:         'acquisition',
-          utm_source:   p.get('utm_source'),
+          utm_source:   viaRef ? 'ref' : p.get('utm_source'),
           utm_medium:   p.get('utm_medium'),
-          utm_campaign: p.get('utm_campaign'),
+          utm_campaign: viaRef ? ref : p.get('utm_campaign'),
           utm_content:  p.get('utm_content'),
           utm_term:     p.get('utm_term'),
           referrer:     document.referrer || null,

@@ -20,6 +20,7 @@ export function channelFromSource(raw: string): string {
   if (/viber/.test(s)) return 'viber'
   if (/tiktok/.test(s)) return 'tiktok'
   if (/storriss/.test(s)) return 'storriss'
+  if (s === 'ref') return 'запрошення'
   return s
 }
 
