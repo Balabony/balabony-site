@@ -74,6 +74,9 @@ function countBy(arr: Record<string, unknown>[], key: string): { name: string; v
   return Object.entries(c).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value)
 }
 
+/** Від скількох анкет показувати графіки (див. блок «Анкетування»). */
+const SURVEY_MIN = 30
+
 function countGenres(surveys: SurveyRow[]): { name: string; value: number }[] {
   const c: Record<string, number> = {}
   surveys.forEach(s => {
@@ -919,8 +922,19 @@ export default function AnalyticsPage() {
 
         {/* ─── Survey charts ─── */}
         <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>
-          Анкетування
+          Анкетування · відповідей: {surveys.length}
         </div>
+        {/* 18.09.2026: одна анкета малювалася як «Жінка · 100%», «55+ · 100%».
+            Такий графік уводить в оману кожного, хто бачить скрін. Графіки —
+            лише від SURVEY_MIN відповідей; до того — чесний текст. */}
+        {surveys.length < SURVEY_MIN ? (
+          <div style={{ padding: '14px 16px', borderRadius: 12, marginBottom: 16, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', fontSize: 13, lineHeight: 1.6 }}>
+            Замало відповідей для висновків: {surveys.length} з потрібних {SURVEY_MIN}. Графіки
+            з'являться, коли анкет буде щонайменше {SURVEY_MIN} — до того будь-який відсоток
+            описує кількох людей, а не аудиторію.
+          </div>
+        ) : (
+        <>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16, marginBottom: 16 }}>
 
           <ChartCard title="Вік">
@@ -1033,6 +1047,9 @@ export default function AnalyticsPage() {
               </ResponsiveContainer>
             </ChartCard>
           </div>
+        )}
+
+        </>
         )}
 
         {/* ─── Activity charts ─── */}

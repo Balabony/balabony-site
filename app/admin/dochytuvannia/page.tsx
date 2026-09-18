@@ -50,6 +50,31 @@ type Row = {
   outside: number
 }
 
+/** Рядок звіту «Хто читає»: група творів × частина доби. */
+type AudRow = { grp: string; part: string; views: number; sessions: number }
+type AudReadRow = { grp: string; opened: number; finished: number }
+
+/**
+ * Групи для питання «чи є на сайті батьки». Дитяче — жанри «Казка» і
+ * «Дитяче оповідання» (lib/genres.ts, два різні жанри з 09.09.2026) разом зі
+ * старими синонімами. Серіали окремо: «Балабони» й «Тиша» — доросла проза,
+ * але читаються інакше, ніж окремі історії.
+ */
+const AUD_GROUPS = ['Дитяче', 'Дорослі історії', 'Серіали'] as const
+const DAY_PARTS: { key: string; label: string }[] = [
+  { key: 'ранок',  label: 'ранок 6–12' },
+  { key: 'день',   label: 'день 12–18' },
+  { key: 'вечір',  label: 'вечір 18–22' },
+  { key: 'ніч',    label: 'ніч 22–6' },
+]
+
+const GROUP_SQL = `case
+  when c.type in ('balabony', 'episode', 'tysha') then 'Серіали'
+  when lower(trim(coalesce(c.genre, ''))) in ('казка', 'казки', 'дитяче оповідання', 'для дітей', 'дитячі', 'дитяче')
+    then 'Дитяче'
+  else 'Дорослі історії'
+end`
+
 const TYPE_LABEL: Record<string, string> = {
   story: 'історія',
   balabony: 'Балабони',
@@ -160,6 +185,59 @@ export default async function DochytuvanniaPage({
     error = e instanceof Error ? e.message : 'невідома помилка'
   }
 
+  // «Хто читає» (18.09.2026). Питання: чи є на сайті батьки, тобто
+  // комерційне ядро. Опитування не заповнюють, тому дивимось на поведінку:
+  // скільки читають дитячого і О КОТРІЙ. Казку на ніч читають увечері.
+  // Години — з page_views (там є час), дочитування — з article_reads
+  // (там лише дата). Час київський.
+  let aud: AudRow[] = []
+  let audReads: AudReadRow[] = []
+  try {
+    const [pv, ar] = await Promise.all([
+      dbQuery(
+        `with pv as (
+           select (p."timestamp"::timestamptz at time zone 'Europe/Kyiv') as t,
+                  split_part(p.url, '/', 3) as slug,
+                  p.session_id
+             from page_views p
+            where (p.url like '/stories/%' or p.url like '/episodes/%' or p.url like '/tysha/%')
+              and p."timestamp" > now() - interval '30 days'
+         )
+         select ${GROUP_SQL} as grp,
+                case
+                  when extract(hour from pv.t) >= 6  and extract(hour from pv.t) < 12 then 'ранок'
+                  when extract(hour from pv.t) >= 12 and extract(hour from pv.t) < 18 then 'день'
+                  when extract(hour from pv.t) >= 18 and extract(hour from pv.t) < 22 then 'вечір'
+                  else 'ніч'
+                end as part,
+                count(*)::int                   as views,
+                count(distinct pv.session_id)::int as sessions
+           from pv
+           join content c on c.slug = pv.slug
+          group by 1, 2`,
+      ),
+      dbQuery(
+        `select ${GROUP_SQL} as grp,
+                count(*)::int                             as opened,
+                count(*) filter (where ar.completed)::int as finished
+           from article_reads ar
+           join content c on c.id = ar.content_id
+          where ar.read_date > (now() - interval '30 days')::date
+            and (c.author_id is null or ar.user_id::text <> c.author_id::text)
+          group by 1`,
+      ),
+    ])
+    aud = pv.rows as AudRow[]
+    audReads = ar.rows as AudReadRow[]
+  } catch {
+    // довідкова частина: основна таблиця від неї не залежить
+  }
+  const audCell = (grp: string, part: string) =>
+    aud.find(r => r.grp === grp && r.part === part)?.views ?? 0
+  const audGroupTotal = (grp: string) =>
+    aud.filter(r => r.grp === grp).reduce((s, r) => s + r.views, 0)
+  const audAll = aud.reduce((s, r) => s + r.views, 0)
+
   const visible = typeFilter ? rows.filter(r => r.type === typeFilter) : rows
 
   const totalReaders = visible.reduce((s, r) => s + r.readers, 0)
@@ -219,6 +297,69 @@ export default async function DochytuvanniaPage({
             </div>
           ))}
         </div>
+
+        {/* Хто читає: дитяче / дорослі історії / серіали, за частиною доби */}
+        <section style={{ marginBottom: 26, padding: 16, borderRadius: 12, background: '#14253b', border: '1px solid rgba(239,159,39,0.25)' }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: GOLD, marginBottom: 2 }}>Хто читає — за 30 днів</div>
+          <div style={{ ...hint, fontSize: 12, marginBottom: 12, maxWidth: 760 }}>
+            Замість опитування — поведінка. Якщо на сайті є батьки, дитяче читають увечері
+            (казка на ніч). Перегляди сторінок творів за київським часом; дочитування — за
+            правилом договору. Ваші власні перегляди теж тут: поки трафік малий, дивіться
+            на пропорції, а не на одиниці.
+          </div>
+          {audAll === 0 && audReads.length === 0 ? (
+            <div style={{ fontSize: 13, color: 'rgba(245,240,232,0.5)' }}>Даних за 30 днів немає або запит не виконався.</div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 640 }}>
+                <thead>
+                  <tr style={{ textAlign: 'right', color: 'rgba(245,240,232,0.7)' }}>
+                    <th style={{ padding: '6px 8px', textAlign: 'left' }}>Група</th>
+                    <th style={{ padding: '6px 8px' }}>Частка переглядів</th>
+                    {DAY_PARTS.map(d => <th key={d.key} style={{ padding: '6px 8px' }}>{d.label}</th>)}
+                    <th style={{ padding: '6px 8px' }}>Відкрили</th>
+                    <th style={{ padding: '6px 8px' }}>Дочитали</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {AUD_GROUPS.map(g => {
+                    const total = audGroupTotal(g)
+                    const rd = audReads.find(r => r.grp === g)
+                    return (
+                      <tr key={g} style={{ borderTop: '1px solid rgba(245,240,232,0.08)', textAlign: 'right' }}>
+                        <td style={{ padding: '7px 8px', textAlign: 'left', fontWeight: 700 }}>{g}</td>
+                        <td style={{ padding: '7px 8px', color: GOLD, fontWeight: 700 }}>
+                          {pct(total, audAll)}%
+                          <div style={{ fontSize: 10.5, color: 'rgba(245,240,232,0.4)', fontWeight: 400 }}>{total} перегл.</div>
+                        </td>
+                        {DAY_PARTS.map(d => (
+                          <td key={d.key} style={{ padding: '7px 8px' }}>
+                            {total > 0 ? `${pct(audCell(g, d.key), total)}%` : '—'}
+                          </td>
+                        ))}
+                        <td style={{ padding: '7px 8px' }}>{rd?.opened ?? 0}</td>
+                        <td style={{ padding: '7px 8px' }}>
+                          {rd?.finished ?? 0}
+                          {rd && rd.opened > 0 && (
+                            <span style={{ color: shareColor(pct(rd.finished, rd.opened)), marginLeft: 6 }}>
+                              {pct(rd.finished, rd.opened)}%
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <div style={{ ...hint, fontSize: 11.5, marginTop: 10, maxWidth: 760 }}>
+            Як читати: частки за часом доби — у межах своєї групи. Сигнал «батьки є» — у
+            «Дитячого» помітно більша частка вечора, ніж у «Дорослих історій», і дитяче
+            дочитують. Якщо «Дитяче» — кілька відсотків переглядів і без вечірнього піку,
+            батьків на сайті поки немає.
+          </div>
+        </section>
 
         {/* Фільтри */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 18, fontSize: 13 }}>
