@@ -19,6 +19,7 @@ import PublishWorkButton from '@/app/components/PublishWorkButton'
 import { getAuthorVotes, getNarrationOrder, VOTE_COST } from '@/lib/voice-queue'
 import { POINTS } from '@/lib/points'
 import { workPath } from '@/lib/rss'
+import { countInvited } from '@/lib/referral'
 import AddWorkForm from '@/app/components/AddWorkForm'
 import WorksFilter from '@/app/components/WorksFilter'
 import DeleteDraftButton from '@/app/components/DeleteDraftButton'
@@ -401,6 +402,11 @@ export default async function AuthorDashboardPage() {
     .maybeSingle() as { data: { referral_code: string | null } | null }
 
   const myRefCode = refRow?.referral_code ?? null
+
+  // Скільки читачів з акаунтом прийшло за особистим посиланням автора
+  // (users.referred_by). Показуємо в блоці просування — щоб автор бачив те
+  // саме число, за яким редакція обирає трійку місяця.
+  const myInvited = await countInvited(user.id)
 
   // Баланс
   const { data: bal } = await supabase
@@ -1049,6 +1055,45 @@ export default async function AuthorDashboardPage() {
         {/* Намір узяти участь. Стоїть ОДРАЗУ під анонсами: автор щойно
             побачив конкурси й строки — саме тут відповідь має сенс. */}
         <ContestIntent />
+
+        {/* 18.09.2026, рішення Богдана: це пояснення — у кабінеті, а НЕ листом
+            (листи йшли щодня, почалися відписки). Правило заліку — у
+            lib/contest-reads.ts: рахуються лише читачі з акаунтом. */}
+        <div style={{
+          background: 'rgba(239,159,39,0.10)',
+          border: '1px solid rgba(239,159,39,0.45)',
+          borderRadius: 12, padding: '12px 16px', margin: '0 0 1.5rem',
+          color: '#f5f0e8', fontSize: '0.95rem', lineHeight: 1.6,
+        }}>
+          <strong style={{ color: BRAND.amber }}>Для конкурсу:</strong> у залік ідуть лише прочитання
+          читачів, які <strong>увійшли на сайт</strong>. Вхід займає хвилину — пошта й код із
+          листа, без пароля, або Google. Ділитися найкраще кнопкою «Поділитися» біля твору:
+          у ній ваше особисте посилання, і ми бачимо, кого привели саме ви.
+          {/* Програма просування, рішення Богдана 18.09.2026. Нагороди — лише те,
+              що редакція реально дає щомісяця. Конкурсні твори — тільки після
+              підсумків: просування додає прочитань, а конкурс рахує прочитання.
+              Хто лідирує — /admin/chytachi, блок «Хто приводить читачів». */}
+          {/* Виділено окремим кольором і жирним — на прохання Богдана 18.09.2026. */}
+          <div style={{
+            marginTop: 12, padding: '10px 14px', borderRadius: 10,
+            background: 'rgba(34,197,94,0.14)', border: '1px solid rgba(34,197,94,0.55)',
+            color: '#bbf7d0', fontWeight: 700,
+          }}>
+            <span style={{ color: '#4ade80', fontWeight: 800 }}>Просуваємо тих, хто приводить читачів.</span>{' '}
+            Щомісяця троє авторів, які привели найбільше нових читачів за своїм посиланням,
+            отримують від Балабонів кілька днів на головній сторінці, допис про себе в наших
+            соцмережах і згадку в розсилці. Рахуємо читачів, які зареєструвалися й дочитали твір.
+            Конкурсні твори просуваємо лише після підсумків конкурсу.
+            <div style={{ marginTop: 8, fontWeight: 600, color: '#dcfce7' }}>
+              Як ми це бачимо: у кожному посиланні з кнопки «Поділитися» є ваш особистий код.
+              Коли читач приходить за ним, реєструється й дочитує твір, наша аналітика
+              зараховує його саме вам — не за кліки, а за реальних читачів.
+            </div>
+            <div style={{ marginTop: 8, color: '#4ade80', fontWeight: 800 }}>
+              Ви вже привели читачів з акаунтом: {myInvited}
+            </div>
+          </div>
+        </div>
 
         {/* Публікація в газеті — це просування, а не другий гонорар.
             Автор має знати це до того, як подасться на конкурс. */}
