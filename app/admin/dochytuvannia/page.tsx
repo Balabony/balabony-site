@@ -69,7 +69,8 @@ const DAY_PARTS: { key: string; label: string }[] = [
 ]
 
 const GROUP_SQL = `case
-  when c.type in ('balabony', 'episode', 'tysha') then 'Серіали'
+  -- type — enum content_type; без ::text невідоме значення валить запит
+  when c.type::text in ('balabony', 'episode', 'tysha') then 'Серіали'
   when lower(trim(coalesce(c.genre, ''))) in ('казка', 'казки', 'дитяче оповідання', 'для дітей', 'дитячі', 'дитяче')
     then 'Дитяче'
   else 'Дорослі історії'
@@ -192,6 +193,7 @@ export default async function DochytuvanniaPage({
   // (там лише дата). Час київський.
   let aud: AudRow[] = []
   let audReads: AudReadRow[] = []
+  let audError = ''
   try {
     const [pv, ar] = await Promise.all([
       dbQuery(
@@ -229,8 +231,11 @@ export default async function DochytuvanniaPage({
     ])
     aud = pv.rows as AudRow[]
     audReads = ar.rows as AudReadRow[]
-  } catch {
-    // довідкова частина: основна таблиця від неї не залежить
+  } catch (e) {
+    // довідкова частина: основна таблиця від неї не залежить.
+    // Помилку показуємо в блоці, а не ковтаємо (19.09.2026: enum content_type
+    // не мав 'episode', і блок мовчки писав «немає даних»).
+    audError = e instanceof Error ? e.message : 'невідома помилка'
   }
   const audCell = (grp: string, part: string) =>
     aud.find(r => r.grp === grp && r.part === part)?.views ?? 0
@@ -308,7 +313,9 @@ export default async function DochytuvanniaPage({
             на пропорції, а не на одиниці.
           </div>
           {audAll === 0 && audReads.length === 0 ? (
-            <div style={{ fontSize: 13, color: 'rgba(245,240,232,0.5)' }}>Даних за 30 днів немає або запит не виконався.</div>
+            <div style={{ fontSize: 13, color: 'rgba(245,240,232,0.5)' }}>
+              {audError ? `Запит не виконався: ${audError}` : 'Даних за 30 днів немає.'}
+            </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 640 }}>
