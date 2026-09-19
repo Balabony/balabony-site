@@ -367,14 +367,24 @@ async function sendMail(p: {
       subject: `[Балабони] Заявку прийнято: ${p.title}`,
       html,
     })
+    // Копія редакції: ті самі дані, що в автора, плюс ХТО подав заявку.
+    // Без цього рядка з копії не видно автора (19.09.2026), а ім'я в профілі буває порожнім.
+    const who = `<p style="color:#ef9f27;font-size:14px;margin:0 0 16px;">Автор: <strong>${esc(p.authorName) || 'ім\'я в профілі не вказано'}</strong>, ${esc(p.to)}</p>`
     await resend.emails.send({
       from,
       to: 'nazar@balabony.com',
+      replyTo: p.to,
       subject: `[Конкурс] ${p.contestName} — ${p.title} (${p.totalNow}/${p.totalNeed})`,
-      html,
+      html: html.replace('<div style="font-size:22px;font-weight:700;color:#ef9f27;margin-bottom:20px;">Balabony</div>',
+        '<div style="font-size:22px;font-weight:700;color:#ef9f27;margin-bottom:20px;">Balabony</div>' + who),
     })
   } catch (e) {
     // Лист не пішов — заявка вже в базі, це не привід повертати помилку автору.
     console.error('[contest/submit] mail', (e as Error)?.message)
   }
+}
+
+/** Екранує текст для вставки в HTML листа. */
+function esc(v: string): string {
+  return (v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
