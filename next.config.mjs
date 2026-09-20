@@ -76,6 +76,10 @@ const nextConfig = {
         permanent: false,
       },
       // Гороскоп переїхав 18.09.2026 на адресу з пошуковим ключем.
+      // 20.09.2026: RSS шукають за звичними адресами — ведемо на загальний фід.
+      { source: '/rss.xml', destination: '/feed.xml', permanent: true },
+      { source: '/rss', destination: '/feed.xml', permanent: true },
+      { source: '/feed', destination: '/feed.xml', permanent: true },
       {
         source: '/pysmennytskyi-horoskop',
         destination: '/znaky-zodiaku',

@@ -230,9 +230,7 @@ export default function HoroskopPage() {
             <thead>
               <tr style={{ textAlign: "left", color: "#8a5a10", fontSize: 12, letterSpacing: "1px", textTransform: "uppercase" }}>
                 <th scope="col" style={{ padding: "8px 10px 8px 0" }}>Знак</th>
-                <th scope="col" style={{ padding: "8px 10px" }}>Дати</th>
-                <th scope="col" style={{ padding: "8px 10px" }}>Місяці</th>
-                <th scope="col" style={{ padding: "8px 0 8px 10px" }}>Стихія</th>
+                <th scope="col" style={{ padding: "8px 0 8px 10px" }}>Дати, місяці й стихія</th>
               </tr>
             </thead>
             <tbody>
@@ -243,9 +241,14 @@ export default function HoroskopPage() {
                       <ZodiacBadge sign={s.id} size={28} />{s.name}
                     </a>
                   </th>
-                  <td style={{ padding: "8px 10px", whiteSpace: "nowrap" }}>{s.dates}</td>
-                  <td style={{ padding: "8px 10px", color: "#57534e" }}>{s.months}</td>
-                  <td style={{ padding: "8px 0 8px 10px", color: "#57534e" }}>{s.element}</td>
+                  <td style={{ padding: "8px 0 8px 10px" }}>
+                    {/* 20.09.2026: на телефоні 4 колонки не вміщалися й обрізалися праворуч.
+                        Місяці й стихія — другим рядком під датами; дата не розривається посередині. */}
+                    {s.dates.split(" — ").map((d, i) => (
+                      <span key={i}>{i > 0 && " — "}<span style={{ whiteSpace: "nowrap" }}>{d}</span></span>
+                    ))}
+                    <span style={{ display: "block", fontSize: 13, color: "#78716c" }}>{s.months} · {s.element}</span>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -193,3 +193,76 @@ export const FEED_SELECT =
   'type, slug, title, short_description, description, hook, cover_url, ' +
   'author_name, published_at, approved_at, created_at, audio_url, duration_minutes, ' +
   'season_number, episode_number, is_adult'
+
+/* ===== Стрічка для UKR.NET (20.09.2026) ===================================
+ * Звичайний RSS 2.0 без подкаст-тегів. Кожен елемент — нова історія порталу,
+ * заголовок у вигляді новини, опис 3–4 речення без HTML, рубрика, автор,
+ * обкладинка. Точні вимоги UKR.NET уточнюємо з їхнім менеджером.
+ */
+
+const UKRNET_RUBRIC = 'Суспільство'
+const MIN_DESCRIPTION = 80 // коротше — це вже не зміст, а підпис
+
+/** Опис без HTML і зайвих пробілів; обрізаємо по кінцю речення до ~400 знаків. */
+function plainSummary(r: FeedRow): string {
+  const raw = r.short_description || r.description || r.hook || ''
+  const t = clean(raw).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  if (t.length <= 400) return t
+  const cut = t.slice(0, 400)
+  const end = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '), cut.lastIndexOf('… '))
+  return end > 150 ? cut.slice(0, end + 1) : cut.slice(0, 397).trimEnd() + '…'
+}
+
+/** Історія готова для UKR.NET: є адреса, назва й справжній опис. */
+export function ukrnetReady(r: FeedRow): boolean {
+  if (!r.slug || !r.title) return false
+  const s = plainSummary(r)
+  return s.length >= MIN_DESCRIPTION && s !== 'Читати на Балабонах'
+}
+
+function imageType(url: string): string {
+  const u = url.toLowerCase().split('?')[0]
+  if (u.endsWith('.webp')) return 'image/webp'
+  if (u.endsWith('.png')) return 'image/png'
+  return 'image/jpeg'
+}
+
+function ukrnetItem(r: FeedRow): string {
+  const url = `${BASE_URL}${workPath(r.type, r.slug as string)}`
+  const name = clean(r.title as string).trim()
+  const author = r.author_name ? clean(r.author_name).trim() : ''
+  const title = author ? `Нова історія: «${name}» — ${author}` : `Нова історія: «${name}»`
+  const parts = [
+    `      <title>${esc(title)}</title>`,
+    `      <link>${esc(url)}</link>`,
+    `      <guid isPermaLink="true">${esc(url)}</guid>`,
+    `      <pubDate>${rfc822(r.published_at || r.approved_at || r.created_at)}</pubDate>`,
+    `      <description>${esc(plainSummary(r))}</description>`,
+    `      <category>${UKRNET_RUBRIC}</category>`,
+  ]
+  if (author) parts.push(`      <dc:creator>${esc(author)}</dc:creator>`)
+  if (r.cover_url) parts.push(`      <enclosure url="${esc(r.cover_url)}" type="${imageType(r.cover_url)}" length="0"/>`)
+  return `    <item>\n${parts.join('\n')}\n    </item>`
+}
+
+export function buildUkrnetFeed(rows: FeedRow[]): string {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Балабони — нові історії українських письменників</title>
+    <link>${BASE_URL}</link>
+    <description>Нові оповідання сучасних українських авторів на інклюзивній літературній платформі Балабони.</description>
+    <language>uk</language>
+    <copyright>© ${new Date().getFullYear()} Балабони</copyright>
+    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+    <atom:link href="${BASE_URL}/feed/ukrnet.xml" rel="self" type="application/rss+xml"/>
+    <image>
+      <url>${BASE_URL}/cover-default.png</url>
+      <title>Балабони — нові історії українських письменників</title>
+      <link>${BASE_URL}</link>
+    </image>
+${rows.map(ukrnetItem).join('\n')}
+  </channel>
+</rss>
+`
+}
