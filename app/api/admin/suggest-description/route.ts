@@ -12,10 +12,14 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
  * опис автора (description) не чіпаємо.
  */
 
-const MODEL = 'claude-haiku-4-5-20251001'
+// 20.09.2026: Haiku давав помилки в українській (відмінки, сленг) і переказував фінал.
+// Sonnet пише чистіше; модель та сама, що вже працює в інших маршрутах проєкту.
+const MODEL = 'claude-sonnet-4-6'
 const MIN = 150
 const MAX = 380
-const MAX_TEXT = 14000
+// ШІ бачить лише початок твору: не знаючи фіналу, він не може його розкрити.
+const OPENING_SHARE = 0.35
+const MAX_OPENING = 6000
 
 function checkAuth(req: NextRequest): boolean {
   return req.cookies.get('admin_session')?.value === process.env.ADMIN_PASSWORD
@@ -46,14 +50,24 @@ export async function POST(req: NextRequest) {
   const text = (row.corrected_text || row.text || '').replace(/<[^>]*>/g, ' ').trim()
   if (text.length < 300) return NextResponse.json({ ok: false, error: 'Текст закороткий для опису' }, { status: 400 })
 
+  // Початок твору: перша третина, але не менше 1500 знаків і не більше MAX_OPENING. Обрізаємо по кінцю абзацу чи речення.
+  const want = Math.min(MAX_OPENING, Math.max(1500, Math.round(text.length * OPENING_SHARE)))
+  let opening = text.slice(0, want)
+  if (want < text.length) {
+    const cut = Math.max(opening.lastIndexOf('\n'), opening.lastIndexOf('. '), opening.lastIndexOf('! '), opening.lastIndexOf('? '))
+    if (cut > want * 0.6) opening = opening.slice(0, cut + 1)
+  }
+
   const prompt = [
     'Ти редактор української літературної платформи. Склади короткий зміст оповідання для новинної стрічки.',
     '',
     'Правила:',
     `— 3–4 речення, разом від ${MIN} до ${MAX} символів;`,
-    '— українською, живою мовою, без канцеляриту;',
-    '— хто герой, де й коли відбувається дія, яка зав’язка або проблема;',
-    '— НЕ розкривай фінал, розв’язку, таємницю чи несподіваний поворот;',
+    '— літературна українська мова: без сленгу й жаргону («менти», «тачка» тощо), без русизмів і канцеляриту;',
+    '— перевір граматику: відмінки («мати», а не «матір» у називному), числівники («обоє дітей»), дієприслівники, орфографію;',
+    '— імена героїв — точно як у тексті;',
+    '— тобі дано лише ПОЧАТОК твору; опиши героя, місце й зав’язку — з чого все починається;',
+    '— не переказуй події послідовно й не вгадуй, чим закінчиться; останнє речення лишає інтригу;',
     '— без оцінок («зворушлива», «неймовірна»), без закликів читати, без емодзі;',
     '— не починай зі слів «Історія про», «Розповідь про», «Оповідання про»;',
     '— без HTML, без лапок навколо всього тексту;',
@@ -64,8 +78,8 @@ export async function POST(req: NextRequest) {
     `Назва: ${row.title ?? ''}`,
     `Автор: ${row.author_name ?? ''}`,
     '',
-    'Текст:',
-    text.slice(0, MAX_TEXT),
+    'Початок твору:',
+    opening,
   ].join('\n')
 
   let raw = ''

@@ -118,7 +118,7 @@ export default function BezOpysuPage() {
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 20px 90px' }}>
         <h1 style={{ color: GOLD, fontSize: 26, margin: 0 }}>Описи для ukr.net</h1>
         <p style={{ color: MUTED, margin: '8px 0 20px', lineHeight: 1.6 }}>
-          У стрічку <a href="/feed/ukrnet.xml" target="_blank" rel="noreferrer" style={{ color: GOLD }}>ukr.net</a> потрапляють
+          У стрічку <a href="/feed/ukrnet.xml" target="_blank" rel="noreferrer" style={{ color: GOLD }}>ukr.net</a>{" "}потрапляють
           лише історії з описом: 3–4 речення про зав&apos;язку, без фіналу й спойлерів, без HTML. Після збереження історія
           з&apos;явиться у стрічці протягом 30 хвилин.
         </p>
