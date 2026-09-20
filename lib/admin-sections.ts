@@ -41,6 +41,7 @@ export const ADMIN_GROUPS: AdminGroup[] = [
       { href: '/admin/genres',          label: 'Жанри',                 note: 'Довідник жанрів творів' },
       { href: '/admin/compress-covers', label: 'Стиснення обкладинок',  note: 'Пакетне зменшення ваги картинок' },
       { href: '/admin/rozklad',         label: 'Розклад публікацій', note: 'Вівторок і пʼятниця о 18:00 — що на які дати призначено', quick: true, short: 'Розклад' },
+      { href: '/admin/bez-opysu',       label: 'Описи для ukr.net',  note: 'Історії без опису не потрапляють у стрічку ukr.net — дописати тут', quick: true, short: 'Описи' },
       { href: '/admin/shorts',          label: 'Шорти',              note: 'Готові тексти гачків для роликів: копіювання, кадр 9:16, тривалість озвучення' },
     ],
   },
