@@ -7,12 +7,12 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Контакти — Balabony",
   description:
-    "Контактні дані ФОП Хомин Ігор Іванович — отримувача платежів платформи Balabony",
+    "Контакти платформи Balabony: видавець і редакція, зв'язок, реквізити отримувача платежів",
   alternates: { canonical: "https://balabony.com/contacts" },
   openGraph: {
     title: "Контакти — Balabony",
     description:
-      "Контактні дані ФОП Хомин Ігор Іванович — отримувача платежів платформи Balabony",
+      "Контакти платформи Balabony: видавець і редакція, зв'язок, реквізити отримувача платежів",
     url: "https://balabony.com/contacts",
     siteName: "Balabony",
     locale: "uk_UA",
@@ -77,6 +77,45 @@ export default function ContactsPage() {
           пишіть на email або у WhatsApp.
         </p>
 
+        {/* 20.09.2026: блок видавця — для стрічки UKR.NET (сайти без заповнених «Контактів» не підключають)
+            і щоб дані збігалися із заявкою. */}
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>Видавець і редакція</h2>
+          <ul style={ulStyle}>
+            <li>
+              <strong>Видавець:</strong> Львівська обласна громадська організація «Інститут
+              громадянського суспільства»
+            </li>
+            <li>
+              <strong>ЄДРПОУ:</strong> 33951844 · зареєстровано 25.11.2005
+            </li>
+            <li>
+              <strong>Статус:</strong> неприбуткова організація — внесена до Реєстру неприбуткових
+              установ та організацій з 19.03.2019, ознака неприбутковості 0032 (громадські
+              об&apos;єднання). Перевірити можна за кодом ЄДРПОУ в реєстрах ДПС і Мін&apos;юсту.
+            </li>
+            <li>
+              <strong>Адреса редакції:</strong> Україна, 79021, Львівська обл., м. Львів,
+              вул. Петлюри, 51, кв. 44
+            </li>
+            <li>
+              <strong>Керівник:</strong> Богдан Хомин
+            </li>
+            <li>
+              <strong>Email редакції:</strong>{" "}
+              <a style={linkStyle} href="mailto:nazar@balabony.com">
+                nazar@balabony.com
+              </a>
+            </li>
+            <li>
+              <strong>Телефон:</strong>{" "}
+              <a style={linkStyle} href="tel:+380505859141">
+                +380 50 585 91 41
+              </a>
+            </li>
+          </ul>
+        </section>
+
         <section style={sectionStyle}>
           <h2 style={h2Style}>Зв&apos;язатися з нами</h2>
           <ul style={ulStyle}>
@@ -120,10 +159,10 @@ export default function ContactsPage() {
         </section>
 
         <section style={sectionStyle}>
-          <h2 style={h2Style}>Партнер з освітньої та благодійної діяльності</h2>
+          <h2 style={h2Style}>Інклюзивні програми</h2>
           <p style={{ margin: "0 0 8px" }}>
-            Інклюзивна частина платформи (безкоштовний доступ для дітей ВПО,
-            ветеранів УБД, людей з інвалідністю) реалізується у партнерстві з:
+            Інклюзивну частину платформи (безкоштовний доступ для дітей ВПО,
+            ветеранів УБД, людей з інвалідністю) реалізує видавець платформи:
           </p>
           <ul style={ulStyle}>
             <li>

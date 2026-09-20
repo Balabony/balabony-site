@@ -57,7 +57,7 @@ export default function BezOpysuPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: item.id }),
       })
-      const json = await res.json() as { ok?: boolean; variants?: string[]; error?: string }
+      const json = await res.json().catch(() => ({ ok: false, error: res.status === 504 ? 'ШІ не встиг відповісти — натисніть «Запропонувати» ще раз' : `помилка ${res.status}` })) as { ok?: boolean; variants?: string[]; error?: string }
       if (!json.ok || !json.variants?.length) throw new Error(json.error || 'помилка')
       setVariants((v) => ({ ...v, [item.id]: json.variants! }))
       if (fill) setDrafts((d) => (d[item.id]?.trim() ? d : { ...d, [item.id]: json.variants![0] }))
