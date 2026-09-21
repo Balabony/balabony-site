@@ -118,6 +118,9 @@ export default function HomeClient({
         <a href="#pricing" style={{ color: 'var(--accent-gold)', fontWeight: 700, textDecoration: 'underline', textUnderlineOffset: 3 }}>
           Для ВПО, ветеранів і людей з інвалідністю — 1&nbsp;₴ на рік →
         </a>
+        <span style={{ display: 'block', marginTop: 6, fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
+          Пільгову програму реалізує ЛОГО «Інститут громадянського суспільства»
+        </span>
       </p>
 
       <FreeBanner />

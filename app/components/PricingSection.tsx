@@ -560,14 +560,12 @@ const PLANS: PlanConfig[] = [
     priceLabel: '129 ₴',
     priceSuffix: '/міс',
     unit: '₴/міс',
-    subline: 'Перший місяць — 49 ₴, далі 129 ₴',
+    subline: 'Без автосписання',
     perks: [
       { text: 'Усі серії «Балабонів» і «Тиші»', highlight: true },
-      { text: 'Жодної реклами' },
       { text: 'Усі серії, історії та казки' },
-      { text: 'Офлайн-завантаження' },
     ],
-    cta: 'Підписатись',
+    cta: 'Оплатити місяць',
     ctaStyle: 'outline',
     cancelMain: 'Оплата разова',
     cancelSub: 'доступ діє 30 днів',
@@ -584,8 +582,6 @@ const PLANS: PlanConfig[] = [
     subline: 'Всього 74 ₴/міс · економія 658 ₴',
     perks: [
       { text: 'Бонусні серії «Балабонів» і «Тиші»', highlight: true },
-      { text: 'Жодної реклами' },
-      { text: 'Офлайн-завантаження' },
       { text: 'Усі серії, історії та казки' },
     ],
     cta: 'Оформити передплату',
@@ -608,12 +604,10 @@ const PLANS: PlanConfig[] = [
     subline: '50 ₴ на особу · до 4 акаунтів',
     perks: [
       { text: 'Усі серії «Балабонів» і «Тиші»', highlight: true },
-      { text: 'Жодної реклами' },
       { text: 'Усі серії, історії та казки' },
       { text: 'До 4 акаунтів у родині — запрошуєте поштою в кабінеті' },
-      { text: 'Офлайн-завантаження' },
     ],
-    cta: 'Підписатись',
+    cta: 'Оплатити місяць',
     ctaStyle: 'outline',
     cancelMain: 'Оплата разова',
     cancelSub: 'доступ діє 30 днів',
@@ -630,8 +624,6 @@ const PLANS: PlanConfig[] = [
     subline: 'Всього 29 ₴ на особу/міс · економія 998 ₴',
     perks: [
       { text: 'Бонусні серії «Балабонів» і «Тиші»', highlight: true },
-      { text: 'Жодної реклами для всіх' },
-      { text: 'Офлайн-завантаження' },
       { text: 'Усі серії, історії та казки' },
       { text: 'До 4 акаунтів у родині — запрошуєте поштою в кабінеті' },
     ],
@@ -1146,7 +1138,6 @@ function PensionCard() {
   const [diiaOpen, setDiiaOpen] = useState(false)
   const perks: { text: string; highlight?: boolean; ad?: boolean }[] = [
     { text: 'Бонусні серії «Балабонів» і «Тиші»', highlight: true },
-    { text: 'Жодної реклами' },
     { text: 'Усі серії, історії та казки' },
     { text: 'Великий шрифт для читання' },
   ]
@@ -1280,7 +1271,7 @@ function OrgCard({
       </div>
 
       <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 7 }}>
-        замість <s>{was}</s> · {perPerson}
+        {perPerson}
       </div>
 
       <div style={{ fontSize: 14, fontWeight: 700, color: accent, marginTop: 12 }}>
