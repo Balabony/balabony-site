@@ -1,22 +1,24 @@
 # Balabony Site
 
-Marketing and subscription landing page for **Balabony** — an AI voice companion for Ukrainian seniors. Built with Next.js 16, Tailwind CSS, and Radix UI.
+Source code of **[balabony.com](https://balabony.com)** — a Ukrainian-language literary platform: serials, short stories and fairy tales by Ukrainian authors for children, teens and adults. Audio versions are in development.
+
+The inclusive programme — full access for 1 UAH per year for internally displaced people, veterans and people with disabilities — is run by the non-profit **LVIVSKA OBLASNA HROMADSKA ORHANIZATSIYA "INSTYTUT HROMADYANSKOHO SUSPILSTVA"** (Lviv, Ukraine, est. 2005).
 
 ## Features
 
-- Pricing section with LiqPay payment integration (monthly 99 ₴ / yearly 891 ₴)
-- Installment options via PrivatBank and Oschadbank
-- Telegram webhook for notifications
-- Flutter mini-games embedded at `/games`
-- Karaoke module: 01.mp3 - 18.mp3 (18 пісень)
-- Admin panel and AI news feed API routes
+- Reading platform: stories, serials, author pages, search, reader settings for low vision and dyslexia
+- Author cabinet: adding works, drafts, contracts
+- Subscription tiers and the 1 UAH social tariff (status verified via the Diia state app or by document)
+- LiqPay payments, installments via PrivatBank and Oschadbank
+- Literary contests, brain-training exercises at `/games`
 
 ## Tech Stack
 
 - **Framework**: Next.js 16 (App Router)
-- **Styling**: Tailwind CSS v4, Radix UI
+- **Styling**: inline styles
+- **Database**: Supabase
 - **Payments**: LiqPay (hosted checkout via `data` + `signature` POST form)
-- **Subscriptions backend**: `balabony.vercel.app` (Supabase + serverless functions)
+- **Hosting**: Vercel
 
 ---
 
@@ -94,7 +96,6 @@ app/
   page.tsx          # Main landing page
   layout.tsx
 public/
-  games/            # Embedded Flutter mini-games build
 scripts/
   pre-commit        # Secret-scanning pre-commit hook
   install-hooks.sh  # Hook installer
