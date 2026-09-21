@@ -3,6 +3,7 @@
 import ProtectedEmail from '@/app/components/ProtectedEmail'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import NarrationOrderForm from '@/app/components/NarrationOrderForm'
+import AuthorApplyForm from '@/app/components/AuthorApplyForm'
 
 const GOLD = 'var(--accent-gold)'
 const FONT = "'Montserrat', Arial, sans-serif"
@@ -76,30 +77,30 @@ export default function BecomeAuthorPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
           {/* Як стати автором — нагорі, щоб одразу було видно, куди писати.
-              21.09.2026: самореєстрації авторів немає, кабінет заводить редакція. */}
+              21.09.2026: людина входить сама й подає заявку формою, кабінет відкриває редакція. */}
           <div id="yak-staty-avtorom">
           <SectionCard>
             <SectionTitle>Як стати автором — 3 кроки</SectionTitle>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px' }}>
               <StepItem num={1}>
-                Напиши на{' '}
-                <ProtectedEmail
-                  user="nazar"
-                  domain="balabony.com"
-                  subject="Заявка автора"
-                  style={{ color: GOLD, fontWeight: 600, textDecoration: 'underline' }}
-                />
-                : вкажи ім&apos;я та прізвище, номер телефону й email і додай одну пробну історію файлом (Word або PDF).
+                Увійди на сайт через Google або за адресою пошти — без пароля.
               </StepItem>
               <StepItem num={2}>
-                Редакція прочитає історію й відповість протягом 5 робочих днів.
+                Заповни форму нижче й додай одну пробну історію: файлом (Word) або просто вставивши текст.
               </StepItem>
               <StepItem num={3}>
-                Якщо історія підходить, на твою пошту прийде посилання для входу в кабінет автора. Там ти заповниш реквізити й підпишеш угоду.
+                Редакція прочитає її протягом 5 робочих днів. Якщо історія підходить, кабінет автора відкриється на твоєму акаунті — прийде лист, і після входу вгорі сайту з&apos;явиться кнопка «Кабінет автора».
               </StepItem>
             </ul>
             <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.65, marginTop: 0, marginBottom: 16 }}>
-              Самостійної реєстрації кабінету автора немає: його відкриває редакція після прочитання пробної історії.
+              Не виходить подати через форму? Надішли історію на{' '}
+              <ProtectedEmail
+                user="nazar"
+                domain="balabony.com"
+                subject="Заявка автора"
+                style={{ color: GOLD, fontWeight: 600, textDecoration: 'underline' }}
+              />{' '}
+              з іменем, телефоном і email.
             </p>
             <p style={{ fontSize: 14.5, color: 'rgba(255,255,255,0.8)', lineHeight: 1.65, margin: 0 }}>
               Хочеш у <a href="/konkursy" style={{ color: GOLD }}>літературний конкурс</a>?
@@ -108,6 +109,9 @@ export default function BecomeAuthorPage() {
             </p>
           </SectionCard>
           </div>
+
+          {/* Форма заявки: вхід → пробна історія → рішення редакції в /admin/zayavky-avtoriv */}
+          <AuthorApplyForm />
 
           {/* Як це працює */}
           <SectionCard>
@@ -163,8 +167,8 @@ export default function BecomeAuthorPage() {
             <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.85)', lineHeight: 1.65, marginTop: 0, marginBottom: 16 }}>
               {/* 18.09.2026: було «відкривається одразу після реєстрації». Самореєстрації
                   авторів немає — кабінет заводить редакція (/admin/create-author). */}
-              Кабінет відкриває редакція, коли прочитає твою пробну історію: на пошту прийде
-              посилання для входу. У кабінеті ти заповнюєш реквізити й підписуєш угоду.
+              Кабінет відкриває редакція, коли прочитає твою пробну історію: прийде лист, а після
+              входу на сайт з&apos;явиться кнопка «Кабінет автора». У кабінеті ти заповнюєш реквізити й підписуєш угоду.
               Після підписання там з&apos;являється усе про твої історії:
             </p>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
