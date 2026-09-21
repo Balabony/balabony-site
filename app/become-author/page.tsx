@@ -64,10 +64,10 @@ export default function BecomeAuthorPage() {
             Для авторів
           </div>
           <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(28px, 6vw, 42px)', fontWeight: 700, color: '#f5f0e8', margin: '0 0 12px', lineHeight: 1.2 }}>
-            Стань автором Balabony
+            Станьте автором Balabony
           </h1>
           <p style={{ fontSize: 20, fontFamily: SERIF, fontStyle: 'italic', color: GOLD, marginBottom: 20 }}>
-            Пишеш? Ми чекаємо на тебе.
+            Пишете? Ми чекаємо на вас.
           </p>
           <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.75, maxWidth: 580 }}>
             Balabony — українська платформа коротких історій і серіалів для всієї родини. Ми шукаємо авторів, які хочуть ділитись своїми історіями і заробляти на цьому. Писати може будь-хто — головне оригінальність, цікавий сюжет і жива мова без штучного інтелекту.
@@ -83,17 +83,17 @@ export default function BecomeAuthorPage() {
             <SectionTitle>Як стати автором — 3 кроки</SectionTitle>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px' }}>
               <StepItem num={1}>
-                Увійди на сайт через Google або за адресою пошти — без пароля.
+                Увійдіть на сайт через Google або за адресою пошти — без пароля.
               </StepItem>
               <StepItem num={2}>
-                Заповни форму нижче й додай одну пробну історію: файлом (Word) або просто вставивши текст.
+                Заповніть форму нижче й додайте одну пробну історію: файлом (Word) або просто вставивши текст.
               </StepItem>
               <StepItem num={3}>
-                Редакція прочитає її протягом 5 робочих днів. Якщо історія підходить, кабінет автора відкриється на твоєму акаунті — прийде лист, і після входу вгорі сайту з&apos;явиться кнопка «Кабінет автора».
+                Редакція прочитає її протягом 5 робочих днів. Якщо історія підходить, кабінет автора відкриється на вашому акаунті — прийде лист, і після входу вгорі сайту з&apos;явиться кнопка «Кабінет автора».
               </StepItem>
             </ul>
             <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.65, marginTop: 0, marginBottom: 16 }}>
-              Не виходить подати через форму? Надішли історію на{' '}
+              Не виходить подати через форму? Надішліть історію на{' '}
               <ProtectedEmail
                 user="nazar"
                 domain="balabony.com"
@@ -103,9 +103,9 @@ export default function BecomeAuthorPage() {
               з іменем, телефоном і email.
             </p>
             <p style={{ fontSize: 14.5, color: 'rgba(255,255,255,0.8)', lineHeight: 1.65, margin: 0 }}>
-              Хочеш у <a href="/konkursy" style={{ color: GOLD }}>літературний конкурс</a>?
-              Кабінет автора для цього не потрібен — увійди через Google або пошту й{' '}
-              <a href="/konkursy/podaty" style={{ color: GOLD, fontWeight: 700 }}>подай твір одразу</a>.
+              Хочете взяти участь у <a href="/konkursy" style={{ color: GOLD }}>літературному конкурсі</a>?
+              Кабінет автора для цього не потрібен — увійдіть через Google або пошту й{' '}
+              <a href="/konkursy/podaty" style={{ color: GOLD, fontWeight: 700 }}>подайте твір одразу</a>.
             </p>
           </SectionCard>
           </div>
@@ -118,13 +118,13 @@ export default function BecomeAuthorPage() {
             <SectionTitle>Як це працює</SectionTitle>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               <StepItem num={1}>
-                Редакція розглядає твою історію і, якщо публікує, вона починає працювати.
+                Редакція розглядає вашу історію і, якщо публікує, вона починає працювати.
               </StepItem>
               <StepItem num={2}>
                 Винагорода нараховується за прочитання — коли читач прочитав щонайменше 70% тексту. Один читач, один твір, не частіше разу на добу.
               </StepItem>
               <StepItem num={3}>
-                Дохід від передплати щомісяця розподіляється між усіма авторами пропорційно до прочитань їхніх творів. Твоя частка — 50% або 40%, залежно від статусу.
+                Дохід від передплати щомісяця розподіляється між усіма авторами пропорційно до прочитань їхніх творів. Ваша частка — 50% або 40%, залежно від статусу.
               </StepItem>
               <StepItem num={4}>
                 Жодних авансів: платимо за те, що людей справді читали, а не за факт публікації.
@@ -140,15 +140,15 @@ export default function BecomeAuthorPage() {
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase' as const, color: GOLD, fontFamily: FONT, marginBottom: 8 }}>Для авторів-ФОП</div>
                 <div style={{ fontSize: 32, fontWeight: 700, color: GOLD, fontFamily: SERIF, marginBottom: 6 }}>50%</div>
                 <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>
-                  доходу від твоїх історій — твої.<br />
-                  Ти самостійно сплачуєш податки.
+                  доходу від ваших історій — ваші.<br />
+                  Податки ви сплачуєте самостійно.
                 </div>
               </div>
               <div style={{ background: 'rgba(239,159,39,0.08)', border: '1px solid rgba(239,159,39,0.3)', borderRadius: 12, padding: '18px 20px' }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase' as const, color: GOLD, fontFamily: FONT, marginBottom: 8 }}>Для інших авторів</div>
                 <div style={{ fontSize: 32, fontWeight: 700, color: GOLD, fontFamily: SERIF, marginBottom: 6 }}>40%</div>
                 <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>
-                  доходу від твоїх історій — твої, на руки.<br />
+                  доходу від ваших історій — ваші, на руки.<br />
                   ПДФО і військовий збір платформа сплачує понад цю суму.
                 </div>
               </div>
@@ -167,16 +167,16 @@ export default function BecomeAuthorPage() {
             <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.85)', lineHeight: 1.65, marginTop: 0, marginBottom: 16 }}>
               {/* 18.09.2026: було «відкривається одразу після реєстрації». Самореєстрації
                   авторів немає — кабінет заводить редакція (/admin/create-author). */}
-              Кабінет відкриває редакція, коли прочитає твою пробну історію: прийде лист, а після
-              входу на сайт з&apos;явиться кнопка «Кабінет автора». У кабінеті ти заповнюєш реквізити й підписуєш угоду.
-              Після підписання там з&apos;являється усе про твої історії:
+              Кабінет відкриває редакція, коли прочитає вашу пробну історію: прийде лист, а після
+              входу на сайт з&apos;явиться кнопка «Кабінет автора». У кабінеті ви заповнюєте реквізити й підписуєте угоду.
+              Після підписання там з&apos;являється усе про ваші історії:
             </p>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               <CheckItem>Історії та їхній статус: на розгляді, опубліковано, не опубліковано</CheckItem>
               <CheckItem>Прочитання по кожній історії окремо — скільки людей дочитало текст до кінця, а не просто відкрило</CheckItem>
               <CheckItem>Баланс: нараховано, виплачено, до виплати — цифри оновлюються постійно, не раз на місяць</CheckItem>
               <CheckItem>Перелік творів, охоплених угодою — це Додаток № 1, його можна будь-коли завантажити у PDF</CheckItem>
-              <CheckItem>Реквізити й ставка: статус ФОП або фізособи, IBAN, псевдонім; ставка перераховується автоматично, коли змінюєш статус</CheckItem>
+              <CheckItem>Реквізити й ставка: статус ФОП або фізособи, IBAN, псевдонім; ставка перераховується автоматично, коли змінюєте статус</CheckItem>
               <CheckItem>Підписані угоди з датою підпису</CheckItem>
             </ul>
             <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.65, marginTop: 16, marginBottom: 0 }}>
