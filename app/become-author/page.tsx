@@ -75,12 +75,46 @@ export default function BecomeAuthorPage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
+          {/* Як стати автором — нагорі, щоб одразу було видно, куди писати.
+              21.09.2026: самореєстрації авторів немає, кабінет заводить редакція. */}
+          <div id="yak-staty-avtorom">
+          <SectionCard>
+            <SectionTitle>Як стати автором — 3 кроки</SectionTitle>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px' }}>
+              <StepItem num={1}>
+                Напиши на{' '}
+                <ProtectedEmail
+                  user="nazar"
+                  domain="balabony.com"
+                  subject="Заявка автора"
+                  style={{ color: GOLD, fontWeight: 600, textDecoration: 'underline' }}
+                />
+                : вкажи ім&apos;я та прізвище, номер телефону й email і додай одну пробну історію файлом (Word або PDF).
+              </StepItem>
+              <StepItem num={2}>
+                Редакція прочитає історію й відповість протягом 5 робочих днів.
+              </StepItem>
+              <StepItem num={3}>
+                Якщо історія підходить, на твою пошту прийде посилання для входу в кабінет автора. Там ти заповниш реквізити й підпишеш угоду.
+              </StepItem>
+            </ul>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.65, marginTop: 0, marginBottom: 16 }}>
+              Самостійної реєстрації кабінету автора немає: його відкриває редакція після прочитання пробної історії.
+            </p>
+            <p style={{ fontSize: 14.5, color: 'rgba(255,255,255,0.8)', lineHeight: 1.65, margin: 0 }}>
+              Хочеш у <a href="/konkursy" style={{ color: GOLD }}>літературний конкурс</a>?
+              Кабінет автора для цього не потрібен — увійди через Google або пошту й{' '}
+              <a href="/konkursy/podaty" style={{ color: GOLD, fontWeight: 700 }}>подай твір одразу</a>.
+            </p>
+          </SectionCard>
+          </div>
+
           {/* Як це працює */}
           <SectionCard>
             <SectionTitle>Як це працює</SectionTitle>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               <StepItem num={1}>
-                Ти надсилаєш історію через кабінет. Ми розглядаємо її і, якщо публікуємо, вона починає працювати.
+                Редакція розглядає твою історію і, якщо публікує, вона починає працювати.
               </StepItem>
               <StepItem num={2}>
                 Винагорода нараховується за прочитання — коли читач прочитав щонайменше 70% тексту. Один читач, один твір, не частіше разу на добу.
@@ -119,7 +153,7 @@ export default function BecomeAuthorPage() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.8" strokeLinecap="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
-              Угоду підписуємо електронно — через Дію або кваліфікованим електронним підписом (файловий ключ чи токен). Обидва способи запускаємо; поки що підписуємо паперово.
+              Угоду поки що підписуємо паперово. Незабаром додамо підписання через Дію та кваліфікованим електронним підписом.
             </div>
           </SectionCard>
 
@@ -157,60 +191,6 @@ export default function BecomeAuthorPage() {
               <CheckItem>Оригінальний контент — без плагіату і без використання ШІ</CheckItem>
               <CheckItem>Кожна історія перевіряється на ШІ-генерацію перед публікацією</CheckItem>
             </ul>
-          </SectionCard>
-
-          {/* Особистий кабінет */}
-          <SectionCard>
-            <SectionTitle>Особистий кабінет автора</SectionTitle>
-            <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.75)', lineHeight: 1.7, marginBottom: 16 }}>
-              Після підписання угоди ти отримуєш доступ до особистого кабінету де бачиш:
-            </p>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              <CheckItem>Кількість переглядів кожної історії</CheckItem>
-              <CheckItem>Відгуки читачів</CheckItem>
-              <CheckItem>Нарахування коштів у реальному часі</CheckItem>
-            </ul>
-          </SectionCard>
-
-          {/* Як подати заявку */}
-          <SectionCard>
-            <SectionTitle>Як подати заявку</SectionTitle>
-            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px' }}>
-              <StepItem num={1}>
-                Напиши нам на{' '}
-                <ProtectedEmail
-                  user="nazar"
-                  domain="balabony.com"
-                  subject="Заявка автора"
-                  style={{ color: GOLD, fontWeight: 600, textDecoration: 'underline' }}
-                />
-              </StepItem>
-              <StepItem num={2}>
-                Вкажи своє реальне ім'я та прізвище, номер телефону і email — актуальні контакти обов'язкові
-              </StepItem>
-              <StepItem num={3}>
-                Прикріпи одну пробну історію
-              </StepItem>
-            </ul>
-            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginBottom: 16 }}>
-              Ми відповімо протягом 5 робочих днів.
-            </p>
-            <p style={{ fontSize: 14.5, color: 'rgba(255,255,255,0.8)', lineHeight: 1.65, marginBottom: 24 }}>
-              Хочеш у <a href="/konkursy" style={{ color: GOLD }}>літературний конкурс</a>?
-              Кабінет автора для цього не потрібен — увійди через Google або пошту й{' '}
-              <a href="/konkursy/podaty" style={{ color: GOLD, fontWeight: 700 }}>подай твір одразу</a>.
-            </p>
-            <a
-              href="/contact"
-              style={{
-                display: 'inline-block', padding: '14px 32px',
-                background: GOLD, color: '#fff', borderRadius: 12,
-                fontWeight: 700, fontSize: 16, textDecoration: 'none',
-                fontFamily: FONT,
-              }}
-            >
-              Написати нам →
-            </a>
           </SectionCard>
 
           {/* Замовити озвучення */}
