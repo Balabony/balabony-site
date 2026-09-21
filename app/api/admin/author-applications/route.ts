@@ -43,6 +43,7 @@ type Row = {
   decided_at: string | null
   created_at: string
   consent_ip: string | null
+  answers: Record<string, string> | null
 }
 
 export async function GET(req: NextRequest) {
@@ -57,7 +58,7 @@ export async function GET(req: NextRequest) {
     }
     const r = await dbQuery(
       `select id::text, user_id::text, email, full_name, pen_name, phone, title, genre, words,
-              filename, status, admin_note, content_id::text, decided_at, created_at, consent_ip
+              filename, status, admin_note, content_id::text, decided_at, created_at, consent_ip, answers
          from author_applications
         order by (status = 'new') desc, created_at desc
         limit 300`,

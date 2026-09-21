@@ -1,6 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import AiStyleReport, { type StyleCheck } from '@/app/components/AiStyleReport'
+import { AUTHOR_QUESTIONS } from '@/lib/author-questions'
 
 /**
  * Заявки авторів — пробні історії, подані формою на /become-author.
@@ -26,6 +28,7 @@ type App = {
   title: string; genre: string | null; words: number; filename: string | null
   status: 'new' | 'accepted' | 'rejected'; admin_note: string | null; content_id: string | null
   decided_at: string | null; created_at: string
+  answers: Record<string, string> | null
 }
 
 const fmt = (d: string) => new Date(d).toLocaleString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -43,6 +46,24 @@ export default function Page() {
   const [notes, setNotes] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState<string | null>(null)
   const [msg, setMsg] = useState<Record<string, string>>({})
+  const [showAns, setShowAns] = useState<Record<string, boolean>>({})
+  const [checks, setChecks] = useState<Record<string, StyleCheck | null>>({})
+  const [checking, setChecking] = useState<string | null>(null)
+
+  const styleCheck = async (id: string, force = false) => {
+    setChecking(id)
+    try {
+      const r = await fetch('/api/admin/ai-style-check', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: 'application', id, force }),
+      })
+      const d = await r.json() as { ok?: boolean; error?: string; check?: StyleCheck }
+      if (d.ok && d.check) setChecks((c) => ({ ...c, [id]: d.check! }))
+      else setMsg((m) => ({ ...m, [id]: d.error ?? 'Перевірка не вдалася' }))
+    } catch {
+      setMsg((m) => ({ ...m, [id]: 'Немає звʼязку з сервером' }))
+    } finally { setChecking(null) }
+  }
 
   const load = useCallback(async () => {
     setErr('')
@@ -153,9 +174,40 @@ export default function Page() {
               {a.admin_note && <p style={{ fontSize: 13, color: MUTED, fontStyle: 'italic', margin: '8px 0 0' }}>Коментар: {a.admin_note}</p>}
               {a.decided_at && <p style={{ fontSize: 12, color: MUTED, margin: '6px 0 0' }}>Рішення: {fmt(a.decided_at)}</p>}
 
-              <button type="button" onClick={() => toggle(a.id)} style={{ ...btn('transparent', GOLD), padding: '8px 0', marginTop: 8 }}>
-                {open === a.id ? 'Згорнути текст ▲' : 'Читати історію ▼'}
-              </button>
+              <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginTop: 8 }}>
+                <button type="button" onClick={() => toggle(a.id)} style={{ ...btn('transparent', GOLD), padding: '8px 0' }}>
+                  {open === a.id ? 'Згорнути текст ▲' : 'Читати історію ▼'}
+                </button>
+                {a.answers && Object.keys(a.answers).length > 0 && (
+                  <button type="button" onClick={() => setShowAns((s) => ({ ...s, [a.id]: !s[a.id] }))} style={{ ...btn('transparent', GOLD), padding: '8px 0' }}>
+                    {showAns[a.id] ? 'Сховати відповіді ▲' : 'Відповіді на запитання ▼'}
+                  </button>
+                )}
+                <button type="button" disabled={checking === a.id} onClick={() => styleCheck(a.id)} style={{ ...btn('transparent', GOLD), padding: '8px 0', opacity: checking === a.id ? 0.6 : 1 }}>
+                  {checking === a.id ? 'Аналізуємо… (до 2 хв)' : 'Перевірити стиль (ШІ)'}
+                </button>
+              </div>
+
+              {showAns[a.id] && a.answers && (
+                <div style={{ background: NAVY, border: `1px solid ${LINE}`, borderRadius: 10, padding: 14, marginTop: 8, fontSize: 14, lineHeight: 1.6 }}>
+                  {AUTHOR_QUESTIONS.filter((q) => a.answers?.[q.id]).map((q) => (
+                    <div key={q.id} style={{ marginBottom: 10 }}>
+                      <div style={{ color: MUTED, fontSize: 13 }}>{q.id.slice(1)}. {q.label}</div>
+                      <div style={{ whiteSpace: 'pre-wrap' }}>{a.answers?.[q.id]}</div>
+                      <div style={{ color: GOLD, fontSize: 12, fontStyle: 'italic' }}>Навіщо: {q.why}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {checks[a.id] && (
+                <div style={{ marginTop: 10 }}>
+                  <AiStyleReport check={checks[a.id]!} />
+                  <button type="button" onClick={() => styleCheck(a.id, true)} style={{ ...btn('transparent', MUTED), padding: '4px 0', fontSize: 13 }}>
+                    Перевірити заново (платно)
+                  </button>
+                </div>
+              )}
 
               {open === a.id && (
                 <div style={{

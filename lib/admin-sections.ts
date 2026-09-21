@@ -55,6 +55,7 @@ export const ADMIN_GROUPS: AdminGroup[] = [
   {
     title: 'Автори й договори',
     items: [
+      { href: '/admin/shi-perevirka',   label: 'Перевірка стилю (ШІ)',         note: 'Ознаки можливого використання ШІ: цифри, цитати, запитання до автора', quick: true, short: 'ШІ-перевірка' },
       { href: '/admin/zayavky-avtoriv', label: 'Заявки авторів',               note: 'Пробні історії з форми «Стати автором»: читати, приймати, відхиляти', quick: true, short: 'Заявки' },
       { href: '/admin/authors',         label: 'Заведення авторів',            note: 'Кабінет автора і запис згоди',   quick: true, short: 'Автори' },
       { href: '/admin/author-accounts', label: 'Кабінети авторів',             note: 'Хто заходив, реквізити, договори', quick: true, short: 'Кабінети' },

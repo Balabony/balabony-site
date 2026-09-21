@@ -8,6 +8,7 @@ import {
   APP_MIN_WORDS, APP_MAX_WORDS, APP_MAX_FILE_BYTES, EDITOR_EMAIL,
   stripFieldLabel, mailApplicationReceived,
 } from '@/lib/author-applications'
+import { AUTHOR_QUESTIONS } from '@/lib/author-questions'
 
 /**
  * Заявка автора з сайту: /api/author-application
@@ -96,6 +97,11 @@ export async function POST(req: NextRequest) {
   const consentAuthor = form.get('consentAuthor') === 'yes'
   const consentPublish = form.get('consentPublish') === 'yes'
   const file = form.get('file')
+  const answers: Record<string, string> = {}
+  for (const q of AUTHOR_QUESTIONS) {
+    const v = String(form.get(q.id) ?? '').trim().slice(0, q.max)
+    if (v) answers[q.id] = v
+  }
 
   if (fullName.length < 5 || !fullName.includes(' ')) {
     return NextResponse.json({ ok: false, error: 'Вкажіть прізвище та імʼя повністю' }, { status: 400 })
@@ -105,6 +111,10 @@ export async function POST(req: NextRequest) {
   }
   if (!title) {
     return NextResponse.json({ ok: false, error: 'Вкажіть назву історії' }, { status: 400 })
+  }
+  const missing = AUTHOR_QUESTIONS.filter((q) => q.required && !answers[q.id])
+  if (missing.length) {
+    return NextResponse.json({ ok: false, error: `Дайте відповідь на обовʼязкові запитання: ${missing.map((q) => q.id.slice(1)).join(', ')}` }, { status: 400 })
   }
   if (!consentAuthor || !consentPublish) {
     return NextResponse.json({ ok: false, error: 'Поставте обидві позначки згоди внизу форми' }, { status: 400 })
@@ -162,10 +172,10 @@ export async function POST(req: NextRequest) {
 
     const ins = await dbQuery(
       `insert into author_applications
-         (user_id, email, full_name, pen_name, phone, title, genre, body, words, filename, consent_ip, consent_ua)
-       values ($1,$2,$3,nullif($4,''),$5,$6,nullif($7,''),$8,$9,$10,$11,$12)
+         (user_id, email, full_name, pen_name, phone, title, genre, body, words, filename, consent_ip, consent_ua, answers)
+       values ($1,$2,$3,nullif($4,''),$5,$6,nullif($7,''),$8,$9,$10,$11,$12,$13)
        returning id::text`,
-      [user.id, email, fullName, penName, phone, title, genre, body, words, filename, ip, ua],
+      [user.id, email, fullName, penName, phone, title, genre, body, words, filename, ip, ua, JSON.stringify(answers)],
     )
     const id = (ins.rows[0] as { id: string }).id
 

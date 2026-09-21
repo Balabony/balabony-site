@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { AUTHOR_QUESTIONS, AI_POLICY_SHORT } from '@/lib/author-questions'
 
 /**
  * Форма заявки автора на /become-author.
@@ -32,6 +33,7 @@ export default function AuthorApplyForm() {
   const [genre, setGenre] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [text, setText] = useState('')
+  const [answers, setAnswers] = useState<Record<string, string>>({})
   const [cAuthor, setCAuthor] = useState(false)
   const [cPublish, setCPublish] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -53,6 +55,8 @@ export default function AuthorApplyForm() {
   const send = async () => {
     setErr('')
     if (!file && !text.trim()) { setErr('Прикріпіть файл з історією або вставте текст у поле.'); return }
+    const missing = AUTHOR_QUESTIONS.filter((q) => q.required && !(answers[q.id] ?? '').trim())
+    if (missing.length) { setErr(`Дайте відповідь на обовʼязкові запитання: ${missing.map((q) => q.id.slice(1)).join(', ')}.`); return }
     if (!cAuthor || !cPublish) { setErr('Поставте обидві позначки згоди.'); return }
     setBusy(true)
     try {
@@ -63,6 +67,7 @@ export default function AuthorApplyForm() {
       fd.append('title', title.trim())
       fd.append('genre', genre.trim())
       if (file) fd.append('file', file); else fd.append('text', text)
+      AUTHOR_QUESTIONS.forEach((q) => fd.append(q.id, (answers[q.id] ?? '').trim()))
       fd.append('consentAuthor', cAuthor ? 'yes' : 'no')
       fd.append('consentPublish', cPublish ? 'yes' : 'no')
       const r = await fetch('/api/author-application', { method: 'POST', body: fd })
@@ -173,6 +178,21 @@ export default function AuthorApplyForm() {
           <textarea id="aa-text" style={{ ...field, minHeight: 160, resize: 'vertical' }} value={text} onChange={e => setText(e.target.value)} />
         </>
       )}
+
+      <h3 style={{ fontFamily: SERIF, fontSize: 18, color: C.gold, margin: '10px 0 6px' }}>Кілька запитань про історію</h3>
+      <p style={{ ...p, color: C.muted, fontSize: 14 }}>
+        Відповідайте коротко й своїми словами — це допомагає редакції краще зрозуміти ваш твір. Запитання із зірочкою обовʼязкові.
+        {' '}{AI_POLICY_SHORT}
+      </p>
+      {AUTHOR_QUESTIONS.map((q, i) => (
+        <div key={q.id}>
+          <label style={label} htmlFor={`aa-${q.id}`}>{i + 1}. {q.label}{q.required ? ' *' : ''}</label>
+          {q.hint && <p style={{ fontSize: 12.5, color: C.muted, margin: '-2px 0 6px' }}>{q.hint}</p>}
+          <textarea id={`aa-${q.id}`} maxLength={q.max} value={answers[q.id] ?? ''}
+            onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+            style={{ ...field, minHeight: q.max > 1000 ? 120 : 70, resize: 'vertical' }} />
+        </div>
+      ))}
 
       <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 14, color: C.text, lineHeight: 1.6, marginBottom: 10 }}>
         <input type="checkbox" checked={cAuthor} onChange={e => setCAuthor(e.target.checked)} style={{ marginTop: 4 }} />
