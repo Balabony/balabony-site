@@ -33,6 +33,62 @@ export type StyleStats = {
   neVidAVidCount: number
   topRepeats: { phrase: string; count: number }[]
   mixedScriptWords: string[]
+  typography: Typography
+}
+
+/**
+ * Типографічний «почерк». Не частота тире (для української довге тире — норма
+ * і Word ставить його сам), а ЗМІШУВАННЯ стилів і місця, де стиль змінюється:
+ * частини, набрані по-різному, часто мають різне походження.
+ */
+export type Typography = {
+  emDash: number; enDash: number; hyphenAsDash: number
+  ellipsisChar: number; threeDots: number
+  quotesAngle: number; quotesCurly: number; quotesStraight: number; quotesLow: number
+  apostropheAscii: number; apostropheRight: number; apostropheModifier: number
+  nbsp: number; invisible: number; markdown: number; doubleSpaces: number
+  mixed: string[]
+  /** Зміни переважного стилю трикрапок/апострофів між 10 частинами тексту. */
+  segmentSwitches: string[]
+}
+
+function typography(text: string): Typography {
+  const c = (re: RegExp, s = text) => (s.match(re) ?? []).length
+  const t: Typography = {
+    emDash: c(/—/g), enDash: c(/–/g), hyphenAsDash: c(/(^|\s)-\s/gm),
+    ellipsisChar: c(/…/g), threeDots: c(/\.\.\./g),
+    quotesAngle: c(/[«»]/g), quotesCurly: c(/[“”]/g), quotesStraight: c(/"/g), quotesLow: c(/„/g),
+    apostropheAscii: c(/(?<=\p{L})'(?=\p{L})/gu), apostropheRight: c(/(?<=\p{L})’(?=\p{L})/gu), apostropheModifier: c(/ʼ/g),
+    nbsp: c(/[\u00a0\u202f]/g), invisible: c(/[\u200b\u200c\u200d\u2060\ufeff\u00ad]/g),
+    markdown: c(/\*\*|__|^#{1,6}\s|^\s*[*]\s/gm), doubleSpaces: c(/\S  +\S/g),
+    mixed: [], segmentSwitches: [],
+  }
+  const pair = (name: string, a: number, b: number, la: string, lb: string) => {
+    const min = Math.min(a, b), tot = a + b
+    if (tot >= 6 && min >= 2 && min / tot >= 0.1) t.mixed.push(`${name}: ${la} ×${a} і ${lb} ×${b}`)
+  }
+  pair('Трикрапки', t.ellipsisChar, t.threeDots, '«…»', '«...»')
+  pair('Апострофи', t.apostropheRight + t.apostropheModifier, t.apostropheAscii, '«’»', "«'»")
+  pair('Тире', t.emDash, t.enDash + t.hyphenAsDash, '«—»', '«–» або « - »')
+  const quoteKinds = [t.quotesAngle, t.quotesCurly, t.quotesStraight, t.quotesLow].filter((x) => x >= 2).length
+  if (quoteKinds >= 2) t.mixed.push(`Лапки кількох видів: «» ×${t.quotesAngle}, “” ×${t.quotesCurly}, "" ×${t.quotesStraight}, „“ ×${t.quotesLow}`)
+
+  const paras = text.split(/\n+/).filter((p) => p.trim())
+  const n = paras.length
+  if (n >= 20) {
+    const dom = (a: number, b: number, la: string, lb: string) => (a + b < 3 ? '' : a >= b * 2 ? la : b >= a * 2 ? lb : 'змішано')
+    const segs = Array.from({ length: 10 }, (_, i) => paras.slice(Math.floor(i * n / 10), Math.floor((i + 1) * n / 10)).join('\n'))
+    const track = (name: string, fa: (s: string) => number, fb: (s: string) => number, la: string, lb: string) => {
+      const styles = segs.map((s) => dom(fa(s), fb(s), la, lb))
+      const clear = styles.map((st, i) => ({ st, i })).filter((x) => x.st && x.st !== 'змішано')
+      for (let k = 1; k < clear.length; k++) {
+        if (clear[k].st !== clear[k - 1].st) t.segmentSwitches.push(`${name}: частина ${clear[k - 1].i + 1} — ${clear[k - 1].st}, частина ${clear[k].i + 1} — ${clear[k].st}`)
+      }
+    }
+    track('Трикрапки', (s) => c(/…/g, s), (s) => c(/\.\.\./g, s), '«…»', '«...»')
+    track('Апострофи', (s) => c(/(?<=\p{L})[’ʼ](?=\p{L})/gu, s), (s) => c(/(?<=\p{L})'(?=\p{L})/gu, s), '«’»', "«'»")
+  }
+  return t
 }
 
 const round1 = (x: number) => Math.round(x * 10) / 10
@@ -79,6 +135,7 @@ export function computeStats(text: string): StyleStats {
     neVidAVidCount: count(/не від [^,\n]{1,30}, а /giu),
     topRepeats,
     mixedScriptWords: mixed,
+    typography: typography(text),
   }
 }
 
@@ -95,6 +152,18 @@ export type StyleResult = {
   recommendation_reason: string
   /** Цитати, яких немає в тексті дослівно — додає код. */
   unverified_quotes: string[]
+  /** Індекс ознак 0–100: сума балів 10 маркерів ÷ 120 × 100. Рахує код, не модель. Не ймовірність. */
+  index?: number
+  /** 'попередній' — лише текст; 'остаточний' — текст разом із відповідями автора. */
+  stage?: 'попередній' | 'остаточний'
+}
+
+/** Індекс ознак ШІ (0–100) з балів маркерів. Не ймовірність авторства ШІ. */
+export function computeIndex(markers: { score: number }[]): number {
+  const list = (markers ?? []).slice(0, 10)
+  if (!list.length) return 0
+  const sum = list.reduce((a, m) => a + Math.min(12, Math.max(1, Number(m.score) || 0)), 0)
+  return Math.round((sum / (12 * list.length)) * 100)
 }
 
 export const MARKER_NAMES = [
@@ -108,17 +177,19 @@ export function textHash(text: string, answers: Answers | null): string {
 }
 
 function buildPrompt(p: { title: string; genre: string; text: string; stats: StyleStats; answers: Answers | null }): string {
-  const answersBlock = p.answers && Object.keys(p.answers).length
-    ? AUTHOR_QUESTIONS.filter((q) => p.answers?.[q.id]?.trim())
-        .map((q) => `${q.id}. ${q.label}\nВідповідь: ${p.answers?.[q.id]}`).join('\n\n')
-    : 'Відповідей автора немає.'
+  const answersBlock = !p.answers || !Object.keys(p.answers).length
+    ? 'Відповідей автора немає.'
+    : p.answers.manual
+      ? `Відповіді автора (надіслані листом, вставлені редакцією):\n${p.answers.manual}`
+      : AUTHOR_QUESTIONS.filter((q) => p.answers?.[q.id]?.trim())
+          .map((q) => `${q.id}. ${q.label}\nВідповідь: ${p.answers?.[q.id]}`).join('\n\n')
 
   return `Ти — експерт із forensic-аналізу авторського стилю, стилометрії та редакторської експертизи української художньої прози. Твоє завдання — оцінити ОЗНАКИ МОЖЛИВОГО використання генеративного ШІ, а не встановити авторство.
 
 ЖОРСТКІ ПРАВИЛА
 1. За одним текстом неможливо довести авторство ШІ. Не пиши «текст написав ШІ» чи «текст написала людина».
 2. Не вигадуй статистики, ймовірностей чи відсотків. Числа нижче порахувала програма — спирайся лише на них.
-3. Кожне твердження про ознаку підкріплюй ДОСЛІВНОЮ цитатою з тексту (до 200 знаків, без змін, без трикрапок усередині). Цитати перевірятимуться програмно.
+3. Кожне твердження про ознаку підкріплюй ДОСЛІВНОЮ цитатою з ТЕКСТУ ТВОРУ (до 200 знаків, без змін, без трикрапок усередині, в межах одного абзацу; у діалогах не викидай слова автора на кшталт «— сказала вона»). Не цитуй дані програмного аналізу, відповіді автора чи власні підсумки — у полі evidence лише фрагменти твору. Цитати перевірятимуться програмно.
 4. Розрізняй: ознаку ШІ; ознаку людського редагування; художній прийом; жанрове кліше.
 5. Калібруй під жанр: у вебпрозі, містиці, легендах і романтичній прозі часті тире, короткі абзаци, метафори світла й темряви. Сама жанровість — не доказ.
 6. Не карай за граматичну правильність, обсяг чи «гарний стиль». Не оцінюй тему, мораль чи якість сюжету як такі.
@@ -138,6 +209,8 @@ ${AI_POLICY_SHORT}
 6. Діалоги як носії експозиції: герої пояснюють відоме, озвучують мораль чи власну психологію.
 7. Одноманітний синтаксичний ритм (див. цифри нижче); однаковий голос у різних епохах і героїв.
 8. Кінематографічність: «Раптом…», кроки за спиною, обриви на однорядкових абзацах.
+ТИПОГРАФІКА (дані в stats.typography). Висока частота довгого тире для української НЕ є ознакою ШІ: це норма діалогів і пунктуації, Word ставить його автоматично. Інформативні: змішування стилів трикрапок, апострофів, лапок чи тире в одному тексті та ЗМІНА переважного стилю між частинами (segmentSwitches) — це може вказувати на частини різного походження (набрано самостійно, вставлено з іншого джерела чи з чату). Невидимі символи й залишки markdown (**, #) — типові сліди копіювання з чат-інтерфейсів. Усе це — непрямі сигнали; враховуй їх у маркерах 9 і 10 і в сценарії, але не як доказ.
+
 9. Відсутність авторської «шорсткості»: однакова якість і пафос, мало дивних, побутових, неідеальних деталей. Помилки, огріхи, живі побутові подробиці — ознаки людської руки.
 10. Концентрація: чи маркери 1–9 справді збігаються в тих самих фрагментах.
 
@@ -148,7 +221,7 @@ ${AI_POLICY_SHORT}
 {
   "level": "низьку" | "помірну" | "значну" | "дуже значну",
   "summary": "2–4 речення: «Текст демонструє … концентрацію ознак, сумісних із AI-assisted writing» і головне обґрунтування",
-  "scenario": "найімовірніший сценарій створення тексту або «недостатньо даних»",
+  "scenario": "найімовірніший сценарій створення тексту або «недостатньо даних» (без слів «Найімовірніший сценарій:» на початку)",
   "markers": [ {"n":1,"name":"…","score":1-12,"evidence":["дослівна цитата", "…"],"human_explanation":"альтернативне людське пояснення"} ... рівно 10 ],
   "human_signs": [ {"quote":"дослівна цитата","why":"чому це ознака людської руки"} ],
   "answers_analysis": "аналіз відповідей автора або null, якщо відповідей немає",
@@ -169,14 +242,15 @@ ${answersBlock}
 ${p.text.slice(0, MAX_TEXT_CHARS)}`
 }
 
-const squash = (s: string) => s.replace(/[«»"“”„]/g, '').replace(/[’ʼ']/g, '’').replace(/\s+/g, ' ').trim().toLowerCase()
+// Порівнюємо лише літери й цифри: різні трикрапки, тире, лапки, апострофи й переноси рядків не мають робити справжню цитату «вигаданою».
+const squash = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '')
 
 /** Прибирає з результату цитати, яких немає в тексті, і складає їх окремим списком. */
 function verifyQuotes(r: StyleResult, text: string): StyleResult {
   const hay = squash(text)
   const bad: string[] = []
   const ok = (q: string) => {
-    const s = squash(q).replace(/[.…]+$/, '')
+    const s = squash(q)
     if (s.length < 4) return true
     if (hay.includes(s)) return true
     bad.push(q); return false
@@ -203,5 +277,9 @@ export async function runStyleCheck(p: { title: string; genre: string; text: str
   const start = clean.indexOf('{'), end = clean.lastIndexOf('}')
   if (start < 0 || end < 0) throw new Error('Модель не повернула JSON')
   const parsed = JSON.parse(clean.slice(start, end + 1)) as StyleResult
-  return { stats, result: verifyQuotes(parsed, p.text) }
+  const result = verifyQuotes(parsed, p.text)
+  result.scenario = String(result.scenario ?? '').replace(/^\s*(найімовірніший сценарій\s*:\s*)+/i, '')
+  result.index = computeIndex(result.markers)
+  result.stage = p.answers && Object.keys(p.answers).length ? 'остаточний' : 'попередній'
+  return { stats, result }
 }

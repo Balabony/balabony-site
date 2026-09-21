@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import AiStyleReport, { type StyleCheck } from '@/app/components/AiStyleReport'
+import AiStyleReport, { type StyleCheck, indexOf, indexBand } from '@/app/components/AiStyleReport'
 
 /**
  * Перевірка стилю (ознаки можливого використання ШІ).
@@ -11,7 +11,7 @@ import AiStyleReport, { type StyleCheck } from '@/app/components/AiStyleReport'
 
 const FONT = "'Montserrat', Arial, sans-serif"
 const NAVY = '#0a1628', CARD = '#0f1f38', GOLD = '#ef9f27', CREAM = '#FFF8EE', MUTED = '#b9c6db', LINE = 'rgba(143,163,196,0.25)'
-type Hist = { id: string; source: string; source_id: string | null; title: string | null; words: number; level: string; recommendation: string; created_at: string }
+type Hist = { id: string; source: string; source_id: string | null; title: string | null; words: number; level: string; recommendation: string; created_at: string; idx: string | null; stage: string | null; markers: { score: number }[] | null }
 const SRC: Record<string, string> = { application: 'Заявка автора', contest: 'Конкурсна заявка', content: 'Твір (content)', manual: 'Вставлений текст' }
 
 export default function Page() {
@@ -19,6 +19,7 @@ export default function Page() {
   const [id, setId] = useState('')
   const [title, setTitle] = useState('')
   const [text, setText] = useState('')
+  const [answersText, setAnswersText] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
   const [check, setCheck] = useState<StyleCheck | null>(null)
@@ -44,7 +45,7 @@ export default function Page() {
     try {
       const r = await fetch('/api/admin/ai-style-check', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source, id, text, title, force }),
+        body: JSON.stringify({ source, id, text, title, force, answersText }),
       })
       const d = await r.json() as { ok?: boolean; error?: string; check?: StyleCheck; cached?: boolean }
       if (!d.ok || !d.check) { setErr(d.error ?? 'Помилка'); return }
@@ -80,6 +81,7 @@ export default function Page() {
             <>
               <input placeholder="Назва (необовʼязково)" value={title} onChange={(e) => setTitle(e.target.value)} style={field} />
               <textarea placeholder="Вставте текст твору (від 150 слів)" value={text} onChange={(e) => setText(e.target.value)} style={{ ...field, minHeight: 200 }} />
+              <textarea placeholder="Відповіді автора на запитання (необовʼязково). Якщо вставити — індекс буде остаточним, без них — попереднім." value={answersText} onChange={(e) => setAnswersText(e.target.value)} style={{ ...field, minHeight: 110 }} />
             </>
           ) : (
             <input placeholder={source === 'content' ? 'ID твору (uuid)' : 'Номер заявки'} value={id} onChange={(e) => setId(e.target.value)} style={field} />
@@ -108,7 +110,15 @@ export default function Page() {
             style={{ display: 'block', width: '100%', textAlign: 'left', background: CARD, border: `1px solid ${LINE}`, borderRadius: 10, padding: '10px 14px', marginBottom: 8, color: CREAM, cursor: 'pointer', fontFamily: FONT }}>
             <strong>{h.title || 'Без назви'}</strong>{' '}
             <span style={{ color: MUTED, fontSize: 13 }}>· {SRC[h.source]}{h.source_id ? ` #${h.source_id}` : ''} · {h.words} слів · {new Date(h.created_at).toLocaleDateString('uk-UA')}</span>
-            <div style={{ fontSize: 13, color: MUTED }}>Концентрація: <span style={{ color: GOLD }}>{h.level}</span> · {h.recommendation}</div>
+            {(() => {
+              const i = h.idx != null ? Number(h.idx) : indexOf({ markers: h.markers ?? [] })
+              const [band, color] = indexBand(i)
+              return (
+                <div style={{ fontSize: 13, color: MUTED }}>
+                  Індекс: <strong style={{ color }}>{i}/100</strong> ({band}, {h.stage ?? 'попередній'}) · {h.recommendation}
+                </div>
+              )
+            })()}
           </button>
         ))}
       </div>

@@ -45,7 +45,8 @@ export async function GET(req: NextRequest) {
     }
     const r = await dbQuery(
       `select id, source, source_id, title, words, result->>'level' as level,
-              result->>'recommendation' as recommendation, created_at
+              result->>'recommendation' as recommendation, result->>'index' as idx,
+              result->>'stage' as stage, result->'markers' as markers, created_at
          from ai_style_checks order by created_at desc limit 60`,
     )
     return NextResponse.json({ ok: true, history: r.rows })
@@ -58,7 +59,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   if (!authorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  let b: { source?: string; id?: string; text?: string; title?: string; genre?: string; force?: boolean }
+  let b: { source?: string; id?: string; text?: string; title?: string; genre?: string; force?: boolean; answersText?: string }
   try { b = await req.json() } catch { return NextResponse.json({ ok: false, error: 'Невірний запит' }, { status: 400 }) }
 
   const source = String(b.source ?? '') as Source
@@ -73,6 +74,8 @@ export async function POST(req: NextRequest) {
   try {
     if (source === 'manual') {
       text = toPlainText(String(b.text ?? ''))
+      const at = String(b.answersText ?? '').trim().slice(0, 12000)
+      if (at) answers = { manual: at }
     } else if (!id) {
       return NextResponse.json({ ok: false, error: 'Вкажіть номер' }, { status: 400 })
     } else if (source === 'application') {
