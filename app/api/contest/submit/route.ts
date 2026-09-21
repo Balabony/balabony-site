@@ -132,6 +132,11 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // 22.09.2026: підтвердження межі щодо ШІ (лише правопис і граматика) — обовʼязкове для кожної подачі.
+  if (form.get('aiConsent') !== 'yes') {
+    return NextResponse.json({ ok: false, error: 'Поставте позначку про використання штучного інтелекту' }, { status: 400 })
+  }
+
   const title = String(form.get('title') ?? '').trim().slice(0, 200)
   const annotation = String(form.get('annotation') ?? '').trim().slice(0, 1500)
   const genre = String(form.get('genre') ?? '').trim().slice(0, 100)

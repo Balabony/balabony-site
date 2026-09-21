@@ -57,6 +57,7 @@ export default function ContestSubmitForm() {
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
   const [done, setDone] = useState('')
+  const [aiOk, setAiOk] = useState(false)
 
   const open = CONTESTS.filter(
     c => isOpen(c) || (acceptsEpisodes(c) && entries.some(e => e.contest === c.id)),
@@ -86,6 +87,7 @@ export default function ContestSubmitForm() {
   const send = async () => {
     if (files.length === 0) { setNote('Прикріпіть файли з текстом.'); return }
     if (!entry && !title.trim()) { setNote('Вкажіть назву твору.'); return }
+    if (!aiOk) { setNote('Поставте позначку про використання штучного інтелекту.'); return }
 
     setBusy(true); setNote(''); setDone('')
     try {
@@ -94,6 +96,7 @@ export default function ContestSubmitForm() {
       fd.append('title', title.trim())
       fd.append('annotation', annotation.trim())
       fd.append('genre', genre.trim())
+      fd.append('aiConsent', aiOk ? 'yes' : 'no')
       files.forEach(f => fd.append('files', f))
 
       const res = await fetch('/api/contest/submit', { method: 'POST', body: fd })
@@ -270,6 +273,11 @@ export default function ContestSubmitForm() {
             за назвою файлу: «01 Хвіртка.docx», «02 Суха земля.docx». Так порядок буде саме
             той, який ви задумали, а не той, у якому файли підхопить браузер.
           </p>
+
+          <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', color: BRAND.text, fontSize: '0.9rem', lineHeight: 1.6, margin: '0 0 16px' }}>
+            <input type="checkbox" checked={aiOk} onChange={e => setAiOk(e.target.checked)} style={{ marginTop: 4 }} />
+            <span>Підтверджую: текст написаний мною; штучний інтелект я використовував(ла) лише для перевірки правопису й граматики.</span>
+          </label>
 
           <button
             type="button"
