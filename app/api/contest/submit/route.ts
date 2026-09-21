@@ -136,6 +136,10 @@ export async function POST(req: NextRequest) {
   if (form.get('aiConsent') !== 'yes') {
     return NextResponse.json({ ok: false, error: 'Поставте позначку про використання штучного інтелекту' }, { status: 400 })
   }
+  // 22.09.2026: підтвердження, що твір не опублікований на інших платформах (умови всіх конкурсів).
+  if (form.get('newConsent') !== 'yes') {
+    return NextResponse.json({ ok: false, error: 'Поставте позначку, що твір не опублікований на інших платформах' }, { status: 400 })
+  }
 
   const title = String(form.get('title') ?? '').trim().slice(0, 200)
   const annotation = String(form.get('annotation') ?? '').trim().slice(0, 1500)

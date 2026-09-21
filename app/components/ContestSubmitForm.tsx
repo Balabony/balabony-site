@@ -58,6 +58,7 @@ export default function ContestSubmitForm() {
   const [note, setNote] = useState('')
   const [done, setDone] = useState('')
   const [aiOk, setAiOk] = useState(false)
+  const [newOk, setNewOk] = useState(false)
 
   const open = CONTESTS.filter(
     c => isOpen(c) || (acceptsEpisodes(c) && entries.some(e => e.contest === c.id)),
@@ -88,6 +89,7 @@ export default function ContestSubmitForm() {
     if (files.length === 0) { setNote('Прикріпіть файли з текстом.'); return }
     if (!entry && !title.trim()) { setNote('Вкажіть назву твору.'); return }
     if (!aiOk) { setNote('Поставте позначку про використання штучного інтелекту.'); return }
+    if (!newOk) { setNote('Поставте позначку, що твір не опублікований на інших платформах.'); return }
 
     setBusy(true); setNote(''); setDone('')
     try {
@@ -97,6 +99,7 @@ export default function ContestSubmitForm() {
       fd.append('annotation', annotation.trim())
       fd.append('genre', genre.trim())
       fd.append('aiConsent', aiOk ? 'yes' : 'no')
+      fd.append('newConsent', newOk ? 'yes' : 'no')
       files.forEach(f => fd.append('files', f))
 
       const res = await fetch('/api/contest/submit', { method: 'POST', body: fd })
@@ -277,6 +280,11 @@ export default function ContestSubmitForm() {
           <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', color: BRAND.text, fontSize: '0.9rem', lineHeight: 1.6, margin: '0 0 16px' }}>
             <input type="checkbox" checked={aiOk} onChange={e => setAiOk(e.target.checked)} style={{ marginTop: 4 }} />
             <span>Підтверджую: текст написаний мною; штучний інтелект я використовував(ла) лише для перевірки правопису й граматики.</span>
+          </label>
+
+          <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', color: BRAND.text, fontSize: '0.9rem', lineHeight: 1.6, margin: '0 0 16px' }}>
+            <input type="checkbox" checked={newOk} onChange={e => setNewOk(e.target.checked)} style={{ marginTop: 4 }} />
+            <span>Підтверджую: твір не опублікований на інших літературних платформах, в електронних бібліотеках, інтернет-виданнях і медіа (власний блог, соцмережі й паперові видання — не рахуються).</span>
           </label>
 
           <button
