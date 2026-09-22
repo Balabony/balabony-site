@@ -61,7 +61,7 @@ export default function Page() {
     try {
       const r = await fetch('/api/admin/ai-style-check', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: 'manual', text: which === 'before' ? text : out, title: `${title || 'Текст редакції'} · ${which === 'before' ? 'до' : 'після'}` }),
+        body: JSON.stringify({ source: 'manual', id: 'oliudnennia', text: which === 'before' ? text : out, title: `${title || 'Текст редакції'} · ${which === 'before' ? 'до' : 'після'}` }),
       })
       const d = await r.json() as { ok?: boolean; error?: string; check?: StyleCheck }
       if (!d.ok || !d.check) { setErr(d.error ?? 'Помилка перевірки'); return null }
@@ -99,6 +99,7 @@ export default function Page() {
         <p style={{ color: '#ffcf8a', fontSize: 13, lineHeight: 1.6, margin: '0 0 18px' }}>
           Лише для текстів редакції. Твори авторів і конкурсні роботи сюди не вставляйте: для них діє заборона
           «ШІ переписує стиль» (п. 8.11 договору, правила конкурсів). Жоден інструмент не гарантує, що текст пройде сторонні детектори.
+          Перевірки з цієї сторінки не потрапляють в історію ШІ-перевірки й видаляються через 10 хвилин.
         </p>
 
         <div style={{ background: CARD, border: `1px solid ${LINE}`, borderRadius: 12, padding: 16, marginBottom: 18 }}>

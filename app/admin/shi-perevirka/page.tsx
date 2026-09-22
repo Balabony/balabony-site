@@ -55,6 +55,17 @@ export default function Page() {
     } finally { setBusy(false) }
   }
 
+  // Видалення з історії. Перевірки творів авторів можуть знадобитися як підстава за п. 8.11 — тому питаємо.
+  const remove = async (h: Hist) => {
+    const author = h.source !== 'manual'
+    const msg = author
+      ? `Видалити перевірку «${h.title || 'Без назви'}»? Це перевірка твору автора — вона може знадобитися як підстава за п. 8.11.`
+      : `Видалити перевірку «${h.title || 'Без назви'}»?`
+    if (!window.confirm(msg)) return
+    const r = await fetch(`/api/admin/ai-style-check?check=${h.id}`, { method: 'DELETE' })
+    if (r.ok) { setHist((x) => x.filter((y) => y.id !== h.id)); if (check?.id === h.id) setCheck(null) }
+  }
+
   const open = async (cid: string) => {
     const r = await fetch(`/api/admin/ai-style-check?check=${cid}`, { cache: 'no-store' })
     const d = await r.json() as { check?: StyleCheck }
@@ -106,8 +117,9 @@ export default function Page() {
         <h2 style={{ color: GOLD, fontSize: 18, margin: '26px 0 10px' }}>Історія перевірок</h2>
         {hist.length === 0 && <p style={{ color: MUTED }}>Перевірок ще не було.</p>}
         {hist.map((h) => (
-          <button key={h.id} type="button" onClick={() => open(h.id)}
-            style={{ display: 'block', width: '100%', textAlign: 'left', background: CARD, border: `1px solid ${LINE}`, borderRadius: 10, padding: '10px 14px', marginBottom: 8, color: CREAM, cursor: 'pointer', fontFamily: FONT }}>
+          <div key={h.id} style={{ display: 'flex', gap: 8, alignItems: 'stretch', marginBottom: 8 }}>
+          <button type="button" onClick={() => open(h.id)}
+            style={{ display: 'block', flex: 1, textAlign: 'left', background: CARD, border: `1px solid ${LINE}`, borderRadius: 10, padding: '10px 14px', color: CREAM, cursor: 'pointer', fontFamily: FONT }}>
             <strong>{h.title || 'Без назви'}</strong>{' '}
             <span style={{ color: MUTED, fontSize: 13 }}>· {SRC[h.source]}{h.source_id ? ` #${h.source_id}` : ''} · {h.words} слів · {new Date(h.created_at).toLocaleDateString('uk-UA')}</span>
             {(() => {
@@ -120,6 +132,9 @@ export default function Page() {
               )
             })()}
           </button>
+          <button type="button" onClick={() => remove(h)} aria-label={`Видалити перевірку ${h.title || 'Без назви'}`} title="Видалити"
+            style={{ background: 'transparent', border: `1px solid ${LINE}`, borderRadius: 10, color: MUTED, cursor: 'pointer', padding: '0 14px', fontFamily: FONT, fontSize: 18 }}>×</button>
+          </div>
         ))}
       </div>
     </main>

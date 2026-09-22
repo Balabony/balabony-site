@@ -14,6 +14,15 @@ import type { Answers } from '@/lib/author-questions'
  * GET ?check=<id>            — одна перевірка;
  * GET ?source=…&id=…         — остання перевірка джерела;
  * GET                        — історія (останні 60).
+ * DELETE ?check=<id>         — видалити одну перевірку з історії.
+ *
+ * ТИМЧАСОВІ ПЕРЕВІРКИ «ОЛЮДНЕННЯ» (рішення 22.09.2026): перевірки, які запускає
+ * /admin/oliudnennia (source = 'manual', source_id = 'oliudnennia'), в історії не
+ * показуються й видаляються через 10 хвилин. Окремого cron немає: прибирання
+ * відбувається при кожному зверненні до цього API. Нове значення source не
+ * заводимо, бо в таблиці стоїть check (source in …) — довелося б міняти базу.
+ * Перевірки творів авторів НЕ видаляються автоматично: вони — підстава для
+ * процедури п. 8.11 і кеш, щоб не платити за той самий текст удруге.
  */
 
 export const runtime = 'nodejs'
@@ -27,9 +36,19 @@ function authorized(req: NextRequest): boolean {
 
 const SOURCES = ['application', 'contest', 'content', 'manual'] as const
 type Source = typeof SOURCES[number]
+const TEMP_TAG = 'oliudnennia'
+
+async function purgeTemp() {
+  try {
+    await dbQuery(`delete from ai_style_checks where source = 'manual' and source_id = $1 and created_at < now() - interval '10 minutes'`, [TEMP_TAG])
+  } catch (err) {
+    console.error('[ai-style-check purge]', (err as Error)?.message)
+  }
+}
 
 export async function GET(req: NextRequest) {
   if (!authorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  await purgeTemp()
   const q = req.nextUrl.searchParams
   try {
     if (q.get('check')) {
@@ -47,7 +66,9 @@ export async function GET(req: NextRequest) {
       `select id, source, source_id, title, words, result->>'level' as level,
               result->>'recommendation' as recommendation, result->>'index' as idx,
               result->>'stage' as stage, result->'markers' as markers, created_at
-         from ai_style_checks order by created_at desc limit 60`,
+         from ai_style_checks where not (source = 'manual' and coalesce(source_id, '') = $1)
+         order by created_at desc limit 60`,
+      [TEMP_TAG],
     )
     return NextResponse.json({ ok: true, history: r.rows })
   } catch (err) {
@@ -62,9 +83,11 @@ export async function POST(req: NextRequest) {
   let b: { source?: string; id?: string; text?: string; title?: string; genre?: string; force?: boolean; answersText?: string }
   try { b = await req.json() } catch { return NextResponse.json({ ok: false, error: 'Невірний запит' }, { status: 400 }) }
 
+  await purgeTemp()
   const source = String(b.source ?? '') as Source
   if (!SOURCES.includes(source)) return NextResponse.json({ ok: false, error: 'Невідоме джерело' }, { status: 400 })
-  const id = String(b.id ?? '').trim()
+  // Для вставленого тексту номера немає; єдина дозволена позначка — тимчасова перевірка «Олюднення».
+  const id = source === 'manual' ? (String(b.id ?? '').trim() === TEMP_TAG ? TEMP_TAG : '') : String(b.id ?? '').trim()
 
   let title = String(b.title ?? '').trim().slice(0, 200)
   let genre = String(b.genre ?? '').trim().slice(0, 100)
@@ -120,5 +143,18 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('[ai-style-check run]', (err as Error)?.message)
     return NextResponse.json({ ok: false, error: `Перевірка не вдалася: ${(err as Error)?.message ?? ''}` }, { status: 502 })
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  if (!authorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const id = req.nextUrl.searchParams.get('check')
+  if (!id || !/^\d+$/.test(id)) return NextResponse.json({ ok: false, error: 'Невірний номер' }, { status: 400 })
+  try {
+    await dbQuery(`delete from ai_style_checks where id = $1`, [id])
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    console.error('[ai-style-check DELETE]', (err as Error)?.message)
+    return NextResponse.json({ ok: false, error: 'db error' }, { status: 500 })
   }
 }
