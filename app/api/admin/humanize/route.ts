@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { runHumanize, MAX_HUMANIZE_CHARS } from '@/lib/ai-humanize'
+import { runHumanize, MAX_HUMANIZE_CHARS, type HumanizeMarker } from '@/lib/ai-humanize'
 import { toPlainText } from '@/lib/plain-text'
 
 /**
  * Олюднення власних текстів редакції: /api/admin/humanize
- * POST { text, title?, kind?, notes? } → { ok, text, changes, placeholders }
+ * POST { text, title?, kind?, notes?, index?, markers? } → { ok, text, changes, placeholders, mode, warnings }
+ * index і markers — з перевірки оригіналу визначальником: задають режим (легкий / точковий / повний).
  * Лише вставлений текст — без номерів заявок і творів (межа п. 8.11, див. lib/ai-humanize.ts).
  * Результат у базі не зберігаємо: редактор копіює його сам.
  */
@@ -20,7 +21,7 @@ function authorized(req: NextRequest): boolean {
 
 export async function POST(req: NextRequest) {
   if (!authorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  let b: { text?: string; title?: string; kind?: string; notes?: string }
+  let b: { text?: string; title?: string; kind?: string; notes?: string; index?: number; markers?: HumanizeMarker[] }
   try { b = await req.json() } catch { return NextResponse.json({ ok: false, error: 'Невірний запит' }, { status: 400 }) }
 
   const text = toPlainText(String(b.text ?? '')).trim()
@@ -35,6 +36,13 @@ export async function POST(req: NextRequest) {
       title: String(b.title ?? '').trim().slice(0, 200),
       kind: String(b.kind ?? '').trim().slice(0, 60),
       notes: String(b.notes ?? '').trim().slice(0, 6000),
+      index: typeof b.index === 'number' && b.index >= 0 && b.index <= 100 ? b.index : null,
+      markers: Array.isArray(b.markers)
+        ? b.markers.slice(0, 10).map((m) => ({
+            n: Number(m?.n) || 0, name: String(m?.name ?? '').slice(0, 80), score: Number(m?.score) || 0,
+            evidence: Array.isArray(m?.evidence) ? m.evidence.slice(0, 4).map((e) => String(e).slice(0, 300)) : [],
+          }))
+        : [],
     })
     return NextResponse.json({ ok: true, ...r })
   } catch (err) {

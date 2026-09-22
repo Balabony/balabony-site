@@ -12,10 +12,20 @@
 //
 // Типографіку й змішані літери виправляє КОД (normalizeTypography), а не модель:
 // так результат передбачуваний і нічого не губиться.
+//
+// УРОК ТЕСТУ 22.09.2026: стаття з індексом 18 після «олюднення» отримала 24.
+// Модель, прибираючи одні ознаки, додала інші: три риторичні запитання поспіль
+// (маркер 1), короткі ударні фрази (маркер 8), утричі більше тире. Тому:
+//   • РЕЖИМИ: індекс < 31 → «легкий» (лише точкові правки й типографіка);
+//     є результат перевірки → «точковий» (правимо лише цитати сильних маркерів);
+//     інакше — «повний».
+//   • ЗАБОРОНИ в промпті на прийоми, які визначальник сам ловить.
+//   • ЗАПОБІЖНИК після правки: код порівнює цифри «до/після» і попереджає,
+//     якщо тире, запитань чи однорядкових абзаців стало помітно більше.
 // =============================================================================
 
 import Anthropic from '@anthropic-ai/sdk'
-import { STYLE_MODEL } from '@/lib/ai-style-check'
+import { STYLE_MODEL, computeStats } from '@/lib/ai-style-check'
 
 export const MAX_HUMANIZE_CHARS = 30_000
 
@@ -47,10 +57,54 @@ export function normalizeTypography(text: string): string {
 }
 
 export type HumanizeChange = { before: string; after: string; why: string }
-export type HumanizeResult = { text: string; changes: HumanizeChange[]; placeholders: number }
+export type HumanizeMode = 'легкий' | 'точковий' | 'повний'
+export type HumanizeMarker = { n: number; name: string; score: number; evidence: string[] }
+export type HumanizeResult = { text: string; changes: HumanizeChange[]; placeholders: number; mode: HumanizeMode; warnings: string[] }
 
-function buildPrompt(p: { title: string; kind: string; text: string; notes: string }): string {
+/** Режим за результатом перевірки оригіналу. Без перевірки — «повний». */
+export function pickMode(index: number | null, markers: HumanizeMarker[]): HumanizeMode {
+  if (index != null && index < 31) return 'легкий'
+  if (markers.length) return 'точковий'
+  return 'повний'
+}
+
+// Цифри, за якими визначальник ловить «рубаний» стиль. Рахуємо однаково до і після.
+function shape(text: string) {
+  const st = computeStats(text)
+  const questions = (text.match(/\?/g) ?? []).length
+  // Три й більше запитань поспіль у межах одного абзацу.
+  const qChains = text.split(/\n+/).filter((p) => (p.match(/\?/g) ?? []).length >= 3).length
+  return { dashes: st.dashesPer1000, oneSent: st.oneSentenceParagraphShare, shortShare: st.shortShare, questions, qChains, antithesis: st.antithesisCount }
+}
+
+/** Попередження, якщо правка додала прийомів, які визначальник вважає ознаками. */
+export function guard(before: string, after: string): string[] {
+  const a = shape(before), b = shape(after), w: string[] = []
+  if (b.dashes > a.dashes * 1.5 && b.dashes - a.dashes > 8) w.push(`Тире стало помітно більше: ${a.dashes} → ${b.dashes} на 1000 слів. Частину замініть комами.`)
+  if (b.questions > a.questions + 1) w.push(`Додано запитань: ${a.questions} → ${b.questions}. Риторичні запитання визначальник рахує шаблоном.`)
+  if (b.qChains > a.qChains) w.push('Зʼявилися три й більше запитань поспіль в одному абзаці — це типовий шаблон.')
+  if (b.oneSent > a.oneSent + 0.1) w.push(`Більше однорядкових абзаців: ${Math.round(a.oneSent * 100)} % → ${Math.round(b.oneSent * 100)} %.`)
+  if (b.shortShare > a.shortShare + 0.1) w.push(`Більше коротких «ударних» речень: ${Math.round(a.shortShare * 100)} % → ${Math.round(b.shortShare * 100)} %.`)
+  if (b.antithesis > a.antithesis) w.push(`Більше антитез «не…, а…»: ${a.antithesis} → ${b.antithesis}.`)
+  return w
+}
+
+function modeBlock(mode: HumanizeMode, markers: HumanizeMarker[]): string {
+  const strong = markers.filter((m) => m.score >= 6)
+  const list = strong.map((m) => `• Маркер ${m.n} «${m.name}» (бал ${m.score}/12). Фрагменти: ${(m.evidence ?? []).slice(0, 4).map((e) => `«${e}»`).join('; ') || '—'}`).join('\n')
+  if (mode === 'легкий') {
+    return `РЕЖИМ: ЛЕГКИЙ. Редакційна перевірка вже оцінила цей текст як такий, що має НИЗЬКУ концентрацію ознак. НЕ переписуй його. Зміни не більше 10 % речень: лише явні кліше, канцелярит і повтори${list ? `, насамперед такі фрагменти:\n${list}` : '.'}\nУсе інше лиши дослівно — будь-яке «пожвавлення» тут тільки зашкодить.`
+  }
+  if (mode === 'точковий') {
+    return `РЕЖИМ: ТОЧКОВИЙ. Редакційна перевірка знайшла ці ознаки — перепиши САМЕ ці фрагменти й подібні до них місця, решту тексту лиши якомога ближчою до оригіналу:\n${list || '(сильних маркерів немає — роби лише мінімальні правки)'}`
+  }
+  return 'РЕЖИМ: ПОВНИЙ. Перевірки оригіналу немає — редагуй увесь текст, але обережно й без зміни змісту.'
+}
+
+function buildPrompt(p: { title: string; kind: string; text: string; notes: string; mode: HumanizeMode; markers: HumanizeMarker[] }): string {
   return `Ти — досвідчений український літературний редактор. Відредагуй ТЕКСТ так, щоб він звучав як жива авторська проза чи публіцистика, а не як шаблонний текст.
+
+${modeBlock(p.mode, p.markers)}
 
 ЩО ПРИБРАТИ (це 10 ознак, які шукає редакційна перевірка стилю)
 1. Шаблонні формули й повторювані кінцівки абзаців та розділів.
@@ -73,6 +127,15 @@ function buildPrompt(p: { title: string; kind: string; text: string; notes: stri
 - Обсяг приблизно той самий (±15 %). Структуру й підзаголовки зберігай, якщо вони є.
 - Не пояснюй свою роботу в тексті й не додавай вступу чи висновку від себе.
 
+ЧОГО НЕ РОБИТИ, «ОЖИВЛЯЮЧИ» ТЕКСТ (ці прийоми редакційна перевірка теж вважає ознаками ШІ):
+- НЕ додавай риторичних запитань, яких немає в оригіналі; особливо — кількох запитань поспіль.
+- НЕ роби коротких «ударних» речень і однорядкових абзаців для ефекту («Перевірити легко — шукайте…», «Без паніки — і…»).
+- НЕ став тире там, де звичайна кома, двокрапка чи сполучник. Тире — лише в діалогах і там, де воно граматично потрібне.
+- НЕ додавай антитез «не X, а Y» і висновків-афоризмів.
+- Кількість речень і абзаців тримай близькою до оригіналу; не дроби довгі речення на короткі без потреби.
+- Жанр поважай: у статті-інструкції наказовий спосіб і нумеровані кроки — норма, їх не переписуй «художньо».
+- Жива мова — це конкретика й точні слова, а не риторичні прийоми.
+
 ФОРМАТ ВІДПОВІДІ — рівно два блоки, без нічого іншого:
 <text>
 відредагований текст
@@ -91,14 +154,16 @@ ${p.notes || '—'}
 ${p.text}`
 }
 
-export async function runHumanize(p: { title: string; kind: string; text: string; notes: string }): Promise<HumanizeResult> {
+export async function runHumanize(p: { title: string; kind: string; text: string; notes: string; index: number | null; markers: HumanizeMarker[] }): Promise<HumanizeResult> {
+  const mode = pickMode(p.index, p.markers)
+  const source = normalizeTypography(p.text)
   const key = process.env.ANTHROPIC_API_KEY
   if (!key) throw new Error('Немає ANTHROPIC_API_KEY')
   const client = new Anthropic({ apiKey: key })
   const msg = await client.messages.create({
     model: STYLE_MODEL,
     max_tokens: 16000,
-    messages: [{ role: 'user', content: buildPrompt({ ...p, text: normalizeTypography(p.text) }) }],
+    messages: [{ role: 'user', content: buildPrompt({ title: p.title, kind: p.kind, notes: p.notes, text: source, mode, markers: p.markers }) }],
   })
   const raw = msg.content.map((c) => (c.type === 'text' ? c.text : '')).join('')
   const tm = raw.match(/<text>\s*([\s\S]*?)\s*<\/text>/)
@@ -114,5 +179,5 @@ export async function runHumanize(p: { title: string; kind: string; text: string
   }
   const text = normalizeTypography(tm[1])
   const placeholders = (text.match(/\[ДОДАЙТЕ ВЛАСНИЙ ПРИКЛАД/g) ?? []).length
-  return { text, changes, placeholders }
+  return { text, changes, placeholders, mode, warnings: guard(source, text) }
 }

@@ -28,22 +28,35 @@ export default function Page() {
   const [before, setBefore] = useState<StyleCheck | null>(null)
   const [after, setAfter] = useState<StyleCheck | null>(null)
   const [copied, setCopied] = useState(false)
+  const [mode, setMode] = useState('')
+  const [warnings, setWarnings] = useState<string[]>([])
 
+  // Спершу перевірка оригіналу (якщо її ще немає): від індексу залежить режим —
+  // легкий для низького індексу, точковий для конкретних маркерів. Без цього
+  // модель переписувала вже чистий текст і додавала нових ознак (тест 22.09.2026).
   const humanize = async () => {
-    setErr(''); setBusy('h'); setOut(''); setChanges([]); setAfter(null)
+    setOut(''); setChanges([]); setAfter(null); setWarnings([]); setMode('')
+    const base = before ?? await check('before')
+    if (!base) return
+    setErr(''); setBusy('h')
     try {
       const r = await fetch('/api/admin/humanize', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, title, kind, notes }),
+        body: JSON.stringify({
+          text, title, kind, notes,
+          index: indexOf(base.result ?? { markers: [] }),
+          markers: (base.result?.markers ?? []).map((m) => ({ n: m.n, name: m.name, score: m.score, evidence: m.evidence })),
+        }),
       })
       if (r.status === 401) { window.location.href = '/admin/login'; return }
-      const d = await r.json() as { ok?: boolean; error?: string; text?: string; changes?: Change[]; placeholders?: number }
+      const d = await r.json() as { ok?: boolean; error?: string; text?: string; changes?: Change[]; placeholders?: number; mode?: string; warnings?: string[] }
       if (!d.ok || !d.text) { setErr(d.error ?? 'Помилка'); return }
       setOut(d.text); setChanges(d.changes ?? []); setPlaceholders(d.placeholders ?? 0)
+      setMode(d.mode ?? ''); setWarnings(d.warnings ?? [])
     } catch { setErr('Немає звʼязку з сервером') } finally { setBusy('') }
   }
 
-  const check = async (which: 'before' | 'after') => {
+  const check = async (which: 'before' | 'after'): Promise<StyleCheck | null> => {
     setErr(''); setBusy(which)
     try {
       const r = await fetch('/api/admin/ai-style-check', {
@@ -51,9 +64,10 @@ export default function Page() {
         body: JSON.stringify({ source: 'manual', text: which === 'before' ? text : out, title: `${title || 'Текст редакції'} · ${which === 'before' ? 'до' : 'після'}` }),
       })
       const d = await r.json() as { ok?: boolean; error?: string; check?: StyleCheck }
-      if (!d.ok || !d.check) { setErr(d.error ?? 'Помилка перевірки'); return }
+      if (!d.ok || !d.check) { setErr(d.error ?? 'Помилка перевірки'); return null }
       if (which === 'before') setBefore(d.check); else setAfter(d.check)
-    } catch { setErr('Немає звʼязку з сервером') } finally { setBusy('') }
+      return d.check
+    } catch { setErr('Немає звʼязку з сервером'); return null } finally { setBusy('') }
   }
 
   const copy = async () => {
@@ -78,6 +92,10 @@ export default function Page() {
           кліше, афоризми-мораль, формульні кінцівки, однаковий ритм, змішана типографіка. Факти й цифри не змінюються.
           Де потрібен живий приклад — зʼявиться позначка [ДОДАЙТЕ ВЛАСНИЙ ПРИКЛАД], його дописуєте ви.
         </p>
+        <p style={{ color: MUTED, fontSize: 14, lineHeight: 1.65, margin: '0 0 8px' }}>
+          Перед правкою текст автоматично проходить перевірку. Індекс нижче 31 — <strong>легкий</strong> режим: лише точкові правки,
+          бо чистий текст «пожвавлення» тільки псує. Інакше — <strong>точковий</strong>: переписуються саме ті фрагменти, які знайшла перевірка.
+        </p>
         <p style={{ color: '#ffcf8a', fontSize: 13, lineHeight: 1.6, margin: '0 0 18px' }}>
           Лише для текстів редакції. Твори авторів і конкурсні роботи сюди не вставляйте: для них діє заборона
           «ШІ переписує стиль» (п. 8.11 договору, правила конкурсів). Жоден інструмент не гарантує, що текст пройде сторонні детектори.
@@ -88,11 +106,11 @@ export default function Page() {
             {KINDS.map((k) => <option key={k} value={k}>{k}</option>)}
           </select>
           <input placeholder="Назва (необовʼязково)" value={title} onChange={(e) => setTitle(e.target.value)} style={field} />
-          <textarea placeholder="Вставте текст (від 80 слів, до 30 000 знаків)" value={text} onChange={(e) => setText(e.target.value)} style={{ ...field, minHeight: 220 }} />
+          <textarea placeholder="Вставте текст (від 80 слів, до 30 000 знаків)" value={text} onChange={(e) => { setText(e.target.value); setBefore(null) }} style={{ ...field, minHeight: 220 }} />
           <textarea placeholder="Ваші деталі й факти (необовʼязково): випадки з досвіду, цифри, імена, що саме бачили — їх буде вписано в текст без змін змісту" value={notes} onChange={(e) => setNotes(e.target.value)} style={{ ...field, minHeight: 100 }} />
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button type="button" disabled={!!busy} onClick={humanize} style={{ ...btn(GOLD, NAVY), opacity: busy ? 0.6 : 1 }}>
-              {busy === 'h' ? 'Редагуємо… (до 3 хвилин)' : 'Олюднити'}
+              {busy === 'before' && !before ? 'Спершу перевіряємо оригінал…' : busy === 'h' ? 'Редагуємо… (до 3 хвилин)' : 'Олюднити'}
             </button>
             <button type="button" disabled={!!busy || !text} onClick={() => check('before')} style={btn('transparent', GOLD)}>
               {busy === 'before' ? 'Перевіряємо…' : 'Індекс оригіналу'}
@@ -104,7 +122,13 @@ export default function Page() {
 
         {out && (
           <div style={{ background: CARD, border: `1px solid ${LINE}`, borderRadius: 12, padding: 16, marginBottom: 18 }}>
-            <h2 style={{ color: GOLD, fontSize: 18, margin: '0 0 10px' }}>Результат</h2>
+            <h2 style={{ color: GOLD, fontSize: 18, margin: '0 0 10px' }}>Результат{mode ? <span style={{ color: MUTED, fontSize: 14, fontWeight: 400 }}> · режим: {mode}</span> : null}</h2>
+            {warnings.length > 0 && (
+              <div style={{ border: '1px solid #ff9b8a', borderRadius: 9, padding: '10px 12px', marginBottom: 10 }}>
+                <strong style={{ color: '#ff9b8a' }}>Правка додала прийомів, які перевірка вважає ознаками:</strong>
+                <ul style={{ margin: '6px 0 0', paddingLeft: 20, color: CREAM, fontSize: 14 }}>{warnings.map((w) => <li key={w}>{w}</li>)}</ul>
+              </div>
+            )}
             {placeholders > 0 && (
               <p style={{ color: '#ffcf8a', fontSize: 14, margin: '0 0 10px' }}>
                 Позначок для вашого прикладу: {placeholders}. Допишіть їх перед публікацією — саме вони роблять текст вашим.
