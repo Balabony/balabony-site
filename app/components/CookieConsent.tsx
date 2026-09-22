@@ -73,6 +73,8 @@ export default function CookieConsent() {
       // якщо сховище недоступне — вибір діє лише на цю сесію
     }
     applyConsent(choice)
+    // Vercel Analytics (VercelAnalyticsGated) вмикається/вимикається за цим сигналом.
+    window.dispatchEvent(new Event('balabony:consent-changed'))
     setVisible(false)
   }
 

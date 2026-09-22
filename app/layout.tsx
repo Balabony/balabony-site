@@ -9,6 +9,7 @@ import BottomBar from './components/BottomBar'
 import A11yApplier from './components/A11yApplier'
 import CookieConsent from './components/CookieConsent'
 import ReferralCapture from './components/ReferralCapture'
+import VercelAnalyticsGated from './components/VercelAnalyticsGated'
 export const metadata: Metadata = {
   metadataBase: new URL('https://balabony.com'),
   title: 'Українські історії, казки й серіали онлайн — Балабони',
@@ -119,6 +120,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <BottomBar />
         <UpdateBanner />
         <AnalyticsTracker />
+        <VercelAnalyticsGated />
         <ReferralCapture />
         <GoogleAnalytics />
         <CookieConsent />
