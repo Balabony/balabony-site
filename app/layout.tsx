@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     url: 'https://balabony.com/',
     title: 'Українські історії, казки й серіали онлайн — Балабони',
     description: 'Читати українські оповідання, казки й серіали онлайн; аудіо — незабаром. Понад 990 історій українських авторів. Соціальний тариф 1 ₴ на рік для ветеранів, людей з інвалідністю та родин ВПО.',
-    images: [{ url: 'https://balabony.com/og-image-v4.jpg', width: 1200, height: 630 }],
+    images: [{ url: 'https://balabony.com/og-image-v5.jpg', width: 1200, height: 630 }],
     locale: 'uk_UA',
     siteName: 'Balabony™',
   },
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Українські історії, казки й серіали онлайн — Балабони',
     description: 'Читати українські оповідання, казки й серіали онлайн; аудіо — незабаром. Понад 990 історій українських авторів. Соціальний тариф 1 ₴ на рік для ветеранів, людей з інвалідністю та родин ВПО.',
-    images: ['https://balabony.com/og-image-v4.jpg'],
+    images: ['https://balabony.com/og-image-v5.jpg'],
   },
   icons: {
     icon: [{ url: '/icon-192.png', type: 'image/png' }],

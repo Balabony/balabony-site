@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     siteName: 'Balabony',
     locale: 'uk_UA',
     type: 'website',
-    images: [{ url: 'https://balabony.com/og-image-v4.jpg', width: 1200, height: 630 }],
+    images: [{ url: 'https://balabony.com/og-image-v5.jpg', width: 1200, height: 630 }],
   },
 }
 
