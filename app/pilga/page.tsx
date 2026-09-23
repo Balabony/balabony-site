@@ -11,7 +11,7 @@ import SocialTariffButton from '@/app/components/SocialTariff'
  * змішувалися. Тепер місійні посилання ведуть сюди, а головна отримує
  * власну картинку без пільги.
  *
- * Картинка прев'ю — og-image-v5.jpg (з плашкою «1 ₴ на рік»). Її НЕ міняти
+ * Картинка прев'ю — og-image-v7.jpg (з плашкою «1 ₴ на рік»). Її НЕ міняти
  * на загальну: саме вона пояснює пільгу в чатах і соцмережах.
  *
  * Статуси й вікно підтвердження — спільні з PricingSection
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     locale: 'uk_UA',
     type: 'website',
     images: [{
-      url: 'https://balabony.com/og-image-v5.jpg',
+      url: 'https://balabony.com/og-image-v7.jpg',
       width: 1200,
       height: 630,
       alt: 'Балабони: 1 ₴ на рік, повний доступ до бібліотеки для ветеранів, людей з інвалідністю та родин ВПО',
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: TITLE,
     description: DESCRIPTION,
-    images: ['https://balabony.com/og-image-v5.jpg'],
+    images: ['https://balabony.com/og-image-v7.jpg'],
   },
 }
 

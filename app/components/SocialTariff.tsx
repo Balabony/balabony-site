@@ -16,7 +16,8 @@ import DiiaValidationModal, { type DiiaOption } from './DiiaValidationModal'
 
 export const SOCIAL_TARIFF_TITLE = 'Соціальний тариф'
 export const SOCIAL_TARIFF_SUBTITLE =
-  'Підтвердьте свій статус через Дію — доступ за соціальним тарифом на рік'
+  // Не «через Дію»: люди з інвалідністю підтверджують статус документом.
+  'Оберіть свою категорію — доступ за соціальним тарифом на рік'
 
 export const SOCIAL_TARIFF_OPTIONS: DiiaOption[] = [
   {
