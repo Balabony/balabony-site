@@ -19,6 +19,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import DiiaValidationModal from './DiiaValidationModal'
+import { SOCIAL_TARIFF_OPTIONS, SOCIAL_TARIFF_TITLE, SOCIAL_TARIFF_SUBTITLE } from './SocialTariff'
 
 // ═════════════════════════════════════════════════════════════════════
 // 1. FREE VIEW TIMER (8-годинний цикл нових історій)
@@ -1012,31 +1013,9 @@ export default function PricingSection({ variant = 'full' }: { variant?: Pricing
       {/* СОЦІАЛЬНА МІСІЯ — валідація статусу через Дію (пільга на рік) */}
       {socialDiiaOpen && (
         <DiiaValidationModal
-          title="Соціальний тариф"
-          subtitle="Підтвердьте свій статус через Дію — доступ за соціальним тарифом на рік"
-          options={[
-            {
-              docType: 'reference-internally-displaced-person',
-              label: 'Внутрішньо переміщена особа (ВПО)',
-              hint: 'Довідка ВПО',
-            },
-            {
-              docType: 'veteran-certificate',
-              // Дія підтвердила: veteran-certificate покриває і УБД,
-              // і посвідчення особи з інвалідністю внаслідок війни.
-              // Пишемо обидва, інакше люди з ОІВВ не здогадаються обрати цю гілку.
-              label: 'Учасник бойових дій або особа з інвалідністю внаслідок війни',
-              hint: 'Посвідчення УБД або ОІВВ',
-            },
-            {
-              // Цивільну інвалідність Дія не валідує — окремого типу документа
-              // немає. Тому ручна перевірка: пільга діє одразу, скан дивиться редактор.
-              manual: true,
-              category: 'disability',
-              label: 'Людина з інвалідністю',
-              docHint: 'Довідка МСЕК, посвідчення особи з інвалідністю або пенсійне посвідчення із зазначенням інвалідності.',
-            },
-          ]}
+          title={SOCIAL_TARIFF_TITLE}
+          subtitle={SOCIAL_TARIFF_SUBTITLE}
+          options={SOCIAL_TARIFF_OPTIONS}
           onClose={() => setSocialDiiaOpen(false)}
         />
       )}

@@ -103,6 +103,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/vstanovyty`,            lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/peredplata`,            lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/inclusivevoice`,        lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    // 23.09.2026: окрема сторінка пільги 1 ₴ — адреса для місійної воронки.
+    { url: `${BASE_URL}/pilga`,                 lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/free`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/faq`,                   lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/gift`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
