@@ -75,7 +75,7 @@ export default function GenreChips({ initial }: { initial?: GenreCount[] } = {})
   return (
     <section
       aria-labelledby="genre-chips-title"
-      style={{ maxWidth: 1100, margin: '0 auto', padding: '8px 20px 40px', fontFamily: FONT }}
+      style={{ maxWidth: 1000 /* s2072: 960 вмісту + 2×20 відступу — у лінію з рештою головної */, margin: '0 auto', padding: '8px 20px 40px', fontFamily: FONT }}
     >
       <h2
         id="genre-chips-title"

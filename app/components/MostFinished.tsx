@@ -24,7 +24,7 @@ export default function MostFinished({ items }: { items: FinishedItem[] }) {
   return (
     <section
       aria-labelledby="most-finished-title"
-      style={{ maxWidth: 1100, margin: '0 auto', padding: '8px 20px 24px' }}
+      style={{ maxWidth: 1000 /* s2072: 960 вмісту + 2×20 відступу — у лінію з рештою головної */, margin: '0 auto', padding: '8px 20px 24px' }}
     >
       <h2
         id="most-finished-title"
