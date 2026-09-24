@@ -95,7 +95,8 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: 'PerplexityBot',   allow: '/' },
       { userAgent: 'Perplexity-User', allow: '/' },
     ],
-    sitemap: `${BASE_URL}/sitemap.xml`,
+    // 24.09.2026: друга карта — сотня найкращих творів (app/sitemap-top.xml).
+    sitemap: [`${BASE_URL}/sitemap.xml`, `${BASE_URL}/sitemap-top.xml`],
     host: BASE_URL,
   }
 }

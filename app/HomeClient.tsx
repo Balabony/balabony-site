@@ -28,6 +28,8 @@ import AuthorsStrip from './components/AuthorsStrip'
 import GenreChips from './components/GenreChips'
 import FactsLine from './components/FactsLine'
 import ContinueReading from './components/ContinueReading'
+import MostFinished from './components/MostFinished'
+import type { FinishedItem } from '@/lib/most-finished'
 
 
 
@@ -57,6 +59,7 @@ export default function HomeClient({
   genreCounts,
   stats,
   authors,
+  mostFinished = [],
 }: {
   seriesData: SeriesCard[]
   freshStories: Story[]
@@ -65,6 +68,7 @@ export default function HomeClient({
   genreCounts: GenreCount[]
   stats: SiteStats
   authors: StripAuthor[]
+  mostFinished?: FinishedItem[]
 }) {
 
   // Доскрол до якоря після того, як ліниві секції
@@ -145,6 +149,11 @@ export default function HomeClient({
           <FreshStoriesGrid stories={freshStories} />
         </div>
       )}
+
+      {/* 24.09.2026: «Найбільше дочитують» одразу після свіжих історій —
+          посилання з головної на найкращі твори допомагають їм потрапити в
+          пошук. Див. коментар у components/MostFinished.tsx. */}
+      <MostFinished items={mostFinished} />
 
       <div id="series"><SeriesStrip series={seriesData} /></div>
 

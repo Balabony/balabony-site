@@ -9,6 +9,7 @@ import {
   getStripAuthors,
   getTyshaItems,
 } from '@/lib/home-data'
+import { getMostFinished } from '@/lib/most-finished'
 
 /**
  * Головна тепер збирається на сервері.
@@ -26,7 +27,7 @@ import {
 export const revalidate = 3600
 
 export default async function HomePage() {
-  const [seriesData, freshStories, fairytales, tyshaItems, genreCounts, stats, authors] =
+  const [seriesData, freshStories, fairytales, tyshaItems, genreCounts, stats, authors, mostFinished] =
     await Promise.all([
     // Баланс головної, рішення 09.09.2026: серіали автора платформи забирали
     // більшу частину екрана — три великі картки «Балабонів» плюс три «Тиші»
@@ -46,6 +47,9 @@ export default async function HomePage() {
     getGenreCounts(),
     getSiteStats(),
     getStripAuthors(8),
+    // 24.09.2026: «Найбільше дочитують» — лише окремі історії, як на /top:
+    // серіали мають системну перевагу й забрали б увесь список.
+    getMostFinished(10, { storiesOnly: true }),
   ])
 
   return (
@@ -59,6 +63,7 @@ export default async function HomePage() {
         genreCounts={genreCounts}
         stats={stats}
         authors={authors}
+        mostFinished={mostFinished}
       />
     </>
   )
