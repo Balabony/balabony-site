@@ -45,7 +45,8 @@ export default function MostFinished({ items }: { items: FinishedItem[] }) {
         style={{
           listStyle: 'none', margin: 0, padding: 0,
           display: 'grid', gap: 8,
-          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))',
+          // s2074: 290, не 320 — на ширині 960 вміщається 3 у ряд (5 = 3 + 2).
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 290px), 1fr))',
         }}
       >
         {items.map((it, i) => (

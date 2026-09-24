@@ -41,6 +41,17 @@ const STYLES = `
   font-family: ${FONT}; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
   overflow: hidden; min-height: 57px;
 }
+/* s2074: одна серія на головній — горизонтальна картка на всю ширину
+   (обкладинка зліва, текст справа), як блок «Серіал «Балабони»».
+   Вертикальна картка на 960 px мала б обкладинку понад 600 px заввишки.
+   На вузьких екранах лишається вертикальною. */
+@media (min-width: 640px) {
+  .ts-card--row { flex-direction: row; }
+  .ts-card--row .ts-cover-wrap { flex: 0 0 42%; }
+  .ts-card--row .ts-body { padding: 18px 22px !important; justify-content: center; gap: 8px !important; }
+  .ts-card--row .ts-title-text { font-size: 17px !important; }
+  .ts-card--row .ts-teaser { font-size: 14px; -webkit-line-clamp: 4; min-height: 0; }
+}
 @media (prefers-reduced-motion: reduce) {
   .ts-card, .ts-cover-img, .ts-title-text { transition: none; }
   .ts-card:hover, .ts-card:focus-visible { transform: none; }
@@ -121,17 +132,15 @@ export default function TyshaSection(
             екрана, і коли карток стало дві замість трьох, праворуч зяяла
             діра. fit згортає порожні треки, тож дві картки рівно ділять
             ширину. */}
-        {/* s2073: одна картка на всю ширину 960 при пропорції 3:2 стала б
-            заввишки понад 600 px — тож для однієї картки ширина обмежена. */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 14, alignItems: 'stretch', maxWidth: items.length === 1 ? 640 : undefined }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 14, alignItems: 'stretch' }}>
           {items.map((ep) => (
             <a
               key={ep.id}
               href={`https://balabony.com${ep.url}`}
               onClick={() => trackStoryEvent(ep.id, ep.title, 'open')}
-              className="ts-card"
+              className={items.length === 1 ? 'ts-card ts-card--row' : 'ts-card'}
             >
-              <div style={{ padding: 8, flexShrink: 0 }}>
+              <div className="ts-cover-wrap" style={{ padding: 8, flexShrink: 0 }}>
                 <div style={{ position: 'relative', width: '100%', aspectRatio: '3 / 2', overflow: 'hidden', background: 'linear-gradient(135deg,#1a2a4a,#0f1e3a)', borderRadius: 8 }}>
                   {(coverOverride ?? ep.cover_url) ? (
                     <CoverImage
@@ -152,7 +161,7 @@ export default function TyshaSection(
                 </div>
               </div>
 
-              <div style={{ padding: '11px 12px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <div className="ts-body" style={{ padding: '11px 12px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#FFFFFF', fontFamily: FONT, letterSpacing: 0.3 }}>Назар Колодій</div>
                 {ep.number != null && (
                   <div style={{ fontSize: 10.5, fontWeight: 700, color: AMBER, fontFamily: FONT, letterSpacing: 0.4, textTransform: 'uppercase' }}>
