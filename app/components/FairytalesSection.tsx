@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import SectionHead from './SectionHead'
+import BrandCover from './BrandCover'
 import { useEffect, useState } from 'react'
 
 interface Fairytale {
@@ -16,6 +17,12 @@ interface Fairytale {
 const GOLD = 'var(--accent-gold)'
 const CARD_BG = '#0f1e3a'
 const FONT = "'Montserrat', Arial, sans-serif"
+
+// s2070: казка без власної обкладинки отримує брендову обкладинку з назвою,
+// як у «Свіжих історіях». Раніше тут стояв /og-image.jpg — загальний банер
+// сайту («Балабони · Українські історії…»): він не казав нічого про саму
+// казку й займав пів картки.
+const hasRealCover = (src?: string | null) => Boolean(src) && !String(src).includes('og-image')
 
 export default function FairytalesSection({ initial }: { initial?: Fairytale[] } = {}) {
   // Готові дані з сервера — щоб казки були в HTML, а не підвантажувалися
@@ -71,14 +78,19 @@ export default function FairytalesSection({ initial }: { initial?: Fairytale[] }
               }}
             >
               {/* Cover */}
-              <div style={{ width: '100%', aspectRatio: '4 / 3', overflow: 'hidden', background: '#000' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={t.coverUrl}
-                  alt={t.title}
-                  onError={e => { (e.target as HTMLImageElement).src = '/og-image.jpg' }}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                />
+              <div style={{ position: 'relative', width: '100%', aspectRatio: '3 / 2', overflow: 'hidden', background: '#000' }}>
+                {hasRealCover(t.coverUrl) ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={t.coverUrl}
+                    alt={t.title}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                ) : (
+                  <div style={{ position: 'absolute', inset: 0 }}>
+                    <BrandCover title={t.title} shape="wide" />
+                  </div>
+                )}
               </div>
 
               {/* Body */}
@@ -86,15 +98,18 @@ export default function FairytalesSection({ initial }: { initial?: Fairytale[] }
                 <div style={{ fontSize: 11, fontWeight: 700, color: GOLD, fontFamily: FONT, letterSpacing: 0.3 }}>
                   {t.author}
                 </div>
-                <div style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: '#FFFFFF',
-                  fontFamily: FONT,
-                  lineHeight: 1.4,
-                }}>
-                  {t.title}
-                </div>
+                {/* Назва вже написана на брендовій обкладинці — двічі не повторюємо. */}
+                {hasRealCover(t.coverUrl) && (
+                  <div style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: '#FFFFFF',
+                    fontFamily: FONT,
+                    lineHeight: 1.4,
+                  }}>
+                    {t.title}
+                  </div>
+                )}
                 <p style={{
                   fontSize: 12,
                   color: '#7A90A8',

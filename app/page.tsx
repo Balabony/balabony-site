@@ -49,7 +49,8 @@ export default async function HomePage() {
     getStripAuthors(8),
     // 24.09.2026: «Найбільше дочитують» — лише окремі історії, як на /top:
     // серіали мають системну перевагу й забрали б увесь список.
-    getMostFinished(10, { storiesOnly: true }),
+    // s2070: 5 позицій і один твір від автора — інакше список займав один автор.
+    getMostFinished(5, { storiesOnly: true, onePerAuthor: true }),
   ])
 
   return (

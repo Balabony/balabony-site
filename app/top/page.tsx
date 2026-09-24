@@ -43,6 +43,11 @@ export const metadata: Metadata = {
   alternates: { canonical: '/top' },
 }
 
+// s2070: у кожній добірці — до 5 творів і один твір від автора (найкращий за
+// правилом добірки). Без цього «Найчитаніші» займала одна авторка.
+// Ключ — ім'я автора без регістру й пробілів; твір без автора рахується окремо.
+const AUTHOR_KEY = "coalesce(nullif(lower(trim(c.author_name)), ''), c.slug)"
+
 type Item = {
   slug: string
   title: string
@@ -51,17 +56,22 @@ type Item = {
 }
 
 /** Найчитаніше за весь час — за зарахованими прочитаннями. */
-async function getMostRead(limit = 12): Promise<Item[]> {
+async function getMostRead(limit = 5): Promise<Item[]> {
   try {
     const res = await dbQuery(
-      `select c.slug, c.title, c.author_name, c.type
+      `select slug, title, author_name, type from (
+       select c.slug, c.title, c.author_name, c.type,
+              count(*) as score, max(r.read_at) as last_at,
+              row_number() over (partition by ${AUTHOR_KEY} order by count(*) desc, max(r.read_at) desc) as rn
          from article_reads r
          join content c on c.id = r.content_id
         where r.completed = true
           and c.status in ('approved', 'published')
           and c.type = 'story'
         group by c.slug, c.title, c.author_name, c.type
-        order by count(*) desc, max(r.read_at) desc
+       ) t
+        where rn = 1
+        order by score desc, last_at desc
         limit $1`,
       [limit],
     )
@@ -72,16 +82,21 @@ async function getMostRead(limit = 12): Promise<Item[]> {
 }
 
 /** Улюблене читачами — за вподобаннями. */
-async function getMostLiked(limit = 12): Promise<Item[]> {
+async function getMostLiked(limit = 5): Promise<Item[]> {
   try {
     const res = await dbQuery(
-      `select c.slug, c.title, c.author_name, c.type
+      `select slug, title, author_name, type from (
+       select c.slug, c.title, c.author_name, c.type,
+              count(*) as score,
+              row_number() over (partition by ${AUTHOR_KEY} order by count(*) desc) as rn
          from content_likes l
          join content c on c.id = l.content_id
         where c.status in ('approved', 'published')
           and c.type = 'story'
         group by c.slug, c.title, c.author_name, c.type
-        order by count(*) desc
+       ) t
+        where rn = 1
+        order by score desc
         limit $1`,
       [limit],
     )
@@ -92,17 +107,22 @@ async function getMostLiked(limit = 12): Promise<Item[]> {
 }
 
 /** Нове й помічене: свіжі твори, які вже мають бодай одне прочитання. */
-async function getNewNoticed(limit = 12): Promise<Item[]> {
+async function getNewNoticed(limit = 5): Promise<Item[]> {
   try {
     const res = await dbQuery(
-      `select c.slug, c.title, c.author_name, c.type
+      `select slug, title, author_name, type from (
+       select c.slug, c.title, c.author_name, c.type,
+              coalesce(c.approved_at, c.created_at) as stamp,
+              row_number() over (partition by ${AUTHOR_KEY} order by coalesce(c.approved_at, c.created_at) desc) as rn
          from content c
          join article_reads r on r.content_id = c.id and r.completed = true
         where c.status in ('approved', 'published')
           and c.type = 'story'
           and coalesce(c.approved_at, c.created_at) > now() - interval '90 days'
         group by c.slug, c.title, c.author_name, c.type, c.approved_at, c.created_at
-        order by coalesce(c.approved_at, c.created_at) desc
+       ) t
+        where rn = 1
+        order by stamp desc
         limit $1`,
       [limit],
     )
