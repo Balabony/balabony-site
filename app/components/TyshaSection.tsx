@@ -104,7 +104,8 @@ export default function TyshaSection(
     <section style={{ background: colors.bg, padding: '16px 20px 28px' }}>
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
 
-      <div style={{ maxWidth: 760, margin: '0 auto' }}>
+      {/* s2073: 960, як решта головної — заголовок у тій самій лінії. */}
+      <div style={{ maxWidth: 960, margin: '0 auto' }}>
         <SectionHead
           kicker="Авторські серіали"
           adult
@@ -120,7 +121,9 @@ export default function TyshaSection(
             екрана, і коли карток стало дві замість трьох, праворуч зяяла
             діра. fit згортає порожні треки, тож дві картки рівно ділять
             ширину. */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 14, alignItems: 'stretch' }}>
+        {/* s2073: одна картка на всю ширину 960 при пропорції 3:2 стала б
+            заввишки понад 600 px — тож для однієї картки ширина обмежена. */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 14, alignItems: 'stretch', maxWidth: items.length === 1 ? 640 : undefined }}>
           {items.map((ep) => (
             <a
               key={ep.id}

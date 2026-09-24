@@ -50,7 +50,7 @@ export default function SeriesStrip({ series }: { series: SeriesCard[] }) {
 
   return (
     <section style={{ background: colors.bg, padding: '20px 0' }}>
-      <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 20px' }}>
+      <div style={{ maxWidth: 1000 /* s2073: 960 вмісту + 2×20 — у лінію з рештою головної */, margin: '0 auto', padding: '0 20px' }}>
 
         <SectionHead
           kicker="Назар Колодій"
