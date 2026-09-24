@@ -39,7 +39,10 @@ function Sunflower() {
 
 export default function EmailCapture() {
   const [email,   setEmail]   = useState('')
-  const [consent, setConsent] = useState(true)
+  // s2075: галочка порожня за замовчуванням — попередньо проставлена не є
+  // згодою (GDPR, Planet49; ЗУ «Про захист персональних даних» — добровільне
+  // волевиявлення). Кнопка активна лише після неї, як на OLBO.
+  const [consent, setConsent] = useState(false)
   const [website, setWebsite] = useState('') // honeypot
   const [status,  setStatus]  = useState<'idle' | 'loading' | 'ok' | 'error'>('idle')
   const [message, setMessage] = useState('')
@@ -109,12 +112,14 @@ export default function EmailCapture() {
               <button
                 type="button"
                 onClick={submit}
-                disabled={status === 'loading'}
+                disabled={status === 'loading' || !consent}
+                aria-disabled={!consent}
                 style={{
                   flex: '0 0 auto', fontSize: 15, fontWeight: 800, fontFamily: FONT,
                   color: '#1a1205', background: status === 'loading' ? '#caa24a' : GOLD,
                   border: 'none', borderRadius: 12, padding: '13px 28px',
-                  cursor: status === 'loading' ? 'default' : 'pointer',
+                  opacity: consent ? 1 : 0.5,
+                  cursor: status === 'loading' || !consent ? 'default' : 'pointer',
                 }}>
                 {status === 'loading' ? 'Хвилинку…' : 'Підписатися'}
               </button>
@@ -124,7 +129,7 @@ export default function EmailCapture() {
               <input
                 type="checkbox"
                 checked={consent}
-                onChange={e => setConsent(e.target.checked)}
+                onChange={e => { setConsent(e.target.checked); if (status === 'error') setStatus('idle') }}
                 style={{ marginTop: 3, accentColor: GOLD, width: 16, height: 16, flexShrink: 0 }}
               />
               <span style={{ fontSize: 12, color: '#8aa3c0', lineHeight: 1.5 }}>
