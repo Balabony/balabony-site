@@ -59,7 +59,7 @@ export default function ProBalabonyPage() {
           <section style={sectionStyle}>
             <p style={pStyle}>
               Ми створюємо Balabony — україномовну платформу історій і казок, які можна читати, а згодом — і слухати.
-              Її особливість — голосовий доступ (Zero-UI): користуватися платформою можна переважно
+              Її особливість — голосовий доступ (Zero-UI): користуватися платформою буде можна переважно
               голосом, слухати й керувати нею, кажучи що робити, майже не торкаючись екрана.
             </p>
             <p style={pLastStyle}>
@@ -101,7 +101,7 @@ export default function ProBalabonyPage() {
           <section style={sectionStyle}>
             <h2 style={h2Style}>Когнітивні ігри</h2>
             <p style={pLastStyle}>
-              Окрім читання й слухання, Balabony пропонує набір когнітивних ігор для тренування уваги,
+              Окрім читання, Balabony пропонує набір когнітивних ігор для тренування уваги,
               пам’яті, мови та логічного мислення, побудованих на українському мовному й культурному
               матеріалі. Серед них — вправи на робочу пам’ять і словесну побіжність, ігри на просторове
               мислення та зосередженість, а також класичні логічні ігри (шахи, шашки, доміно, судоку, нарди)
@@ -187,7 +187,7 @@ export default function ProBalabonyPage() {
           <section style={sectionStyle}>
             <p style={pStyle}>
               We are creating Balabony — a Ukrainian-language platform of stories and tales that can be read,
-              with listening to follow. Its distinctive feature is voice-first access (Zero-UI): you can use the
+              with listening to follow. Its distinctive feature is voice-first access (Zero-UI): you will be able to use the
               platform mostly by voice — listening and giving spoken commands, almost without touching the
               screen.
             </p>
@@ -223,14 +223,14 @@ export default function ProBalabonyPage() {
               <li style={liStyle}>a practical Ukrainian spelling guide — in plain language, with a separate children’s version (already available on the platform);</li>
               <li style={liStyle}>cognitive games — exercises for attention, memory, language and logic;</li>
               <li style={liStyle}>accessibility-first design (WCAG 2.1 AA);</li>
-              <li style={liStyle}>an offline bridge: QR codes printed in our newspapers connect families without reliable internet to audio content through any camera phone.</li>
+              <li style={liStyle}>an offline bridge: QR codes printed in our newspapers lead newspaper readers to the platform’s stories through any camera phone.</li>
             </ul>
           </section>
 
           <section style={sectionStyle}>
             <h2 style={h2Style}>Cognitive games</h2>
             <p style={pLastStyle}>
-              Beyond reading and listening, Balabony offers a set of cognitive games for training attention,
+              Beyond reading, Balabony offers a set of cognitive games for training attention,
               memory, language and logical thinking, built on Ukrainian language and cultural material. They
               include exercises for working memory and verbal fluency, games for spatial thinking and focus,
               and classic logic games (chess, draughts, dominoes, sudoku, backgammon) with several difficulty
