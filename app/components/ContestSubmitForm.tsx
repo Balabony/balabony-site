@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { CONTESTS, findContest, isOpen, acceptsEpisodes, type ContestId } from '@/lib/contests'
 
 /**
@@ -85,8 +85,13 @@ export default function ContestSubmitForm() {
 
   useEffect(() => { void load() }, [load])
 
+  const noteRef = useRef<HTMLParagraphElement | null>(null)
+  useEffect(() => {
+    if (note) noteRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [note])
+
   const send = async () => {
-    if (files.length === 0) { setNote('Прикріпіть файли з текстом.'); return }
+    if (files.length === 0) { setNote('Не вибрано жодного файлу. Прикріпіть файл із текстом твору.'); return }
     if (!entry && !title.trim()) { setNote('Вкажіть назву твору.'); return }
     if (!aiOk) { setNote('Поставте позначку про використання штучного інтелекту.'); return }
     if (!newOk) { setNote('Поставте позначку, що твір не опублікований на інших платформах.'); return }
@@ -304,7 +309,7 @@ export default function ContestSubmitForm() {
       )}
 
       {note && (
-        <p style={{ color: BRAND.amberSoft, lineHeight: 1.7, background: 'rgba(239,159,39,0.08)', padding: '12px 14px', borderRadius: 10 }}>
+        <p ref={noteRef} style={{ color: BRAND.amberSoft, lineHeight: 1.7, background: 'rgba(239,159,39,0.08)', padding: '12px 14px', borderRadius: 10 }}>
           {note}
         </p>
       )}
