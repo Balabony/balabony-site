@@ -133,7 +133,7 @@ export default function ContestSubmitForm() {
   const field: React.CSSProperties = {
     width: '100%', padding: '10px 12px', borderRadius: 9, marginBottom: 14,
     border: `1px solid ${BRAND.line}`, background: BRAND.deep, color: BRAND.ink,
-    fontSize: 16, fontFamily: 'inherit', outline: 'none',
+    fontSize: 16, fontFamily: 'inherit',
   }
   const label: React.CSSProperties = {
     display: 'block', fontSize: '0.82rem', color: BRAND.muted, marginBottom: 6,
@@ -180,9 +180,9 @@ export default function ContestSubmitForm() {
   return (
     <div>
       <div style={box}>
-        <label style={label}>Конкурс</label>
+        <label htmlFor="f-contest" style={label}>Конкурс</label>
         <select
-          value={contestId}
+          id="f-contest" value={contestId}
           onChange={e => { setContestId(e.target.value as ContestId); setFiles([]); setNote(''); setDone('') }}
           style={field}
         >
@@ -217,21 +217,21 @@ export default function ContestSubmitForm() {
         <div style={box}>
           {!entry && (
             <>
-              <label style={label}>Назва твору</label>
-              <input value={title} onChange={e => setTitle(e.target.value)} style={field} maxLength={200} />
+              <label htmlFor="f-title" style={label}>Назва твору</label>
+              <input id="f-title" value={title} onChange={e => setTitle(e.target.value)} style={field} maxLength={200} />
 
-              <label style={label}>Анотація — 2–4 речення, це побачить читач у списку</label>
+              <label htmlFor="f-annotation" style={label}>Анотація — 2–4 речення, це побачить читач у списку</label>
               <textarea
-                value={annotation}
+                id="f-annotation" value={annotation}
                 onChange={e => setAnnotation(e.target.value)}
                 rows={4}
                 style={{ ...field, resize: 'vertical' }}
                 maxLength={1500}
               />
 
-              <label style={label}>Жанр</label>
+              <label htmlFor="f-genre" style={label}>Жанр</label>
               <input
-                value={genre}
+                id="f-genre" value={genre}
                 onChange={e => setGenre(e.target.value)}
                 style={field}
                 maxLength={100}
@@ -240,13 +240,13 @@ export default function ContestSubmitForm() {
             </>
           )}
 
-          <label style={label}>
+          <label htmlFor="f-files" style={label}>
             {contest.atOnce
               ? `Файли — усі ${contest.episodes} одразу, .docx або .txt`
               : `Файли серій — можна одну, можна кілька, .docx або .txt`}
           </label>
           <input
-            type="file"
+            id="f-files" type="file"
             multiple={contest.episodes > 1}
             accept=".docx,.txt"
             // Сортуємо ТУТ ЖЕ, тим самим правилом, що на сервері: автор має
@@ -309,7 +309,7 @@ export default function ContestSubmitForm() {
       )}
 
       {note && (
-        <p ref={noteRef} style={{ color: BRAND.amberSoft, lineHeight: 1.7, background: 'rgba(239,159,39,0.08)', padding: '12px 14px', borderRadius: 10 }}>
+        <p role="alert" ref={noteRef} style={{ color: BRAND.amberSoft, lineHeight: 1.7, background: 'rgba(239,159,39,0.08)', padding: '12px 14px', borderRadius: 10 }}>
           {note}
         </p>
       )}
