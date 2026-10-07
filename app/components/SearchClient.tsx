@@ -31,6 +31,18 @@ export default function SearchClient() {
   const [authors, setAuthors] = useState<Author[]>([])
   const [loading, setLoading] = useState(false)
   const [asked, setAsked]     = useState(initial.trim().length >= 2)
+  const [focused, setFocused] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Курсор у поле ставимо лише на комп'ютері і лише коли запиту ще немає.
+  // На телефоні автофокус відкриває клавіатуру, яку не можна сховати,
+  // а читачам екрана він перескакує через заголовок сторінки.
+  useEffect(() => {
+    if (initial) return
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      inputRef.current?.focus()
+    }
+  }, [initial])
 
   // Відповідь на застарілий запит не має затирати свіжу: рахуємо покоління.
   const gen = useRef(0)
@@ -72,16 +84,22 @@ export default function SearchClient() {
 
   // Адресу оновлюємо без перезавантаження — щоб посилання на результат
   // можна було переслати або зберегти.
+  // Змінюємо адресу лише тоді, коли вона справді інша: зайвий replace
+  // перемальовує сторінку й повертає фокус (і клавіатуру) у поле.
   useEffect(() => {
     const q = value.trim()
     const url = q.length >= 2 ? `/search?q=${encodeURIComponent(q)}` : '/search'
+    if (window.location.pathname + window.location.search === url) return
     router.replace(url, { scroll: false })
   }, [value, router])
 
   const nothing = asked && !loading && works.length === 0 && authors.length === 0
 
   return (
-    <div>
+    <form
+      role="search"
+      onSubmit={(e) => { e.preventDefault(); inputRef.current?.blur() }}
+    >
       <label htmlFor="site-search" style={{
         display: 'block',
         fontFamily: FONT,
@@ -95,10 +113,13 @@ export default function SearchClient() {
       <input
         id="site-search"
         type="search"
+        ref={inputRef}
         value={value}
-        autoFocus
         autoComplete="off"
+        enterKeyHint="search"
         onChange={(e) => setValue(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         placeholder="Наприклад: Хутір Мазури або Данільчик"
         style={{
           width: '100%',
@@ -108,9 +129,10 @@ export default function SearchClient() {
           fontFamily: FONT,
           color: 'var(--text)',
           background: 'var(--white)',
-          border: '2px solid var(--border)',
+          border: focused ? '2px solid var(--accent-gold)' : '2px solid var(--border)',
           borderRadius: 12,
-          outline: 'none',
+          outline: focused ? '3px solid var(--accent-gold)' : 'none',
+          outlineOffset: 2,
         }}
       />
 
@@ -212,6 +234,6 @@ export default function SearchClient() {
           </ul>
         </section>
       )}
-    </div>
+    </form>
   )
 }
