@@ -28,6 +28,8 @@ const BRAND = {
 const SERIF = "'Lora', Georgia, serif"
 
 interface Episode { ord: number; words: number; filename: string }
+/** Помилка заповнення: id поля, куди веде посилання зі зведення, і текст. */
+interface FieldErr { id: string; msg: string }
 interface Entry {
   id: string
   contest: string
@@ -90,11 +92,44 @@ export default function ContestSubmitForm() {
     if (note) noteRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [note])
 
+  // WCAG 3.3.1 / A-04 з аудиту: усі помилки заповнення — одним списком угорі
+  // форми, кожна веде до свого поля. Раніше форма показувала їх по одній,
+  // і автор дізнавався про наступну лише після виправлення попередньої.
+  const [errors, setErrors] = useState<FieldErr[]>([])
+  const summaryRef = useRef<HTMLDivElement | null>(null)
+
+  const validate = (): FieldErr[] => {
+    const e: FieldErr[] = []
+    if (!entry && !title.trim()) e.push({ id: 'f-title', msg: 'Вкажіть назву твору.' })
+    if (files.length === 0) e.push({ id: 'f-files', msg: 'Не вибрано жодного файлу. Прикріпіть файл із текстом твору.' })
+    if (!aiOk) e.push({ id: 'f-ai', msg: 'Поставте позначку про використання штучного інтелекту.' })
+    if (!newOk) e.push({ id: 'f-new', msg: 'Поставте позначку, що твір не опублікований на інших платформах.' })
+    return e
+  }
+  const bad = (id: string) => errors.some(e => e.id === id)
+
+  // Виправлене поле зникає зі зведення одразу, без повторного натискання.
+  useEffect(() => {
+    setErrors(prev => (prev.length ? validate() : prev))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, files, aiOk, newOk])
+
+  const goTo = (id: string) => {
+    const el = document.getElementById(id)
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    el.focus({ preventScroll: true })
+  }
+
   const send = async () => {
-    if (files.length === 0) { setNote('Не вибрано жодного файлу. Прикріпіть файл із текстом твору.'); return }
-    if (!entry && !title.trim()) { setNote('Вкажіть назву твору.'); return }
-    if (!aiOk) { setNote('Поставте позначку про використання штучного інтелекту.'); return }
-    if (!newOk) { setNote('Поставте позначку, що твір не опублікований на інших платформах.'); return }
+    const errs = validate()
+    setErrors(errs)
+    if (errs.length > 0) {
+      setNote(''); setDone('')
+      // Фокус на зведення: читач екрана одразу озвучить увесь список.
+      setTimeout(() => summaryRef.current?.focus(), 50)
+      return
+    }
 
     setBusy(true); setNote(''); setDone('')
     try {
@@ -179,6 +214,33 @@ export default function ContestSubmitForm() {
 
   return (
     <div>
+      {errors.length > 0 && (
+        <div
+          ref={summaryRef}
+          tabIndex={-1}
+          role="alert"
+          aria-labelledby="f-errors-title"
+          style={{ ...box, borderColor: BRAND.amber, borderWidth: 2 }}
+        >
+          <h2 id="f-errors-title" style={{ fontFamily: SERIF, fontSize: '1.15rem', color: BRAND.amber, margin: '0 0 10px' }}>
+            Заявку не надіслано. Виправте {errors.length === 1 ? 'один пункт' : `${errors.length} пункти`}:
+          </h2>
+          <ul style={{ margin: 0, paddingLeft: 20, lineHeight: 1.8 }}>
+            {errors.map(e => (
+              <li key={e.id}>
+                <a
+                  href={`#${e.id}`}
+                  onClick={ev => { ev.preventDefault(); goTo(e.id) }}
+                  style={{ color: BRAND.amberSoft }}
+                >
+                  {e.msg}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div style={box}>
         <label htmlFor="f-contest" style={label}>Конкурс</label>
         <select
@@ -218,7 +280,7 @@ export default function ContestSubmitForm() {
           {!entry && (
             <>
               <label htmlFor="f-title" style={label}>Назва твору</label>
-              <input id="f-title" value={title} onChange={e => setTitle(e.target.value)} style={field} maxLength={200} />
+              <input id="f-title" value={title} onChange={e => setTitle(e.target.value)} style={field} maxLength={200} aria-invalid={bad('f-title') || undefined} />
 
               <label htmlFor="f-annotation" style={label}>Анотація — 2–4 речення, це побачить читач у списку</label>
               <textarea
@@ -247,6 +309,7 @@ export default function ContestSubmitForm() {
           </label>
           <input
             id="f-files" type="file"
+            aria-invalid={bad('f-files') || undefined}
             multiple={contest.episodes > 1}
             accept=".docx,.txt"
             // Сортуємо ТУТ ЖЕ, тим самим правилом, що на сервері: автор має
@@ -283,12 +346,12 @@ export default function ContestSubmitForm() {
           </p>
 
           <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', color: BRAND.text, fontSize: '0.9rem', lineHeight: 1.6, margin: '0 0 16px' }}>
-            <input type="checkbox" checked={aiOk} onChange={e => setAiOk(e.target.checked)} style={{ marginTop: 4 }} />
+            <input id="f-ai" type="checkbox" checked={aiOk} onChange={e => setAiOk(e.target.checked)} style={{ marginTop: 4 }} aria-invalid={bad('f-ai') || undefined} />
             <span>Підтверджую: текст написаний мною; штучний інтелект я використовував(ла) лише для перевірки правопису й граматики.</span>
           </label>
 
           <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', color: BRAND.text, fontSize: '0.9rem', lineHeight: 1.6, margin: '0 0 16px' }}>
-            <input type="checkbox" checked={newOk} onChange={e => setNewOk(e.target.checked)} style={{ marginTop: 4 }} />
+            <input id="f-new" type="checkbox" checked={newOk} onChange={e => setNewOk(e.target.checked)} style={{ marginTop: 4 }} aria-invalid={bad('f-new') || undefined} />
             <span>Підтверджую: твір не опублікований на інших літературних платформах, в електронних бібліотеках, інтернет-виданнях і медіа (власний блог, соцмережі й паперові видання — не рахуються).</span>
           </label>
 
