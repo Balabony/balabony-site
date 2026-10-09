@@ -55,7 +55,7 @@ export default function FreeBanner() {
         </div>
 
         <div style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 500, color: CREAM }}>
-          Понад 900 історій і 24 серії
+          Понад 1000 історій і 24 серії
         </div>
 
         <Link

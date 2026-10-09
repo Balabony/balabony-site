@@ -6,11 +6,11 @@ import FAQ from '../components/FAQ'
 export const metadata: Metadata = {
   title: 'Спробуй безкоштовно — Balabony',
   description:
-    'Понад 900 історій і 24 серії. Спробуй, перш ніж щось купувати.',
+    'Понад 1000 історій і 24 серії. Спробуй, перш ніж щось купувати.',
   openGraph: {
     title: 'Спробуй безкоштовно — Balabony',
     description:
-      'Понад 900 історій і 24 серії. Без картки.',
+      'Понад 1000 історій і 24 серії. Без картки.',
     url: 'https://balabony.com/free',
     siteName: 'Balabony',
     locale: 'uk_UA',

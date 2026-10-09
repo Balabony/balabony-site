@@ -77,7 +77,7 @@ export default function JoinPage() {
     <main style={wrap}>
       <h1 style={{ fontSize: 24, color: GOLD, marginBottom: 12 }}>Запрошення до Балабонів</h1>
       <p style={{ color: MUTED, lineHeight: 1.7, marginBottom: 24 }}>
-        Вам відкривають доступ до понад 900 історій і до серіалів. У вас буде
+        Вам відкривають доступ до понад 1000 історій і до серіалів. У вас буде
         власний обліковий запис із власними закладками.
       </p>
 

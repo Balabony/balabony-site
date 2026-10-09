@@ -192,7 +192,7 @@ export async function sendPlanInviteEmail({
   <div style="font-size:22px;font-weight:700;color:#f0a500;margin-bottom:24px;">Balabony</div>
   <p style="color:#c8d4e8;line-height:1.7;margin-bottom:18px;">
     <strong style="color:#f5f0e8;">${ownerName}</strong> відкрив вам доступ до Балабонів —
-    української платформи історій. Це ${kindLabel.toLowerCase()}: понад 900 історій,
+    української платформи історій. Це ${kindLabel.toLowerCase()}: понад 1000 історій,
     серіали «Балабони» і «Тиша», без реклами.
   </p>
   <p style="color:#c8d4e8;line-height:1.7;margin-bottom:24px;">
