@@ -147,6 +147,11 @@ export default function ContestSubmitForm() {
 
       if (!d.ok) { setNote(d.error ?? 'Не вдалося надіслати'); return }
 
+      // Подія GA4 для конверсії Google Ad Grants «заявка на конкурс» (09.10.2026).
+      // gtag є лише після згоди на аналітику — без згоди подія не йде.
+      const w = window as unknown as { gtag?: (...args: unknown[]) => void }
+      if (typeof w.gtag === 'function') w.gtag('event', 'zaiavka_konkurs', { contest: contestId })
+
       setFiles([])
       setDone(
         (d.totalNow ?? 0) >= (d.totalNeed ?? 0)

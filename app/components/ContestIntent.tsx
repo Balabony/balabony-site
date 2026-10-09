@@ -95,6 +95,12 @@ export default function ContestIntent() {
       })
       const d = await res.json() as { ok?: boolean; error?: string }
       if (!d.ok) throw new Error(d.error ?? 'не збережено')
+      // Подія GA4 «намір узяти участь у конкурсі» (09.10.2026) — допоміжна
+      // конверсія для Ad Grants. Лише коли автор позначає намір, не знімає.
+      if (next) {
+        const w = window as unknown as { gtag?: (...args: unknown[]) => void }
+        if (typeof w.gtag === 'function') w.gtag('event', 'namir_konkurs', { contest: id })
+      }
     } catch (e) {
       setOn(prev => {
         const s = new Set(prev)
