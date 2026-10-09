@@ -759,8 +759,8 @@ export default function AccessibilityPage() {
           <section className="a11y-section" aria-labelledby="audio-heading">
             <h2 id="audio-heading">Аудіо: що є і чого ще немає</h2>
             <p className="a11y-section-lead">
-              Зараз Balabony — це текст. Озвучення ми готуємо й запускаємо разом із платформою
-              23 листопада 2026 року. Поки його немає, ми не пишемо, що воно є.
+              Зараз Balabony — це текст. Озвучення ми готуємо й плануємо запустити разом із платформою
+              наприкінці 2026 року. Поки його немає, ми не пишемо, що воно є.
             </p>
             <p className="a11y-section-lead">
               До того часу тексти працюють із програмами екранного читання: JAWS, NVDA, VoiceOver
