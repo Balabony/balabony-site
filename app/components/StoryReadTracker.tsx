@@ -189,6 +189,15 @@ export default function StoryReadTracker({
           analytics,
         }),
       }).catch(() => {})
+
+      // Подія GA4 для конверсії Google Ad Grants «читання історії» (09.10.2026).
+      // Та сама умова, що й для /api/story-read: людина дочитала потрібну частку
+      // тексту й пробула на сторінці достатньо часу. gtag з'являється лише після
+      // згоди на аналітику — без згоди подія не йде нікуди.
+      const w = window as unknown as { gtag?: (...args: unknown[]) => void }
+      if (typeof w.gtag === 'function') {
+        w.gtag('event', 'chytannia_istorii', { content_id: contentId, slug, percent, seconds })
+      }
     }
 
     const debugOn =
