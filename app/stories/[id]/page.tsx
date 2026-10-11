@@ -23,6 +23,7 @@ import ReaderSettings from '@/app/components/ReaderSettings'
 import RelatedStories from '@/app/components/RelatedStories'
 import StoryRecipe from '@/app/components/StoryRecipe'
 import ContestBadge from '@/app/components/ContestBadge'
+import SeriesNav, { SeriesBadge, type SeriesPart } from '@/app/components/SeriesNav'
 import { dbQuery } from '@/lib/db'
 import { CONTESTS } from '@/lib/contests'
 
@@ -225,6 +226,40 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
     console.error('[stories] contest lookup failed:', e)
   }
 
+  // Серія автора: назва й номер частини з contract_works (автор вказує їх,
+  // підтверджуючи твори за договором). Частини шукаємо в межах ТОГО САМОГО
+  // договору — дві різні серії з однаковою назвою в різних авторів не
+  // змішаються. Лише опубліковані частини: чернетки читач не бачить.
+  let series: { name: string; parts: SeriesPart[]; index: number } | null = null
+  try {
+    const r = await dbQuery(
+      `with me as (
+         select contract_id, series_name
+           from contract_works
+          where content_id = $1 and series_name is not null and btrim(series_name) <> ''
+          limit 1
+       )
+       select c.slug, c.title, me.series_name as name
+         from contract_works w
+         join me on w.contract_id = me.contract_id
+                and lower(btrim(w.series_name)) = lower(btrim(me.series_name))
+         join content c on c.id = w.content_id
+        where c.type = 'story'
+          and c.status in ('approved', 'published')
+          and c.slug is not null
+        order by w.series_order asc nulls last, c.title asc`,
+      [story.id],
+    )
+    const parts = r.rows.map(x => ({ slug: String(x.slug), title: String(x.title) }))
+    const index = parts.findIndex(p => p.slug === id)
+    if (parts.length > 1 && index >= 0) {
+      series = { name: String(r.rows[0].name).trim(), parts, index }
+    }
+  } catch (e) {
+    // Без навігації твір читається й так — збій не має ламати сторінку.
+    console.error('[stories] series lookup failed:', e)
+  }
+
   const v    = story.published_version ?? 'original'
   const body = (v === 'humanized' || v === 'corrected_humanized') && story.humanized_text
     ? story.humanized_text
@@ -381,6 +416,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
             <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--on-dark-muted)', fontFamily: FONT }}>{date}</span>
             <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--on-dark-muted)', fontFamily: FONT }}>{wordCount} слів · ~{readMin} хв</span>
           </div>
+          {series && <SeriesBadge name={series.name} index={series.index} total={series.parts.length} />}
         </div>
 
         {/* Divider */}
@@ -501,6 +537,10 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         {/* Рецепт до історії — лише там, де заповнено content.recipe (пілот 18.09.2026).
             Стоїть ПІСЛЯ маркера кінця тексту: рецепт не має зараховуватися як дочитування. */}
         <StoryRecipe recipe={(story as { recipe?: string | null }).recipe} />
+
+        {/* Перехід до наступної частини — одразу під текстом: саме тут читач
+            вирішує, читати далі чи піти. */}
+        {series && <SeriesNav name={series.name} parts={series.parts} index={series.index} />}
 
 
         {/* Позиція читання: де людина спинилася минулого разу. */}
