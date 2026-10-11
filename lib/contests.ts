@@ -338,9 +338,14 @@ export function acceptsEpisodes(c: Contest, now: Date = new Date()): boolean {
   return today >= c.opensAt && today <= until
 }
 
-/** Слова рахуємо однаково у формі, в API і в листі — інакше цифри розійдуться. */
+/**
+ * Слова рахуємо однаково у формі, в API і в листі — інакше цифри розійдуться.
+ * Окреме тире чи інший розділовий знак між пробілами — НЕ слово (11.10.2026:
+ * діалоги з тире давали +45 «слів» проти Word, і серію відхиляло). Словом
+ * вважається шматок, де є хоч одна літера або цифра — так рахує і Word.
+ */
 export function countWords(text: string): number {
   const t = text.trim()
   if (!t) return 0
-  return t.split(/\s+/).length
+  return t.split(/\s+/).filter(w => /[\p{L}\p{N}]/u.test(w)).length
 }
