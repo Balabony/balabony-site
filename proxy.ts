@@ -86,7 +86,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Усе, крім статики, картинок, favicon
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    // Усе, крім статики, картинок, favicon і шрифтів (12.10.2026: шрифти з public/fonts — без зайвого запиту до Supabase на кожен файл)
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2|woff|ttf)$).*)',
   ],
 }

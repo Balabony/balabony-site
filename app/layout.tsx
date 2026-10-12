@@ -61,45 +61,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="uk">
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Шрифти Google підключені НЕБЛОКУВАЛЬНО.
-
-            display=optional, а не swap: зі swap браузер малював текст
-            запасним шрифтом, потім підміняв на Lora/Montserrat і
-            перераховував висоту всього тексту — CLS 0,948 із 1,131
-            (вимір PageSpeed 08.09.2026).
-
-            media="print" робить таблицю стилів необов'язковою для першого
-            малювання: браузер качає її паралельно, а не тримає порожній
-            екран, поки шукає fonts.googleapis.com, домовляється про
-            шифрування й тягне файл. У звіті цей один запит на 2,5 КіБ
-            коштував 750 мс із 2 680 мс блокування, а FCP стояв на 5,9 с.
-            Скрипт нижче вмикає стилі після завантаження сторінки.
-
-            Ціна, ухвалена свідомо: новий читач на першому відкритті майже
-            завжди побачить запасний шрифт (Georgia / Arial). З другого
-            разу шрифт береться з кешу й показується одразу.
-
-            noscript — для читачів без JavaScript: там звичайне блокувальне
-            підключення, бо інакше вони шрифту не побачать ніколи. */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Lora:wght@400;600&family=Montserrat:wght@400;600;700&display=optional"
-          rel="stylesheet"
-          media="print"
-          data-google-fonts=""
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `addEventListener('load',function(){var l=document.querySelector('link[data-google-fonts]');if(l)l.media='all';});`,
-          }}
-        />
-        <noscript>
-          <link
-            href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Lora:wght@400;600&family=Montserrat:wght@400;600;700&display=optional"
-            rel="stylesheet"
-          />
-        </noscript>
+        {/* 12.10.2026: шрифти тепер з нашого сервера (globals.css, public/fonts) — без запитів до Google (GDPR).
+            Попереднє завантаження двох основних кириличних файлів: текст історій (Lora) і інтерфейс (Montserrat).
+            font-display: optional лишається (рішення 08.09.2026 про CLS). */}
+        <link rel="preload" href="/fonts/lora-cyrillic-400-normal.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/montserrat-cyrillic-400-normal.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
