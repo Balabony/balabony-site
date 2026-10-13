@@ -1,4 +1,6 @@
+import { after } from 'next/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { sendProblemAlert } from '@/lib/problem-alert'
 import { dbQuery } from '@/lib/db'
 import { slugify } from '@/lib/slugify'
 import { mailApplicationAccepted, mailApplicationRejected } from '@/lib/author-applications'
@@ -70,7 +72,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
+async function handlePOST(req: NextRequest) {
   if (!authorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   let id = '', action = '', note = ''
@@ -166,4 +168,15 @@ export async function POST(req: NextRequest) {
     console.error('[admin/author-applications POST]', (err as Error)?.message)
     return NextResponse.json({ ok: false, error: `Не вдалося виконати дію: ${(err as Error)?.message ?? ''}` }, { status: 500 })
   }
+}
+
+// 14.10.2026: помилка дії в адмінці (прийняти/відхилити) — лист Богдану.
+export async function POST(req: NextRequest) {
+  const res = await handlePOST(req)
+  if (res.status >= 500) {
+    let error = `HTTP ${res.status}`
+    try { const j = await res.clone().json() as { error?: string }; if (j?.error) error = j.error } catch { /* */ }
+    after(() => sendProblemAlert({ where: 'адмінка: заявки авторів', error }))
+  }
+  return res
 }

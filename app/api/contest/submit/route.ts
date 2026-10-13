@@ -3,6 +3,7 @@ import { routeEntry } from '@/lib/contest-routing'
 import { checkEntryOriginality } from '@/lib/contest-originality-run'
 import { runContestReview, reviewHash, REVIEW_MODEL } from '@/lib/contest-ai-review'
 import { NextRequest, NextResponse } from 'next/server'
+import { alertIfFailed } from '@/lib/problem-alert'
 import { Resend } from 'resend'
 import mammoth from 'mammoth'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
@@ -107,7 +108,7 @@ export async function GET() {
   }
 }
 
-export async function POST(req: NextRequest) {
+async function handlePOST(req: NextRequest) {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -448,4 +449,11 @@ async function sendMail(p: {
 /** Екранує текст для вставки в HTML листа. */
 function esc(v: string): string {
   return (v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+// 14.10.2026: будь-яка відмова форми — лист Богдану (автори зазвичай не пишуть).
+export async function POST(req: NextRequest) {
+  const res = await handlePOST(req)
+  after(() => alertIfFailed(res, 'подача на конкурс (/konkursy/podaty)'))
+  return res
 }

@@ -1,4 +1,6 @@
+import { after } from 'next/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { alertIfFailed } from '@/lib/problem-alert'
 import mammoth from 'mammoth'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { dbQuery } from '@/lib/db'
@@ -70,7 +72,7 @@ export async function GET() {
   }
 }
 
-export async function POST(req: NextRequest) {
+async function handlePOST(req: NextRequest) {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -190,4 +192,11 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     )
   }
+}
+
+// 14.10.2026: будь-яка відмова форми — лист Богдану (автори зазвичай не пишуть).
+export async function POST(req: NextRequest) {
+  const res = await handlePOST(req)
+  after(() => alertIfFailed(res, 'заявка автора (/become-author)'))
+  return res
 }
