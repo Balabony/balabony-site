@@ -4,6 +4,7 @@ import { getEditor } from '@/lib/editor-auth'
 import { findContest } from '@/lib/contests'
 import ScoreForm, { type ExistingScore } from '../ScoreForm'
 import EpisodeEditor from '../EpisodeEditor'
+import ContestBrief from '../ContestBrief'
 
 /**
  * Сторінка оцінювання однієї конкурсної роботи.
@@ -96,6 +97,8 @@ export default async function EditorScorePage(
             {entry.annotation}
           </p>
         )}
+
+        <ContestBrief contest={entry.contest} />
 
         {episodes.map(ep => (
           <details key={ep.ord} style={{ marginBottom: '.6rem' }}>

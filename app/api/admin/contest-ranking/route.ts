@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { dbQuery } from '@/lib/db'
+import { routeEntry } from '@/lib/contest-routing'
 
 /**
  * Зведена таблиця оцінок конкурсу: /api/admin/contest-ranking
@@ -60,8 +61,30 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   if (!authorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  let b: { entryId?: string; score?: unknown; comment?: string }
+  let b: { entryId?: string; score?: unknown; comment?: string; action?: string }
   try { b = await req.json() } catch { return NextResponse.json({ ok: false, error: 'Невірний запит' }, { status: 400 }) }
+
+  // Скерувати всі нерозподілені: номер + редактор + лист редактору.
+  if (b.action === 'route-all') {
+    try {
+      const r = await dbQuery(
+        `select e.id::text as id from contest_entries e
+          where e.status <> 'rejected'
+            and (e.entry_number is null
+                 or not exists (select 1 from contest_assignments a where a.entry_id = e.id and a.role = 'primary'))
+          order by e.created_at`,
+      )
+      let routed = 0
+      for (const row of r.rows as { id: string }[]) {
+        const res = await routeEntry(row.id)
+        if (res.editor || res.number) routed++
+      }
+      return NextResponse.json({ ok: true, routed })
+    } catch (err) {
+      console.error('[contest-ranking route-all]', (err as Error)?.message)
+      return NextResponse.json({ ok: false, error: 'Не вдалося скерувати' }, { status: 500 })
+    }
+  }
   const entryId = String(b.entryId ?? '').trim()
   const score = Number(b.score)
   const comment = String(b.comment ?? '').trim().slice(0, 4000)

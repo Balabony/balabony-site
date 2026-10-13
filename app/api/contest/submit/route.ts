@@ -1,3 +1,6 @@
+import { after } from 'next/server'
+import { routeEntry } from '@/lib/contest-routing'
+import { runContestReview, reviewHash, REVIEW_MODEL } from '@/lib/contest-ai-review'
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import mammoth from 'mammoth'
@@ -24,6 +27,7 @@ import { findContest, isOpen, acceptsEpisodes, countWords } from '@/lib/contests
  */
 
 export const runtime = 'nodejs'
+export const maxDuration = 300
 
 const MAX_FILE_BYTES = 2 * 1024 * 1024
 const MAX_FILES_PER_REQUEST = 10
@@ -303,7 +307,43 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Номер роботи й редактор — автоматично (13.10.2026). Помилка тут не
+    // має зірвати подачу: заявка вже збережена, скерувати можна вручну.
+    let entryNumber: number | null = null
+    try {
+      entryNumber = (await routeEntry(entryId)).number
+    } catch (e) {
+      console.error('[contest/submit] route', (e as Error)?.message)
+    }
+
+    // Оцінка ШІ — у фоні, після відповіді автору (до 3 хв для серіалу).
+    after(async () => {
+      try {
+        const e = await dbQuery(`select contest, title, annotation, genre from contest_entries where id::text = $1`, [entryId])
+        const row = e.rows[0] as { contest: string; title: string; annotation: string | null; genre: string | null } | undefined
+        if (!row) return
+        const eps = await dbQuery(`select ord, body from contest_episodes where entry_id::text = $1 order by ord`, [entryId])
+        const input = {
+          contest: row.contest, title: row.title ?? '', annotation: row.annotation ?? '', genre: row.genre ?? '',
+          episodes: (eps.rows as { ord: number; body: string }[]).map((x) => ({ ord: x.ord, body: x.body ?? '' })),
+        }
+        const hash = reviewHash(input)
+        const done = await dbQuery(`select 1 from contest_ai_reviews where entry_id = $1 and text_hash = $2 limit 1`, [entryId, hash])
+        if (done.rowCount) return
+        const result = await runContestReview(input)
+        const words = input.episodes.reduce((a, x) => a + countWords(x.body), 0)
+        await dbQuery(
+          `insert into contest_ai_reviews (entry_id, contest, text_hash, words, total, model, result)
+           values ($1, $2, $3, $4, $5, $6, $7)`,
+          [entryId, input.contest, hash, words, result.total, REVIEW_MODEL, JSON.stringify(result)],
+        )
+      } catch (err) {
+        console.error('[contest/submit] ai review', (err as Error)?.message)
+      }
+    })
+
     await sendMail({
+      entryNumber,
       to: email,
       authorName,
       contestName: contest.name,
@@ -335,6 +375,7 @@ export async function POST(req: NextRequest) {
  * вірити на слово — це головна претензія до старої форми.
  */
 async function sendMail(p: {
+  entryNumber: number | null
   to: string
   authorName: string
   contestName: string
@@ -361,6 +402,7 @@ async function sendMail(p: {
     <p style="color:#c8d4e8;">Вітаємо${p.authorName ? ', <strong style="color:#f5f0e8">' + p.authorName + '</strong>' : ''}!</p>
     <p style="color:#c8d4e8;">Заявку на конкурс <strong style="color:#ef9f27">${p.contestName}</strong> отримано.</p>
     <p style="color:#c8d4e8;">Твір: <strong style="color:#f5f0e8">${p.title}</strong></p>
+    ${p.entryNumber ? `<p style="color:#c8d4e8;">Номер вашої роботи: <strong style="color:#ef9f27;font-size:18px">№ ${p.entryNumber}</strong>. Вказуйте його в листах до редакції.</p>` : ''}
     <ul style="color:#c8d4e8;line-height:1.8;">${rows}</ul>
     ${tail}
     <p style="color:#8899bb;font-size:13px;">Якщо в переліку чогось бракує — напишіть на nazar@balabony.com, розберемося.</p>
@@ -373,7 +415,7 @@ async function sendMail(p: {
     await resend.emails.send({
       from,
       to: p.to,
-      subject: `[Балабони] Заявку прийнято: ${p.title}`,
+      subject: `[Балабони] Заявку прийнято: ${p.title}${p.entryNumber ? ` (№ ${p.entryNumber})` : ''}`,
       html,
     })
     // Копія редакції: ті самі дані, що в автора, плюс ХТО подав заявку.

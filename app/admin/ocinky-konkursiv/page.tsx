@@ -64,6 +64,19 @@ export default function Page() {
     } finally { setSaving(null) }
   }
 
+  const routeAll = async () => {
+    setSaving('route'); setErr('')
+    try {
+      const r = await fetch('/api/admin/contest-ranking', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'route-all' }),
+      })
+      const j = await r.json() as { ok?: boolean; error?: string; routed?: number }
+      if (!j.ok) { setErr(j.error ?? 'Помилка'); return }
+      setErr(`Скеровано робіт: ${j.routed ?? 0}`); void load(contest)
+    } finally { setSaving(null) }
+  }
+
   const val = (r: Row, k: SortKey) =>
     k === 'number' ? -(r.entry_number ?? 9999) : k === 'ai' ? r.ai_total : k === 'editor' ? pct(r.editor_total, 50) : r.founder_score
   const sorted = [...rows].sort((a, b) => (val(b, sort) ?? -1) - (val(a, sort) ?? -1))
@@ -90,6 +103,14 @@ export default function Page() {
           ))}
         </div>
 
+        <div style={{ marginBottom: 14 }}>
+          <button disabled={saving !== null} onClick={() => void routeAll()} style={tab(true)}>
+            {saving === 'route' ? 'Скеровую…' : 'Скерувати всі нерозподілені'}
+          </button>
+          <span style={{ color: MUTED, fontSize: 12, marginLeft: 10 }}>
+            Нові роботи скеровуються самі при подачі. Кнопка — для старих: дає номер, призначає редактора з найменшим навантаженням і надсилає йому лист.
+          </span>
+        </div>
         {err && <p style={{ color: RED }}>{err}</p>}
         {!err && rows.length === 0 && <p style={{ color: MUTED }}>У цьому конкурсі заявок поки немає.</p>}
 
