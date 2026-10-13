@@ -236,24 +236,33 @@ export async function runContestReview(e: EntryInput): Promise<ReviewResult> {
   const fairy = contestId === 'odnoho-razu-pered-rizdvom'
   const fullText = e.episodes.map((x) => x.body).join('\n\n')
 
-  const client = new Anthropic({ apiKey: key })
-  const msg = await client.messages.create({
-    model: REVIEW_MODEL,
-    max_tokens: 8000,
-    temperature: 0,
-    messages: [{ role: 'user', content: buildPrompt(e, reqs, fairy) }],
-  })
-  const raw = msg.content.map((c) => (c.type === 'text' ? c.text : '')).join('').trim()
-  const clean = raw.replace(/```json/g, '').replace(/```/g, '').trim()
-  const start = clean.indexOf('{'), end = clean.lastIndexOf('}')
-  if (start < 0 || end < 0) throw new Error('Модель не повернула JSON')
-  const p = JSON.parse(clean.slice(start, end + 1)) as {
+  type Parsed = {
     requirements?: { id?: string; score?: unknown; comment?: string; quotes?: string[] }[]
     grammar?: { score?: unknown; comment?: string; issues?: LangIssue[] }
     style?: { score?: unknown; comment?: string; issues?: LangIssue[] }
     tales?: { title?: string; start_quote?: string }[]
     summary?: string
   }
+  const client = new Anthropic({ apiKey: key })
+  // Одна повторна спроба, якщо модель повернула зламаний JSON.
+  let p: Parsed | null = null
+  let lastErr: Error | null = null
+  for (let attempt = 0; attempt < 2 && !p; attempt++) {
+    const msg = await client.messages.create({
+      model: REVIEW_MODEL,
+      max_tokens: 8000,
+      temperature: 0,
+      messages: [{ role: 'user', content: buildPrompt(e, reqs, fairy) }],
+    })
+    const raw = msg.content.map((c) => (c.type === 'text' ? c.text : '')).join('').trim()
+    const clean = raw.replace(/```json/g, '').replace(/```/g, '').trim()
+    const start = clean.indexOf('{'), end = clean.lastIndexOf('}')
+    try {
+      if (start < 0 || end < 0) throw new Error('Модель не повернула JSON')
+      p = JSON.parse(clean.slice(start, end + 1)) as Parsed
+    } catch (err) { lastErr = err as Error }
+  }
+  if (!p) throw lastErr ?? new Error('Модель не повернула JSON')
 
   // Звіряємо цитати з текстом.
   const hay = squash(fullText)

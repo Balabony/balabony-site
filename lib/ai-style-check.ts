@@ -267,16 +267,24 @@ export async function runStyleCheck(p: { title: string; genre: string; text: str
   if (!key) throw new Error('Немає ANTHROPIC_API_KEY')
   const stats = computeStats(p.text)
   const client = new Anthropic({ apiKey: key })
-  const msg = await client.messages.create({
-    model: STYLE_MODEL,
-    max_tokens: 6000,
-    messages: [{ role: 'user', content: buildPrompt({ ...p, stats }) }],
-  })
-  const raw = msg.content.map((c) => (c.type === 'text' ? c.text : '')).join('').trim()
-  const clean = raw.replace(/```json/g, '').replace(/```/g, '').trim()
-  const start = clean.indexOf('{'), end = clean.lastIndexOf('}')
-  if (start < 0 || end < 0) throw new Error('Модель не повернула JSON')
-  const parsed = JSON.parse(clean.slice(start, end + 1)) as StyleResult
+  // 13.10.2026: модель іноді повертає зламаний JSON (лапки в цитаті) — одна повторна спроба.
+  let parsed: StyleResult | null = null
+  let lastErr: Error | null = null
+  for (let attempt = 0; attempt < 2 && !parsed; attempt++) {
+    const msg = await client.messages.create({
+      model: STYLE_MODEL,
+      max_tokens: 6000,
+      messages: [{ role: 'user', content: buildPrompt({ ...p, stats }) }],
+    })
+    const raw = msg.content.map((c) => (c.type === 'text' ? c.text : '')).join('').trim()
+    const clean = raw.replace(/```json/g, '').replace(/```/g, '').trim()
+    const start = clean.indexOf('{'), end = clean.lastIndexOf('}')
+    try {
+      if (start < 0 || end < 0) throw new Error('Модель не повернула JSON')
+      parsed = JSON.parse(clean.slice(start, end + 1)) as StyleResult
+    } catch (e) { lastErr = e as Error }
+  }
+  if (!parsed) throw lastErr ?? new Error('Модель не повернула JSON')
   const result = verifyQuotes(parsed, p.text)
   result.scenario = String(result.scenario ?? '').replace(/^\s*(найімовірніший сценарій\s*:\s*)+/i, '')
   result.index = computeIndex(result.markers)

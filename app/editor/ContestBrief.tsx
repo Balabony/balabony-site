@@ -49,6 +49,8 @@ const GUIDE: { label: string; max: number; zero: string; half: string; full: str
     full: 'після першого абзацу (і після кожної серії) неможливо не читати далі.' },
 ]
 
+const fmt = (d: string) => d.split('-').reverse().join('.')
+
 export default function ContestBrief({ contest }: { contest: string }) {
   const c = findContest(contest)
   const reqs = REQUIREMENTS[contest as ContestId] ?? []
@@ -65,6 +67,12 @@ export default function ContestBrief({ contest }: { contest: string }) {
           <div style={{ color: MUTED, marginBottom: '.4rem' }}>
             {c?.name ?? contest}{volume ? ` · обсяг: ${volume}` : ''}
           </div>
+          {c?.stages.scoresUntil && (
+            <div style={{ background: 'rgba(250,199,117,.10)', border: '1px solid rgba(250,199,117,.35)', borderRadius: 8, padding: '.5rem .7rem', margin: '.4rem 0 .6rem' }}>
+              <b style={{ color: GOLD_L }}>Ваш строк: подати оцінку до {fmt(c.stages.scoresUntil)}.</b>
+              {c.stages.publishFrom && <> Публікація твору: {fmt(c.stages.publishFrom)}{c.stages.publishUntil && c.stages.publishUntil !== c.stages.publishFrom ? ` — ${fmt(c.stages.publishUntil)}` : ''} — правки тексту (якщо потрібні) зробіть до першої дати.</>}
+            </div>
+          )}
 
           <div style={{ fontWeight: 600, margin: '.6rem 0 .3rem' }}>Вимоги конкурсу — перевірте кожну:</div>
           <ol style={{ margin: 0, paddingLeft: '1.2rem' }}>
