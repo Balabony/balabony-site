@@ -35,6 +35,7 @@ export const ADMIN_GROUPS: AdminGroup[] = [
       { href: '/admin/series-list',     label: 'Усі серії «Балабонів»', note: 'Повний перелік серій за сезонами: обкладинки, перевірка канону', quick: true, short: 'Серії' },
       { href: '/admin/stories1',        label: 'Авторські',      note: 'Твори авторів' },
       { href: '/admin/konkursy',        label: 'Конкурсні заявки', note: 'Що надіслали на конкурси: читати, приймати, відхиляти', quick: true, short: 'Конкурси' },
+      { href: '/admin/ocinka-shi',      label: 'Оцінка конкурсних творів ШІ', note: 'Незалежна оцінка кожної вимоги умов конкурсу, граматики й стилістики; редактори її не бачать', short: 'Оцінка ШІ' },
       { href: '/admin/na-redakturi',    label: 'На редактурі',   note: 'Черга текстів у роботі' },
       { href: '/admin/editorial',       label: 'Редакція',       note: 'Редакційний розділ' },
       { href: '/admin/cover-position',  label: 'Обкладинки',      note: 'Кадр і ревізія обкладинок в одному: підгонка рамки мишею і перегляд оригіналів великим планом', quick: true, short: 'Кадр' },
