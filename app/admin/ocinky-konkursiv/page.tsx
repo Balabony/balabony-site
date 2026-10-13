@@ -18,7 +18,7 @@ const GREEN = '#5cc98a', AMBER = '#f0b54a', RED = '#ef6b6b'
 type Row = {
   id: string; entry_number: number | null; title: string; author_name: string; email: string; phone: string | null
   status: string; episodes: number
-  ai_total: number | null; style_index: number | null
+  ai_total: number | null; style_index: number | null; orig_verdict: string | null
   editor_total: number | null; editor_name: string | null; editor_email: string | null
   recheck_total: number | null; recheck_name: string | null; recheck_email: string | null
   founder_score: number | null; founder_comment: string | null
@@ -136,7 +136,7 @@ export default function Page() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-                  <Score label="ШІ" value={r.ai_total === null ? null : `${r.ai_total}/100`} c={color(r.ai_total)} note={r.style_index !== null ? `ознаки ШІ: ${r.style_index}/100` : undefined} />
+                  <Score label="ШІ" value={r.ai_total === null ? null : `${r.ai_total}/100`} c={color(r.ai_total)} note={[r.style_index !== null ? `ознаки ШІ: ${r.style_index}/100` : '', r.orig_verdict === 'found' ? '⚠ знайдено в інтернеті' : r.orig_verdict === 'unclear' ? 'є схожі в інтернеті' : r.orig_verdict === 'clean' ? 'в інтернеті не знайдено' : ''].filter(Boolean).join(' · ') || undefined} />
                   <Score label="Редактор" value={r.editor_total === null ? null : `${r.editor_total}/50 (${ed}%)`} c={color(ed)}
                     note={r.recheck_total !== null ? `друга думка: ${r.recheck_total}/50` : undefined} />
                   <Score label="Моя" value={r.founder_score === null ? null : `${r.founder_score}/100`} c={color(r.founder_score)} />

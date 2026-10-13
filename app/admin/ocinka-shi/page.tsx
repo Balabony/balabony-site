@@ -16,7 +16,7 @@ const FONT = "'Montserrat', Arial, sans-serif"
 const NAVY = '#0a1628', CARD = '#0f1f38', GOLD = '#ef9f27', CREAM = '#FFF8EE', MUTED = '#8CA0B8', LINE = 'rgba(255,255,255,.10)'
 const GREEN = '#5cc98a', AMBER = '#f0b54a', RED = '#ef6b6b'
 
-type Entry = { id: string; contest: string; title: string; status: string; created_at: string; episodes: number; words: number; ai_total: number | null; ai_at: string | null; style_index: number | null; style_at: string | null }
+type Entry = { id: string; contest: string; title: string; status: string; created_at: string; episodes: number; words: number; ai_total: number | null; ai_at: string | null; style_index: number | null; style_at: string | null; orig_verdict: string | null; orig_matches: number | null }
 type Review = { id: string; entry_id: string; total: number; words: number; model: string; result: ReviewResult; created_at: string }
 
 const color = (s: number | null, max = 10) => s === null ? MUTED : s / max >= 0.75 ? GREEN : s / max >= 0.5 ? AMBER : RED
@@ -80,6 +80,29 @@ export default function Page() {
     } finally { setBusy(null) }
   }
 
+  type Orig = { verdict: string; created_at: string; result: { matches: { phrase: string; url: string; title: string; note: string }[]; summary: string; phrases: string[] } }
+  const [orig, setOrig] = useState<Record<string, Orig | null>>({})
+  const runOrig = async (id: string) => {
+    setBusy('o' + id); setErr('')
+    try {
+      const r = await fetch('/api/admin/contest-originality', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entryId: id, force: true }),
+      })
+      const d = await r.json() as { ok?: boolean; error?: string; check?: Orig }
+      if (!d.ok || !d.check) { setErr(d.error ?? 'Помилка'); return }
+      setOrig({ ...orig, [id]: d.check }); void load()
+    } catch {
+      setErr('Немає звʼязку з сервером. Оновіть сторінку за хвилину.')
+    } finally { setBusy(null) }
+  }
+  const showOrig = async (id: string) => {
+    if (orig[id]) { setOrig({ ...orig, [id]: null }); return }
+    const r = await fetch(`/api/admin/contest-originality?entry=${encodeURIComponent(id)}`, { cache: 'no-store' })
+    const d = await r.json() as { check?: Orig | null }
+    if (d.check) setOrig({ ...orig, [id]: d.check })
+  }
+
   return (
     <main style={{ background: NAVY, minHeight: '100vh', color: CREAM, fontFamily: FONT, padding: '24px 16px' }}>
       <div style={{ maxWidth: 1000, margin: '0 auto' }}>
@@ -127,6 +150,34 @@ export default function Page() {
                   {busy === 's' + e.id ? 'Перевіряю…' : e.style_index === null ? 'Перевірити' : 'Перевірити заново'}
                 </button>
               </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${LINE}`, fontSize: 13 }}>
+                <span style={{ color: MUTED }}>Публікація в інших онлайн-медіа:</span>
+                {e.orig_verdict === null
+                  ? <span style={{ color: MUTED }}>ще не перевіряли</span>
+                  : e.orig_verdict === 'clean'
+                    ? <span style={{ fontWeight: 700, color: GREEN }}>збігів не знайдено</span>
+                    : <span style={{ fontWeight: 700, color: e.orig_verdict === 'found' ? RED : AMBER }}>{e.orig_verdict === 'found' ? 'ЗНАЙДЕНО' : 'є схожі'} · {e.orig_matches ?? 0}</span>}
+                {e.orig_verdict !== null && <button onClick={() => void showOrig(e.id)} style={btn(false)}>{orig[e.id] ? 'Згорнути' : 'Деталі'}</button>}
+                <button disabled={busy !== null} onClick={() => void runOrig(e.id)} style={btn(false)}>
+                  {busy === 'o' + e.id ? 'Шукаю… (до 2 хв)' : e.orig_verdict === null ? 'Перевірити' : 'Перевірити заново'}
+                </button>
+              </div>
+              {orig[e.id] && (
+                <div style={{ fontSize: 13, lineHeight: 1.55, marginTop: 8, padding: 10, background: NAVY, borderRadius: 8 }}>
+                  <p style={{ margin: '0 0 6px' }}>{orig[e.id]!.result.summary}</p>
+                  {orig[e.id]!.result.matches.map((m, k) => (
+                    <div key={k} style={{ borderTop: `1px solid ${LINE}`, padding: '6px 0' }}>
+                      <a href={m.url} target="_blank" rel="noopener noreferrer" style={{ color: GOLD }}>{m.title || m.url}</a>
+                      <span style={{ color: MUTED }}> — {m.note}</span>
+                      <div style={{ color: MUTED, fontStyle: 'italic' }}>«{m.phrase}»</div>
+                    </div>
+                  ))}
+                  <p style={{ color: MUTED, fontSize: 12, margin: '6px 0 0' }}>
+                    Шукали {orig[e.id]!.result.phrases.length} фраз з тексту. Пошук бачить лише відкриті сторінки: платні розділи, закриті групи й Telegram — ні.
+                    Публікація на власних ресурсах автора й у паперовій газеті умовами дозволена — рішення за вами.
+                  </p>
+                </div>
+              )}
               {open === e.id && review && <ReviewView r={review} />}
             </div>
           )

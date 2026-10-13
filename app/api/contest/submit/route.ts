@@ -1,5 +1,6 @@
 import { after } from 'next/server'
 import { routeEntry } from '@/lib/contest-routing'
+import { checkEntryOriginality } from '@/lib/contest-originality-run'
 import { runContestReview, reviewHash, REVIEW_MODEL } from '@/lib/contest-ai-review'
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
@@ -339,6 +340,15 @@ export async function POST(req: NextRequest) {
         )
       } catch (err) {
         console.error('[contest/submit] ai review', (err as Error)?.message)
+      }
+    })
+
+    // Перевірка на попередню публікацію в інтернеті — теж у фоні (14.10.2026).
+    after(async () => {
+      try {
+        await checkEntryOriginality(entryId)
+      } catch (err) {
+        console.error('[contest/submit] originality', (err as Error)?.message)
       }
     })
 

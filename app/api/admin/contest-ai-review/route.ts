@@ -42,7 +42,9 @@ export async function GET(req: NextRequest) {
               (select total from contest_ai_reviews a where a.entry_id = e.id::text order by created_at desc limit 1) as ai_total,
               (select created_at from contest_ai_reviews a where a.entry_id = e.id::text order by created_at desc limit 1) as ai_at,
               (select (result->>'index')::int from ai_style_checks s where s.source = 'contest' and s.source_id = e.id::text order by created_at desc limit 1) as style_index,
-              (select created_at from ai_style_checks s where s.source = 'contest' and s.source_id = e.id::text order by created_at desc limit 1) as style_at
+              (select created_at from ai_style_checks s where s.source = 'contest' and s.source_id = e.id::text order by created_at desc limit 1) as style_at,
+              (select verdict from contest_originality_checks o where o.entry_id = e.id::text order by created_at desc limit 1) as orig_verdict,
+              (select jsonb_array_length(result->'matches') from contest_originality_checks o where o.entry_id = e.id::text order by created_at desc limit 1) as orig_matches
          from contest_entries e
          left join contest_episodes ep on ep.entry_id = e.id
         group by e.id

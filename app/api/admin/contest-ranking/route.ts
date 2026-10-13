@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
               (select count(*)::int from contest_episodes ep where ep.entry_id = e.id) as episodes,
               (select total from contest_ai_reviews a where a.entry_id = e.id::text order by a.created_at desc limit 1) as ai_total,
               (select (result->>'index')::int from ai_style_checks s where s.source = 'contest' and s.source_id = e.id::text order by s.created_at desc limit 1) as style_index,
+              (select verdict from contest_originality_checks o where o.entry_id = e.id::text order by o.created_at desc limit 1) as orig_verdict,
               (select s.total from contest_assignments a join contest_scores s on s.entry_id = a.entry_id and s.editor_id = a.editor_id
                  where a.entry_id = e.id and a.role = 'primary' and s.status = 'submitted' limit 1) as editor_total,
               (select ed.name from contest_assignments a join editors ed on ed.id = a.editor_id
