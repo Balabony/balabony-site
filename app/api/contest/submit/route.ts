@@ -352,7 +352,7 @@ async function sendMail(p: {
   const left = p.totalNeed - p.totalNow
   const tail = left > 0
     ? `<p style="color:#c8d4e8">Прийнято ${p.totalNow} із ${p.totalNeed}. Решту (${left}) надсилайте тією самою сторінкою, у міру написання.</p>`
-    : `<p style="color:#c8d4e8">Заявка повна: ${p.totalNow} із ${p.totalNeed}. Редакція відповість протягом десяти днів.</p>`
+    : `<p style="color:#c8d4e8">Заявка повна: ${p.totalNow} із ${p.totalNeed}. Результати оголосить журі після розгляду робіт, переможців опублікуємо на сайті.</p>`
 
   const html = `
 <body style="font-family:Arial,sans-serif;background:#0a1628;color:#f5f0e8;padding:32px;max-width:680px;margin:0 auto;">
