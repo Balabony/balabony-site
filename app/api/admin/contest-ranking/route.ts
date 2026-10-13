@@ -25,7 +25,9 @@ export async function GET(req: NextRequest) {
   if (!contest) return NextResponse.json({ ok: false, error: 'Не вказано конкурс' }, { status: 400 })
   try {
     const r = await dbQuery(
-      `select e.id::text as id, e.entry_number, e.title, e.author_name, e.email, e.status, e.created_at,
+      `select e.id::text as id, e.entry_number, e.title,
+              coalesce(nullif(e.author_name, ''), (select coalesce(nullif(p.full_name, ''), p.pen_name) from author_profiles p where p.user_id::text = e.author_id::text limit 1)) as author_name,
+              e.email, e.status, e.created_at,
               (select p.phone from author_profiles p where p.user_id::text = e.author_id::text limit 1) as phone,
               (select count(*)::int from contest_episodes ep where ep.entry_id = e.id) as episodes,
               (select total from contest_ai_reviews a where a.entry_id = e.id::text order by a.created_at desc limit 1) as ai_total,
