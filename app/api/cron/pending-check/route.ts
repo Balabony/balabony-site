@@ -3,6 +3,7 @@ import { dbQuery } from '@/lib/db'
 import { sendProblemAlert } from '@/lib/problem-alert'
 import { sendCoverReminders } from '@/lib/contest-cover-reminder'
 import { sendEditorDeadlineReminders } from '@/lib/editor-deadline-reminder'
+import { sendNewWorksDigest } from '@/lib/new-works-digest'
 
 /**
  * Щоденна перевірка «що зависло» (14.10.2026), 10:00 за Києвом.
@@ -44,6 +45,8 @@ export async function GET(req: NextRequest) {
     for (const e of entries.rows as { id: string; title: string; contest: string }[]) {
       lines.push(`Конкурсна робота #${e.id} «${e.title}» без номера або редактора — https://balabony.com/admin/ocinky-konkursiv`)
     }
+    // 14.10.2026: щоденний лист про нові твори замість окремого листа на кожен.
+    try { await sendNewWorksDigest() } catch (err) { console.error('[new-works-digest run]', (err as Error)?.message) }
     let edReminded: string[] = []
     try { edReminded = await sendEditorDeadlineReminders() } catch (err) { console.error('[editor-deadline run]', (err as Error)?.message) }
     if (edReminded.length) {

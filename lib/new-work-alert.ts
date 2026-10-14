@@ -35,6 +35,9 @@ export async function sendNewWorkAlert(p: {
   genre?: string | null
 }) {
   if (!process.env.RESEND_API_KEY) return
+  // 14.10.2026: додані й опубліковані твори — тепер в одному щоденному листі (lib/new-works-digest.ts).
+  // Окремим листом лишається тільки серія на редактуру — її треба взяти в роботу.
+  if (p.event !== 'review') return
   const time = new Date().toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv' })
   const html = `
 <body style="font-family:Arial,sans-serif;background:#0a1628;color:#f5f0e8;padding:24px;max-width:640px;margin:0 auto;">
@@ -53,7 +56,7 @@ export async function sendNewWorkAlert(p: {
       from: process.env.RESEND_FROM_EMAIL ?? 'editorial@balabony.com',
       to: TO,
       ...(p.email ? { replyTo: p.email } : {}),
-      subject: `[Балабони] ${p.event === 'added' ? 'Новий твір' : p.event === 'published' ? 'Опубліковано автором' : 'Серія на редактуру'}: «${p.title.slice(0, 80)}» — ${p.author ?? ''}`,
+      subject: `[Балабони] Серія на редактуру: «${p.title.slice(0, 80)}» — ${p.author ?? ''}`,
       html,
     })
   } catch (e) {
