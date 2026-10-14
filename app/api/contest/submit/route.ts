@@ -150,6 +150,8 @@ async function handlePOST(req: NextRequest) {
   const title = String(form.get('title') ?? '').trim().slice(0, 200)
   const annotation = String(form.get('annotation') ?? '').trim().slice(0, 1500)
   const genre = String(form.get('genre') ?? '').trim().slice(0, 100)
+  // 14.10.2026: опис головних героїв для обкладинки (необовʼязково).
+  const coverBrief = String(form.get('coverBrief') ?? '').trim().slice(0, 3000)
 
   // Порядок серій.
   //
@@ -244,9 +246,10 @@ async function handlePOST(req: NextRequest) {
         await dbQuery(
           `update contest_entries
               set title = $2, annotation = coalesce(nullif($3,''), annotation),
-                  genre = coalesce(nullif($4,''), genre), updated_at = now()
+                  genre = coalesce(nullif($4,''), genre),
+                  cover_brief = coalesce(nullif($5,''), cover_brief), updated_at = now()
             where id = $1`,
-          [entryId, title, annotation, genre],
+          [entryId, title, annotation, genre, coverBrief],
         )
       }
     } else {
@@ -264,9 +267,9 @@ async function handlePOST(req: NextRequest) {
         return NextResponse.json({ ok: false, error: 'Вкажіть назву твору' }, { status: 400 })
       }
       const ins = await dbQuery(
-        `insert into contest_entries (author_id, author_name, email, contest, title, annotation, genre)
-         values ($1,$2,$3,$4,$5,$6,$7) returning id::text`,
-        [user.id, authorName, email, contest.id, title, annotation, genre],
+        `insert into contest_entries (author_id, author_name, email, contest, title, annotation, genre, cover_brief)
+         values ($1,$2,$3,$4,$5,$6,$7,nullif($8,'')) returning id::text`,
+        [user.id, authorName, email, contest.id, title, annotation, genre, coverBrief],
       )
       entryId = (ins.rows[0] as { id: string }).id
     }

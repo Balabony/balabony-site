@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
   if (!contest) return NextResponse.json({ ok: false, error: 'Не вказано конкурс' }, { status: 400 })
   try {
     const r = await dbQuery(
-      `select e.id::text as id, e.entry_number, e.title,
+      `select e.id::text as id, e.entry_number, e.title, e.cover_brief,
               coalesce(nullif(e.author_name, ''), (select coalesce(nullif(p.full_name, ''), p.pen_name) from author_profiles p where p.user_id::text = e.author_id::text limit 1)) as author_name,
               e.email, e.status, e.created_at,
               (select p.phone from author_profiles p where p.user_id::text = e.author_id::text limit 1) as phone,
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   if (!authorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  let b: { entryId?: string; score?: unknown; comment?: string; action?: string }
+  let b: { entryId?: string; score?: unknown; comment?: string; action?: string; coverBrief?: string }
   try { b = await req.json() } catch { return NextResponse.json({ ok: false, error: 'Невірний запит' }, { status: 400 }) }
 
   // Скерувати всі нерозподілені: номер + редактор + лист редактору.
@@ -84,6 +84,18 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       console.error('[contest-ranking route-all]', (err as Error)?.message)
       return NextResponse.json({ ok: false, error: 'Не вдалося скерувати' }, { status: 500 })
+    }
+  }
+  // Опис героїв для обкладинки — засновник вставляє відповідь автора з листа.
+  if (b.action === 'cover-brief') {
+    const id = String(b.entryId ?? '').trim()
+    if (!id) return NextResponse.json({ ok: false, error: 'Не вказано заявку' }, { status: 400 })
+    try {
+      await dbQuery(`update contest_entries set cover_brief = nullif($2, '') where id::text = $1`, [id, String(b.coverBrief ?? '').trim().slice(0, 3000)])
+      return NextResponse.json({ ok: true })
+    } catch (err) {
+      console.error('[contest-ranking cover-brief]', (err as Error)?.message)
+      return NextResponse.json({ ok: false, error: 'Не вдалося зберегти. Чи додано колонку cover_brief?' }, { status: 500 })
     }
   }
   const entryId = String(b.entryId ?? '').trim()

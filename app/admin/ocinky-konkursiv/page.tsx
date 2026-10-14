@@ -22,6 +22,7 @@ type Row = {
   editor_total: number | null; editor_name: string | null; editor_email: string | null
   recheck_total: number | null; recheck_name: string | null; recheck_email: string | null
   founder_score: number | null; founder_comment: string | null
+  cover_brief: string | null
 }
 type SortKey = 'number' | 'ai' | 'editor' | 'founder'
 
@@ -36,6 +37,7 @@ export default function Page() {
   const [draft, setDraft] = useState<Record<string, { score: string; comment: string }>>({})
   const [saving, setSaving] = useState<string | null>(null)
   const [saved, setSaved] = useState<string | null>(null)
+  const [covers, setCovers] = useState<Record<string, string>>({})
 
   const load = useCallback(async (c: string) => {
     setErr('')
@@ -45,6 +47,7 @@ export default function Page() {
     if (!d.ok) { setErr(d.error ?? 'Помилка'); setRows([]); return }
     const list = d.entries ?? []
     setRows(list)
+    setCovers(Object.fromEntries(list.map((x) => [x.id, x.cover_brief ?? ''])))
     setDraft(Object.fromEntries(list.map((x) => [x.id, { score: x.founder_score === null ? '' : String(x.founder_score), comment: x.founder_comment ?? '' }])))
   }, [])
 
@@ -61,6 +64,19 @@ export default function Page() {
       const j = await r.json() as { ok?: boolean; error?: string }
       if (!j.ok) { setErr(j.error ?? 'Помилка'); return }
       setSaved(id); void load(contest)
+    } finally { setSaving(null) }
+  }
+
+  const saveCover = async (id: string) => {
+    setSaving('cover' + id); setErr(''); setSaved(null)
+    try {
+      const r = await fetch('/api/admin/contest-ranking', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'cover-brief', entryId: id, coverBrief: covers[id] ?? '' }),
+      })
+      const j = await r.json() as { ok?: boolean; error?: string }
+      if (!j.ok) { setErr(j.error ?? 'Помилка'); return }
+      setSaved('cover' + id)
     } finally { setSaving(null) }
   }
 
@@ -155,6 +171,19 @@ export default function Page() {
                   {saving === r.id ? 'Зберігаю…' : 'Зберегти'}
                 </button>
                 {saved === r.id && <span style={{ color: GREEN, fontSize: 13, paddingTop: 8 }}>Збережено</span>}
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'flex-start', marginTop: 10 }}>
+                <label style={{ fontSize: 13, color: MUTED, paddingTop: 8, minWidth: 150 }}>
+                  Герої для обкладинки:{!(covers[r.id] ?? '').trim() && <><br /><span style={{ color: AMBER }}>ще немає</span></>}
+                </label>
+                <textarea placeholder="Опис від автора (з форми або вставте з його листа)" value={covers[r.id] ?? ''} rows={3}
+                  onChange={(e) => setCovers({ ...covers, [r.id]: e.target.value })}
+                  style={{ ...inp, flex: '1 1 260px', resize: 'vertical' }} />
+                <button disabled={saving !== null} onClick={() => void saveCover(r.id)} style={tab(false)}>
+                  {saving === 'cover' + r.id ? 'Зберігаю…' : 'Зберегти опис'}
+                </button>
+                {saved === 'cover' + r.id && <span style={{ color: GREEN, fontSize: 13, paddingTop: 8 }}>Збережено</span>}
               </div>
             </div>
           )
