@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { alertForContent } from '@/lib/new-work-alert'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
@@ -110,6 +111,8 @@ export async function POST(req: NextRequest) {
         { status: 500 },
       )
     }
+
+    await alertForContent('published', contentId, user.email ?? null)
 
     return NextResponse.json({ ok: true, status: 'published' })
   } catch {

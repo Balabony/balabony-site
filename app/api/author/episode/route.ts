@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { dbQuery } from '@/lib/db'
+import { alertForContent } from '@/lib/new-work-alert'
 
 /**
  * Супровідні тексти серії, які пише сам автор у кабінеті:
@@ -100,6 +101,12 @@ export async function POST(req: NextRequest) {
 
   values.push(id)
   await dbQuery(`update content set ${sets.join(', ')} where id = $${values.length}`, values)
+
+  if (b.submit === true) {
+    const supabase = await createSupabaseServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    await alertForContent('review', id, user?.email ?? null)
+  }
 
   return NextResponse.json({ ok: true, saved: true, submitted: b.submit === true })
 }

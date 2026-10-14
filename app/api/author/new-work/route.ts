@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { dbQuery } from '@/lib/db'
 import { slugify } from '@/lib/slugify'
 import { normalizeGenre } from '@/lib/genres'
+import { sendNewWorkAlert } from '@/lib/new-work-alert'
 
 /**
  * Автор додає власний твір: /api/author/new-work
@@ -145,9 +146,16 @@ export async function POST(req: NextRequest) {
       [slug, title, text, user.id, authorName, genre, 'додано автором у кабінеті'],
     )
 
+    const newId = (ins.rows[0] as { id: string }).id
+    // 14.10.2026: одразу повідомляємо Богдана, щоб твір не лежав непоміченим.
+    await sendNewWorkAlert({
+      event: 'added', id: newId, title, author: authorName, email: user.email ?? null,
+      words: text.split(/\s+/).filter(Boolean).length, genre,
+    })
+
     return NextResponse.json({
       ok: true,
-      id: (ins.rows[0] as { id: string }).id,
+      id: newId,
       slug,
     })
   } catch (err) {
