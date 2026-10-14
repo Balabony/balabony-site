@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
   if (!contest) return NextResponse.json({ ok: false, error: 'Не вказано конкурс' }, { status: 400 })
   try {
     const r = await dbQuery(
-      `select e.id::text as id, e.entry_number, e.title, e.cover_brief,
+      `select e.id::text as id, e.entry_number, e.title, e.cover_brief, e.cover_url,
               coalesce(nullif(e.author_name, ''), (select coalesce(nullif(p.full_name, ''), p.pen_name) from author_profiles p where p.user_id::text = e.author_id::text limit 1)) as author_name,
               e.email, e.status, e.created_at,
               (select p.phone from author_profiles p where p.user_id::text = e.author_id::text limit 1) as phone,

@@ -22,7 +22,7 @@ type Row = {
   editor_total: number | null; editor_name: string | null; editor_email: string | null
   recheck_total: number | null; recheck_name: string | null; recheck_email: string | null
   founder_score: number | null; founder_comment: string | null
-  cover_brief: string | null
+  cover_brief: string | null; cover_url: string | null
 }
 type SortKey = 'number' | 'ai' | 'editor' | 'founder'
 
@@ -77,6 +77,19 @@ export default function Page() {
       const j = await r.json() as { ok?: boolean; error?: string }
       if (!j.ok) { setErr(j.error ?? 'Помилка'); return }
       setSaved('cover' + id)
+    } finally { setSaving(null) }
+  }
+
+  const uploadCover = async (id: string, file: File | undefined) => {
+    if (!file) return
+    setSaving('img' + id); setErr(''); setSaved(null)
+    try {
+      const fd = new FormData()
+      fd.append('entryId', id); fd.append('file', file)
+      const r = await fetch('/api/admin/contest-cover', { method: 'POST', body: fd })
+      const j = await r.json() as { ok?: boolean; error?: string }
+      if (!j.ok) { setErr(j.error ?? 'Помилка'); return }
+      setSaved('img' + id); void load(contest)
     } finally { setSaving(null) }
   }
 
@@ -184,6 +197,24 @@ export default function Page() {
                   {saving === 'cover' + r.id ? 'Зберігаю…' : 'Зберегти опис'}
                 </button>
                 {saved === 'cover' + r.id && <span style={{ color: GREEN, fontSize: 13, paddingTop: 8 }}>Збережено</span>}
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', marginTop: 10 }}>
+                <span style={{ fontSize: 13, color: MUTED, minWidth: 150 }}>
+                  Обкладинка від автора:{!r.cover_url && <><br /><span style={{ color: AMBER }}>ще немає</span></>}
+                </span>
+                {r.cover_url && (
+                  <a href={r.cover_url} target="_blank" rel="noreferrer">
+                    <img src={r.cover_url} alt={`Обкладинка «${r.title}»`} style={{ height: 90, borderRadius: 6, border: `1px solid ${LINE}` }} />
+                  </a>
+                )}
+                <label style={{ ...tab(false), display: 'inline-block' }}>
+                  {saving === 'img' + r.id ? 'Завантажую…' : r.cover_url ? 'Замінити файл' : 'Завантажити файл'}
+                  <input type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }}
+                    disabled={saving !== null}
+                    onChange={(e) => { void uploadCover(r.id, e.target.files?.[0]); e.target.value = '' }} />
+                </label>
+                {saved === 'img' + r.id && <span style={{ color: GREEN, fontSize: 13 }}>Обкладинку збережено й прикріплено до твору</span>}
               </div>
             </div>
           )

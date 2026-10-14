@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { dbQuery } from '@/lib/db'
 import { sendProblemAlert } from '@/lib/problem-alert'
+import { sendCoverReminders } from '@/lib/contest-cover-reminder'
 
 /**
  * Щоденна перевірка «що зависло» (14.10.2026), 10:00 за Києвом.
  * Лист Богдану лише тоді, коли є що робити:
  *   — заявки авторів у статусі «нова» довше 2 днів;
  *   — конкурсні роботи без номера або без редактора.
+ * 14.10.2026: тут же — нагадування авторам про обкладинку через 5 днів
+ * (lib/contest-cover-reminder.ts); засновник отримує перелік, кому пішло.
  */
 
 export const dynamic = 'force-dynamic'
@@ -38,6 +41,15 @@ export async function GET(req: NextRequest) {
     }
     for (const e of entries.rows as { id: string; title: string; contest: string }[]) {
       lines.push(`Конкурсна робота #${e.id} «${e.title}» без номера або редактора — https://balabony.com/admin/ocinky-konkursiv`)
+    }
+    let reminded: string[] = []
+    try { reminded = await sendCoverReminders() } catch (err) { console.error('[cover-reminder run]', (err as Error)?.message) }
+    if (reminded.length) {
+      await sendProblemAlert({
+        where: 'нагадування авторам про обкладинку',
+        error: `Надіслано ${reminded.length} нагадувань. Якщо до строку відповіді не буде — обкладинку робимо самі.`,
+        extra: reminded.join(' • '),
+      })
     }
     if (lines.length) {
       await sendProblemAlert({

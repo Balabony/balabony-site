@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
     }
 
     const found = await dbQuery(
-      `select id::text, author_id::text, author_name, contest, title, annotation, genre
+      `select id::text, author_id::text, author_name, contest, title, annotation, genre, cover_url
          from contest_entries where id = $1`,
       [entryId],
     )
@@ -161,6 +161,7 @@ export async function POST(req: NextRequest) {
     const entry = found.rows[0] as {
       id: string; author_id: string; author_name: string
       contest: string; title: string; annotation: string; genre: string
+      cover_url: string | null
     }
 
     if (action !== 'accept') {
@@ -201,10 +202,10 @@ export async function POST(req: NextRequest) {
         `insert into content
            (type, status, audio_status, slug, title, text, author_id, author_name,
             genre, description, season_number, episode_number,
-            is_free, is_adult, is_premium, images, writer_note)
+            is_free, is_adult, is_premium, images, writer_note, cover_url)
          values ('story', 'draft', 'pending', $1, $2, $3, $4, $5,
                  $6, $7, $8, $9,
-                 true, false, false, '[]'::jsonb, $10)
+                 true, false, false, '[]'::jsonb, $10, $11)
          returning id::text`,
         [
           slug, title, raw.body, entry.author_id, entry.author_name,
@@ -213,6 +214,7 @@ export async function POST(req: NextRequest) {
           multi ? 1 : null,
           multi ? raw.ord : null,
           `конкурс: ${contest?.name ?? entry.contest}`,
+          entry.cover_url || null, // 14.10.2026: обкладинка, завантажена до приймання
         ],
       )
 
