@@ -197,6 +197,8 @@ async function handlePOST(req: NextRequest) {
 // 14.10.2026: будь-яка відмова форми — лист Богдану (автори зазвичай не пишуть).
 export async function POST(req: NextRequest) {
   const res = await handlePOST(req)
-  after(() => alertIfFailed(res, 'заявка автора (/become-author)'))
+  // 14.10.2026: копія ДО відправки — інакше тіло відповіді вже прочитане і в листі лише «HTTP 400» без пояснення.
+  const copy = res.clone()
+  after(() => alertIfFailed(copy, 'заявка автора (/become-author)'))
   return res
 }
