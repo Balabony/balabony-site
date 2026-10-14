@@ -4,6 +4,7 @@ import { sendProblemAlert } from '@/lib/problem-alert'
 import { sendCoverReminders } from '@/lib/contest-cover-reminder'
 import { sendEditorDeadlineReminders } from '@/lib/editor-deadline-reminder'
 import { sendNewWorksDigest } from '@/lib/new-works-digest'
+import { dueInTwoDays } from '@/lib/contest-schedule'
 
 /**
  * Щоденна перевірка «що зависло» (14.10.2026), 10:00 за Києвом.
@@ -47,6 +48,17 @@ export async function GET(req: NextRequest) {
     }
     // 14.10.2026: щоденний лист про нові твори замість окремого листа на кожен.
     try { await sendNewWorksDigest() } catch (err) { console.error('[new-works-digest run]', (err as Error)?.message) }
+    // 14.10.2026: за два дні до виходу конкурсних серій — нагадування переглянути.
+    try {
+      const due = await dueInTwoDays()
+      if (due.length) {
+        await sendProblemAlert({
+          where: 'конкурс — через 2 дні виходять серії',
+          error: `Післязавтра о 18:00 вийде ${due.length} серій. Перегляньте тексти, поки є час.`,
+          extra: due.map(d => `«${d.title}» (${d.author ?? 'автор не вказаний'}) — https://balabony.com/admin/content/stories/${d.id}/edit`).join(' • '),
+        })
+      }
+    } catch (err) { console.error('[contest due run]', (err as Error)?.message) }
     let edReminded: string[] = []
     try { edReminded = await sendEditorDeadlineReminders() } catch (err) { console.error('[editor-deadline run]', (err as Error)?.message) }
     if (edReminded.length) {

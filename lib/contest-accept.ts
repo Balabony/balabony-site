@@ -5,6 +5,7 @@
 import { dbQuery } from '@/lib/db'
 import { slugify } from '@/lib/slugify'
 import { findContest } from '@/lib/contests'
+import { scheduleEntry } from '@/lib/contest-schedule'
 
 export async function acceptEntry(entryId: string): Promise<number> {
   const found = await dbQuery(
@@ -80,6 +81,8 @@ export async function acceptEntry(entryId: string): Promise<number> {
   )
 
 
+  // 14.10.2026: дати виходу — одразу за календарем конкурсу.
+  try { await scheduleEntry(entryId) } catch (e) { console.error('[contest-accept] schedule', (e as Error)?.message) }
   return created
 }
 

@@ -3,6 +3,7 @@ import { dbQuery } from '@/lib/db'
 import { CONTESTS } from '@/lib/contests'
 import { countedReadsByEntry } from '@/lib/contest-reads'
 import { acceptEntry, acceptPending } from '@/lib/contest-accept'
+import { schedulePending, unscheduleEntry } from '@/lib/contest-schedule'
 
 /**
  * Конкурсні заявки для адмінки: перегляд, приймання, відхилення.
@@ -73,6 +74,7 @@ export async function GET(req: NextRequest) {
   try {
     // 14.10.2026: заявки приймаються самі — і нові, і досилані серії.
     try { await acceptPending() } catch (e) { console.error('[admin/konkursy] acceptPending', (e as Error)?.message) }
+    try { await schedulePending() } catch (e) { console.error('[admin/konkursy] schedulePending', (e as Error)?.message) }
 
     const list = await dbQuery(
       `select e.id::text, e.author_id::text, e.author_name, e.email, e.contest,
@@ -164,6 +166,8 @@ export async function POST(req: NextRequest) {
         `update contest_entries set status = $2, updated_at = now() where id = $1`,
         [entryId, status],
       )
+      // 14.10.2026: відхилена робота знімається з розкладу публікацій.
+      if (action === 'reject') await unscheduleEntry(entryId)
       return NextResponse.json({ ok: true, status, created: 0 })
     }
 
