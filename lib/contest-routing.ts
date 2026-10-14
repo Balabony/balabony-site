@@ -46,6 +46,7 @@ export async function ensureEditor(entryId: string): Promise<Editor | null> {
     `select ed.id, ed.name, ed.email,
             (select count(*) from contest_assignments a where a.editor_id = ed.id and a.role = 'primary') as load
        from editors ed
+      where ed.can_judge  -- 14.10.2026: оцінюють лише Оксана й Тетяна; літредактори й засновник — ні
       order by load asc, ed.name asc
       limit 1`,
   )
