@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { dbQuery } from '@/lib/db'
 import { sendProblemAlert } from '@/lib/problem-alert'
 import { sendCoverReminders } from '@/lib/contest-cover-reminder'
+import { sendEditorDeadlineReminders } from '@/lib/editor-deadline-reminder'
 
 /**
  * Щоденна перевірка «що зависло» (14.10.2026), 10:00 за Києвом.
@@ -10,6 +11,7 @@ import { sendCoverReminders } from '@/lib/contest-cover-reminder'
  *   — конкурсні роботи без номера або без редактора.
  * 14.10.2026: тут же — нагадування авторам про обкладинку через 5 днів
  * (lib/contest-cover-reminder.ts); засновник отримує перелік, кому пішло.
+ * І редакторам — за 3 дні до строку оцінювання (lib/editor-deadline-reminder.ts).
  */
 
 export const dynamic = 'force-dynamic'
@@ -41,6 +43,15 @@ export async function GET(req: NextRequest) {
     }
     for (const e of entries.rows as { id: string; title: string; contest: string }[]) {
       lines.push(`Конкурсна робота #${e.id} «${e.title}» без номера або редактора — https://balabony.com/admin/ocinky-konkursiv`)
+    }
+    let edReminded: string[] = []
+    try { edReminded = await sendEditorDeadlineReminders() } catch (err) { console.error('[editor-deadline run]', (err as Error)?.message) }
+    if (edReminded.length) {
+      await sendProblemAlert({
+        where: 'нагадування редакторам — 3 дні до строку',
+        error: `Надіслано ${edReminded.length} нагадувань редакторам`,
+        extra: edReminded.join(' • '),
+      })
     }
     let reminded: string[] = []
     try { reminded = await sendCoverReminders() } catch (err) { console.error('[cover-reminder run]', (err as Error)?.message) }
