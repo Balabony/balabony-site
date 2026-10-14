@@ -292,6 +292,20 @@ export async function runContestReview(e: EntryInput): Promise<ReviewResult> {
   const grammar = langPart(p.grammar)
   const style = langPart(p.style)
 
+  // 14.10.2026: подвійні пробіли — одним пунктом, а не десятком однакових.
+  // Модель часто перелічує їх по одному й забиває ними весь список граматики.
+  // Рахуємо самі (точно), а пункти моделі про пробіли прибираємо.
+  const isSpaceIssue = (i: LangIssue) => /пробіл/i.test(`${i.note} ${i.fix}`)
+  const doubleSpaces = (fullText.match(/(?<=\S)[^\S\n]{2,}(?=\S)/g) ?? []).length
+  for (const part of [grammar, style]) part.issues = part.issues.filter((i) => !isSpaceIssue(i))
+  if (doubleSpaces > 0) {
+    grammar.issues.unshift({
+      quote: `подвійні пробіли — ${doubleSpaces} ${doubleSpaces === 1 ? 'місце' : doubleSpaces < 5 ? 'місця' : 'місць'}`,
+      fix: 'замінити на один пробіл (у Word: Ctrl+H, знайти два пробіли, замінити одним)',
+      note: 'технічна дрібниця, на оцінку майже не впливає',
+    })
+  }
+
   const items: ReviewItem[] = [...codeChecks(e)]
   let tales: { title: string; words: number }[] | undefined
   if (fairy) {
