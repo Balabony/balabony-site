@@ -1,5 +1,6 @@
 import { after } from 'next/server'
 import { routeEntry } from '@/lib/contest-routing'
+import { acceptEntry } from '@/lib/contest-accept'
 import { checkEntryOriginality } from '@/lib/contest-originality-run'
 import { runContestReview, reviewHash, REVIEW_MODEL } from '@/lib/contest-ai-review'
 import { NextRequest, NextResponse } from 'next/server'
@@ -320,6 +321,8 @@ async function handlePOST(req: NextRequest) {
     } catch (e) {
       console.error('[contest/submit] route', (e as Error)?.message)
     }
+    // 14.10.2026: робота приймається одразу (чернетки серій у каталозі); відхиляє редактор після читання.
+    try { await acceptEntry(entryId) } catch (e) { console.error('[contest/submit] accept', (e as Error)?.message) }
 
     // Оцінка ШІ — у фоні, після відповіді автору (до 3 хв для серіалу).
     after(async () => {

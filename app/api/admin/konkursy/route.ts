@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { dbQuery } from '@/lib/db'
-import { slugify } from '@/lib/slugify'
-import { CONTESTS, findContest } from '@/lib/contests'
+import { CONTESTS } from '@/lib/contests'
 import { countedReadsByEntry } from '@/lib/contest-reads'
+import { acceptEntry, acceptPending } from '@/lib/contest-accept'
 
 /**
  * Конкурсні заявки для адмінки: перегляд, приймання, відхилення.
@@ -71,6 +71,9 @@ export async function GET(req: NextRequest) {
   const entryId = req.nextUrl.searchParams.get('entry')
 
   try {
+    // 14.10.2026: заявки приймаються самі — і нові, і досилані серії.
+    try { await acceptPending() } catch (e) { console.error('[admin/konkursy] acceptPending', (e as Error)?.message) }
+
     const list = await dbQuery(
       `select e.id::text, e.author_id::text, e.author_name, e.email, e.contest,
               e.title, e.annotation, e.genre, e.status, e.created_at,
@@ -150,18 +153,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Невідома дія' }, { status: 400 })
     }
 
-    const found = await dbQuery(
-      `select id::text, author_id::text, author_name, contest, title, annotation, genre, cover_url
-         from contest_entries where id = $1`,
-      [entryId],
-    )
+    const found = await dbQuery(`select 1 from contest_entries where id = $1`, [entryId])
     if (!found.rowCount) {
       return NextResponse.json({ ok: false, error: 'Заявку не знайдено' }, { status: 404 })
-    }
-    const entry = found.rows[0] as {
-      id: string; author_id: string; author_name: string
-      contest: string; title: string; annotation: string; genre: string
-      cover_url: string | null
     }
 
     if (action !== 'accept') {
@@ -173,64 +167,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, status, created: 0 })
     }
 
-    // ── Приймання: серії → чернетки в content ────────────────────────────
-    const contest = findContest(entry.contest)
-    const eps = await dbQuery(
-      `select id::text, ord, body, words from contest_episodes
-        where entry_id = $1 and content_id is null
-        order by ord`,
-      [entryId],
-    )
-
-    const multi = eps.rows.length > 1
-    let created = 0
-
-    for (const raw of eps.rows as { id: string; ord: number; body: string }[]) {
-      // Назва серії: для одного твору — його назва, для серіалу з номером.
-      const title = multi ? `${entry.title}. Серія ${raw.ord}` : entry.title
-
-      // Вільний slug. Той самий підхід, що в /api/author/new-work.
-      const base = slugify(title)
-      let slug = base
-      for (let i = 0; i < 12; i++) {
-        const busy = await dbQuery(`select id from content where slug = $1 limit 1`, [slug])
-        if (!busy.rowCount) break
-        slug = `${base}-${i + 2}`
-      }
-
-      const ins = await dbQuery(
-        `insert into content
-           (type, status, audio_status, slug, title, text, author_id, author_name,
-            genre, description, season_number, episode_number,
-            is_free, is_adult, is_premium, images, writer_note, cover_url)
-         values ('story', 'draft', 'pending', $1, $2, $3, $4, $5,
-                 $6, $7, $8, $9,
-                 true, false, false, '[]'::jsonb, $10, $11)
-         returning id::text`,
-        [
-          slug, title, raw.body, entry.author_id, entry.author_name,
-          entry.genre || null,
-          raw.ord === 1 ? (entry.annotation || null) : null,
-          multi ? 1 : null,
-          multi ? raw.ord : null,
-          `конкурс: ${contest?.name ?? entry.contest}`,
-          entry.cover_url || null, // 14.10.2026: обкладинка, завантажена до приймання
-        ],
-      )
-
-      const contentId = (ins.rows[0] as { id: string }).id
-      await dbQuery(
-        `update contest_episodes set content_id = $2 where id = $1`,
-        [raw.id, contentId],
-      )
-      created += 1
-    }
-
-    await dbQuery(
-      `update contest_entries set status = 'accepted', updated_at = now() where id = $1`,
-      [entryId],
-    )
-
+    const created = await acceptEntry(entryId)
     return NextResponse.json({ ok: true, status: 'accepted', created })
   } catch (err) {
     console.error('[admin/konkursy POST]', (err as Error)?.message)

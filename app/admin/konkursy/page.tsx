@@ -294,8 +294,8 @@ export default function AdminKonkursyPage() {
           Конкурсні заявки
         </h1>
         <p style={{ color: MUTED, fontSize: 13.5, margin: '0 0 1.2rem', lineHeight: 1.6 }}>
-          Приймання створює чернетки творів у каталозі й повʼязує їх із заявкою.
-          Публікації не відбувається: далі текст іде звичайною чергою редактури.
+          Кожна робота, що надійшла, прийнята автоматично: їй дано номер і редактора.
+          Відхиляє роботу редакція після читання — кнопка «Відхилити» всередині роботи.
         </p>
 
         {err && (
@@ -456,6 +456,14 @@ export default function AdminKonkursyPage() {
               <span style={{ fontSize: 12, color: STATUS_COLOR[e.status] ?? MUTED }}>
                 {STATUS_LABEL[e.status] ?? e.status}
               </span>
+              {/* 14.10.2026: хто читає — видно без розгортання */}
+              {e.status !== 'rejected' && (
+                <span style={{ fontSize: 12.5, color: j?.primary_editor ? CREAM : '#eab308' }}>
+                  {j?.primary_editor
+                    ? `читає: ${editors.find(ed => ed.id === j.primary_editor)?.name ?? 'редактор'}`
+                    : 'редактора не призначено'}
+                </span>
+              )}
               {late && (
                 <span style={{ fontSize: 12, color: '#ff9b9b' }}>
                   після закриття прийому
@@ -530,24 +538,6 @@ export default function AdminKonkursyPage() {
                 ))}
 
                 <div style={{ display: 'flex', gap: '.6rem', marginTop: '.9rem', flexWrap: 'wrap' }}>
-                  {e.status !== 'accepted' && (
-                    <button onClick={() => void act(e.id, 'accept')} disabled={busy}
-                            style={{ font: 'inherit', background: GOLD, color: '#2a1a02',
-                                     border: 0, borderRadius: 8, padding: '.5rem 1.1rem',
-                                     fontWeight: 600, cursor: busy ? 'default' : 'pointer',
-                                     opacity: busy ? .6 : 1 }}>
-                      Прийняти
-                    </button>
-                  )}
-                  {e.status === 'accepted' && e.published < e.episodes && (
-                    <button onClick={() => void act(e.id, 'accept')} disabled={busy}
-                            style={{ font: 'inherit', background: 'rgba(239,159,39,.12)',
-                                     color: GOLD_L, border: `1px solid rgba(239,159,39,.5)`,
-                                     borderRadius: 8, padding: '.5rem 1.1rem',
-                                     cursor: busy ? 'default' : 'pointer' }}>
-                      Додати нові серії в каталог
-                    </button>
-                  )}
                   {e.status !== 'rejected' && (
                     <button onClick={() => void act(e.id, 'reject')} disabled={busy}
                             style={{ font: 'inherit', background: 'transparent', color: '#ff9b9b',
@@ -556,18 +546,18 @@ export default function AdminKonkursyPage() {
                       Відхилити
                     </button>
                   )}
-                  {e.status !== 'new' && (
+                  {e.status === 'rejected' && (
                     <button onClick={() => void act(e.id, 'reset')} disabled={busy}
                             style={{ font: 'inherit', background: 'transparent', color: MUTED,
                                      border: `1px solid ${LINE}`, borderRadius: 8,
                                      padding: '.5rem 1.1rem', cursor: busy ? 'default' : 'pointer' }}>
-                      Повернути в нові
+                      Повернути в конкурс
                     </button>
                   )}
                 </div>
 
                 {/* ── Суддівство ────────────────────────────────── */}
-                {e.status === 'accepted' && (
+                {e.status !== 'rejected' && (
                   <div style={{ marginTop: '.9rem', paddingTop: '.8rem',
                                 borderTop: `1px solid ${LINE}` }}>
                     <div style={{ fontSize: 13, color: GOLD_L, marginBottom: '.5rem' }}>
