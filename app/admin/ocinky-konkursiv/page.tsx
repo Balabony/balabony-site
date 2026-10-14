@@ -80,16 +80,35 @@ export default function Page() {
     } finally { setSaving(null) }
   }
 
+  // 14.10.2026: зменшуємо картинку в браузері ДО відправки. Vercel не приймає
+  // запити понад ~4,5 МБ, а обкладинка з ШІ буває 10+ МБ (PNG 2048×3072) —
+  // такий файл обривався без жодного повідомлення. Сторона до 1600 px, JPEG.
+  const shrink = async (file: File): Promise<Blob> => {
+    const bmp = await createImageBitmap(file)
+    const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height))
+    const c = document.createElement('canvas')
+    c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k)
+    const ctx = c.getContext('2d')
+    if (!ctx) throw new Error('Браузер не зміг обробити зображення')
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height)
+    ctx.drawImage(bmp, 0, 0, c.width, c.height)
+    return await new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('Не вдалося стиснути зображення'))), 'image/jpeg', 0.88))
+  }
+
   const uploadCover = async (id: string, file: File | undefined) => {
     if (!file) return
     setSaving('img' + id); setErr(''); setSaved(null)
     try {
+      const small = await shrink(file)
       const fd = new FormData()
-      fd.append('entryId', id); fd.append('file', file)
+      fd.append('entryId', id); fd.append('file', small, 'cover.jpg')
       const r = await fetch('/api/admin/contest-cover', { method: 'POST', body: fd })
-      const j = await r.json() as { ok?: boolean; error?: string }
-      if (!j.ok) { setErr(j.error ?? 'Помилка'); return }
+      let j: { ok?: boolean; error?: string } = {}
+      try { j = await r.json() } catch { j = { error: `Сервер відповів ${r.status}` } }
+      if (!j.ok) { window.alert(`Обкладинку не збережено: ${j.error ?? r.status}`); return }
       setSaved('img' + id); void load(contest)
+    } catch (e) {
+      window.alert(`Обкладинку не збережено: ${(e as Error)?.message ?? 'помилка'}`)
     } finally { setSaving(null) }
   }
 
