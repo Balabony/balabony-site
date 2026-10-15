@@ -1052,11 +1052,12 @@ function UkrainianContent({
       <section className="sup-hero" aria-labelledby="hero-ua">
         <div className="sup-hero-mark" aria-hidden="true">❤</div>
         <h1 id="hero-ua">
-          Підтримайте <span className="accent">інклюзивність</span><br />
-          проєкту «Балабони»
+          Підтримайте <span className="accent">інклюзивну</span><br />
+          платформу «Балабони»
         </h1>
         <p className="sup-hero-lead">
-          Серіал «Балабони» — це проєкт про живу українську мову, який ми створюємо разом
+          {/* 15.10.2026 (Богдан): «Балабони» тут — інклюзивна платформа, а не серіал. */}
+          «Балабони» — інклюзивна україномовна платформа історій і казок сучасних авторів
           із <strong>пільговим доступом для учасників бойових дій (УБД), ВПО та людей
           з інвалідністю</strong>. Ваш благодійний внесок на ЛОГО «Інститут громадянського
           суспільства» допомагає підтримувати цей пільговий модуль і розвивати функції
@@ -1161,7 +1162,7 @@ function UkrainianContent({
               </button>
               <button className={`sup-amount ${selectedAmount === 1500 ? 'is-selected' : ''}`}
                       onClick={() => handleAmountClick(1500)}>
-                1 500 ₴<span className="sup-amount-note">пільговий доступ</span>
+                1 500 ₴<span className="sup-amount-note">пільговий модуль</span>
               </button>
               <button className={`sup-amount ${selectedAmount === 5000 ? 'is-selected' : ''}`}
                       onClick={() => handleAmountClick(5000)}>
@@ -1193,7 +1194,7 @@ function UkrainianContent({
             </ol>
             <p>Зібрані благодійні внески на ЛОГО «Інститут громадянського суспільства» спрямовуються
             на підтримку пільгового модуля для УБД, ВПО та людей з інвалідністю, а також на розвиток
-            функцій доступності платформи (аудіодоступ, скрінрідери, голосове керування).</p>
+            функцій доступності платформи (підтримка скрінрідерів; аудіодоступ і голосове керування — у розробці).</p>
           </div>
 
           <div className="sup-faq-item">
