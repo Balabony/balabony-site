@@ -20,6 +20,7 @@ const LINE = 'rgba(143,163,196,0.22)'
 const BAD = '#E88686'
 
 const TOPIC_LABEL: Record<string, string> = {
+  cover: 'Обкладинка',
   works: 'Твори',
   tech: 'Не працює',
   contract: 'Договір',

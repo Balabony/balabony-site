@@ -17,6 +17,7 @@ import { dbQuery } from '@/lib/db'
 const TOPIC_LABEL: Record<string, string> = {
   contest: 'Заявка на конкурс',
   works: 'Мої твори — додати або виправити',
+  cover: 'Обкладинка: опис героїв',
   tech: 'Щось не працює',
   contract: 'Питання щодо договору',
   voice: 'Хочу записати свій голос',

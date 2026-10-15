@@ -104,6 +104,9 @@ async function handlePOST(req: NextRequest) {
     const v = String(form.get(q.id) ?? '').trim().slice(0, q.max)
     if (v) answers[q.id] = v
   }
+  // Опис героїв для обкладинки — окремий ключ, поза AUTHOR_QUESTIONS: визначальник стилю його не бачить.
+  const coverBrief = String(form.get('cover') ?? '').trim().slice(0, 3000)
+  if (coverBrief) answers.cover = coverBrief
 
   if (fullName.length < 5 || !fullName.includes(' ')) {
     return NextResponse.json({ ok: false, error: 'Вкажіть прізвище та імʼя повністю' }, { status: 400 })

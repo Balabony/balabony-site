@@ -189,6 +189,12 @@ export default function Page() {
                 <a href={`mailto:${a.email}`} style={{ color: GOLD }}>{a.email}</a> · <a href={`tel:${a.phone.replace(/[^\d+]/g, '')}`} style={{ color: GOLD }}>{a.phone}</a>
               </div>
 
+              {a.answers?.cover && (
+                <div style={{ fontSize: 14, marginTop: 8, lineHeight: 1.6 }}>
+                  <strong style={{ color: GOLD }}>Герої для обкладинки:</strong>
+                  <div style={{ whiteSpace: 'pre-wrap' }}>{a.answers.cover}</div>
+                </div>
+              )}
               {a.admin_note && <p style={{ fontSize: 13, color: MUTED, fontStyle: 'italic', margin: '8px 0 0' }}>Коментар: {a.admin_note}</p>}
               {a.decided_at && <p style={{ fontSize: 12, color: MUTED, margin: '6px 0 0' }}>Рішення: {fmt(a.decided_at)}</p>}
 
@@ -196,7 +202,7 @@ export default function Page() {
                 <button type="button" onClick={() => toggle(a.id)} style={{ ...btn('transparent', GOLD), padding: '8px 0' }}>
                   {open === a.id ? 'Згорнути текст ▲' : 'Читати історію ▼'}
                 </button>
-                {a.answers && Object.keys(a.answers).length > 0 && (
+                {a.answers && AUTHOR_QUESTIONS.some((q) => a.answers?.[q.id]) && (
                   <button type="button" onClick={() => setShowAns((s) => ({ ...s, [a.id]: !s[a.id] }))} style={{ ...btn('transparent', GOLD), padding: '8px 0' }}>
                     {showAns[a.id] ? 'Сховати відповіді ▲' : 'Відповіді на запитання ▼'}
                   </button>

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { AUTHOR_QUESTIONS, AI_POLICY_SHORT } from '@/lib/author-questions'
+import { COVER_ASK, COVER_PLACEHOLDER } from '@/lib/cover-ask'
 
 /**
  * Форма заявки автора на /become-author.
@@ -38,6 +39,7 @@ export default function AuthorApplyForm() {
   const [cPublish, setCPublish] = useState(false)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
+  const [cover, setCover] = useState('')
 
   const load = useCallback(async () => {
     try {
@@ -68,6 +70,7 @@ export default function AuthorApplyForm() {
       fd.append('genre', genre.trim())
       if (file) fd.append('file', file); else fd.append('text', text)
       AUTHOR_QUESTIONS.forEach((q) => fd.append(q.id, (answers[q.id] ?? '').trim()))
+      fd.append('cover', cover.trim())
       fd.append('consentAuthor', cAuthor ? 'yes' : 'no')
       fd.append('consentPublish', cPublish ? 'yes' : 'no')
       const r = await fetch('/api/author-application', { method: 'POST', body: fd })
@@ -193,6 +196,12 @@ export default function AuthorApplyForm() {
             style={{ ...field, minHeight: q.max > 1000 ? 120 : 70, resize: 'vertical' }} />
         </div>
       ))}
+
+      <h3 style={{ fontFamily: SERIF, fontSize: 18, color: C.gold, margin: '10px 0 6px' }}>Герої для обкладинки (необовʼязково)</h3>
+      <p style={{ ...p, color: C.muted, fontSize: 14 }}>{COVER_ASK}</p>
+      <textarea id="aa-cover" aria-label="Герої для обкладинки" maxLength={3000} value={cover}
+        onChange={(e) => setCover(e.target.value)} placeholder={COVER_PLACEHOLDER}
+        style={{ ...field, minHeight: 110, resize: 'vertical' }} />
 
       <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 14, color: C.text, lineHeight: 1.6, marginBottom: 10 }}>
         <input type="checkbox" checked={cAuthor} onChange={e => setCAuthor(e.target.checked)} style={{ marginTop: 4 }} />
