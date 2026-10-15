@@ -114,7 +114,7 @@ export default function Page() {
 
   const act = async (a: App, action: 'accept' | 'reject') => {
     const q = action === 'accept'
-      ? `Прийняти ${a.full_name}? Відкриється кабінет автора, історія стане чернеткою, автору піде лист${notes[a.id]?.trim() ? ' з вашими порадами' : ''}.`
+      ? `${a.status === 'rejected' ? 'Змінити рішення й прийняти' : 'Прийняти'} ${a.full_name}? Відкриється кабінет автора, історія стане чернеткою, автору піде лист${notes[a.id]?.trim() ? ' з вашими порадами' : ''}.`
       : `Відхилити заявку ${a.full_name}? Автору піде ввічливий лист${notes[a.id]?.trim() ? ' з вашим коментарем' : ''}.`
     if (!window.confirm(q)) return
     setBusy(a.id)
@@ -266,7 +266,7 @@ export default function Page() {
                       <strong>Порада автору (чернетка листа):</strong>
                       <div style={{ whiteSpace: 'pre-wrap', marginTop: 4 }}>{g.advice}</div>
                       <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 6 }}>
-                        {a.status === 'new' && (
+                        {(a.status === 'new' || a.status === 'rejected') && (
                           <button type="button" onClick={() => setNotes((n) => ({ ...n, [a.id]: g.advice }))} style={{ ...btn('transparent', GOLD), padding: '4px 0', fontSize: 13 }}>
                             Вставити в коментар
                           </button>
@@ -290,7 +290,7 @@ export default function Page() {
                 </div>
               )}
 
-              {a.status === 'new' && (
+              {(a.status === 'new' || a.status === 'rejected') && (
                 <div style={{ marginTop: 12 }}>
                   <textarea
                     placeholder="Коментар або поради автору (необовʼязково; піде в лист — і при прийнятті, і при відхиленні)"
@@ -303,11 +303,11 @@ export default function Page() {
                   />
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     <button type="button" disabled={busy === a.id} onClick={() => act(a, 'accept')} style={{ ...btn(GREEN, NAVY), opacity: busy === a.id ? 0.6 : 1 }}>
-                      Прийняти
+                      {a.status === 'rejected' ? 'Змінити рішення: прийняти' : 'Прийняти'}
                     </button>
-                    <button type="button" disabled={busy === a.id} onClick={() => act(a, 'reject')} style={{ ...btn('transparent', RED), border: `1px solid ${RED}`, opacity: busy === a.id ? 0.6 : 1 }}>
+                    {a.status === 'new' && <button type="button" disabled={busy === a.id} onClick={() => act(a, 'reject')} style={{ ...btn('transparent', RED), border: `1px solid ${RED}`, opacity: busy === a.id ? 0.6 : 1 }}>
                       Відхилити
-                    </button>
+                    </button>}
                   </div>
                 </div>
               )}

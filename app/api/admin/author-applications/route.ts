@@ -101,7 +101,9 @@ async function handlePOST(req: NextRequest) {
       title: string; genre: string | null; body: string; status: string; created_at: string
       consent_ip: string | null
     }
-    if (a.status !== 'new') {
+    // 15.10.2026: відхилену заявку можна переглянути й прийняти (рішення Богдана — не втрачати нових авторів).
+    const reconsidered = a.status === 'rejected' && action === 'accept'
+    if (a.status !== 'new' && !reconsidered) {
       return NextResponse.json({ ok: false, error: 'Цю заявку вже розглянуто' }, { status: 400 })
     }
 
@@ -162,7 +164,7 @@ async function handlePOST(req: NextRequest) {
       [id, note, contentId],
     )
 
-    const mailed = await mailApplicationAccepted({ fullName: a.full_name, email: a.email, title: a.title, note })
+    const mailed = await mailApplicationAccepted({ fullName: a.full_name, email: a.email, title: a.title, note, reconsidered })
     return NextResponse.json({ ok: true, status: 'accepted', contentId, mailed })
   } catch (err) {
     console.error('[admin/author-applications POST]', (err as Error)?.message)

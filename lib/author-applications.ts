@@ -86,10 +86,12 @@ export async function mailApplicationReceived(a: AppInfo): Promise<void> {
 }
 
 /** Лист після «Прийняти». Вхід — звичайним шляхом через /login, без одноразових посилань, які згорають. */
-export async function mailApplicationAccepted(p: { fullName: string; email: string; title: string; note?: string }): Promise<boolean> {
+export async function mailApplicationAccepted(p: { fullName: string; email: string; title: string; note?: string; reconsidered?: boolean }): Promise<boolean> {
   const html = wrap(
     P(`Вітаємо, <strong style="color:#f5f0e8">${esc(p.fullName)}</strong>!`) +
-    P(`Редакція прочитала вашу історію <strong style="color:#ef9f27">«${esc(p.title)}»</strong> і рада вітати вас серед авторів Балабонів.`) +
+    P(p.reconsidered
+      ? `Редакція ще раз переглянула вашу історію <strong style="color:#ef9f27">«${esc(p.title)}»</strong> і змінила рішення: ми раді вітати вас серед авторів Балабонів.`
+      : `Редакція прочитала вашу історію <strong style="color:#ef9f27">«${esc(p.title)}»</strong> і рада вітати вас серед авторів Балабонів.`) +
     P('Ваш кабінет автора вже відкрито. Щоб увійти:') +
     `<ol style="color:#c8d4e8;line-height:1.8;">
        <li>Відкрийте <a href="${SITE}/login" style="color:#ef9f27">${SITE}/login</a></li>
