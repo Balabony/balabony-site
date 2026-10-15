@@ -66,6 +66,21 @@ export default function ContestSubmitForm() {
   const open = CONTESTS.filter(
     c => isOpen(c) || (acceptsEpisodes(c) && entries.some(e => e.contest === c.id)),
   )
+  // 15.10.2026: конкурси, прийом яких ще не почався. Авторка двічі не знайшла у формі
+  // «Одного разу перед Різдвом» (прийом з 20.10) — форма мовчки показувала лише відкриті.
+  // Тепер майбутні конкурси названо прямо, з датою старту.
+  const todayIso = new Date().toISOString().slice(0, 10)
+  const MONTHS = ['січня', 'лютого', 'березня', 'квітня', 'травня', 'червня', 'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня']
+  const dayMonth = (iso: string) => `${Number(iso.slice(8, 10))} ${MONTHS[Number(iso.slice(5, 7)) - 1]}`
+  const upcoming = CONTESTS.filter(c => c.opensAt > todayIso)
+  const upcomingNote = upcoming.length > 0 && (
+    <p style={{ color: BRAND.text, fontSize: '0.92rem', lineHeight: 1.6, margin: '12px 0 0', padding: '10px 12px', border: '1px dashed rgba(239,159,39,0.55)', borderRadius: 8 }}>
+      <strong style={{ color: BRAND.amber }}>Скоро:</strong>{' '}
+      {upcoming.map((c, i) => (
+        <span key={c.id}>{i > 0 ? '; ' : ''}{c.name} — прийом з {dayMonth(c.opensAt)}</span>
+      ))}. {upcoming.length > 1 ? 'Кожен конкурс з’явиться' : 'Конкурс з’явиться'} в переліку вище в день старту.
+    </p>
+  )
   const contest = findContest(contestId)!
   const entry = entries.find(e => e.contest === contestId)
   /** Прийом заявок позаду, але свої серії дослати ще можна. */
@@ -215,6 +230,7 @@ export default function ContestSubmitForm() {
         <p style={{ color: BRAND.text, margin: 0, lineHeight: 1.7 }}>
           Зараз прийом заявок закрито. Дати наступних конкурсів — на сторінці «Конкурси».
         </p>
+        {upcomingNote}
       </div>
     )
   }
@@ -263,6 +279,7 @@ export default function ContestSubmitForm() {
             ? 'Прийом нових заявок закрито — можна досилати серії до вашої.'
             : `Прийом до ${contest.closesAt.split('-').reverse().join('.')}.`}
         </p>
+        {upcomingNote}
       </div>
 
       {entry && (
