@@ -162,7 +162,7 @@ async function handlePOST(req: NextRequest) {
       [id, note, contentId],
     )
 
-    const mailed = await mailApplicationAccepted({ fullName: a.full_name, email: a.email, title: a.title })
+    const mailed = await mailApplicationAccepted({ fullName: a.full_name, email: a.email, title: a.title, note })
     return NextResponse.json({ ok: true, status: 'accepted', contentId, mailed })
   } catch (err) {
     console.error('[admin/author-applications POST]', (err as Error)?.message)

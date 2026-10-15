@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import AiStyleReport, { type StyleCheck } from '@/app/components/AiStyleReport'
 import { AUTHOR_QUESTIONS } from '@/lib/author-questions'
+import type { GrammarResult } from '@/lib/grammar-check'
 
 /**
  * Заявки авторів — пробні історії, подані формою на /become-author.
@@ -49,6 +50,23 @@ export default function Page() {
   const [showAns, setShowAns] = useState<Record<string, boolean>>({})
   const [checks, setChecks] = useState<Record<string, StyleCheck | null>>({})
   const [checking, setChecking] = useState<string | null>(null)
+  const [gram, setGram] = useState<Record<string, GrammarResult | null>>({})
+  const [gramBusy, setGramBusy] = useState<string | null>(null)
+
+  const grammarCheck = async (id: string) => {
+    setGramBusy(id)
+    try {
+      const r = await fetch('/api/admin/grammar-check', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      const d = await r.json() as { ok?: boolean; error?: string; result?: GrammarResult }
+      if (d.ok && d.result) setGram((g) => ({ ...g, [id]: d.result! }))
+      else setMsg((m) => ({ ...m, [id]: d.error ?? 'Перевірка не вдалася' }))
+    } catch {
+      setMsg((m) => ({ ...m, [id]: 'Немає звʼязку з сервером' }))
+    } finally { setGramBusy(null) }
+  }
 
   const styleCheck = async (id: string, force = false) => {
     setChecking(id)
@@ -96,7 +114,7 @@ export default function Page() {
 
   const act = async (a: App, action: 'accept' | 'reject') => {
     const q = action === 'accept'
-      ? `Прийняти ${a.full_name}? Відкриється кабінет автора, історія стане чернеткою, автору піде лист.`
+      ? `Прийняти ${a.full_name}? Відкриється кабінет автора, історія стане чернеткою, автору піде лист${notes[a.id]?.trim() ? ' з вашими порадами' : ''}.`
       : `Відхилити заявку ${a.full_name}? Автору піде ввічливий лист${notes[a.id]?.trim() ? ' з вашим коментарем' : ''}.`
     if (!window.confirm(q)) return
     setBusy(a.id)
@@ -186,6 +204,9 @@ export default function Page() {
                 <button type="button" disabled={checking === a.id} onClick={() => styleCheck(a.id)} style={{ ...btn('transparent', GOLD), padding: '8px 0', opacity: checking === a.id ? 0.6 : 1 }}>
                   {checking === a.id ? 'Аналізуємо… (до 2 хв)' : 'Перевірити стиль (ШІ)'}
                 </button>
+                <button type="button" disabled={gramBusy === a.id} onClick={() => grammarCheck(a.id)} style={{ ...btn('transparent', GOLD), padding: '8px 0', opacity: gramBusy === a.id ? 0.6 : 1 }}>
+                  {gramBusy === a.id ? 'Перевіряємо мову… (до 2 хв)' : 'Граматика і стилістика (ШІ)'}
+                </button>
               </div>
 
               {showAns[a.id] && a.answers && (
@@ -209,6 +230,50 @@ export default function Page() {
                 </div>
               )}
 
+              {gram[a.id] && (() => {
+                const g = gram[a.id]!
+                const lc = g.level === 'добра' ? GREEN : g.level === 'слабка' ? RED : GOLD
+                return (
+                  <div style={{ background: NAVY, border: `1px solid ${LINE}`, borderRadius: 10, padding: 14, marginTop: 10, fontSize: 14, lineHeight: 1.6 }}>
+                    <div style={{ fontWeight: 700 }}>Мова тексту: <span style={{ color: lc }}>{g.level}</span></div>
+                    <div style={{ marginTop: 4 }}>{g.summary}</div>
+                    <div style={{ marginTop: 4, color: GOLD }}>{g.potential}</div>
+                    <div style={{ marginTop: 6, color: MUTED, fontSize: 13 }}>
+                      {Object.entries(g.counts).map(([k, v]) => `${k}: ${v}`).join(' · ')}
+                      {g.truncated ? ` · перевірено перші ${Math.round(g.checked_chars / 1000)} тис. знаків` : ''}
+                    </div>
+                    {g.strengths.length > 0 && <div style={{ marginTop: 8 }}><strong style={{ color: GREEN }}>Що вдалося:</strong> {g.strengths.join('; ')}</div>}
+                    {g.issues.length > 0 && (
+                      <div style={{ marginTop: 10 }}>
+                        <strong>Помилки (приклади):</strong>
+                        {g.issues.map((x, i) => (
+                          <div key={i} style={{ borderTop: `1px solid ${LINE}`, padding: '6px 0' }}>
+                            <span style={{ color: MUTED, fontSize: 12 }}>{x.type}</span><br />
+                            <span style={{ color: RED, textDecoration: 'line-through' }}>{x.quote}</span>{' → '}
+                            <span style={{ color: GREEN }}>{x.fix}</span>
+                            <div style={{ color: MUTED, fontSize: 13 }}>{x.why}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div style={{ marginTop: 10 }}>
+                      <strong>Порада автору (чернетка листа):</strong>
+                      <div style={{ whiteSpace: 'pre-wrap', marginTop: 4 }}>{g.advice}</div>
+                      <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 6 }}>
+                        {a.status === 'new' && (
+                          <button type="button" onClick={() => setNotes((n) => ({ ...n, [a.id]: g.advice }))} style={{ ...btn('transparent', GOLD), padding: '4px 0', fontSize: 13 }}>
+                            Вставити в коментар
+                          </button>
+                        )}
+                        <button type="button" onClick={() => { void navigator.clipboard?.writeText(g.advice) }} style={{ ...btn('transparent', GOLD), padding: '4px 0', fontSize: 13 }}>
+                          Скопіювати
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+
               {open === a.id && (
                 <div style={{
                   whiteSpace: 'pre-wrap', fontFamily: SERIF, fontSize: 16, lineHeight: 1.75, color: CREAM,
@@ -222,7 +287,7 @@ export default function Page() {
               {a.status === 'new' && (
                 <div style={{ marginTop: 12 }}>
                   <textarea
-                    placeholder="Коментар для автора (необовʼязково; піде в лист при відхиленні)"
+                    placeholder="Коментар або поради автору (необовʼязково; піде в лист — і при прийнятті, і при відхиленні)"
                     value={notes[a.id] ?? ''}
                     onChange={e => setNotes(n => ({ ...n, [a.id]: e.target.value }))}
                     style={{

@@ -86,7 +86,7 @@ export async function mailApplicationReceived(a: AppInfo): Promise<void> {
 }
 
 /** Лист після «Прийняти». Вхід — звичайним шляхом через /login, без одноразових посилань, які згорають. */
-export async function mailApplicationAccepted(p: { fullName: string; email: string; title: string }): Promise<boolean> {
+export async function mailApplicationAccepted(p: { fullName: string; email: string; title: string; note?: string }): Promise<boolean> {
   const html = wrap(
     P(`Вітаємо, <strong style="color:#f5f0e8">${esc(p.fullName)}</strong>!`) +
     P(`Редакція прочитала вашу історію <strong style="color:#ef9f27">«${esc(p.title)}»</strong> і рада вітати вас серед авторів Балабонів.`) +
@@ -97,6 +97,7 @@ export async function mailApplicationAccepted(p: { fullName: string; email: stri
        <li>Угорі сайту з'явиться кнопка «Кабінет автора»</li>
      </ol>` +
     P('У кабінеті заповніть реквізити — вони потрібні для угоди й виплат. Вашу пробну історію ми вже додали туди як чернетку: далі вона йде звичайною редактурою перед публікацією.') +
+    (p.note ? P(`Поради редакції:<br>${esc(p.note).replace(/\n/g, '<br>')}`) : '') +
     SMALL(`Питання — пишіть на ${EDITOR_EMAIL} або з кабінету, форма «Написати редакції».`),
   )
   return send(p.email, '[Балабони] Ваш кабінет автора відкрито', html)
@@ -107,7 +108,7 @@ export async function mailApplicationRejected(p: { fullName: string; email: stri
   const html = wrap(
     P(`Вітаємо, <strong style="color:#f5f0e8">${esc(p.fullName)}</strong>!`) +
     P(`Дякуємо, що надіслали нам історію <strong style="color:#ef9f27">«${esc(p.title)}»</strong>. Редакція уважно її прочитала, але цього разу ми не готові її опублікувати.`) +
-    (p.note ? P(`Коментар редакції: <em>${esc(p.note)}</em>`) : '') +
+    (p.note ? P(`Коментар редакції:<br><em>${esc(p.note).replace(/\n/g, '<br>')}</em>`) : '') +
     P('Це не остаточне рішення щодо вас як автора. Ви можете надіслати іншу історію тією самою формою на сторінці «Стати автором», а також взяти участь у наших конкурсах: для них кабінет автора не потрібен.') +
     P(`<a href="${SITE}/konkursy" style="color:#ef9f27">${SITE}/konkursy</a>`) +
     SMALL('З повагою, редакція Балабонів'),
