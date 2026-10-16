@@ -1,0 +1,27 @@
+# Разове завдання: завантажити українську мовну модель Stanza (для розстановки наголосів)
+# і викласти її як реліз у цьому репозиторії. Тексти творів сюди НЕ потрапляють.
+# Запуск вручну: GitHub → Actions → "Stanza model" → Run workflow.
+name: Stanza model
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download Ukrainian Stanza model
+        run: |
+          pip install --quiet stanza==1.15.0 torch --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple
+          python -c "import stanza; stanza.download('uk', model_dir='stanza_resources', processors='tokenize,pos,mwt,lemma')"
+          tar czf stanza_uk.tgz stanza_resources
+          ls -la stanza_uk.tgz
+      - name: Publish as release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete stanza-uk --repo "$GITHUB_REPOSITORY" --yes 2>/dev/null || true
+          gh release create stanza-uk stanza_uk.tgz --repo "$GITHUB_REPOSITORY" --title "Stanza uk model" --notes "Ukrainian Stanza model for stress marking (tools)."
