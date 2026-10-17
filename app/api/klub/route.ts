@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { dbQuery } from '@/lib/db'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { Resend } from 'resend'
 
 /**
  * Вступ до Клубу Балабонів (17.10.2026).
@@ -44,6 +45,42 @@ export async function POST(req: NextRequest) {
         { onConflict: 'email', ignoreDuplicates: true },
       )
     } catch { /* розсилка не критична */ }
+
+    // Вітальний лист новому членові клубу (не критично: членство зберігається й без нього).
+    if (isNew && process.env.RESEND_API_KEY) {
+      try {
+        const tk = await dbQuery(`select token from subscribers where email = $1 limit 1`, [email])
+        const token = tk.rows[0]?.token as string | undefined
+        const unsub = token ? `https://balabony.com/vidpysatysia?t=${token}` : 'mailto:nazar@balabony.com?subject=Відписка'
+        const esc = (x: string) => x.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string))
+        await new Resend(process.env.RESEND_API_KEY).emails.send({
+          from: 'Клуб Балабонів <contact@balabony.com>',
+          to: email,
+          subject: 'Вітаємо в Клубі Балабонів!',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; color: #1e293b; line-height: 1.6;">
+              <p style="text-align:center;margin:0 0 12px"><img src="https://balabony.com/klub/balabon-klub-600.webp" width="240" height="240" alt="Балабон — талісман клубу" style="border-radius:16px"></p>
+              <h2 style="color: #C97A14; margin: 0 0 10px;">${esc(name)}, вітаємо в Клубі Балабонів!</h2>
+              <p>Тепер ви серед тих, хто читає й пише українською. Що далі:</p>
+              <ul>
+                <li>раз на тиждень — лист із новими історіями й серіями;</li>
+                <li>першими — умови нових конкурсів і їхні переможці;</li>
+                <li>з кінця листопада — значок члена клубу в кабінеті та три закриті історії щомісяця безкоштовно;</li>
+                <li>щороку в грудні найактивнішим — друкований календар «Балабони».</li>
+              </ul>
+              <p>Почитати вже зараз: <a href="https://balabony.com/stories?utm_source=klub&utm_medium=email&utm_campaign=vitannia" style="color:#C97A14">історії Балабонів</a>.<br>
+              Пишете самі? <a href="https://balabony.com/konkursy?utm_source=klub&utm_medium=email&utm_campaign=vitannia" style="color:#C97A14">Конкурси з призами</a>.</p>
+              <p>Розкажіть про Балабони друзям — і, можливо, саме ви отримаєте календар у грудні.</p>
+              <p style="margin-top:20px">Читаємо українське!<br>Редакція Балабонів</p>
+              <p style="color: #94a3b8; font-size: 12px; margin-top: 24px;">
+                <a href="https://balabony.com/klub#pravyla" style="color:#94a3b8">Правила клубу</a> ·
+                <a href="${unsub}" style="color:#94a3b8">Відписатися</a><br>
+                Клуб веде ЛОГО «Інститут громадянського суспільства», Львів.
+              </p>
+            </div>`,
+        })
+      } catch { /* лист не критичний */ }
+    }
 
     return NextResponse.json({ ok: true, isNew })
   } catch (e) {

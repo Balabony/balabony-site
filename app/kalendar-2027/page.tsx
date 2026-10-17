@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Kalendar2027Grid from '../components/Kalendar2027Grid'
 import LiteraryDates2027 from '../components/LiteraryDates2027'
+import KlubCta from '@/app/components/KlubCta'
 
 /**
  * /kalendar-2027 — безкоштовні макети календаря на 2027 у PDF.
@@ -164,6 +165,7 @@ export default function Kalendar2027Page() {
           розміщення файлів на інших сайтах заборонені.
         </p>
       </div>
+      <KlubCta text="Хочете друкований календар «Балабони»? Щогрудня даруємо його найактивнішим членам клубу." />
     </main>
   )
 }

@@ -46,7 +46,7 @@ export default function KlubForm() {
       <div role="status" style={{ background: '#13314a', border: `1px solid ${GOLD}`, borderRadius: 14, padding: '1.4rem 1.3rem' }}>
         <p style={{ margin: 0, fontSize: '1.25rem', color: GOLD, fontWeight: 700 }}>Вітаємо в Клубі Балабонів!</p>
         <p style={{ margin: '.6rem 0 0', color: CREAM, fontSize: '1.05rem' }}>
-          Перший лист клубу прийде на {email || 'вашу пошту'}. А поки — <a href="/stories" style={{ color: GOLD }}>оберіть історію на вечір</a>.
+          Вітальний лист уже летить на {email || 'вашу пошту'} (якщо не видно — зазирніть у «Спам» чи «Промоакції»). А поки — <a href="/stories" style={{ color: GOLD }}>оберіть історію на вечір</a>.
         </p>
       </div>
     )
@@ -82,7 +82,7 @@ export default function KlubForm() {
       </div>
       <label style={{ display: 'flex', gap: '.6rem', alignItems: 'flex-start', color: MUTED, fontSize: '.98rem' }}>
         <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} style={{ width: 20, height: 20, marginTop: 3 }} />
-        <span>Погоджуюся отримувати листи клубу. Відписатися можна будь-коли одним кліком у листі. <a href="/legal/privacy" style={{ color: GOLD }}>Політика конфіденційності</a></span>
+        <span>Погоджуюся з <a href="#pravyla" style={{ color: GOLD }}>правилами клубу</a> й отримувати листи клубу. Відписатися можна будь-коли одним кліком у листі. <a href="/legal/privacy" style={{ color: GOLD }}>Політика конфіденційності</a></span>
       </label>
       {status === 'error' && <p role="alert" style={{ color: '#ffb4a8', margin: 0 }}>{msg}</p>}
       <button type="submit" disabled={!consent || status === 'loading'} style={{

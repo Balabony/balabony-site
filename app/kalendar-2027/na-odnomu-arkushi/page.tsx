@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Kalendar2027Grid from '../../components/Kalendar2027Grid'
+import KlubCta from '@/app/components/KlubCta'
 
 /**
  * Два безкартинкові макети на одній сторінці — горизонтальний і
@@ -200,6 +201,7 @@ export default function NaOdnomuArkushiPage() {
           розміщення файлів на інших сайтах заборонені.
         </p>
       </div>
+      <KlubCta text="Хочете друкований календар «Балабони»? Щогрудня даруємо його найактивнішим членам клубу." />
     </main>
   )
 }

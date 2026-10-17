@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import SocialTariffButton from '@/app/components/SocialTariff'
+import KlubCta from '@/app/components/KlubCta'
 
 /**
  * Сторінка пільгового доступу (соціальний тариф 1 ₴ на рік).
@@ -131,6 +132,7 @@ export default function PilgaPage() {
           </p>
         </div>
       </div>
+      <KlubCta text="Нові історії щотижня у вашій пошті — безкоштовно для всіх, хто читає українською." />
     </main>
   )
 }

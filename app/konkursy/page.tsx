@@ -5,6 +5,7 @@ import ContestReads from '@/app/components/ContestReads'
 import WinnerBadge from '@/app/components/WinnerBadge'
 import { AWARDS as WINNERS, PLACE_LABEL } from '@/lib/contest-winners'
 import { CONTESTS, findContest, isOpen, prizeFund, prizeLine, topPrize, type Contest } from '@/lib/contests'
+import KlubCta from '@/app/components/KlubCta'
 
 /**
  * Сторінка перезбирається щогодини.
@@ -1952,6 +1953,7 @@ export default function KonkursyPage() {
         </div>
 
       </div>
+      <KlubCta text="Члени клубу першими дізнаються про нові конкурси, умови й переможців. А щогрудня найактивнішим авторам — календар у подарунок." />
     </main>
   )
 }
