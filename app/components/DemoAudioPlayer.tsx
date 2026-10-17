@@ -32,9 +32,15 @@ interface Props {
   badge?: string;
   caption?: string;
   title?: string;
+  /** Компактний рядок для списків (головна): play · назва · смуга · швидкість. */
+  compact?: boolean;
+  /** Тривалість для показу до першого запуску (preload="none" не знає її заздалегідь). */
+  durationLabel?: string;
+  /** Посилання «Читати» всередині картки (лише в компактному вигляді). */
+  href?: string;
 }
 
-export default function DemoAudioPlayer({ src, badge, caption, title = 'Аудіо' }: Props) {
+export default function DemoAudioPlayer({ src, badge, caption, title = 'Аудіо', compact, durationLabel, href }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [cur, setCur] = useState(0);
@@ -101,6 +107,15 @@ export default function DemoAudioPlayer({ src, badge, caption, title = 'Ауді
     };
   }, [sleep, playing]);
 
+  // Коли на сторінці кілька плеєрів — грає лише один: старт одного ставить на паузу інші.
+  useEffect(() => {
+    const onOther = (e: Event) => {
+      if ((e as CustomEvent).detail !== src) audioRef.current?.pause();
+    };
+    window.addEventListener('baly-demo-play', onOther);
+    return () => window.removeEventListener('baly-demo-play', onOther);
+  }, [src]);
+
   // Зміна джерела — скинути таймер сну.
   useEffect(() => {
     setSleep(null);
@@ -143,6 +158,61 @@ export default function DemoAudioPlayer({ src, badge, caption, title = 'Ауді
     width: 50, height: 50, borderRadius: '50%',
     background: 'rgba(239,159,39,0.13)', color: '#FAC775',
   };
+
+  if (compact) {
+    const cycleRate = () => changeRate(SPEEDS[(SPEEDS.indexOf(rate) + 1) % SPEEDS.length]);
+    return (
+      <div onKeyDown={onKey} className={`${uid}-c`} style={{ padding: '14px 16px', border: '1.5px solid #EF9F27', borderRadius: 14, background: 'linear-gradient(155deg, #213A5C 0%, #14253B 70%)' }}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .${uid}-range{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:999px;outline:none;cursor:pointer;}
+          .${uid}-range:focus-visible{box-shadow:0 0 0 3px rgba(250,199,117,0.5);}
+          .${uid}-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:${GOLD};border:2px solid #14253B;cursor:pointer;}
+          .${uid}-range::-moz-range-thumb{width:16px;height:16px;border:2px solid #14253B;border-radius:50%;background:${GOLD};cursor:pointer;}
+          .${uid}-btn{display:inline-flex;align-items:center;justify-content:center;border:none;cursor:pointer;}
+          .${uid}-btn:focus-visible,.${uid}-chip:focus-visible{outline:3px solid rgba(250,199,117,0.6);outline-offset:2px;}
+          .${uid}-chip{border:1px solid rgba(239,159,39,0.5);background:transparent;color:#E8EEF6;font-size:15px;font-weight:700;padding:6px 10px;border-radius:9px;cursor:pointer;font-family:inherit;min-width:52px;}
+        ` }} />
+        <audio
+          ref={audioRef}
+          src={src}
+          preload="none"
+          aria-label={title}
+          onPlay={() => { setPlaying(true); window.dispatchEvent(new CustomEvent('baly-demo-play', { detail: src })); }}
+          onPause={() => setPlaying(false)}
+          onEnded={() => setPlaying(false)}
+          onTimeUpdate={(e) => { setCur(e.currentTarget.currentTime); syncDur(e.currentTarget); }}
+          onLoadedMetadata={(e) => syncDur(e.currentTarget)}
+          onDurationChange={(e) => syncDur(e.currentTarget)}
+        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <button type="button" className={`${uid}-btn`} onClick={toggle} aria-label={playing ? `Пауза: ${title}` : `Слухати: ${title}`} aria-pressed={playing} style={{ width: 52, height: 52, flexShrink: 0, borderRadius: '50%', background: GOLD, color: '#0E1A2B' }}>
+            {playing
+              ? <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
+              : <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>}
+          </button>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#F5F0E8', lineHeight: 1.25, overflowWrap: 'break-word' }}>{title}</div>
+            <div style={{ fontSize: 15, color: '#B9C7D8', marginTop: 2, overflowWrap: 'break-word' }}>
+              {caption}{caption && ' · '}{dur > 0 ? fmt(dur) : (durationLabel || '')}
+              {href && <> · <a href={href} style={{ color: GOLD, fontWeight: 600 }}>Читати</a></>}
+            </div>
+          </div>
+          <button type="button" className={`${uid}-chip`} onClick={cycleRate} aria-label={`Швидкість ${rate}×, змінити`}>{rate}×</button>
+        </div>
+        {(playing || cur > 0) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 }}>
+            <span style={{ fontSize: 14, color: '#B9C7D8', fontVariantNumeric: 'tabular-nums' }} aria-hidden="true">{fmt(cur)}</span>
+            <input
+              type="range" className={`${uid}-range`}
+              min={0} max={dur || 0} step={1} value={cur} onChange={onSeek}
+              aria-label="Позиція відтворення" aria-valuetext={`${fmt(cur)} з ${fmt(dur)}`}
+              style={{ background: `linear-gradient(to right, ${GOLD} ${pct}%, rgba(255,255,255,0.15) ${pct}%)` }}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div onKeyDown={onKey} style={{ padding: '26px 18px', border: '2px solid #EF9F27', borderRadius: 18, background: 'linear-gradient(155deg, #213A5C 0%, #14253B 70%)', boxShadow: '0 8px 32px rgba(239,159,39,0.30)' }}>
@@ -201,7 +271,7 @@ export default function DemoAudioPlayer({ src, badge, caption, title = 'Ауді
         // показується як «--:--» і підставляється після старту.
         preload="none"
         aria-label={title}
-        onPlay={() => setPlaying(true)}
+        onPlay={() => { setPlaying(true); window.dispatchEvent(new CustomEvent('baly-demo-play', { detail: src })); }}
         onPause={() => setPlaying(false)}
         onEnded={() => { setPlaying(false); setSleep(null); }}
         onTimeUpdate={(e) => { setCur(e.currentTarget.currentTime); syncDur(e.currentTarget); }}
