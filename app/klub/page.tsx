@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import KlubForm from './KlubForm'
 import KlubIcon from './KlubIcon'
+import BestOfBalabony from '@/app/components/BestOfBalabony'
 import { CONTESTS, prizeFund, isOpen } from '@/lib/contests'
 
 // Статус конкурсів (прийом триває / скоро / завершено) оновлюється щогодини.
@@ -198,6 +199,8 @@ export default function KlubPage() {
           </a>
         </div>
       </section>
+
+      <BestOfBalabony />
 
       <section style={{ padding: '20px 20px 80px' }}>
         <div style={{ maxWidth: 820, margin: '0 auto' }}>

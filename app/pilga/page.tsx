@@ -2,6 +2,10 @@ import type { Metadata } from 'next'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import SocialTariffButton from '@/app/components/SocialTariff'
 import KlubCta from '@/app/components/KlubCta'
+import BestOfBalabony from '@/app/components/BestOfBalabony'
+
+// Блок «Найцікавіше» (свіжі історії, конкурси) оновлюється щогодини.
+export const revalidate = 3600
 
 /**
  * Сторінка пільгового доступу (соціальний тариф 1 ₴ на рік).
@@ -132,6 +136,7 @@ export default function PilgaPage() {
           </p>
         </div>
       </div>
+      <BestOfBalabony />
       <KlubCta text="Нові історії щотижня у вашій пошті — безкоштовно для всіх, хто читає українською." />
     </main>
   )

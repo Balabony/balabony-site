@@ -2,6 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Kalendar2027Grid from '../../components/Kalendar2027Grid'
 import KlubCta from '@/app/components/KlubCta'
+import BestOfBalabony from '@/app/components/BestOfBalabony'
+
+// Блок «Найцікавіше» (свіжі історії, конкурси) оновлюється щогодини.
+export const revalidate = 3600
 
 /**
  * Два безкартинкові макети на одній сторінці — горизонтальний і
@@ -201,6 +205,7 @@ export default function NaOdnomuArkushiPage() {
           розміщення файлів на інших сайтах заборонені.
         </p>
       </div>
+      <BestOfBalabony />
       <KlubCta text="Хочете друкований календар «Балабони»? Щогрудня даруємо його найактивнішим членам клубу." />
     </main>
   )

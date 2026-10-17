@@ -2,6 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Kalendar2027Grid from '../../components/Kalendar2027Grid'
 import KlubCta from '@/app/components/KlubCta'
+import BestOfBalabony from '@/app/components/BestOfBalabony'
+
+// Блок «Найцікавіше» (свіжі історії, конкурси) оновлюється щогодини.
+export const revalidate = 3600
 
 const NAVY   = '#0E1A2B'
 const GOLD   = '#EF9F27'
@@ -143,6 +147,7 @@ export default function DytiachyiPage() {
           розміщення файлів на інших сайтах заборонені.
         </p>
       </div>
+      <BestOfBalabony />
       <KlubCta text="Казки й історії для читання з дитиною — щотижня в листі клубу. А щогрудня найактивнішим — друкований календар." />
     </main>
   )

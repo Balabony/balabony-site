@@ -1,4 +1,8 @@
 import type { Metadata } from 'next'
+import BestOfBalabony from '@/app/components/BestOfBalabony'
+import KlubCta from '@/app/components/KlubCta'
+
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'Підтримати — Balabony™',
@@ -18,5 +22,14 @@ export const metadata: Metadata = {
 }
 
 export default function SupportLayout({ children }: { children: React.ReactNode }) {
-  return children
+  return (
+    <>
+      {children}
+      {/* 17.10.2026: перелінковка — що почитати й клуб, для тих, хто прийшов із реклами. */}
+      <BestOfBalabony />
+      <div style={{ background: '#0B1626', padding: '0 20px 40px' }}>
+        <KlubCta text="Підтримуєте Балабони? Вступайте й до клубу — нові історії щотижня, а щогрудня найактивнішим календар у подарунок." />
+      </div>
+    </>
+  )
 }
