@@ -8,6 +8,13 @@ export function getPool(): Pool {
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      // 17.10.2026: на Vercel кожна копія функції має свій пул. За замовчуванням pg
+      // відкриває до 10 з'єднань на копію, а Session pooler Supabase тримає лише 15
+      // на всіх — звідси EMAXCONNSESSION на /admin/dochytuvannia. Тримаємо мало
+      // з'єднань і швидко віддаємо ті, що простоюють.
+      max: 2,
+      idleTimeoutMillis: 5_000,
+      connectionTimeoutMillis: 10_000,
     })
   }
   return pool
