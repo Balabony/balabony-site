@@ -421,6 +421,13 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId, s
           }
         }}
       />
+      {/* Чесне маркування: усі озвучення Balabony зараз згенеровані ШІ (ElevenLabs). */}
+      <div style={{
+        fontSize: 13, lineHeight: 1.3, color: '#cbd5e1', textAlign: 'center',
+        padding: '6px 12px 0', fontFamily: "'Montserrat', sans-serif",
+      }}>
+        Демо-озвучення · голоси синтезовані
+      </div>
 
       {/* Місце зупинки з минулого разу. Не перемотуємо самі — пропонуємо. */}
       {resumeAt !== null && (
