@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
           subject: 'Вітаємо в Клубі Балабонів!',
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; color: #1e293b; line-height: 1.6;">
-              <p style="text-align:center;margin:0 0 12px"><img src="https://balabony.com/klub/balabon-klub-600.webp" width="240" height="240" alt="Балабон — талісман клубу" style="border-radius:16px"></p>
+              <p style="text-align:center;margin:0 0 12px"><img src="https://balabony.com/klub/balabon-klub-email.png" width="240" height="240" alt="Балабон — талісман клубу" style="border-radius:16px"></p>
               <h2 style="color: #C97A14; margin: 0 0 10px;">${esc(name)}, вітаємо в Клубі Балабонів!</h2>
               <p>Тепер ви серед тих, хто читає й пише українською. Що далі:</p>
               <ul>
