@@ -77,7 +77,7 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId, s
   const [playing, setPlaying] = useState(false)
   const [current, setCurrent] = useState(0)
   const [duration, setDuration] = useState(0)
-  const [speedIdx, setSpeedIdx] = useState(0)
+  const [speedIdx, setSpeedIdx] = useState(1) // 1 = звичайна швидкість 1.0×; 0.75× лише на вибір слухача
   const [sleepIdx, setSleepIdx] = useState(SLEEP_OPTIONS.length - 1) // старт = null (вимк.)
   const sleepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const fadeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)

@@ -232,6 +232,28 @@ export default function HomeClient({
           </p>
         </section>
 
+        {/* 17.10.2026: демо-озвучення — дві історії авторок (згода обох) + серія «Балабонів». Голоси синтезовані. */}
+        <section aria-labelledby="demo-audio-h" style={{ background: '#FFF8EE', padding: '28px 0', margin: '24px 0' }}>
+          <div style={{ maxWidth: 760, margin: '0 auto', padding: '0 20px' }}>
+            <h2 id="demo-audio-h" style={{ color: '#0E1A2B', fontSize: 26, margin: '0 0 6px' }}>Послухайте: перші демо-озвучення</h2>
+            <p style={{ color: '#4a5568', fontSize: 17, margin: '0 0 18px' }}>Історії авторок Балабонів. Голоси синтезовані.</p>
+            {[
+              { src: '/audio/prividi-minulogo.mp3', title: '«Привиди минулого»', caption: 'Зоряна Грабар', href: '/stories/prividi-minulogo' },
+              { src: '/audio/svit-dlya-nogo.mp3', title: '«Світ для нього»', caption: 'Оксана Ільків', href: '/stories/svit-dlya-nogo' },
+              { src: '/audio/balabony_seria1_demo.mp3', title: '«Панас і 5G на вишні»', caption: 'Серія «Балабонів»', href: '' },
+            ].map((d) => (
+              <div key={d.src} style={{ marginBottom: 18 }}>
+                <DemoAudioPlayer src={d.src} badge="Демо" caption={d.caption} title={d.title} />
+                {d.href && (
+                  <a href={d.href} style={{ display: 'inline-block', marginTop: 6, color: '#8a5a00', fontWeight: 600, fontSize: 17 }}>
+                    Читати історію →
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+
         <BonusSection />
 
         <PwaSection />      <ChannelsSection />
@@ -242,16 +264,6 @@ export default function HomeClient({
         <SurveyPreviewSection />
       </main>
 
-      <div style={{ background: '#FFF8EE', padding: '20px 0' }}>
-        <div style={{ maxWidth: 760, margin: '0 auto', padding: '0 20px' }}>
-          <DemoAudioPlayer
-            src="/audio/balabony_seria1_demo.mp3"
-            badge="Демо"
-            caption="Озвучення серії"
-            title="«Панас і 5G на вишні»"
-          />
-        </div>
-      </div>
 
       <Footer />
       <AudioPlayer />
