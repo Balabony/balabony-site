@@ -78,6 +78,26 @@ export async function POST(req: NextRequest) {
           .eq('session_id', body.session_id)
         break
 
+      case 'conversion': {
+        // Змістовні конверсії (lib/conversion.ts). Назву пропускаємо лише з білого списку.
+        const allowed = ['pidpyska','donat','pilga_zaiavka','stati_avtorom','zaiavka_orhanizatsii','reiestratsiia','zavantazhennia_pdf','zaiavka_konkurs','namir_konkurs','klub','chytets']
+        const name = String(body.name ?? '')
+        if (!allowed.includes(name)) break
+        await dbQuery(
+          `insert into conversion_events (name, detail, path, source, session_id, country)
+           values ($1, $2, $3, $4, $5, $6)`,
+          [
+            name,
+            body.detail ? String(body.detail).slice(0, 200) : null,
+            body.path ? String(body.path).slice(0, 300) : null,
+            body.source ? String(body.source).slice(0, 100) : null,
+            body.session_id ? String(body.session_id).slice(0, 64) : null,
+            country,
+          ],
+        )
+        break
+      }
+
       case 'acquisition': {
         // First-touch attribution. user_id = balabony_uid (same as revenue_events).
         // ignoreDuplicates keeps the earliest row → never overwrite first touch.

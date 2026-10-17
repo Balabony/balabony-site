@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import GoogleAds from '@/app/components/GoogleAds';
+import { trackConversion } from '@/lib/conversion'
 
 /**
  * Сторінка підтримки /support — v6
@@ -106,6 +107,7 @@ export default function SupportPage() {
   };
 // Google Ads conversion tracking — копіювання донат-реквізитів
   const handleCopyConversion = () => {
+    trackConversion('donat', activeCurrency)
     if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
       (window as any).gtag('event', 'conversion', {
         send_to: 'AW-16967022103/klXQCNbSx7IcEJfswJo_'

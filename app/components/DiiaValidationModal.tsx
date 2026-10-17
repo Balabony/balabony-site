@@ -21,6 +21,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { trackConversion } from '@/lib/conversion'
 
 export type DiiaDocType =
   | 'reference-internally-displaced-person'
@@ -174,6 +175,7 @@ export default function DiiaValidationModal({
       const data = (await res.json()) as { ok?: boolean; error?: string }
 
       if (data.ok) {
+        trackConversion('pilga_zaiavka', `manual:${selected.category}`)
         setStep('submitted')
         onVerified?.(selected.category)
       } else {
@@ -210,6 +212,7 @@ export default function DiiaValidationModal({
       const data = (await res.json()) as ValidateResponse
 
       if (data.verified === true) {
+        trackConversion('pilga_zaiavka', `diia:${data.category ?? ''}`)
         setStep('success')
         onVerified?.(data.category ?? '')
       } else if (data.error) {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { trackConversion } from '@/lib/conversion'
 
 const GOLD = '#EF9F27'
 const NAVY = '#14253B'
@@ -65,6 +66,7 @@ export default function EmailCapture() {
       const data = await res.json() as { ok?: boolean; error?: string }
       if (res.ok && data.ok) {
         setStatus('ok'); setMessage('Готово! Перевірте пошту — ми надіслали вітання.')
+        trackConversion('pidpyska', 'homepage')
         setEmail('')
       } else {
         setStatus('error'); setMessage(data.error ?? 'Не вдалося підписатися')

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AUTHOR_QUESTIONS, AI_POLICY_SHORT } from '@/lib/author-questions'
 import { COVER_ASK, COVER_PLACEHOLDER } from '@/lib/cover-ask'
+import { trackConversion } from '@/lib/conversion'
 
 /**
  * Форма заявки автора на /become-author.
@@ -76,6 +77,7 @@ export default function AuthorApplyForm() {
       const r = await fetch('/api/author-application', { method: 'POST', body: fd })
       const d = await r.json() as { ok?: boolean; error?: string }
       if (!d.ok) { setErr(d.error ?? 'Не вдалося надіслати'); return }
+      trackConversion('stati_avtorom')
       setAgain(false)
       await load()
     } catch {

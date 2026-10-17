@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { trackConversion } from '@/lib/conversion'
 
 const GOLD = '#EF9F27'
 const CREAM = '#FFF8EE'
@@ -60,6 +61,7 @@ export default function StoryEmailCapture({
       if (res.ok && data.ok) {
         setStatus('ok')
         setMessage('Готово. Найближчого вівторка надішлемо нову серію.')
+        trackConversion('pidpyska', `story:${slug}`)
         setEmail('')
       } else {
         setStatus('error')

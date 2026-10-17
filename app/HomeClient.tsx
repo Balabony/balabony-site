@@ -28,6 +28,7 @@ import AuthorsStrip from './components/AuthorsStrip'
 import GenreChips from './components/GenreChips'
 import FactsLine from './components/FactsLine'
 import ContinueReading from './components/ContinueReading'
+import HomePromoRow from './components/HomePromoRow'
 import MostFinished from './components/MostFinished'
 import type { FinishedItem } from '@/lib/most-finished'
 
@@ -130,6 +131,9 @@ export default function HomeClient({
       <FreeBanner />
 
       <KonkursyBanner />
+
+      {/* 17.10.2026: клуб, календар, підтримка — цілі реклами Ad Grants. */}
+      <HomePromoRow />
 
       {/* Недочитане цим читачем. Стоїть нижче першого екрана: список
           приходить із сервера вже після відкриття сторінки. */}

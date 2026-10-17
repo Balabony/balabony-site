@@ -19,6 +19,7 @@
  */
 
 import { useState } from 'react'
+import { trackConversion } from '@/lib/conversion'
 
 const GOLD = '#ef9f27'
 const NAVY = '#0f1e3a'
@@ -67,7 +68,7 @@ export default function ForOrganizationsPage() {
         body: JSON.stringify({ kind, ...form }),
       })
       const d = await r.json()
-      if (d.ok) setDone(true)
+      if (d.ok) { setDone(true); trackConversion('zaiavka_orhanizatsii') }
       else setErr(d.message ?? 'Не вдалося надіслати заявку.')
     } catch {
       setErr('Не вдалося надіслати заявку. Напишіть на nazar@balabony.com.')

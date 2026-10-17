@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { CONTESTS, findContest, isOpen, acceptsEpisodes, type ContestId } from '@/lib/contests'
+import { trackConversion } from '@/lib/conversion'
 
 /**
  * Подача твору на конкурс.
@@ -166,8 +167,7 @@ export default function ContestSubmitForm() {
 
       // Подія GA4 для конверсії Google Ad Grants «заявка на конкурс» (09.10.2026).
       // gtag є лише після згоди на аналітику — без згоди подія не йде.
-      const w = window as unknown as { gtag?: (...args: unknown[]) => void }
-      if (typeof w.gtag === 'function') w.gtag('event', 'zaiavka_konkurs', { contest: contestId })
+      trackConversion('zaiavka_konkurs', contestId)
 
       setFiles([])
       setDone(

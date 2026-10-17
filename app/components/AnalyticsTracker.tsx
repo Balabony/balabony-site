@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
+import { rememberSessionSource, trackConversion } from '@/lib/conversion'
 
 function getSessionId(): string {
   if (typeof window === 'undefined') return ''
@@ -40,6 +41,15 @@ export default function AnalyticsTracker() {
     initialized.current = true
 
     const sid = getSessionId()
+    rememberSessionSource()
+
+    // Щойно створений акаунт (cookie ставить сервер після входу — lib/conversion-server.ts).
+    try {
+      if (document.cookie.split('; ').some((c) => c === 'bly_new_reg=1')) {
+        document.cookie = 'bly_new_reg=; path=/; max-age=0; samesite=lax; secure'
+        trackConversion('reiestratsiia')
+      }
+    } catch { /* ignore */ }
 
     post({ type: 'session_start', session_id: sid, device: getDevice() })
 
@@ -77,7 +87,21 @@ export default function AnalyticsTracker() {
       navigator.sendBeacon('/api/analytics/track', blob)
     }
     window.addEventListener('beforeunload', handleClose)
-    return () => window.removeEventListener('beforeunload', handleClose)
+
+    // Конверсія «завантаження безкоштовного PDF» (календарі, правопис тощо) —
+    // один слухач на весь сайт, щоб не правити кожну сторінку з посиланням.
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as HTMLElement | null)?.closest?.('a') as HTMLAnchorElement | null
+      if (!a) return
+      const href = a.getAttribute('href') || ''
+      if (/\.pdf(\?|#|$)/i.test(href) && !href.includes('/api/')) trackConversion('zavantazhennia_pdf', href.split('/').pop() || href)
+    }
+    document.addEventListener('click', onClick, true)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleClose)
+      document.removeEventListener('click', onClick, true)
+    }
   }, [])
 
   useEffect(() => {

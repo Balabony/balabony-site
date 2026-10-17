@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { dbQuery } from '@/lib/db'
 import { mergeAnonInto } from '@/lib/reader-id'
 import { bindReferralIfAny, ensureUserRow } from '@/lib/referral'
+import { markIfNewAccount } from '@/lib/conversion-server'
 
 // =============================================================================
 // ПОВЕРНЕННЯ ПІСЛЯ ВХОДУ ЗА ПОСИЛАННЯМ
@@ -35,10 +36,12 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
+      let createdAt: string | null = null
       if (explicitNext) {
         try {
           const { data: { user } } = await supabase.auth.getUser()
           if (user) {
+            createdAt = user.created_at ?? null
             await ensureUserRow(user.id, user.email ?? null)
             await mergeAnonInto(user.id)
             await bindReferralIfAny(user.id)
@@ -46,7 +49,7 @@ export async function GET(request: Request) {
         } catch {
           // не критично — вхід важливіший
         }
-        return NextResponse.redirect(`${origin}${explicitNext}`)
+        return markIfNewAccount(NextResponse.redirect(`${origin}${explicitNext}`), createdAt)
       }
 
       // Куди вести за замовчуванням: автора — у кабінет, решту — у профіль.
@@ -54,6 +57,7 @@ export async function GET(request: Request) {
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
+          createdAt = user.created_at ?? null
           // Історія, накопичена до входу, і прив'язка до того, хто привів.
           // Обидві операції мовчазні: вхід не має ламатися через них.
           await ensureUserRow(user.id, user.email ?? null)
@@ -74,7 +78,7 @@ export async function GET(request: Request) {
         // Не змогли перевірити — ведемо у профіль, як раніше. Вхід не ламаємо.
       }
 
-      return NextResponse.redirect(`${origin}${destination}`)
+      return markIfNewAccount(NextResponse.redirect(`${origin}${destination}`), createdAt)
     }
   }
 

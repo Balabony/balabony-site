@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { dbQuery } from '@/lib/db'
 import { mergeAnonInto } from '@/lib/reader-id'
 import { bindReferralIfAny, ensureUserRow } from '@/lib/referral'
+import { markIfNewAccount } from '@/lib/conversion-server'
 import { resolveLoginEmail, safeNext } from '@/lib/login-email'
 
 /**
@@ -75,5 +76,5 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, destination })
+  return markIfNewAccount(NextResponse.json({ ok: true, destination }), user.created_at)
 }

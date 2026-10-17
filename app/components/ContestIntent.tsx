@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { CONTESTS, isOpen, acceptsEpisodes } from '@/lib/contests'
+import { trackConversion } from '@/lib/conversion'
 
 /**
  * «Плануєте подати?» — чотири галочки в кабінеті автора.
@@ -98,8 +99,7 @@ export default function ContestIntent() {
       // Подія GA4 «намір узяти участь у конкурсі» (09.10.2026) — допоміжна
       // конверсія для Ad Grants. Лише коли автор позначає намір, не знімає.
       if (next) {
-        const w = window as unknown as { gtag?: (...args: unknown[]) => void }
-        if (typeof w.gtag === 'function') w.gtag('event', 'namir_konkurs', { contest: id })
+        trackConversion('namir_konkurs', id)
       }
     } catch (e) {
       setOn(prev => {

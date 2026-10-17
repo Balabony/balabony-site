@@ -90,6 +90,7 @@ const READ_LINKS = [
   { label: 'Черга на озвучення', href: '/cherga' },
   { label: 'Ігри для мозку',    href: '/games' },
   { label: 'Автори Балабонів',  href: '/avtory' },
+  { label: 'Клуб Балабонів',    href: '/klub' },
 ]
 
 // 09.09.2026: з iOS і Android знято «Скоро». Це була неправда в гірший бік —
