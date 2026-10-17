@@ -7,7 +7,28 @@ import { slugify } from '@/lib/slugify'
 import { findContest } from '@/lib/contests'
 import { scheduleEntry } from '@/lib/contest-schedule'
 
+// 17.10.2026: заявку можна подати ще до того, як автор заповнив ім'я в профілі —
+// тоді author_name порожній і в заявці, і в серіях (так було з Калиновською й Селезньовою).
+// Підтягуємо ім'я з author_profiles і в заявки, і в уже створені твори.
+export async function fillAuthorNames(): Promise<void> {
+  await dbQuery(
+    `update contest_entries e set author_name = p.display_name
+       from author_profiles p
+      where p.user_id = e.author_id
+        and coalesce(e.author_name, '') = ''
+        and coalesce(p.display_name, '') <> ''`,
+  )
+  await dbQuery(
+    `update content c set author_name = p.display_name
+       from author_profiles p
+      where p.user_id = c.author_id
+        and coalesce(c.author_name, '') = ''
+        and coalesce(p.display_name, '') <> ''`,
+  )
+}
+
 export async function acceptEntry(entryId: string): Promise<number> {
+  try { await fillAuthorNames() } catch (e) { console.error('[contest-accept] names', (e as Error)?.message) }
   const found = await dbQuery(
     `select id::text, author_id::text, author_name, contest, title, annotation, genre, cover_url, status
        from contest_entries where id::text = $1`,
@@ -88,6 +109,7 @@ export async function acceptEntry(entryId: string): Promise<number> {
 
 /** Приймає всі заявки зі статусом «нова» і досилає в каталог нові серії прийнятих. */
 export async function acceptPending(): Promise<void> {
+  try { await fillAuthorNames() } catch (e) { console.error('[contest-accept] names', (e as Error)?.message) }
   const r = await dbQuery(
     `select distinct e.id::text from contest_entries e
        left join contest_episodes ep on ep.entry_id = e.id
