@@ -21,6 +21,7 @@ import Link from 'next/link'
 import { authorSlug } from '@/lib/author-slug'
 import ReaderSettings from '@/app/components/ReaderSettings'
 import RelatedStories from '@/app/components/RelatedStories'
+import GamesStrip from '@/app/components/GamesStrip'
 import StoryRecipe from '@/app/components/StoryRecipe'
 import ContestBadge from '@/app/components/ContestBadge'
 import SeriesNav, { SeriesBadge, type SeriesPart } from '@/app/components/SeriesNav'
@@ -574,6 +575,9 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
             Раніше під текстом не було жодного посилання на інший твір —
             ні для читача, ні для пошуковика. */}
         <RelatedStories storyId={story.id} authorName={story.author_name} genre={story.genre} />
+
+        {/* 18.10.2026: ігри після схожих творів — наступна дія для читача й перелінковка /games. */}
+        <GamesStrip compact source="istoriia" />
 
         {/* Зберегти й поширити — поруч, одразу після тексту й схожих творів. */}
         {/* Зберегти й підписатися — там, де читач щойно дочитав.

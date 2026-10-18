@@ -95,6 +95,16 @@ export default function AnalyticsTracker() {
       if (!a) return
       const href = a.getAttribute('href') || ''
       if (/\.pdf(\?|#|$)/i.test(href) && !href.includes('/api/')) trackConversion('zavantazhennia_pdf', href.split('/').pop() || href)
+      // 18.10.2026: перехід до гри з блоку «Відпочиньте між історіями» чи підвалу.
+      // Звичайна подія GA4 для звіту, НЕ ключова й не конверсія Ads
+      // (гра — не змістовна дія за правилами Ad Grants).
+      const src = a.getAttribute('data-games-src')
+      if (src) {
+        try {
+          const w = window as unknown as { gtag?: (...args: unknown[]) => void }
+          if (typeof w.gtag === 'function') w.gtag('event', 'perekhid_do_gry', { dzherelo: src, hra: href })
+        } catch { /* ignore */ }
+      }
     }
     document.addEventListener('click', onClick, true)
 

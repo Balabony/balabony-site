@@ -403,6 +403,19 @@ export default function Footer() {
           >
             Знаки зодіаку для авторів →
           </a>
+          {/* 18.10.2026: ігри — на всіх сторінках, ключ «безкоштовні ігри онлайн». */}
+          <a
+            href="/games"
+            data-games-src="pidval"
+            className="footer-link"
+            style={{
+              display: 'block', marginTop: 6,
+              color: 'var(--accent-gold)', fontSize: 14, fontWeight: 600,
+              textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
+            }}
+          >
+            Безкоштовні ігри онлайн →
+          </a>
         </div>
 
         {/* ───── КОЛОНКА 3: ВИДІЛЕНІ КАРТКИ ─ ІНКЛЮЗИВНІСТЬ + ДОСТУПНІСТЬ ───── */}

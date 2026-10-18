@@ -3,6 +3,7 @@ import { getMostFinished } from '@/lib/most-finished'
 import { CONTESTS, isOpen, prizeFund } from '@/lib/contests'
 import MostFinished from './MostFinished'
 import FreshStoriesGrid from './FreshStoriesGrid'
+import GamesStrip from './GamesStrip'
 
 /**
  * «Найцікавіше на Балабонах» (17.10.2026) — блок для посадкових сторінок
@@ -79,6 +80,10 @@ export default async function BestOfBalabony() {
           <strong style={{ display: 'block', fontFamily: SERIF, fontWeight: 400, fontSize: '1.15rem', color: GOLD_L, margin: '.3rem 0' }}>Казки на ніч</strong>
           <span style={{ color: MUTED }}>Короткі казки, які встигаєш прочитати перед сном →</span>
         </a>
+      </div>
+
+      <div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 20px' }}>
+        <GamesStrip source="posadkova" />
       </div>
     </section>
   )
