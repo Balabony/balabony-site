@@ -3,6 +3,7 @@ import { randomBytes } from 'crypto'
 import { dbQuery } from '@/lib/db'
 import { sendEditorLoginEmail } from '@/lib/editor-login-email'
 import { LOGIN_LINK_MINUTES } from '@/lib/editor-auth'
+import { normalizeEmail } from '@/lib/normalize-email'
 
 /**
  * POST /api/editor/login  { email }
@@ -48,13 +49,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Вкажіть пошту' }, { status: 400 })
     }
 
-    const found = await dbQuery(
-      `select id, name, email from editors where lower(email) = $1 limit 1`,
-      [email],
-    )
-    if (!found.rowCount) return ok
-
-    const editor = found.rows[0] as { id: number; name: string; email: string }
+    // 18.10.2026: Gmail не розрізняє крапки й «+…» — novatska.t@gmail.com і
+    // novatskat@gmail.com одна скринька. Раніше вхід шукав точний збіг, і
+    // редакторка, що вводила адресу з крапкою, мовчки не отримувала листа.
+    // Редакторів кілька — порівнюємо в коді тією самою normalizeEmail, що й вхід авторів.
+    const all = await dbQuery(`select id, name, email from editors`)
+    const want = normalizeEmail(email)
+    const editor = (all.rows as { id: number; name: string; email: string }[])
+      .find((e) => normalizeEmail(e.email) === want)
+    if (!editor) return ok
 
     // Свіжий лист уже в дорозі — не чіпаємо ні його, ні скриньку.
     const fresh = await dbQuery(

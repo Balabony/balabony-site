@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { dbQuery } from '@/lib/db'
+import { sendEditorAssignedEmail } from '@/lib/contest-routing'
 
 /**
  * Суддівство конкурсів — адмінська частина.
@@ -168,6 +169,11 @@ export async function POST(req: NextRequest) {
       )
 
       // Один основний редактор на роботу — зміна замінює попереднього.
+      const before = await dbQuery(
+        `select editor_id from contest_assignments where entry_id = $1 and role = 'primary'`,
+        [entryId],
+      )
+      const prevId = before.rowCount ? (before.rows[0] as { editor_id: number }).editor_id : null
       await dbQuery(
         `insert into contest_assignments (entry_id, editor_id, role)
          values ($1, $2, 'primary')
@@ -175,7 +181,11 @@ export async function POST(req: NextRequest) {
          do update set editor_id = excluded.editor_id, assigned_at = now()`,
         [entryId, editorId],
       )
-      return NextResponse.json({ ok: true })
+      // 18.10.2026: ручне призначення раніше не надсилало листа — редакторка,
+      // якій роботу передали в адмінці, про неї не дізнавалася. Лист — лише коли
+      // редактор справді змінився, щоб повторне збереження не спамило.
+      const mailed = prevId !== editorId ? await notifyEditor(entryId, editorId) : false
+      return NextResponse.json({ ok: true, mailed })
     }
 
     if (action === 'recheck') {
@@ -205,7 +215,14 @@ export async function POST(req: NextRequest) {
          values ($1, $2, 'recheck')`,
         [entryId, editorId],
       )
-      return NextResponse.json({ ok: true })
+      const mailed = await notifyEditor(entryId, editorId)
+      return NextResponse.json({ ok: true, mailed })
+    }
+
+    // 18.10.2026: повторно надіслати лист редакторові про вже призначену роботу.
+    if (action === 'notify') {
+      const mailed = await notifyEditor(entryId, editorId)
+      return NextResponse.json({ ok: true, mailed })
     }
 
     return NextResponse.json({ ok: false, error: 'Невідома дія' }, { status: 400 })
@@ -213,4 +230,18 @@ export async function POST(req: NextRequest) {
     console.error('[admin/suddivstvo POST]', (err as Error)?.message)
     return NextResponse.json({ ok: false, error: 'Не вдалося виконати дію' }, { status: 500 })
   }
+}
+
+/** Лист редакторові «Вам скеровано роботу № …». Повертає true, якщо лист пішов у відправку. */
+async function notifyEditor(entryId: string, editorId: number): Promise<boolean> {
+  const r = await dbQuery(
+    `select ed.name, ed.email, e.entry_number, e.title, e.contest
+       from editors ed, contest_entries e
+      where ed.id = $1 and e.id::text = $2`,
+    [editorId, entryId],
+  )
+  const row = r.rows[0] as { name: string; email: string; entry_number: number | null; title: string; contest: string } | undefined
+  if (!row?.email) return false
+  await sendEditorAssignedEmail({ to: row.email, editorName: row.name, number: row.entry_number, title: row.title, contest: row.contest })
+  return true
 }

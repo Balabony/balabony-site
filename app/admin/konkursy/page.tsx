@@ -592,6 +592,21 @@ export default function AdminKonkursyPage() {
                         ))}
                       </select>
 
+                      {j?.primary_editor ? (
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={async () => {
+                            const r = await judge({ action: 'notify', entryId: e.id, editorId: Number(j.primary_editor) })
+                            if (r) alert(r.mailed ? 'Лист редакторові надіслано.' : 'Лист не надіслано: у редактора немає пошти.')
+                          }}
+                          style={{ font: 'inherit', fontSize: 12.5, background: 'transparent', color: GOLD_L,
+                                   border: `1px solid ${LINE}`, borderRadius: 8, padding: '.3rem .6rem', cursor: 'pointer' }}
+                        >
+                          ✉ Лист редакторові ще раз
+                        </button>
+                      ) : null}
+
                       <span style={{ color: MUTED }}>
                         Бал:{' '}
                         <b style={{ color: j?.score_status === 'submitted' ? '#22c55e' : CREAM }}>
