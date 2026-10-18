@@ -422,6 +422,18 @@ export default function AdminKonkursyPage() {
           >
             Пронумерувати прийняті роботи{filter ? ' цього конкурсу' : ''}
           </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={async () => {
+              const r = await judge({ action: 'notify-all' })
+              if (r) alert(Array.isArray(r.sent) && r.sent.length ? 'Листи надіслано:\n' + (r.sent as string[]).join('\n') : 'Неоцінених робіт немає — листів не надсилали.')
+            }}
+            style={{ font: 'inherit', fontWeight: 600, background: GOLD_L, color: '#081420', border: 0,
+                     borderRadius: 8, padding: '.55rem 1.1rem', cursor: busy ? 'default' : 'pointer', marginLeft: '.6rem' }}
+          >
+            ✉ Нагадати редакторам
+          </button>
           <span style={{ fontSize: 12.5, color: MUTED, lineHeight: 1.6 }}>
             Номер замінює редакторові прізвище автора. Присвоюється один раз
             і не міняється; уже пронумеровані пропускаються.

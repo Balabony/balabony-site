@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { dbQuery } from '@/lib/db'
-import { sendEditorAssignedEmail } from '@/lib/contest-routing'
+import { sendEditorAssignedEmail, sendEditorDigestEmail } from '@/lib/contest-routing'
 
 /**
  * Суддівство конкурсів — адмінська частина.
@@ -120,6 +120,33 @@ export async function POST(req: NextRequest) {
       )
 
       return NextResponse.json({ ok: true, numbered: res.rowCount ?? 0 })
+    }
+
+    // ── 18.10.2026: «Нагадати редакторам» — одним натисканням. Кожен редактор
+    // отримує ОДИН лист зі списком своїх робіт, які він ще не оцінив.
+    if (action === 'notify-all') {
+      const r = await dbQuery(
+        `select ed.id, ed.name, ed.email, e.entry_number, e.title, e.contest
+           from contest_assignments a
+           join editors ed on ed.id = a.editor_id
+           join contest_entries e on e.id = a.entry_id
+           left join contest_scores s on s.entry_id = a.entry_id and s.editor_id = a.editor_id
+          where e.status <> 'rejected'
+            and coalesce(s.status, '') <> 'submitted'
+          order by ed.name, e.contest, e.entry_number`,
+      )
+      const by = new Map<number, { name: string; email: string; items: { n: number | null; t: string; c: string }[] }>()
+      for (const x of r.rows as { id: number; name: string; email: string; entry_number: number | null; title: string; contest: string }[]) {
+        if (!x.email) continue
+        if (!by.has(x.id)) by.set(x.id, { name: x.name, email: x.email, items: [] })
+        by.get(x.id)!.items.push({ n: x.entry_number, t: x.title, c: x.contest })
+      }
+      const sent: string[] = []
+      for (const ed of by.values()) {
+        await sendEditorDigestEmail({ to: ed.email, editorName: ed.name, items: ed.items })
+        sent.push(`${ed.name} — ${ed.items.length}`)
+      }
+      return NextResponse.json({ ok: true, sent })
     }
 
     // ── Призначення ──────────────────────────────────────────────────────

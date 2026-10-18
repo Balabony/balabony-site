@@ -93,6 +93,39 @@ export async function sendEditorAssignedEmail(p: { to: string; editorName: strin
   }
 }
 
+/** 18.10.2026: один лист редакторові зі списком його неоцінених робіт. */
+export async function sendEditorDigestEmail(p: { to: string; editorName: string; items: { n: number | null; t: string; c: string }[] }) {
+  if (!process.env.RESEND_API_KEY || !p.to || !p.items.length) return
+  const rows = p.items.map((i) => `<li style="margin-bottom:6px;"><strong style="color:#f5f0e8;">№ ${i.n ?? '—'} · «${esc(i.t)}»</strong> <span style="color:#8899bb;">— ${esc(findContest(i.c)?.name ?? i.c)}</span></li>`).join('')
+  const html = `
+<!DOCTYPE html>
+<html lang="uk">
+<body style="font-family:Arial,sans-serif;background:#0a1628;color:#f5f0e8;padding:32px;max-width:600px;margin:0 auto;">
+<div style="background:#0f1e3a;border-radius:16px;padding:28px;border:1px solid rgba(240,165,0,0.3);">
+  <div style="font-size:22px;font-weight:700;color:#f0a500;margin-bottom:4px;">Balabony</div>
+  <div style="font-size:11px;color:#8899bb;letter-spacing:2px;text-transform:uppercase;margin-bottom:24px;">Редакція конкурсів</div>
+  <p style="color:#c8d4e8;line-height:1.7;">Вітаємо, <strong style="color:#f5f0e8;">${esc(p.editorName)}</strong>!</p>
+  <p style="color:#c8d4e8;line-height:1.7;">Вам скеровано конкурсні роботи, які чекають на вашу оцінку:</p>
+  <ul style="color:#c8d4e8;line-height:1.6;padding-left:20px;">${rows}</ul>
+  <p style="color:#c8d4e8;line-height:1.7;">Тексти, умови конкурсу й інструкція, як оцінювати, — у кабінеті.</p>
+  <a href="${SITE}/editor/login" style="display:block;text-align:center;background:#f0a500;color:#081420;padding:15px 20px;border-radius:10px;text-decoration:none;font-weight:700;font-size:16px;margin:20px 0;">Увійти до кабінету</a>
+  <p style="font-size:13px;color:#8899bb;line-height:1.6;margin:0;">Введіть свою пошту — посилання для входу прийде листом.</p>
+</div>
+<p style="font-size:11px;color:#445566;margin-top:18px;text-align:center;">Команда Балабонів</p>
+</body>
+</html>`
+  try {
+    await new Resend(process.env.RESEND_API_KEY).emails.send({
+      from: process.env.RESEND_FROM_EMAIL ?? 'editorial@balabony.com',
+      to: p.to,
+      subject: `[Балабони] Роботи на оцінку: ${p.items.length}`,
+      html,
+    })
+  } catch (e) {
+    console.error('[contest-routing] digest mail', (e as Error)?.message)
+  }
+}
+
 /** Номер + редактор + лист редактору. Безпечно викликати повторно. */
 export async function routeEntry(entryId: string): Promise<{ number: number | null; editor: Editor | null }> {
   const r = await dbQuery(`select contest, title from contest_entries where id::text = $1`, [entryId])
