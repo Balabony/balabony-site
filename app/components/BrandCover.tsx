@@ -45,9 +45,24 @@ const SHAPE = {
 export type CoverShape = keyof typeof SHAPE
 
 /** Розбиття назви на рядки за середньою шириною знака Lora. */
+// 19.10.2026: назви часто набрані ВЕЛИКИМИ літерами — вони ширші за малі майже в півтора раза,
+// тому ширина знака рахується за часткою великих літер. Рядок, що й так задовгий
+// (одне довге слово), стискається textLength — назва ніколи не виходить за золоту рамку.
+function charW(text: string, size: number): number {
+  const letters = text.replace(/[^\p{L}]/gu, '')
+  const up = letters ? letters.replace(/[^\p{Lu}]/gu, '').length / letters.length : 0
+  return size * (0.5 + 0.17 * up)
+}
+export function estWidth(text: string, size: number): number { return text.length * charW(text, size) }
+
 function wrap(title: string, size: number, maxWidth: number): string[] {
-  const max = Math.max(8, Math.floor(maxWidth / (size * 0.5)))
-  const words = title.trim().split(/\s+/)
+  const max = Math.max(6, Math.floor(maxWidth / charW(title, size)))
+  // Тире не починає рядок — тримається з попереднім словом.
+  const words: string[] = []
+  for (const w of title.trim().split(/\s+/)) {
+    if (/^[–—-]$/.test(w) && words.length) words[words.length - 1] += '\u00a0' + w
+    else words.push(w)
+  }
   const lines: string[] = []
   let cur = ''
   for (const w of words) {
@@ -87,7 +102,9 @@ export default function BrandCover({
 }) {
   const { W, H, PAD, INSET, TOP, BOTTOM } = SHAPE[shape]
   const size = fontSize(title, shape)
-  const lines = wrap(title, size, W - INSET * 2 - 80)
+  // Внутрішня ширина рамки мінус поля по 24 з кожного боку.
+  const maxW = W - (PAD + INSET) * 2 - 48
+  const lines = wrap(title, size, maxW)
   const lh = Math.round(size * 1.18)
   const top = (TOP + BOTTOM) / 2 - ((lines.length - 1) * lh) / 2 + lh / 4
 
@@ -143,6 +160,7 @@ export default function BrandCover({
           fontFamily="Lora, Georgia, serif"
           fontSize={size}
           fill={CREAM}
+          {...(estWidth(ln, size) > maxW ? { textLength: maxW, lengthAdjust: 'spacingAndGlyphs' as const } : {})}
         >
           {ln}
         </text>
