@@ -19,15 +19,14 @@
  * внутрішня рамка, монограма, риска й підпис. Композиція та сама
  * (монограма — назва — підпис), змінилася вага кольорів.
  *
- * Біла зовнішня рамка лишається й тут, і не для краси: без неї темне поле
- * зливається з темною карткою каталогу, і обкладинка втрачає межі.
+ * 19.10.2026: білу зовнішню рамку прибрано — у картках, ширших за 3:2, вона
+ * лишалася лише з боків (див. коментар у розмітці).
  */
 
 const NAVY = '#0E1A2B'
 const NAVY_LIFT = '#16294a'
 const GOLD = '#EF9F27'
 const CREAM = '#FFF8EE'
-const WHITE = '#FFFFFF'
 
 /**
  * Два формати. Картки в каталозі мають широке гніздо (приблизно 3:2), а
@@ -97,14 +96,16 @@ export default function BrandCover({
   // на сторінці буває десяток обкладинок, і однакові id збивають заливку.
   const gid = `bc-${shape}`
 
+  // 19.10.2026: поле малює обгортка (той самий градієнт), а SVG вписується цілком («meet»).
+  // Раніше «slice» у картках, ширших за 3:2, обрізав монограму й підпис, а біла рамка лишалася лише з боків.
   return (
+    <div className={className} style={{ width: '100%', height: '100%', background: `linear-gradient(${NAVY_LIFT}, ${NAVY})` }}>
     <svg
       viewBox={`0 0 ${W} ${H}`}
       xmlns="http://www.w3.org/2000/svg"
-      className={className}
       role="img"
       aria-label={`Обкладинка: ${title}`}
-      preserveAspectRatio="xMidYMid slice"
+      preserveAspectRatio="xMidYMid meet"
       style={{ display: 'block', width: '100%', height: '100%' }}
     >
       <defs>
@@ -114,8 +115,10 @@ export default function BrandCover({
         </linearGradient>
       </defs>
 
-      <rect width={W} height={H} fill={WHITE} />
-      <rect x={PAD} y={PAD} width={W - PAD * 2} height={H - PAD * 2} fill={`url(#${gid})`} />
+      {/* 19.10.2026: білу зовнішню рамку прибрано. Картка каталогу ширша за 3:2, тому «slice» обрізав
+          білу смугу згори й знизу, а з боків лишав — на телефоні це виглядало як помилка верстки.
+          Межу обкладинки тепер тримає золота рамка картки. Поле — на всю площу. */}
+      <rect width={W} height={H} fill={`url(#${gid})`} />
 
       {/* Внутрішня золота рамка — те, що робить прямокутник обкладинкою. */}
       <rect
@@ -177,5 +180,6 @@ export default function BrandCover({
         БАЛАБОНИ
       </text>
     </svg>
+    </div>
   )
 }
