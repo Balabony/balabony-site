@@ -85,7 +85,7 @@ export default function BrandCover({
   shape?: CoverShape
   className?: string
 }) {
-  const { W, H, PAD, INSET, MONO, TOP, BOTTOM, FOOT, RULE } = SHAPE[shape]
+  const { W, H, PAD, INSET, TOP, BOTTOM } = SHAPE[shape]
   const size = fontSize(title, shape)
   const lines = wrap(title, size, W - INSET * 2 - 80)
   const lh = Math.round(size * 1.18)
@@ -132,21 +132,7 @@ export default function BrandCover({
         strokeOpacity="0.5"
       />
 
-      {/* Монограма. Коло розриває рамку зверху, тому під ним заливка кольором
-          поля: без неї лінія перекреслює літеру. */}
-      <circle cx={W / 2} cy={PAD + INSET} r={MONO + 7} fill={NAVY_LIFT} />
-      <circle cx={W / 2} cy={PAD + INSET} r={MONO} fill="none" stroke={GOLD} strokeWidth={MONO / 11} />
-      <text
-        x={W / 2}
-        y={PAD + INSET + MONO * 0.34}
-        textAnchor="middle"
-        fontFamily="Montserrat, Arial, sans-serif"
-        fontSize={MONO * 0.95}
-        fontWeight="700"
-        fill={GOLD}
-      >
-        B
-      </text>
+      {/* 19.10.2026 (Богдан): монограму «B» угорі прибрано. */}
 
       {lines.map((ln, i) => (
         <text
@@ -162,23 +148,7 @@ export default function BrandCover({
         </text>
       ))}
 
-      {/* Риска відділяє підпис від назви — інакше вони читаються одним блоком.
-          Підпис кремовий, не золотий: золото 12 кеглем із розрідженням 4,5
-          на навії виявилося надто тонким і в стрічці читалося як пляма. */}
-      <rect x={(W - RULE) / 2} y={H - PAD - FOOT} width={RULE} height="1.5" fill={GOLD} fillOpacity="0.7" />
-      <text
-        x={W / 2}
-        y={H - PAD - FOOT + (shape === 'wide' ? 26 : 32)}
-        textAnchor="middle"
-        fontFamily="Montserrat, Arial, sans-serif"
-        fontSize={shape === 'wide' ? 13 : 14}
-        fontWeight="700"
-        letterSpacing="4.5"
-        fill={CREAM}
-        fillOpacity="0.92"
-      >
-        БАЛАБОНИ
-      </text>
+      {/* 19.10.2026 (Богдан): підпис «БАЛАБОНИ» внизу і риску над ним прибрано. */}
     </svg>
     </div>
   )
