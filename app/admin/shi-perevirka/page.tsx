@@ -38,6 +38,7 @@ export default function Page() {
     const p = new URLSearchParams(window.location.search)
     if (p.get('source')) setSource(p.get('source')!)
     if (p.get('id')) setId(p.get('id')!)
+    if (p.get('check')) void fetch(`/api/admin/ai-style-check?check=${p.get('check')}`, { cache: 'no-store' }).then((r) => r.json()).then((d: { check?: StyleCheck }) => { if (d.check) { setCheck(d.check); setCached(true) } })
   }, [loadHist])
 
   const run = async (force = false) => {

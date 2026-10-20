@@ -1,4 +1,5 @@
 'use client'
+import { indexBand } from '@/app/components/AiStyleReport'
 
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { CONTESTS } from '@/lib/contests'
@@ -18,7 +19,7 @@ const GREEN = '#5cc98a', AMBER = '#f0b54a', RED = '#ef6b6b'
 type Row = {
   id: string; entry_number: number | null; title: string; author_name: string; email: string; phone: string | null
   status: string; episodes: number
-  ai_total: number | null; style_index: number | null; orig_verdict: string | null
+  ai_total: number | null; style_index: number | null; style_check_id: string | null; style_rec: string | null; orig_verdict: string | null
   editor_total: number | null; editor_name: string | null; editor_email: string | null
   recheck_total: number | null; recheck_name: string | null; recheck_email: string | null
   founder_score: number | null; founder_comment: string | null
@@ -184,7 +185,14 @@ export default function Page() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-                  <Score label="ШІ" value={r.ai_total === null ? null : `${r.ai_total}/100`} c={color(r.ai_total)} note={[r.style_index !== null ? `ознаки ШІ: ${r.style_index}/100` : '', r.orig_verdict === 'found' ? '⚠ знайдено в інтернеті' : r.orig_verdict === 'unclear' ? 'є схожі в інтернеті' : r.orig_verdict === 'clean' ? 'в інтернеті не знайдено' : ''].filter(Boolean).join(' · ') || undefined} />
+                  {/* 21.10.2026: розділено — якість тексту (вище = краще) і ознаки ШІ (вище = підозріліше). */}
+                  <Score label="Якість тексту (рецензент-ШІ)" value={r.ai_total === null ? null : `${r.ai_total}/100`} c={color(r.ai_total)}
+                    note={r.orig_verdict === 'found' ? '⚠ знайдено в інтернеті' : r.orig_verdict === 'unclear' ? 'є схожі в інтернеті' : r.orig_verdict === 'clean' ? 'в інтернеті не знайдено' : 'вище — краще'} />
+                  <a href={r.style_check_id ? `/admin/shi-perevirka?check=${r.style_check_id}` : undefined} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                    <Score label="Ознаки ШІ" value={r.style_index === null ? 'чекає' : `${r.style_index}/100`}
+                      c={r.style_index === null ? MUTED : indexBand(r.style_index)[1]}
+                      note={r.style_index === null ? 'перевірка автоматично протягом години' : `${indexBand(r.style_index)[0]} · вище — підозріліше${r.style_rec ? ` · ${r.style_rec}` : ''} · відкрити звіт`} />
+                  </a>
                   <Score label="Редактор" value={r.editor_total === null ? null : `${r.editor_total}/50 (${ed}%)`} c={color(ed)}
                     note={r.recheck_total !== null ? `друга думка: ${r.recheck_total}/50` : undefined} />
                   <Score label="Моя" value={r.founder_score === null ? null : `${r.founder_score}/100`} c={color(r.founder_score)} />
@@ -245,7 +253,7 @@ export default function Page() {
 
 function Score({ label, value, c, note }: { label: string; value: string | null; c: string; note?: string }) {
   return (
-    <div style={{ minWidth: 110, background: NAVY, border: `1px solid ${LINE}`, borderRadius: 8, padding: '8px 10px', textAlign: 'center' }}>
+    <div style={{ minWidth: 110, maxWidth: 190, background: NAVY, border: `1px solid ${LINE}`, borderRadius: 8, padding: '8px 10px', textAlign: 'center' }}>
       <div style={{ fontSize: 11, color: MUTED }}>{label}</div>
       <div style={{ fontSize: 18, fontWeight: 700, color: c }}>{value ?? '—'}</div>
       {note && <div style={{ fontSize: 11, color: MUTED }}>{note}</div>}
