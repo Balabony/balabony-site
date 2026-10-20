@@ -18,7 +18,7 @@ export default function FeaturedAuthor({ a }: { a: FA | null }) {
           <p style={{ margin: 0 }}>
             <a href={`/avtor/${a.slug}`} style={{ color: '#ef9f27', fontWeight: 700, fontSize: 22, textDecoration: 'none', fontFamily: "'Comfortaa', sans-serif" }}>{a.name}</a>
           </p>
-          <p style={{ margin: '2px 0 8px', color: '#8CA0B8', fontSize: 14 }}>{a.total} творів на Балабонах</p>
+          <p style={{ margin: '2px 0 8px', color: '#8CA0B8', fontSize: 14 }}>{a.total} {tvoriv(a.total)} на Балабонах</p>
           {a.bio && <p style={{ margin: 0, color: '#D9DEE8', fontSize: 15, lineHeight: 1.6 }}>{a.bio}</p>}
           {a.works.length > 0 && (
             <>
@@ -41,4 +41,11 @@ export default function FeaturedAuthor({ a }: { a: FA | null }) {
       </div>
     </section>
   )
+}
+
+function tvoriv(n: number): string {
+  const d = n % 10, h = n % 100
+  if (d === 1 && h !== 11) return 'твір'
+  if (d >= 2 && d <= 4 && (h < 12 || h > 14)) return 'твори'
+  return 'творів'
 }

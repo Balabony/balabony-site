@@ -32,14 +32,14 @@ export async function getFeaturedAuthor(slugArg?: string): Promise<FeaturedAutho
               count(r.*) filter (where r.completed = true)::int as finished
          from content c
          left join article_reads r on r.content_id = c.id
-        where c.author_id = $1 and c.slug is not null and c.status = 'published'
+        where c.author_id = $1 and c.slug is not null and c.status in ('approved', 'published')
           and c.type::text = 'story' and coalesce(c.is_adult, false) = false
         group by c.id
         order by finished desc, (coalesce(c.cover_url, '') <> '') desc, coalesce(c.approved_at, c.created_at) desc
         limit 4`,
       [prof.user_id],
     )
-    const t = await dbQuery(`select count(*)::int as n from content where author_id = $1 and status = 'published'`, [prof.user_id])
+    const t = await dbQuery(`select count(*)::int as n from content where author_id = $1 and status in ('approved', 'published')`, [prof.user_id])
     const bio = (prof.bio ?? '').trim()
     return {
       slug, name, avatar: prof.avatar_url, total: (t.rows[0] as { n: number })?.n ?? 0,
@@ -95,7 +95,7 @@ export async function featuredCandidates(limit = 10): Promise<Candidate[]> {
             (length(coalesce(p.bio, '')) > 40) as bio, count(c.*)::int as works, coalesce(max(r7.n), 0)::int as reads7,
             (select max(week_start)::text from featured_authors f where f.user_id = p.user_id) as last
        from author_profiles p
-       join content c on c.author_id = p.user_id and c.status = 'published'
+       join content c on c.author_id = p.user_id and c.status in ('approved', 'published')
        left join reads7 r7 on r7.author_id = p.user_id
       where coalesce(p.is_active, true) and not coalesce(p.hide_from_directory, false)
         and p.user_id not in (select author_id from top)

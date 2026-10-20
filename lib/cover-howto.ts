@@ -54,7 +54,7 @@ export async function sendCoverHowto(): Promise<string[]> {
        from content c
        join author_profiles p on p.user_id = c.author_id
        left join auth.users u on u.id = p.user_id
-      where c.status = 'published' and coalesce(c.cover_url, '') = ''
+      where c.status in ('approved', 'published') and coalesce(c.cover_url, '') = ''
         and coalesce(p.newsletter_opt_out, false) = false
         and coalesce(p.email, u.email) is not null
         and not exists (select 1 from author_emails e where e.author_id = p.user_id and e.template = 'cover_howto' and e.status = 'sent')
