@@ -6,6 +6,8 @@ import { sendEditorDeadlineReminders } from '@/lib/editor-deadline-reminder'
 import { sendNewWorksDigest } from '@/lib/new-works-digest'
 import { dueInTwoDays } from '@/lib/contest-schedule'
 import { sendCoverHowto } from '@/lib/cover-howto'
+import { featuredCandidates, featuredThisWeek, setFeatured } from '@/lib/featured-author'
+import { revalidatePath } from 'next/cache'
 
 /**
  * Щоденна перевірка «що зависло» (14.10.2026), 10:00 за Києвом.
@@ -78,6 +80,23 @@ export async function GET(req: NextRequest) {
         extra: reminded.join(' • '),
       })
     }
+    // 21.10.2026: автор тижня — понеділок: нагадування обрати; середа: якщо не обрано — ставимо першого кандидата
+    try {
+      const dow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Kyiv' })).getDay()
+      if (dow === 1 || dow === 3) {
+        const chosen = await featuredThisWeek()
+        if (!chosen) {
+          const c = await featuredCandidates(5)
+          if (dow === 1 && c.length) {
+            await sendProblemAlert({ where: 'автор тижня — оберіть на цей тиждень', error: `Кандидати: ${c.map((x) => `${x.name} (${x.works} творів)`).join(', ')}`, extra: 'Обрати: https://balabony.com/admin/avtor-tyzhnia — якщо до середи не оберете, сайт поставить першого кандидата сам.' })
+          } else if (dow === 3 && c[0]) {
+            await setFeatured(c[0].user_id, c[0].slug, c[0].name, 'auto')
+            revalidatePath('/')
+            await sendProblemAlert({ where: 'автор тижня — поставлено автоматично', error: `${c[0].name} (${c[0].works} творів)`, extra: 'Змінити: https://balabony.com/admin/avtor-tyzhnia' })
+          }
+        }
+      }
+    } catch (err) { console.error('[featured-author run]', (err as Error)?.message) }
     // 20.10.2026: лист «обкладинка через Gemini» — один раз кожному автору з творами без обкладинки
     let howto: string[] = []
     try { howto = await sendCoverHowto() } catch (err) { console.error('[cover-howto run]', (err as Error)?.message) }
