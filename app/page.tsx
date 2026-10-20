@@ -10,6 +10,7 @@ import {
   getTyshaItems,
 } from '@/lib/home-data'
 import { getMostFinished } from '@/lib/most-finished'
+import { getFeaturedAuthor } from '@/lib/featured-author'
 
 /**
  * Головна тепер збирається на сервері.
@@ -27,7 +28,7 @@ import { getMostFinished } from '@/lib/most-finished'
 export const revalidate = 3600
 
 export default async function HomePage() {
-  const [seriesData, freshStories, fairytales, tyshaItems, genreCounts, stats, authors, mostFinished] =
+  const [seriesData, freshStories, fairytales, tyshaItems, genreCounts, stats, authors, mostFinished, featured] =
     await Promise.all([
     // Баланс головної, рішення 09.09.2026: серіали автора платформи забирали
     // більшу частину екрана — три великі картки «Балабонів» плюс три «Тиші»
@@ -51,6 +52,8 @@ export default async function HomePage() {
     // серіали мають системну перевагу й забрали б увесь список.
     // s2070: 5 позицій і один твір від автора — інакше список займав один автор.
     getMostFinished(5, { storiesOnly: true, onePerAuthor: true }),
+    // 21.10.2026: «Знайомтеся: автор тижня» — lib/featured-author.ts
+    getFeaturedAuthor(),
   ])
 
   return (
@@ -65,6 +68,7 @@ export default async function HomePage() {
         stats={stats}
         authors={authors}
         mostFinished={mostFinished}
+        featured={featured}
       />
     </>
   )

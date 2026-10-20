@@ -30,6 +30,8 @@ import FactsLine from './components/FactsLine'
 import ContinueReading from './components/ContinueReading'
 import HomePromoRow from './components/HomePromoRow'
 import MostFinished from './components/MostFinished'
+import FeaturedAuthor from './components/FeaturedAuthor'
+import type { FeaturedAuthor as FA } from '@/lib/featured-author'
 import type { FinishedItem } from '@/lib/most-finished'
 
 
@@ -61,6 +63,7 @@ export default function HomeClient({
   stats,
   authors,
   mostFinished = [],
+  featured = null,
 }: {
   seriesData: SeriesCard[]
   freshStories: Story[]
@@ -70,6 +73,7 @@ export default function HomeClient({
   stats: SiteStats
   authors: StripAuthor[]
   mostFinished?: FinishedItem[]
+  featured?: FA | null
 }) {
 
   // Доскрол до якоря після того, як ліниві секції
@@ -158,6 +162,9 @@ export default function HomeClient({
           посилання з головної на найкращі твори допомагають їм потрапити в
           пошук. Див. коментар у components/MostFinished.tsx. */}
       <MostFinished items={mostFinished} />
+
+      {/* 21.10.2026: автор тижня — сильні автори, яких не видно в рейтингу */}
+      <FeaturedAuthor a={featured} />
 
       <div id="series"><SeriesStrip series={seriesData} /></div>
 
