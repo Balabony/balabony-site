@@ -25,6 +25,7 @@ import WorksFilter from '@/app/components/WorksFilter'
 import DeleteDraftButton from '@/app/components/DeleteDraftButton'
 import ShareWorkTemplate from '@/app/components/ShareWorkTemplate'
 import RequestUnpublishButton from '@/app/components/RequestUnpublishButton'
+import { realPen } from '@/lib/pen-name'
 
 export const dynamic = 'force-dynamic'
 
@@ -263,7 +264,7 @@ export default async function AuthorDashboardPage() {
 
   // Ім'я, під яким твори автора лежать у content.author_name — саме за ним
   // порівнюємо рядки черги, щоб підсвітити його власний твір.
-  const myName = (profile.pen_name?.trim() || profile.display_name || '').trim()
+  const myName = (realPen(profile.pen_name) || profile.display_name || '').trim()
   try {
     const v = await dbQuery(
       `select v.content_id::text as id, count(*)::int as votes
@@ -316,7 +317,7 @@ export default async function AuthorDashboardPage() {
     : { data: [] }
 
   const readNameById = new Map(
-    (topReadProfiles ?? []).map(p => [p.user_id, (p.pen_name?.trim() || p.display_name || 'Автор').trim()]),
+    (topReadProfiles ?? []).map(p => [p.user_id, (realPen(p.pen_name) || p.display_name || 'Автор').trim()]),
   )
 
   // Псевдонім засновника з рейтингів прибрано — як і в голосуванні.
@@ -1047,7 +1048,7 @@ export default async function AuthorDashboardPage() {
           initialBio={profile.bio ?? null}
           initialPosition={profile.avatar_position ?? null}
           hasSource={Boolean(profile.avatar_source_url)}
-          displayName={profile.pen_name?.trim() || profile.display_name || 'Автор'}
+          displayName={realPen(profile.pen_name) || profile.display_name || 'Автор'}
           initialHidden={profile.hide_from_directory ?? false}
         />
 

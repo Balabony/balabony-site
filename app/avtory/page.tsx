@@ -5,6 +5,7 @@ import Footer from '@/app/components/Footer'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import { ThemeProvider } from '@/app/context/ThemeContext'
 import { authorSlug } from '@/lib/author-slug'
+import { realPen } from '@/lib/pen-name'
 
 /**
  * Публічний список авторів: /avtory
@@ -74,7 +75,7 @@ interface AuthorCard {
 }
 
 function displayName(p: ProfileRow): string {
-  return p.pen_name?.trim() || p.display_name?.trim() || ''
+  return realPen(p.pen_name) || p.display_name?.trim() || ''
 }
 
 function pluralWorks(n: number): string {

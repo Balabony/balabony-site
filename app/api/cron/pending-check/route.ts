@@ -5,6 +5,7 @@ import { sendCoverReminders } from '@/lib/contest-cover-reminder'
 import { sendEditorDeadlineReminders } from '@/lib/editor-deadline-reminder'
 import { sendNewWorksDigest } from '@/lib/new-works-digest'
 import { dueInTwoDays } from '@/lib/contest-schedule'
+import { sendCoverHowto } from '@/lib/cover-howto'
 
 /**
  * Щоденна перевірка «що зависло» (14.10.2026), 10:00 за Києвом.
@@ -75,6 +76,16 @@ export async function GET(req: NextRequest) {
         where: 'нагадування авторам про обкладинку',
         error: `Надіслано ${reminded.length} нагадувань. Якщо до строку відповіді не буде — обкладинку робимо самі.`,
         extra: reminded.join(' • '),
+      })
+    }
+    // 20.10.2026: лист «обкладинка через Gemini» — один раз кожному автору з творами без обкладинки
+    let howto: string[] = []
+    try { howto = await sendCoverHowto() } catch (err) { console.error('[cover-howto run]', (err as Error)?.message) }
+    if (howto.length) {
+      await sendProblemAlert({
+        where: 'лист авторам — обкладинка через Gemini',
+        error: `Надіслано ${howto.length} листів (у дужках — скільки творів без обкладинки)`,
+        extra: howto.join(' • '),
       })
     }
     if (lines.length) {

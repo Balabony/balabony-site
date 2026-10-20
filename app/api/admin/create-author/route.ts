@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { dbQuery } from '@/lib/db'
 import { normalizeEmail } from '@/lib/normalize-email'
+import { realPen } from '@/lib/pen-name'
 
 /**
  * Заведення автора: обліковий запис + профіль + запис згоди, одним рухом.
@@ -71,7 +72,7 @@ export async function POST(req: NextRequest) {
   // знаходить і заводить автору другий, порожній кабінет.
   const emailRaw = (body.email ?? '').trim().toLowerCase()
   const email = normalizeEmail(emailRaw)
-  const penName = stripFieldLabel((body.penName ?? '').trim())
+  const penName = realPen(stripFieldLabel((body.penName ?? '').trim())) // «немає» → порожньо
   const isFop = body.isFop === true
   const channel = (body.consentChannel ?? 'other').trim()
   const note = (body.consentNote ?? '').trim()

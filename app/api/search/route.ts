@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { authorSlug } from '@/lib/author-slug'
+import { realPen } from '@/lib/pen-name'
 
 /**
  * Пошук по каталогу: назви творів, імена й псевдоніми авторів.
@@ -123,7 +124,7 @@ export async function GET(req: Request) {
 
     for (const p of profiles) {
       if (!withWorks.has(p.user_id)) continue
-      const name = p.pen_name?.trim() || p.display_name?.trim() || ''
+      const name = realPen(p.pen_name) || p.display_name?.trim() || ''
       const slug = authorSlug(name)
       if (!name || !slug || taken.has(slug)) continue
       taken.add(slug)

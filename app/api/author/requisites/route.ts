@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { dbQuery } from '@/lib/db'
+import { realPen } from '@/lib/pen-name'
 
 /**
  * Реквізити автора для договору.
@@ -101,7 +102,7 @@ export async function POST(req: NextRequest) {
     [
       fullName, rnokpp, address, phone, iban, bankName,
       (b.payoutRecipient ?? '')?.trim() || null,
-      (b.penName ?? '')?.trim() || null,
+      realPen(b.penName) || null, // «немає» → порожньо
       birthDate,
       (b.postalCode ?? '')?.trim() || null,
       (b.npBranch ?? '')?.trim() || null,

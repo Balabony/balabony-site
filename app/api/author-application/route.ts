@@ -11,6 +11,7 @@ import {
   stripFieldLabel, mailApplicationReceived,
 } from '@/lib/author-applications'
 import { AUTHOR_QUESTIONS } from '@/lib/author-questions'
+import { realPen } from '@/lib/pen-name'
 
 /**
  * Заявка автора з сайту: /api/author-application
@@ -91,7 +92,7 @@ async function handlePOST(req: NextRequest) {
   }
 
   const fullName = stripFieldLabel(String(form.get('fullName') ?? '')).slice(0, 120)
-  const penName = stripFieldLabel(String(form.get('penName') ?? '')).slice(0, 120)
+  const penName = realPen(stripFieldLabel(String(form.get('penName') ?? ''))).slice(0, 120) // «немає» → порожньо
   const phone = stripFieldLabel(String(form.get('phone') ?? '')).slice(0, 40)
   const title = String(form.get('title') ?? '').trim().slice(0, 200)
   const genre = String(form.get('genre') ?? '').trim().slice(0, 100)

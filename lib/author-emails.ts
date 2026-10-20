@@ -129,7 +129,7 @@ function escapeHtml(s: string) {
  * має виглядати як документ з редакції, а не як промо — інакше читається
  * як фішинг.
  */
-function toHtml(text: string) {
+export function toHtml(text: string) {
   const body = text
     .split('\n')
     .map(line => {

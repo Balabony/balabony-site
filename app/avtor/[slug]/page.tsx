@@ -14,6 +14,7 @@ import { pickPublishedText } from '@/lib/published-text'
 import { authorSlug } from '@/lib/author-slug'
 import WinnerBadge from '@/app/components/WinnerBadge'
 import { awardsForAuthor, PLACE_LABEL } from '@/lib/contest-winners'
+import { realPen } from '@/lib/pen-name'
 
 /**
  * Публічна сторінка автора: /avtor/[slug]
@@ -64,7 +65,7 @@ async function getProfile(slug: string): Promise<ProfileRow | null> {
   if (error || !data) return null
 
   const match = (data as ProfileRow[]).find((p) => {
-    const name = p.pen_name?.trim() || p.display_name?.trim() || ''
+    const name = realPen(p.pen_name) || p.display_name?.trim() || ''
     return name !== '' && authorSlug(name) === slug
   })
 
@@ -230,7 +231,7 @@ function pluralLikes(n: number): string {
 }
 
 function displayName(p: ProfileRow): string {
-  return p.pen_name?.trim() || p.display_name?.trim() || 'Автор'
+  return realPen(p.pen_name) || p.display_name?.trim() || 'Автор'
 }
 
 /** «7 історій», «2 історії», «1 історія» */

@@ -4,6 +4,7 @@ import { pickPublishedText } from '@/lib/published-text'
 import { readingMinutes } from '@/lib/readingTime'
 import { GENRES } from '@/lib/genres'
 import { authorSlug } from '@/lib/author-slug'
+import { realPen } from '@/lib/pen-name'
 
 /**
  * Дані головної, зібрані на сервері.
@@ -548,7 +549,7 @@ export async function getStripAuthors(limit = 8): Promise<StripAuthor[]> {
       if (p.hide_from_directory) continue
       if (!withWorks.has(p.user_id)) continue
       if (!p.avatar_url?.trim()) continue
-      const name = p.pen_name?.trim() || p.display_name?.trim() || ''
+      const name = realPen(p.pen_name) || p.display_name?.trim() || ''
       if (!name) continue
       all.push({ slug: authorSlug(name), name, avatar: p.avatar_url, initials: initialsOf(name) })
     }

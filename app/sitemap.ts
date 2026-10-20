@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { authorSlug } from '@/lib/author-slug'
 import { REYTYNG_DEMO } from '@/lib/reytyng'
 import { GENRES, GENRE_PAGES } from '@/lib/genres'
+import { realPen } from '@/lib/pen-name'
 
 const BASE_URL = 'https://balabony.com'
 
@@ -261,7 +262,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         if (p.hide_from_directory) continue
         if (!withWorks.has(p.user_id)) continue
 
-        const name = (p.pen_name?.trim() || p.display_name?.trim() || '')
+        const name = (realPen(p.pen_name) || p.display_name?.trim() || '')
         if (!name) continue
 
         const slug = authorSlug(name)

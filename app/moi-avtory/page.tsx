@@ -8,6 +8,7 @@ import Footer from '@/app/components/Footer'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import { ThemeProvider } from '@/app/context/ThemeContext'
 import { authorSlug } from '@/lib/author-slug'
+import { realPen } from '@/lib/pen-name'
 
 /**
  * «Мої автори»: за ким стежить читач.
@@ -44,7 +45,7 @@ interface ProfileRow {
 }
 
 function nameOf(p: ProfileRow): string {
-  return p.pen_name?.trim() || p.display_name?.trim() || 'Автор'
+  return realPen(p.pen_name) || p.display_name?.trim() || 'Автор'
 }
 
 export default async function MyAuthorsPage() {
