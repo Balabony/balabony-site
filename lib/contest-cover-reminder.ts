@@ -37,6 +37,12 @@ export async function sendCoverReminders(): Promise<string[]> {
       where e.status <> 'rejected'
         and coalesce(nullif(trim(e.cover_brief), ''), nullif(e.cover_url, '')) is null
         and e.cover_reminded_at is null
+        -- 21.10.2026: обкладинку могли поставити прямо на серії (сторінка редагування твору),
+        -- а не через «Оцінки конкурсів» — тоді в заявці cover_url порожній. Таким не нагадуємо.
+        and not exists (
+          select 1 from contest_episodes ep join content c on c.id = ep.content_id
+           where ep.entry_id = e.id and coalesce(c.cover_url, '') <> ''
+        )
         and coalesce(e.cover_requested_at, e.created_at) < now() - interval '5 days'
         and coalesce(e.email, '') <> ''`,
   )
