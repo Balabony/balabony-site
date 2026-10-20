@@ -11,6 +11,7 @@ import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { dbQuery } from '@/lib/db'
 import { toPlainText } from '@/lib/plain-text'
 import { findContest, isOpen, acceptsEpisodes, countWords } from '@/lib/contests'
+import { realPen } from '@/lib/pen-name'
 
 /**
  * Прийом конкурсних заявок: /api/contest/submit
@@ -65,10 +66,21 @@ async function readFile(file: File): Promise<string> {
   return toPlainText(buffer.toString('utf-8'))
 }
 
+// 21.10.2026: ім'я автора для заявки — псевдонім або ім'я з профілю. Якщо обох немає, форма просить вписати ім'я
+// (раніше заявки йшли з «ім'я в профілі не вказано» — 7 робіт на 20.10).
+async function profileName(userId: string): Promise<string> {
+  try {
+    const r = await dbQuery(`select display_name, pen_name from author_profiles where user_id = $1 limit 1`, [userId])
+    const row = r.rows[0] as { display_name: string | null; pen_name: string | null } | undefined
+    return (realPen(row?.pen_name) || (row?.display_name ?? '').trim())
+  } catch { return '' }
+}
+
 export async function GET() {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ ok: true, authorized: false, entries: [] })
+  const needName = !(await profileName(user.id))
 
   try {
     const e = await dbQuery(
@@ -81,7 +93,7 @@ export async function GET() {
     const entries = e.rows as EntryRow[]
 
     if (entries.length === 0) {
-      return NextResponse.json({ ok: true, authorized: true, entries: [] })
+      return NextResponse.json({ ok: true, authorized: true, needName, entries: [] })
     }
 
     const eps = await dbQuery(
@@ -101,6 +113,7 @@ export async function GET() {
     return NextResponse.json({
       ok: true,
       authorized: true,
+      needName,
       entries: entries.map(r => ({ ...r, episodes: byEntry.get(r.id) ?? [] })),
     })
   } catch (err) {
@@ -204,6 +217,16 @@ async function handlePOST(req: NextRequest) {
     }
   } catch {
     // профілю ще немає — подати все одно можна, ім'я візьмемо з листа
+  }
+  // 21.10.2026: псевдонім має перевагу; якщо в профілі нічого — беремо ім'я з форми й зберігаємо в профіль
+  authorName = (await profileName(user.id)) || authorName.trim()
+  if (!authorName) {
+    const typed = String(form.get('authorName') ?? '').replace(/\s+/g, ' ').trim().slice(0, 120)
+    if (typed.length < 3) {
+      return NextResponse.json({ ok: false, error: 'Вкажіть ваше ім’я та прізвище (або псевдонім) — так підпишемо твір.' }, { status: 400 })
+    }
+    authorName = typed
+    try { await dbQuery(`update author_profiles set display_name = $2 where user_id = $1 and coalesce(trim(display_name), '') = ''`, [user.id, typed]) } catch { /* профілю немає — ім'я однаково піде в заявку */ }
   }
 
   // --- Читаємо файли до запису в базу --------------------------------------

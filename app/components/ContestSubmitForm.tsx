@@ -63,6 +63,9 @@ export default function ContestSubmitForm() {
   const [done, setDone] = useState('')
   const [aiOk, setAiOk] = useState(false)
   const [newOk, setNewOk] = useState(false)
+  // 21.10.2026: у профілі немає імені — просимо вписати, як підписати твір
+  const [needName, setNeedName] = useState(false)
+  const [authorName, setAuthorName] = useState('')
 
   const open = CONTESTS.filter(
     c => isOpen(c) || (acceptsEpisodes(c) && entries.some(e => e.contest === c.id)),
@@ -92,8 +95,9 @@ export default function ContestSubmitForm() {
   const load = useCallback(async () => {
     try {
       const res = await fetch('/api/contest/submit')
-      const d = await res.json() as { authorized?: boolean; entries?: Entry[] }
+      const d = await res.json() as { authorized?: boolean; entries?: Entry[]; needName?: boolean }
       setAuthorized(Boolean(d.authorized))
+      setNeedName(Boolean(d.needName))
       setEntries(d.entries ?? [])
     } catch {
       setNote('Не вдалося звʼязатися з сайтом.')
@@ -117,6 +121,7 @@ export default function ContestSubmitForm() {
 
   const validate = (): FieldErr[] => {
     const e: FieldErr[] = []
+    if (needName && authorName.trim().length < 3) e.push({ id: 'f-author', msg: 'Вкажіть ваше ім’я та прізвище (або псевдонім).' })
     if (!entry && !title.trim()) e.push({ id: 'f-title', msg: 'Вкажіть назву твору.' })
     if (files.length === 0) e.push({ id: 'f-files', msg: 'Не вибрано жодного файлу. Прикріпіть файл із текстом твору.' })
     if (!aiOk) e.push({ id: 'f-ai', msg: 'Поставте позначку про використання штучного інтелекту.' })
@@ -129,7 +134,7 @@ export default function ContestSubmitForm() {
   useEffect(() => {
     setErrors(prev => (prev.length ? validate() : prev))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, files, aiOk, newOk])
+  }, [title, files, aiOk, newOk, authorName])
 
   const goTo = (id: string) => {
     const el = document.getElementById(id)
@@ -152,6 +157,7 @@ export default function ContestSubmitForm() {
     try {
       const fd = new FormData()
       fd.append('contest', contestId)
+      if (needName) fd.append('authorName', authorName.trim())
       fd.append('title', title.trim())
       fd.append('annotation', annotation.trim())
       fd.append('genre', genre.trim())
@@ -164,6 +170,7 @@ export default function ContestSubmitForm() {
       const d = await res.json() as { ok?: boolean; error?: string; totalNow?: number; totalNeed?: number }
 
       if (!d.ok) { setNote(d.error ?? 'Не вдалося надіслати'); return }
+      if (needName) setNeedName(false)
 
       // Подія GA4 для конверсії Google Ad Grants «заявка на конкурс» (09.10.2026).
       // gtag є лише після згоди на аналітику — без згоди подія не йде.
@@ -301,6 +308,12 @@ export default function ContestSubmitForm() {
 
       {left > 0 && (
         <div style={box}>
+          {needName && (
+            <>
+              <label htmlFor="f-author" style={label}>Ваше ім’я та прізвище (або псевдонім) — так підпишемо твір</label>
+              <input id="f-author" value={authorName} onChange={e => setAuthorName(e.target.value)} style={field} maxLength={120} autoComplete="name" aria-invalid={bad('f-author') || undefined} />
+            </>
+          )}
           {!entry && (
             <>
               <label htmlFor="f-title" style={label}>Назва твору</label>
