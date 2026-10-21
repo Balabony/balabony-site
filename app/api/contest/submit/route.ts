@@ -445,6 +445,7 @@ async function sendMail(p: {
     ${p.entryNumber ? `<p style="color:#c8d4e8;">Номер вашої роботи: <strong style="color:#ef9f27;font-size:18px">№ ${p.entryNumber}</strong>. Вказуйте його в листах до редакції.</p>` : ''}
     <ul style="color:#c8d4e8;line-height:1.8;">${rows}</ul>
     ${tail}
+    <p style="color:#c8d4e8;">Щоб твір опублікували, а приз (якщо переможете) виплатили, потрібен підписаний авторський договір. Окремого листа про договір не буде — зробіть це самі в <a href="https://balabony.com/author/dashboard" style="color:#ef9f27">кабінеті автора</a>: заповніть реквізити й натисніть «Сформувати договір». Якщо договір уже підписано — нічого робити не треба.</p>
     <p style="color:#8899bb;font-size:13px;">Якщо в переліку чогось бракує — напишіть на nazar@balabony.com, розберемося.</p>
   </div>
 </body>`
