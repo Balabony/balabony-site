@@ -226,8 +226,20 @@ async function handlePOST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Вкажіть ваше ім’я та прізвище (або псевдонім) — так підпишемо твір.' }, { status: 400 })
     }
     authorName = typed
-    try { await dbQuery(`update author_profiles set display_name = $2 where user_id = $1 and coalesce(trim(display_name), '') = ''`, [user.id, typed]) } catch { /* профілю немає — ім'я однаково піде в заявку */ }
   }
+  // 21.10.2026: у 11 конкурсних авторів не було профілю — кабінет казав «не підключено», і вони не могли
+  // ні поставити обкладинку, ні підписати договір, хоча саме цього ми просимо в листі. Тепер подача
+  // сама створює профіль (або дописує порожнє ім'я в наявний).
+  try {
+    await dbQuery(
+      `insert into author_profiles (user_id, display_name, email, full_name, is_fop, revenue_share, is_active)
+       values ($1, $2, nullif($3, ''), $2, false, 0.4, true)
+       on conflict (user_id) do update
+          set display_name = coalesce(nullif(trim(author_profiles.display_name), ''), excluded.display_name),
+              email        = coalesce(author_profiles.email, excluded.email)`,
+      [user.id, authorName, email],
+    )
+  } catch (e) { console.error('[contest-submit] profile', (e as Error)?.message) }
 
   // --- Читаємо файли до запису в базу --------------------------------------
   // Спершу перевіряємо ВСІ файли й лише потім щось пишемо. Інакше автор,
