@@ -10,7 +10,7 @@ import mammoth from 'mammoth'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { dbQuery } from '@/lib/db'
 import { toPlainText } from '@/lib/plain-text'
-import { findContest, isOpen, acceptsEpisodes, countWords } from '@/lib/contests'
+import { CONTESTS, findContest, isOpen, acceptsEpisodes, countWords } from '@/lib/contests'
 import { realPen } from '@/lib/pen-name'
 
 /**
@@ -248,7 +248,7 @@ async function handlePOST(req: NextRequest) {
       return NextResponse.json(
         {
           ok: false,
-          error: `У файлі «${f.name}» ${words} слів, а конкурс приймає ${contest.minWords}–${contest.maxWords}. Нічого не збережено. Допишіть або скоротіть текст і подайте файл ще раз на цій сторінці — листом конкурсні твори не приймаємо.`,
+          error: `У файлі «${f.name}» ${words} слів, а конкурс приймає ${contest.minWords}–${contest.maxWords}.${fitsOther(words, contest.id)} Нічого не збережено. Допишіть або скоротіть текст і подайте файл ще раз на цій сторінці — листом конкурсні твори не приймаємо.`,
         },
         { status: 400 },
       )
@@ -489,4 +489,11 @@ export async function POST(req: NextRequest) {
   const copy = res.clone()
   after(() => alertIfFailed(copy, 'подача на конкурс (/konkursy/podaty)'))
   return res
+}
+
+// 21.10.2026: автори плутають конкурс (Галина Максим'юк подала казки в серіальний). Якщо обсяг
+// підходить до іншого відкритого конкурсу — підказуємо, куди саме подати.
+function fitsOther(words: number, current: string): string {
+  const ok = CONTESTS.filter((c) => c.id !== current && isOpen(c) && words >= c.minWords && words <= c.maxWords)
+  return ok.length ? ` Цей обсяг підходить до конкурсу ${ok.map((c) => c.name).join(' або ')} — виберіть його у списку вгорі форми.` : ''
 }
