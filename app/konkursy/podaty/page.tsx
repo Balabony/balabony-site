@@ -96,9 +96,11 @@ export default function Page() {
           padding: '14px 16px', borderRadius: 10,
           background: 'rgba(239,159,39,0.08)', border: '1px solid rgba(239,159,39,0.3)',
         }}>
-          <strong style={{ color: CREAM }}>Якщо щось не працює</strong> — надішліть файли на{' '}
+          <strong style={{ color: CREAM }}>Сайт показав помилку?</strong> Прочитайте її: там сказано,
+          що виправити (найчастіше — обсяг тексту). Виправте файл і подайте ще раз тут же.
+          Листом твори й обкладинки не приймаємо — лише через цю сторінку й кабінет автора.
+          Якщо сторінка взагалі не відкривається, надішліть знімок екрана на{' '}
           <a href="mailto:nazar@balabony.com" style={{ color: GOLD }}>nazar@balabony.com</a>.
-          Заявку приймемо, підтвердження надішлемо руками. Жоден твір не загубиться через нашу форму.
         </p>
 
         <p style={{ color: MUTED, fontSize: '0.85rem', marginTop: '1.5rem', lineHeight: 1.7 }}>

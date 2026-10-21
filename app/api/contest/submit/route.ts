@@ -248,7 +248,7 @@ async function handlePOST(req: NextRequest) {
       return NextResponse.json(
         {
           ok: false,
-          error: `У файлі «${f.name}» ${words} слів, а конкурс приймає ${contest.minWords}–${contest.maxWords}. Нічого не збережено — виправте і надішліть ще раз.`,
+          error: `У файлі «${f.name}» ${words} слів, а конкурс приймає ${contest.minWords}–${contest.maxWords}. Нічого не збережено. Допишіть або скоротіть текст і подайте файл ще раз на цій сторінці — листом конкурсні твори не приймаємо.`,
         },
         { status: 400 },
       )

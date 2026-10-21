@@ -232,12 +232,11 @@ export default function ContestCountdown() {
         padding: '10px 12px', borderRadius: 10,
         background: 'rgba(239,159,39,0.08)', border: `1px solid ${BRAND.line}`,
       }}>
-        <strong style={{ color: BRAND.ink }}>Як подати.</strong> Унизу цієї сторінки —
-        форма «Написати редакції». Виберіть тему «Заявка на конкурс», назвіть конкурс
-        і додайте текст. На пошту одразу прийде підтвердження, що заявку отримано.
-        Можна й листом на{' '}
-        <a href="mailto:nazar@balabony.com" style={{ color: BRAND.amberDark }}>nazar@balabony.com</a>,
-        але тоді підтвердження не буде автоматичним.
+        <strong style={{ color: BRAND.ink }}>Як подати.</strong> Лише через сторінку{' '}
+        <a href="/konkursy/podaty" style={{ color: BRAND.amberDark }}>«Подати на конкурс»</a>:
+        увійдіть, оберіть конкурс і додайте файл. Сайт сам перевірить обсяг, дасть роботі номер
+        і надішле підтвердження на пошту. Обкладинку ставите самі — у кабінеті автора, кнопкою
+        «Додати фото» під твором. Листом твори й обкладинки не приймаємо.
       </p>
 
       <div style={{ display: 'grid', gap: 12 }}>
