@@ -57,7 +57,8 @@ export async function acceptEntry(entryId: string): Promise<number> {
 
   for (const raw of eps.rows as { id: string; ord: number; body: string }[]) {
     // Назва серії: для одного твору — його назва, для серіалу з номером.
-    const title = multi ? `${entry.title}. Серія ${raw.ord}` : entry.title
+    // 22.10.2026: «Що ти бачиш?. Серія 1» — після ?, !, … чи крапки другу крапку не ставимо
+    const title = multi ? `${entry.title.trim()}${/[.!?…]$/.test(entry.title.trim()) ? '' : '.'} Серія ${raw.ord}` : entry.title
 
     // Вільний slug. Той самий підхід, що в /api/author/new-work.
     const base = slugify(title)

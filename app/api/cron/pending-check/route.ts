@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
       const due = await dueInTwoDays()
       if (due.length) {
         await sendProblemAlert({
-          where: 'конкурс — через 2 дні виходять серії',
+          kind: 'todo', where: 'конкурс — через 2 дні виходять серії',
           error: `Післязавтра о 18:00 вийде ${due.length} серій. Перегляньте тексти, поки є час.`,
           extra: due.map(d => `«${d.title}» (${d.author ?? 'автор не вказаний'}) — https://balabony.com/admin/content/stories/${d.id}/edit`).join(' • '),
         })
@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
     try { edReminded = await sendEditorDeadlineReminders() } catch (err) { console.error('[editor-deadline run]', (err as Error)?.message) }
     if (edReminded.length) {
       await sendProblemAlert({
-        where: 'нагадування редакторам — 3 дні до строку',
+        kind: 'report', where: 'нагадування редакторам — 3 дні до строку',
         error: `Надіслано ${edReminded.length} нагадувань редакторам`,
         extra: edReminded.join(' • '),
       })
@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
     try { reminded = await sendCoverReminders() } catch (err) { console.error('[cover-reminder run]', (err as Error)?.message) }
     if (reminded.length) {
       await sendProblemAlert({
-        where: 'нагадування авторам про обкладинку',
+        kind: 'report', where: 'нагадування авторам про обкладинку',
         error: `Надіслано ${reminded.length} нагадувань. Якщо до строку відповіді не буде — обкладинку робимо самі.`,
         extra: reminded.join(' • '),
       })
@@ -88,11 +88,11 @@ export async function GET(req: NextRequest) {
         if (!chosen) {
           const c = await featuredCandidates(5)
           if (dow === 1 && c.length) {
-            await sendProblemAlert({ where: 'автор тижня — оберіть на цей тиждень', error: `Кандидати: ${c.map((x) => `${x.name} (${x.works} творів)`).join(', ')}`, extra: 'Обрати: https://balabony.com/admin/avtor-tyzhnia — якщо до середи не оберете, сайт поставить першого кандидата сам.' })
+            await sendProblemAlert({ kind: 'todo', where: 'автор тижня — оберіть на цей тиждень', error: `Кандидати: ${c.map((x) => `${x.name} (${x.works} творів)`).join(', ')}`, extra: 'Обрати: https://balabony.com/admin/avtor-tyzhnia — якщо до середи не оберете, сайт поставить першого кандидата сам.' })
           } else if (dow === 3 && c[0]) {
             await setFeatured(c[0].user_id, c[0].slug, c[0].name, 'auto')
             revalidatePath('/')
-            await sendProblemAlert({ where: 'автор тижня — поставлено автоматично', error: `${c[0].name} (${c[0].works} творів)`, extra: 'Змінити: https://balabony.com/admin/avtor-tyzhnia' })
+            await sendProblemAlert({ kind: 'report', where: 'автор тижня — поставлено автоматично', error: `${c[0].name} (${c[0].works} творів)`, extra: 'Змінити: https://balabony.com/admin/avtor-tyzhnia' })
           }
         }
       }
@@ -102,14 +102,14 @@ export async function GET(req: NextRequest) {
     try { howto = await sendCoverHowto() } catch (err) { console.error('[cover-howto run]', (err as Error)?.message) }
     if (howto.length) {
       await sendProblemAlert({
-        where: 'лист авторам — обкладинка через Gemini',
+        kind: 'report', where: 'лист авторам — обкладинка через Gemini',
         error: `Надіслано ${howto.length} листів (у дужках — скільки творів без обкладинки)`,
         extra: howto.join(' • '),
       })
     }
     if (lines.length) {
       await sendProblemAlert({
-        where: 'щоденна перевірка — є незавершені справи',
+        kind: 'todo', where: 'щоденна перевірка — є незавершені справи',
         error: `${lines.length} пункт(ів) потребують уваги`,
         extra: lines.join(' • '),
       })

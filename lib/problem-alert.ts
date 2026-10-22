@@ -16,17 +16,26 @@ function esc(v: string): string {
   return (v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-export async function sendProblemAlert(p: { where: string; error: string; who?: string; extra?: string }) {
+// 22.10.2026 (Богдан): звіти й завдання більше не приходять під заголовком «⚠ Проблема».
+// kind: 'problem' (за замовчуванням) — збій; 'report' — сайт щось зробив сам; 'todo' — треба дія редактора.
+const KINDS = {
+  problem: { label: '⚠ Проблема', icon: '⚠', color: '#ef6b6b', border: 'rgba(239,107,107,.5)', what: 'Що побачив' },
+  report: { label: '📋 Звіт', icon: '📋', color: '#6bc28f', border: 'rgba(107,194,143,.5)', what: 'Що зроблено' },
+  todo: { label: '📌 Завдання', icon: '📌', color: '#ef9f27', border: 'rgba(239,159,39,.5)', what: 'Що треба' },
+} as const
+
+export async function sendProblemAlert(p: { where: string; error: string; who?: string; extra?: string; kind?: keyof typeof KINDS }) {
   if (!process.env.RESEND_API_KEY) return
+  const k = KINDS[p.kind ?? 'problem'], isProblem = (p.kind ?? 'problem') === 'problem'
   const time = new Date().toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv' })
   const html = `
 <body style="font-family:Arial,sans-serif;background:#0a1628;color:#f5f0e8;padding:24px;max-width:640px;margin:0 auto;">
-  <div style="background:#0f1e3a;border-radius:14px;padding:22px;border:1px solid rgba(239,107,107,.5);">
-    <div style="font-size:18px;font-weight:700;color:#ef6b6b;margin-bottom:12px;">⚠ Проблема: ${esc(p.where)}</div>
-    <p style="color:#c8d4e8;margin:0 0 8px;"><b>Хто:</b> ${p.who ? `<a href="mailto:${esc(p.who)}" style="color:#ef9f27">${esc(p.who)}</a>` : 'не відомо (не увійшов або без пошти)'}</p>
-    <p style="color:#c8d4e8;margin:0 0 8px;"><b>Що побачив:</b> ${esc(p.error)}</p>
+  <div style="background:#0f1e3a;border-radius:14px;padding:22px;border:1px solid ${k.border};">
+    <div style="font-size:18px;font-weight:700;color:${k.color};margin-bottom:12px;">${k.label}: ${esc(p.where)}</div>
+    ${isProblem ? `<p style="color:#c8d4e8;margin:0 0 8px;"><b>Хто:</b> ${p.who ? `<a href="mailto:${esc(p.who)}" style="color:#ef9f27">${esc(p.who)}</a>` : 'не відомо (не увійшов або без пошти)'}</p>` : ''}
+    <p style="color:#c8d4e8;margin:0 0 8px;"><b>${k.what}:</b> ${esc(p.error)}</p>
     ${p.extra ? `<p style="color:#8899bb;margin:0 0 8px;">${esc(p.extra)}</p>` : ''}
-    <p style="color:#8899bb;font-size:12px;margin:12px 0 0;">${esc(time)} · Якщо помилка на нашому боці — напишіть автору, що все виправлено, і попросіть спробувати ще раз.</p>
+    <p style="color:#8899bb;font-size:12px;margin:12px 0 0;">${esc(time)}${isProblem ? ` · Якщо помилка на нашому боці — напишіть автору, що все виправлено, і попросіть спробувати ще раз.` : ''}</p>
   </div>
 </body>`
   try {
@@ -34,7 +43,7 @@ export async function sendProblemAlert(p: { where: string; error: string; who?: 
       from: process.env.RESEND_FROM_EMAIL ?? 'editorial@balabony.com',
       to: TO,
       ...(p.who ? { replyTo: p.who } : {}),
-      subject: `[Балабони] ⚠ ${p.where}: ${p.error.slice(0, 80)}`,
+      subject: `[Балабони] ${k.icon} ${p.where}: ${p.error.slice(0, 80)}`,
       html,
     })
   } catch (e) {
