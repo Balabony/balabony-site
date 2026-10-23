@@ -12,14 +12,14 @@ import { scheduleEntry } from '@/lib/contest-schedule'
 // Підтягуємо ім'я з author_profiles і в заявки, і в уже створені твори.
 export async function fillAuthorNames(): Promise<void> {
   await dbQuery(
-    `update contest_entries e set author_name = p.display_name
+    `update contest_entries e set author_name = coalesce(nullif(trim(p.pen_name), ''), p.display_name)
        from author_profiles p
       where p.user_id = e.author_id
         and coalesce(e.author_name, '') = ''
         and coalesce(p.display_name, '') <> ''`,
   )
   await dbQuery(
-    `update content c set author_name = p.display_name
+    `update content c set author_name = coalesce(nullif(trim(p.pen_name), ''), p.display_name)
        from author_profiles p
       where p.user_id = c.author_id
         and coalesce(c.author_name, '') = ''

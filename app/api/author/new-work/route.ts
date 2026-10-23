@@ -4,6 +4,7 @@ import { dbQuery } from '@/lib/db'
 import { slugify } from '@/lib/slugify'
 import { normalizeGenre } from '@/lib/genres'
 import { sendNewWorkAlert } from '@/lib/new-work-alert'
+import { realPen } from '@/lib/pen-name'
 
 /**
  * Автор додає власний твір: /api/author/new-work
@@ -88,11 +89,14 @@ export async function POST(req: NextRequest) {
     // сайту (сторінки авторів, черга озвучення, перевірка згоди).
     let authorName = ''
     const prof = await dbQuery(
-      `select coalesce(display_name, '') as display_name
+      `select coalesce(display_name, '') as display_name, coalesce(pen_name, '') as pen_name
          from author_profiles where user_id = $1 limit 1`,
       [user.id],
     )
-    authorName = String((prof.rows[0] as { display_name?: string } | undefined)?.display_name ?? '').trim()
+    // 23.10.2026: публічне імʼя — ЗАВЖДИ псевдонім, якщо він є (як на сторінці автора й у contest/submit).
+    // Було: лише display_name → твори з кабінету виходили під справжнім прізвищем і давали 404 на імені.
+    const prow = prof.rows[0] as { display_name?: string; pen_name?: string } | undefined
+    authorName = (realPen(prow?.pen_name) || String(prow?.display_name ?? '').trim()).trim()
     if (!authorName) {
       return NextResponse.json(
         { ok: false, error: 'Спершу заповніть ім’я в кабінеті — воно стоятиме під твором' },
