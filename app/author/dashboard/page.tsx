@@ -25,6 +25,7 @@ import WorksFilter from '@/app/components/WorksFilter'
 import DeleteDraftButton from '@/app/components/DeleteDraftButton'
 import ShareWorkTemplate from '@/app/components/ShareWorkTemplate'
 import RequestUnpublishButton from '@/app/components/RequestUnpublishButton'
+import CopyLinkButton from '@/app/components/CopyLinkButton'
 import { realPen } from '@/lib/pen-name'
 
 export const dynamic = 'force-dynamic'
@@ -83,6 +84,13 @@ const STATUS_LABEL: Record<string, string> = {
   approved: 'Опубліковано',
   review: 'На редактурі',
   published: 'Опубліковано',
+}
+
+// Коротке «що далі» для статусів у роботі — щоб автор розумів процес і не писав у підтримку.
+const STATUS_NEXT: Record<string, string> = {
+  humanizing: 'Йде автоматична обробка тексту. Трохи зачекайте — статус оновиться сам.',
+  human_review: 'Редакція переглядає текст. Коли завершить, статус тут зміниться — окремо писати не потрібно.',
+  review: 'Твір у редакції на вичитці. Після неї статус оновиться; дія від вас наразі не потрібна.',
 }
 
 // --- Бренд-токени Balabony (зі сайту: theme-color #ef9f27, темно-синя героїка, кремові поверхні, сериф) ---
@@ -1267,6 +1275,11 @@ export default async function AuthorDashboardPage() {
                       {STATUS_LABEL[s.status] || s.status}
                     </span>
                   </div>
+                  {STATUS_NEXT[s.status] && (
+                    <p style={{ margin: '6px 0 0', fontSize: '0.82rem', color: BRAND.muted, lineHeight: 1.5 }}>
+                      {STATUS_NEXT[s.status]}
+                    </p>
+                  )}
                   <div style={{ display: 'flex', gap: '1.1rem', flexWrap: 'wrap', marginTop: 8, fontSize: '0.88rem', color: '#b9c6db' }}>
                     {/* «Перегляди» прибрано 09.09.2026.
 
@@ -1300,7 +1313,7 @@ export default async function AuthorDashboardPage() {
                       неопублікований текст авторові й нікому більше. */}
                   {s.slug && (
                     <a
-                      href={`/stories/${s.slug}`}
+                      href={workPath(s.type, s.slug)}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
@@ -1312,6 +1325,12 @@ export default async function AuthorDashboardPage() {
                     >
                       {s.status === 'draft' ? 'Переглянути чернетку' : 'Відкрити на сайті'}
                     </a>
+                  )}
+
+                  {/* Копіювати посилання — лише для живих творів (approved/published),
+                      щоб автор одним кліком кинув лінк у соцмережі чи друзям. */}
+                  {(s.status === 'approved' || s.status === 'published') && s.slug && (
+                    <CopyLinkButton url={`https://balabony.com${workPath(s.type, s.slug)}`} />
                   )}
 
                   {/* Готовий допис для соцмереж — тільки для опублікованих:
