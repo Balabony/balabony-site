@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
   if (rnokpp.length !== 10) {
     return NextResponse.json({ ok: false, error: 'РНОКПП має містити 10 цифр' }, { status: 400 })
   }
-  if (!/^UA\d{27}$/.test(iban)) {
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban)) {
     return NextResponse.json({ ok: false, error: 'Невірний формат IBAN' }, { status: 400 })
   }
   if (!address || !bankName || phone.replace(/\D/g, '').length < 10) {

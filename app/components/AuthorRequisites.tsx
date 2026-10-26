@@ -115,7 +115,7 @@ export default function AuthorRequisites({ initial }: Props) {
     const rnokpp = (form.rnokpp ?? '').replace(/\D/g, '')
     if (rnokpp.length !== 10) return bad('rnokpp', `Поле «РНОКПП»: потрібно рівно 10 цифр, зараз ${rnokpp.length}.`)
     const iban = (form.payout_iban ?? '').replace(/\s/g, '').toUpperCase()
-    if (!/^UA\d{27}$/.test(iban)) return bad('payout_iban', 'Поле «IBAN»: рахунок починається з UA і має 29 символів. Пробіли можна лишати.')
+    if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban)) return bad('payout_iban', 'Поле «IBAN»: впишіть повний номер рахунку — український (UA…) або іноземний (напр. польський PL…). Пробіли можна лишати.')
     const bd = (form.birth_date ?? '').trim()
     if (!/^\d{4}-\d{2}-\d{2}$/.test(bd)) return bad('birth_date', 'Оберіть дату народження тут — це окреме поле, у «Про себе» вона не зараховується.')
     const born = new Date(bd)
@@ -319,7 +319,7 @@ export default function AuthorRequisites({ initial }: Props) {
           <Field label="Поштовий індекс" value={form.postal_code ?? ''} onChange={v => set('postal_code', v)} name="postal_code" bad={badField === 'postal_code'} badMessage={err} placeholder="5 цифр" />
           <Field label="Відділення Нової пошти" value={form.np_branch ?? ''} onChange={v => set('np_branch', v)} name="np_branch" bad={badField === 'np_branch'} badMessage={err} placeholder="Напр.: 12" />
           <Field label="Телефон" value={form.phone ?? ''} onChange={v => set('phone', v)} name="phone" empty={missing('phone')} bad={badField === 'phone'} badMessage={err} placeholder="+380…" />
-          <Field label="IBAN" value={form.payout_iban ?? ''} onChange={v => set('payout_iban', v)} name="payout_iban" empty={missing('payout_iban')} bad={badField === 'payout_iban'} badMessage={err} placeholder="UA…" />
+          <Field label="IBAN" value={form.payout_iban ?? ''} onChange={v => set('payout_iban', v)} name="payout_iban" empty={missing('payout_iban')} bad={badField === 'payout_iban'} badMessage={err} placeholder="UA… або PL…" />
           <div style={{ marginBottom: '0.9rem' }} data-field="bank_name">
             <div style={label}>Назва банку</div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
