@@ -4,6 +4,7 @@ import Kalendar2027Grid from '../components/Kalendar2027Grid'
 import LiteraryDates2027 from '../components/LiteraryDates2027'
 import KlubCta from '@/app/components/KlubCta'
 import BestOfBalabony from '@/app/components/BestOfBalabony'
+import { CONTESTS, isOpen, prizeFund } from '@/lib/contests'
 
 // Блок «Найцікавіше» (свіжі історії, конкурси) оновлюється щогодини.
 export const revalidate = 3600
@@ -96,6 +97,24 @@ export default function Kalendar2027Page() {
           файли PDF, друкуються на домашньому принтері без полів і без обрізання.
           Скачування без реєстрації.
         </p>
+
+        {(() => {
+          const open = CONTESTS.filter((c) => isOpen(c))
+          if (open.length === 0) return null
+          const lead = open.length === 1
+            ? `Конкурс «${open[0].name}» — призовий фонд ${prizeFund(open[0])}`
+            : `${open.length} відкритих конкурси для авторів — із призовими фондами`
+          return (
+            <Link
+              href="/konkursy"
+              style={{ display: 'block', background: CARD, border: '1px solid rgba(239,159,39,.5)', borderRadius: 12, padding: '12px 16px', margin: '1.3rem 0 0', color: CREAM, textDecoration: 'none' }}
+            >
+              <span style={{ fontSize: '.76rem', fontWeight: 800, color: '#22c55e', letterSpacing: '.03em' }}>✍ ДЛЯ АВТОРІВ · ПРИЙОМ ТРИВАЄ</span>
+              <span style={{ display: 'block', fontFamily: SERIF, fontSize: '1.1rem', color: GOLD_L, margin: '.25rem 0' }}>{lead}</span>
+              <span style={{ color: GOLD, fontWeight: 800 }}>Подати роботу на конкурс →</span>
+            </Link>
+          )
+        })()}
 
         <h2 style={h2}>Макети на вибір</h2>
 
