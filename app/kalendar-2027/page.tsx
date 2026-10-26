@@ -101,9 +101,12 @@ export default function Kalendar2027Page() {
         {(() => {
           const open = CONTESTS.filter((c) => isOpen(c))
           if (open.length === 0) return null
+          const top = open.reduce((a, b) =>
+            Number(prizeFund(b).replace(/[^0-9]/g, '')) > Number(prizeFund(a).replace(/[^0-9]/g, '')) ? b : a
+          )
           const lead = open.length === 1
             ? `Конкурс «${open[0].name}» — призовий фонд ${prizeFund(open[0])}`
-            : `${open.length} відкритих конкурси для авторів — із призовими фондами`
+            : `${open.length} відкритих конкурси для авторів — призові фонди до ${prizeFund(top)}`
           return (
             <Link
               href="/konkursy"
