@@ -16,7 +16,17 @@ export const metadata: Metadata = {
   description: 'Читати українські оповідання, казки й серіали онлайн; аудіо — незабаром. Понад 990 історій українських авторів.',
   keywords: ['українські історії', 'балабони', 'інклюзивна література', 'доступ для людей з інвалідністю', 'література для ВПО', 'соціальний проєкт'],
   authors: [{ name: 'Balabony™' }],
-  robots: 'index, follow',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      maxImagePreview: 'large',
+      maxSnippet: -1,
+      maxVideoPreview: -1,
+    },
+  },
   alternates: {
     canonical: '/',
     // Автовиявлення фідів: читалки і скрінрідери шукають саме тут.
