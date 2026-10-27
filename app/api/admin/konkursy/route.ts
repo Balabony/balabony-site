@@ -81,7 +81,17 @@ export async function GET(req: NextRequest) {
               e.title, e.annotation, e.genre, e.status, e.created_at,
               count(ep.id)::int                                        as episodes,
               coalesce(sum(ep.words), 0)::int                          as words,
-              count(ep.content_id)::int                                as published
+              count(ep.content_id)::int                                as published,
+              coalesce(
+                nullif(e.cover_url, ''),
+                (select c2.cover_url
+                   from contest_episodes ep2
+                   join content c2 on c2.id = ep2.content_id
+                  where ep2.entry_id = e.id
+                    and coalesce(c2.cover_url, '') <> ''
+                  limit 1)
+              )                                                        as cover_url,
+              nullif(e.cover_brief, '')                                as cover_brief
          from contest_entries e
          left join contest_episodes ep on ep.entry_id = e.id
         group by e.id
@@ -93,7 +103,7 @@ export async function GET(req: NextRequest) {
       const eps = await dbQuery(
         `select ep.id::text, ep.ord, ep.words, ep.filename, ep.body,
                 ep.content_id::text,
-                c.slug, c.status as content_status, c.publish_at
+                c.slug, c.status as content_status, c.publish_at, c.cover_url
            from contest_episodes ep
            left join content c on c.id = ep.content_id
           where ep.entry_id = $1

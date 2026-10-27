@@ -45,6 +45,8 @@ type Entry = {
   words: number
   published: number
   counted: number
+  cover_url: string | null
+  cover_brief: string | null
 }
 
 type Episode = {
@@ -57,6 +59,7 @@ type Episode = {
   slug: string | null
   content_status: string | null
   publish_at: string | null
+  cover_url: string | null
 }
 
 type Stages = {
@@ -457,13 +460,30 @@ export default function AdminKonkursyPage() {
           return (
           <div key={e.id} style={{ background: CARD, border: `1px solid ${LINE}`,
                                    borderRadius: 12, padding: '.85rem 1rem', marginBottom: '.7rem' }}>
-            <div style={{ display: 'flex', gap: '.8rem', alignItems: 'baseline', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '.7rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              {e.cover_url ? (
+                <a href={e.cover_url} target="_blank" rel="noreferrer" title="Відкрити обкладинку">
+                  <img src={e.cover_url} alt="" width={46} height={60}
+                       style={{ width: 46, height: 60, objectFit: 'cover', borderRadius: 6,
+                                border: `1px solid ${LINE}`, display: 'block' }} />
+                </a>
+              ) : (
+                <span style={{ width: 46, height: 60, borderRadius: 6, border: `1px dashed ${LINE}`,
+                               display: 'grid', placeItems: 'center', fontSize: 10, color: MUTED,
+                               textAlign: 'center', lineHeight: 1.2 }}>без<br/>фото</span>
+              )}
               <button onClick={() => void open(e.id)}
                       style={{ font: 'inherit', background: 'transparent', border: 0,
                                color: GOLD_L, fontSize: 15.5, fontWeight: 600,
                                cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                {openId === e.id ? '▾ ' : '▸ '}
                 {j?.entry_number ? `№ ${j.entry_number} · ` : ''}{e.title}
+              </button>
+              <button onClick={() => void open(e.id)}
+                      style={{ font: 'inherit',
+                               background: openId === e.id ? 'rgba(255,255,255,.07)' : 'transparent',
+                               border: `1px solid ${LINE}`, borderRadius: 999, color: CREAM,
+                               fontSize: 12, cursor: 'pointer', padding: '.22rem .7rem', whiteSpace: 'nowrap' }}>
+                {openId === e.id ? '▴ Згорнути' : '▾ Розгорнути'}
               </button>
               <span style={{ fontSize: 12, color: STATUS_COLOR[e.status] ?? MUTED }}>
                 {STATUS_LABEL[e.status] ?? e.status}
@@ -501,6 +521,12 @@ export default function AdminKonkursyPage() {
               )}
               {e.genre ? ` · ${e.genre}` : ''}
               {e.published > 0 && ` · у каталозі: ${e.published}`}
+              {' · '}
+              {e.cover_url
+                ? <span style={{ color: '#22c55e' }}>обкладинка є</span>
+                : e.cover_brief
+                  ? <span style={{ color: '#eab308' }}>є опис героїв</span>
+                  : <span style={{ color: '#ff9b9b' }}>обкладинки нема</span>}
             </div>
 
             {e.annotation && (
@@ -534,6 +560,15 @@ export default function AdminKonkursyPage() {
                       <a href={`/stories/${ep.slug}`} target="_blank" rel="noreferrer"
                          style={{ color: GOLD, fontSize: 12.5, marginLeft: '.6rem' }}>
                         відкрити →
+                      </a>
+                    )}
+                    {ep.cover_url && (
+                      <a href={ep.cover_url} target="_blank" rel="noreferrer"
+                         style={{ display: 'inline-block', marginLeft: '.6rem', verticalAlign: 'middle' }}
+                         title="Обкладинка серії">
+                        <img src={ep.cover_url} alt="" width={34} height={44}
+                             style={{ width: 34, height: 44, objectFit: 'cover', borderRadius: 5,
+                                      border: `1px solid ${LINE}`, display: 'inline-block' }} />
                       </a>
                     )}
 
