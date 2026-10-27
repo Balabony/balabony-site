@@ -439,7 +439,7 @@ async function sendMail(p: {
   if (!process.env.RESEND_API_KEY || !p.to) return
 
   const rows = p.accepted
-    .map(a => `<li>Серія ${a.ord} — ${a.words} слів <span style="color:#8899bb">(${a.filename})</span></li>`)
+    .map(a => `<li>Серія ${a.ord} — ${a.words} слів <span style="color:#8899bb">(${esc(a.filename)})</span></li>`)
     .join('')
 
   const left = p.totalNeed - p.totalNow
@@ -451,9 +451,9 @@ async function sendMail(p: {
 <body style="font-family:Arial,sans-serif;background:#0a1628;color:#f5f0e8;padding:32px;max-width:680px;margin:0 auto;">
   <div style="background:#0f1e3a;border-radius:16px;padding:28px;border:1px solid rgba(239,159,39,0.3);">
     <div style="font-size:22px;font-weight:700;color:#ef9f27;margin-bottom:20px;">Balabony</div>
-    <p style="color:#c8d4e8;">Вітаємо${p.authorName ? ', <strong style="color:#f5f0e8">' + p.authorName + '</strong>' : ''}!</p>
-    <p style="color:#c8d4e8;">Заявку на конкурс <strong style="color:#ef9f27">${p.contestName}</strong> отримано.</p>
-    <p style="color:#c8d4e8;">Твір: <strong style="color:#f5f0e8">${p.title}</strong></p>
+    <p style="color:#c8d4e8;">Вітаємо${p.authorName ? ', <strong style="color:#f5f0e8">' + esc(p.authorName) + '</strong>' : ''}!</p>
+    <p style="color:#c8d4e8;">Заявку на конкурс <strong style="color:#ef9f27">${esc(p.contestName)}</strong> отримано.</p>
+    <p style="color:#c8d4e8;">Твір: <strong style="color:#f5f0e8">${esc(p.title)}</strong></p>
     ${p.entryNumber ? `<p style="color:#c8d4e8;">Номер вашої роботи: <strong style="color:#ef9f27;font-size:18px">№ ${p.entryNumber}</strong>. Вказуйте його в листах до редакції.</p>` : ''}
     <ul style="color:#c8d4e8;line-height:1.8;">${rows}</ul>
     ${tail}
