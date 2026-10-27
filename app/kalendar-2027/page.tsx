@@ -178,6 +178,29 @@ export default function Kalendar2027Page() {
         </p>
         <LiteraryDates2027 />
 
+        {/* МІСТОК У ДИТЯЧІ РОЗДІЛИ (27.10.2026). На підсторінках такий блок є
+            з 17.09, а на головній сторінці календаря — ні, хоча саме сюди
+            веде реклама Ad Grants (понад 1000 кліків/міс). Ведемо в казки,
+            загадки й скоромовки: та сама аудиторія — батьки з дітьми. */}
+        <div style={{
+          marginTop: '2rem', padding: '1.1rem 1.25rem', borderRadius: 12,
+          background: 'rgba(239,159,39,0.07)',
+          border: '1px solid rgba(239,159,39,0.22)',
+        }}>
+          <h2 style={{ ...h2, marginTop: 0 }}>Що почитати й чим зайняти дитину</h2>
+          <p style={{ marginBottom: '0.9rem' }}>
+            Поки календар друкується — казки на ніч, загадки з відповідями й
+            скоромовки. Усе українською, безкоштовно, без реєстрації.
+          </p>
+          <p style={{ margin: 0 }}>
+            <Link href="/fairytales" style={{ color: GOLD, fontWeight: 700 }}>Казки на ніч →</Link>
+            <span style={{ color: MUTED }}>{'  ·  '}</span>
+            <Link href="/zahadky" style={{ color: GOLD }}>Загадки з відповідями →</Link>
+            <span style={{ color: MUTED }}>{'  ·  '}</span>
+            <Link href="/skoromovky" style={{ color: GOLD }}>Скоромовки →</Link>
+          </p>
+        </div>
+
         <h2 style={h2}>Календар-планер 2027 на стіну</h2>
         <p>
           Календар-планувальник на 2027 рік — це вже не аркуш, а друковане
