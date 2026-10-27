@@ -79,7 +79,8 @@ export default async function ZahadkyTopicPage(
             ))}
           </div>
           <p style={{ color: '#94a3b8', fontSize: 15, lineHeight: 1.6, marginTop: 22 }}>
-            Після загадок — <Link href="/fairytales" style={{ color: '#FAC775' }}>казка на ніч</Link>.
+            Після загадок — <Link href="/fairytales" style={{ color: '#FAC775' }}>казка на ніч</Link> або{' '}
+            <Link href="/skoromovky" style={{ color: '#FAC775' }}>скоромовки</Link>.
           </p>
         </section>
       </main>

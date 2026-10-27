@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
@@ -134,6 +135,14 @@ export default async function FairytalesPage() {
             <FreshStoriesGrid stories={kids} />
           </section>
         )}
+
+        {/* Перелінковка дитячих розділів (27.10.2026): казки ↔ загадки ↔ скоромовки. */}
+        <p style={{ color: '#94a3b8', fontSize: 15, lineHeight: 1.6, marginTop: 40 }}>
+          Ще для дитини:{' '}
+          <Link href="/zahadky" style={{ color: '#FAC775' }}>загадки з відповідями</Link>
+          {' · '}
+          <Link href="/skoromovky" style={{ color: '#FAC775' }}>скоромовки</Link>
+        </p>
       </main>
       <Footer />
       <AudioPlayer />
