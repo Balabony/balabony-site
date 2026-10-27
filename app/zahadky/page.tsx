@@ -80,7 +80,8 @@ export default function ZahadkyPage() {
         <p style={{ color: '#94a3b8', fontSize: 15, lineHeight: 1.6, marginTop: 8 }}>
           Шукаєте, що почитати дитині після загадок?{' '}
           <Link href="/fairytales" style={{ color: '#FAC775' }}>Казки на ніч</Link>
-          {' '}— безкоштовно, українською.
+          {' '}— безкоштовно, українською. А для розминки язика —{' '}
+          <Link href="/skoromovky" style={{ color: '#FAC775' }}>скоромовки</Link>.
         </p>
       </main>
       <Footer />
