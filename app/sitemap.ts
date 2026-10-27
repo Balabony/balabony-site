@@ -1,4 +1,5 @@
 import { CONTESTS } from '@/lib/contests'
+import { ZAHADKY_TOPICS } from '@/lib/zahadky'
 import type { MetadataRoute } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { authorSlug } from '@/lib/author-slug'
@@ -120,6 +121,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/kalendar-2027/dytiachyi`,         lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE_URL}/pravopys`,              lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/pravopys/dity`,         lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
+    // Загадки (27.10.2026): «загадки» — 40 500 запитів/міс за Планувальником.
+    { url: `${BASE_URL}/zahadky`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    ...ZAHADKY_TOPICS.map((t) => ({
+      url: `${BASE_URL}/zahadky/${t.slug}`,
+      lastModified: now, changeFrequency: 'monthly' as const, priority: 0.7,
+    })),
     { url: `${BASE_URL}/demo`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE_URL}/contacts`,              lastModified: now, changeFrequency: 'yearly',  priority: 0.5 },
     { url: `${BASE_URL}/survey`,                lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
