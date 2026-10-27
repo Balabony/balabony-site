@@ -55,7 +55,9 @@ export default function CookieConsent() {
 
     if (stored === 'granted') applyConsent('granted')
     else if (stored !== 'denied') {
-      timer = setTimeout(() => setVisible(true), 8000)
+      // 27.10.2026: відвідувачам із реклами Google (в адресі є gclid) банер через 2 с: вони часто йдуть раніше за 8 с і згоди не бачать. Решта (газета, QR) — як і було, 8 с.
+      const fromAds = /[?&](gclid|gbraid|wbraid)=/.test(window.location.search)
+      timer = setTimeout(() => setVisible(true), fromAds ? 2000 : 8000)
     }
 
     const reopen = () => setVisible(true)
@@ -120,7 +122,7 @@ export default function CookieConsent() {
       }}
     >
       <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45, flex: '1 1 220px' }}>
-        Порахувати, які історії читають?{' '}
+        Порахувати, які історії читають, і оцінити нашу рекламу в Google?{' '}
         <a href="/legal/cookies" style={{ color: GOLD, fontWeight: 600, fontSize: 12.5 }}>
           Політика Cookies
         </a>
@@ -131,7 +133,7 @@ export default function CookieConsent() {
           onClick={() => decide('granted')}
           style={{ ...btn, background: GOLD, color: '#0a1628', border: 'none', fontWeight: 700 }}
         >
-          Прийняти аналітику
+          Прийняти
         </button>
         <button
           type="button"
