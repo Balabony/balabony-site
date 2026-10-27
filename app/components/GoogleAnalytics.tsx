@@ -2,7 +2,7 @@
 
 import Script from 'next/script'
 
-const GA_ID = 'G-NTQKS1MZZD'
+const GA_ID = 'G-NTQKS1MZZD' // 27.10.2026: lazyOnload -> afterInteractive (Google Ad Grants: GA4 губив рекламних відвідувачів, конверсії не доходили в Ads)
 
 // Рекламний тег Google Ads (AW-...) тут БІЛЬШЕ НЕ ПІДКЛЮЧАЄТЬСЯ.
 // Він тягнув окремий скрипт на 192,5 КіБ на кожній сторінці сайту заради
@@ -26,9 +26,9 @@ export default function GoogleAnalytics() {
     <>
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-        strategy="lazyOnload"
+        strategy="afterInteractive"
       />
-      <Script id="google-analytics" strategy="lazyOnload">
+      <Script id="google-analytics" strategy="afterInteractive">
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
