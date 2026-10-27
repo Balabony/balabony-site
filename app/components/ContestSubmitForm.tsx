@@ -56,7 +56,6 @@ export default function ContestSubmitForm() {
   const [title, setTitle] = useState('')
   const [annotation, setAnnotation] = useState('')
   const [genre, setGenre] = useState('')
-  const [coverBrief, setCoverBrief] = useState('')
   const [files, setFiles] = useState<File[]>([])
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
@@ -161,7 +160,6 @@ export default function ContestSubmitForm() {
       fd.append('title', title.trim())
       fd.append('annotation', annotation.trim())
       fd.append('genre', genre.trim())
-      fd.append('coverBrief', coverBrief.trim())
       fd.append('aiConsent', aiOk ? 'yes' : 'no')
       fd.append('newConsent', newOk ? 'yes' : 'no')
       files.forEach(f => fd.append('files', f))
@@ -337,18 +335,6 @@ export default function ContestSubmitForm() {
                 placeholder="наприклад: сімейна драма, гумор, фантастика"
               />
 
-              <label htmlFor="f-cover" style={label}>Головні герої — для обкладинки (необовʼязково)</label>
-              <textarea
-                id="f-cover" value={coverBrief}
-                onChange={e => setCoverBrief(e.target.value)}
-                rows={5}
-                style={{ ...field, resize: 'vertical' }}
-                maxLength={3000}
-                placeholder={'Про кожного героя (1–3): імʼя й вік, зовнішність, одяг, характерна деталь.\nДалі: де відбувається дія і який настрій обкладинки (тривожна, тепла, таємнича…).'}
-              />
-              <p style={{ color: BRAND.text, fontSize: '0.82rem', lineHeight: 1.5, margin: '-6px 0 14px', opacity: 0.8 }}>
-                За цим описом редакція створить обкладинку. На оцінку журі не впливає. Маєте власну картинку (малюнок чи створену ШІ)? Після подачі поставте її самі: кабінет автора → під твором «Додати фото». Листом не надсилайте. Картинки ШІ для обкладинки можна; текст — лише ваш.
-              </p>
             </>
           )}
 

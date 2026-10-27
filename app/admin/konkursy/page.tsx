@@ -159,6 +159,8 @@ export default function AdminKonkursyPage() {
   const [openId, setOpenId] = useState<string | null>(null)
   const [openEp, setOpenEp] = useState<string | null>(null)
   const [filter, setFilter] = useState<string>('')
+  const [q, setQ] = useState('')
+  const [noCoverOnly, setNoCoverOnly] = useState(false)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
   const [loading, setLoading] = useState(true)
@@ -287,7 +289,16 @@ export default function AdminKonkursyPage() {
     }
   }
 
-  const shown = filter ? entries.filter(e => e.contest === filter) : entries
+  const shown = entries.filter(e => {
+    if (filter && e.contest !== filter) return false
+    if (noCoverOnly && e.cover_url) return false
+    const s = q.trim().toLowerCase()
+    if (s) {
+      const hay = `${e.title} ${e.author_name ?? ''} ${e.email ?? ''}`.toLowerCase()
+      if (!hay.includes(s)) return false
+    }
+    return true
+  })
 
   return (
     <main style={{ background: NAVY, minHeight: '100vh', padding: '24px 18px 80px', fontFamily: FONT, color: CREAM }}>
@@ -443,6 +454,34 @@ export default function AdminKonkursyPage() {
           </span>
         </div>
 
+        <div style={{ display: 'flex', gap: '.7rem', alignItems: 'center', flexWrap: 'wrap', margin: '0 0 1rem' }}>
+          <input
+            value={q}
+            onChange={ev => setQ(ev.target.value)}
+            placeholder="Пошук: назва, автор або пошта"
+            style={{ font: 'inherit', background: CARD, border: `1px solid ${LINE}`,
+                     borderRadius: 8, color: CREAM, fontSize: 14, padding: '.5rem .8rem',
+                     flex: '1 1 260px', maxWidth: 420 }}
+          />
+          {q && (
+            <button onClick={() => setQ('')}
+                    style={{ font: 'inherit', background: 'transparent', border: `1px solid ${LINE}`,
+                             borderRadius: 8, color: MUTED, fontSize: 13, cursor: 'pointer',
+                             padding: '.5rem .8rem' }}>
+              ✕ очистити
+            </button>
+          )}
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '.4rem',
+                          fontSize: 13.5, color: CREAM, cursor: 'pointer' }}>
+            <input type="checkbox" checked={noCoverOnly}
+                   onChange={ev => setNoCoverOnly(ev.target.checked)} />
+            лише без обкладинки
+          </label>
+          <span style={{ fontSize: 12.5, color: MUTED, marginLeft: 'auto' }}>
+            показано: {shown.length}
+          </span>
+        </div>
+
         {loading && <p style={{ color: MUTED }}>Завантажую…</p>}
 
         {!loading && shown.length === 0 && (
@@ -502,7 +541,7 @@ export default function AdminKonkursyPage() {
                 </span>
               )}
               <span style={{ fontSize: 12.5, color: MUTED, marginLeft: 'auto' }}>
-                {e.author_name} · {e.email} · {dateLabel(e.created_at)}
+                {e.author_name} · <a href={`mailto:${e.email}`} style={{ color: GOLD }} title="Написати автору">{e.email}</a> · {dateLabel(e.created_at)}
               </span>
             </div>
 
