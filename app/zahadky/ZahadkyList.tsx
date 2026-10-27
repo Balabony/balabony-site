@@ -57,6 +57,11 @@ export default function ZahadkyList({ items }: { items: Zahadka[] }) {
             <p style={{ margin: '12px 0 0', fontSize: 19, fontWeight: 700, color: '#FAC775' }}>
               {z.a}
             </p>
+            {z.more && (
+              <p style={{ margin: '8px 0 0', fontSize: 15 }}>
+                <a href={z.more.href} style={{ color: '#FAC775' }}>{z.more.label}</a>
+              </p>
+            )}
           </details>
         </li>
       ))}
