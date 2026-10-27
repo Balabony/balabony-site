@@ -138,6 +138,8 @@ export default function DytiachyiPage() {
             <span style={{ color: MUTED }}>{'  ·  '}</span>
             <Link href="/stories/zhanr/opovidannia-dlia-ditei" style={{ color: GOLD }}>Оповідання для дітей →</Link>
             <span style={{ color: MUTED }}>{'  ·  '}</span>
+            <Link href="/zahadky" style={{ color: GOLD }}>Загадки з відповідями →</Link>
+            <span style={{ color: MUTED }}>{'  ·  '}</span>
             <Link href="/top" style={{ color: GOLD }}>Що читають найбільше →</Link>
           </p>
         </div>
