@@ -127,6 +127,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${BASE_URL}/zahadky/${t.slug}`,
       lastModified: now, changeFrequency: 'monthly' as const, priority: 0.7,
     })),
+    // Скоромовки (27.10.2026): «скоромовки» — 9 900 запитів/міс.
+    { url: `${BASE_URL}/skoromovky`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/demo`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE_URL}/contacts`,              lastModified: now, changeFrequency: 'yearly',  priority: 0.5 },
     { url: `${BASE_URL}/survey`,                lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
