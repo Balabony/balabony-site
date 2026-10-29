@@ -8,7 +8,7 @@ import { toPlainText } from '@/lib/plain-text'
 import { countWords } from '@/lib/contests'
 import {
   APP_MIN_WORDS, APP_MAX_WORDS, APP_MAX_FILE_BYTES, EDITOR_EMAIL,
-  stripFieldLabel, mailApplicationReceived,
+  stripFieldLabel, mailApplicationReceived, mailAuthorGuide,
 } from '@/lib/author-applications'
 import { AUTHOR_QUESTIONS } from '@/lib/author-questions'
 import { realPen } from '@/lib/pen-name'
@@ -45,6 +45,25 @@ async function isActiveAuthor(userId: string): Promise<boolean> {
   return r.rows.length > 0
 }
 
+/** Інструкція — рівно один раз. Рядок ставимо ДО відправки: два одночасні
+ *  запити не дадуть два листи. Не відправилось — рядок прибираємо, щоб
+ *  наступне відкриття сторінки спробувало ще раз. */
+async function sendGuideOnce(userId: string, email: string): Promise<void> {
+  try {
+    const ins = await dbQuery(
+      `insert into author_guide_sent (user_id, email) values ($1, $2)
+       on conflict (user_id) do nothing
+       returning user_id`,
+      [userId, email],
+    )
+    if (ins.rows.length === 0) return
+    const ok = await mailAuthorGuide(email)
+    if (!ok) await dbQuery(`delete from author_guide_sent where user_id = $1`, [userId])
+  } catch (err) {
+    console.error('[author-application] guide', (err as Error)?.message)
+  }
+}
+
 export async function GET() {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -60,12 +79,20 @@ export async function GET() {
         limit 1`,
       [user.id],
     )
+    const application = (r.rows[0] as AppRow | undefined) ?? null
+    const email = String(user.email ?? '').trim().toLowerCase()
+    // Перше відкриття форми людиною, яка ще не автор і не подавала заявки, —
+    // надсилаємо інструкцію. Після відповіді, щоб не гальмувати сторінку.
+    if (!isAuthor && !application && email) {
+      const userId = user.id
+      after(() => sendGuideOnce(userId, email))
+    }
     return NextResponse.json({
       ok: true,
       authorized: true,
       email: user.email ?? '',
       isAuthor,
-      application: (r.rows[0] as AppRow | undefined) ?? null,
+      application,
     })
   } catch (err) {
     console.error('[author-application] get', (err as Error)?.message)
