@@ -635,6 +635,10 @@ function escapeChars(str: string): string {
 // знаків і дужок усередині — щоб не зачепити звичайну нарацію з двокрапкою.
 const SPEAKER_RE = /^([А-ЯІЇЄҐ][^:\n.!?,;–—()]{0,19}):\s/
 
+const SEPARATOR_RE = /^(?:(?:[*#~]\s*){3,}|⁂)$/
+const SEPARATOR_HTML =
+  `<p role="separator" aria-label="Розділювач" style="text-align:center;margin:28px 0;letter-spacing:0.6em;padding-left:0.6em;opacity:0.6;color:currentColor">* * *</p>`
+
 function renderParaInner(p: string): string {
   const m = p.match(SPEAKER_RE)
   if (m) {
@@ -685,6 +689,17 @@ function toStoryHtml(raw: string, images: string[] = []): string {
 
   let html = ''
   paras.forEach((p, i) => {
+    // Розділювач сцен: рядок лише з «***», «* * *», «###», «~~~» або «⁂».
+    // Автори просили (29.10.2026, Катерина Іваннікова): без нього текст
+    // зливається в суцільне полотно. Малюємо по центру з відступами;
+    // колір від теми читалки (currentColor), щоб працювало і в темній, і в
+    // світлій, і в темі для дислексії.
+    if (SEPARATOR_RE.test(p)) {
+      html += SEPARATOR_HTML
+      const here = insertAfter.get(i)
+      if (here) here.forEach(u => { html += imgTag(u) })
+      return
+    }
     // На репліку («Панас: …») лід не ставимо: там уже є золоте імʼя,
     // другий акцент поруч перевантажив би рядок.
     // Довгий перший абзац лідом не робимо — див. LEAD_MAX_CHARS.
