@@ -66,12 +66,12 @@ export async function POST(req: NextRequest) {
 
   let input: EntryInput
   try {
-    const e = await dbQuery(`select contest, title, annotation, genre from contest_entries where id::text = $1`, [entryId])
-    const row = e.rows[0] as { contest: string; title: string; annotation: string | null; genre: string | null } | undefined
+    const e = await dbQuery(`select contest, title, annotation, synopsis, genre from contest_entries where id::text = $1`, [entryId])
+    const row = e.rows[0] as { contest: string; title: string; annotation: string | null; synopsis: string | null; genre: string | null } | undefined
     if (!row) return NextResponse.json({ ok: false, error: 'Заявку не знайдено' }, { status: 404 })
     const eps = await dbQuery(`select ord, body from contest_episodes where entry_id::text = $1 order by ord`, [entryId])
     input = {
-      contest: row.contest, title: row.title ?? '', annotation: row.annotation ?? '', genre: row.genre ?? '',
+      contest: row.contest, title: row.title ?? '', annotation: row.annotation ?? '', synopsis: row.synopsis ?? '', genre: row.genre ?? '',
       episodes: (eps.rows as { ord: number; body: string }[]).map((x) => ({ ord: x.ord, body: x.body ?? '' })),
     }
   } catch (err) {
