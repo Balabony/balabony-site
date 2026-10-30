@@ -10,7 +10,7 @@ import mammoth from 'mammoth'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { dbQuery } from '@/lib/db'
 import { toPlainText } from '@/lib/plain-text'
-import { CONTESTS, findContest, isOpen, acceptsEpisodes, countWords } from '@/lib/contests'
+import { CONTESTS, findContest, isOpen, acceptsEpisodes, countWords, SYNOPSIS_MAX } from '@/lib/contests'
 import { realPen } from '@/lib/pen-name'
 import { greetName } from '@/lib/greeting'
 
@@ -42,6 +42,7 @@ interface EntryRow {
   contest: string
   title: string
   annotation: string
+  synopsis: string | null
   genre: string
   status: string
   created_at: string
@@ -85,7 +86,7 @@ export async function GET() {
 
   try {
     const e = await dbQuery(
-      `select id::text, contest, title, annotation, genre, status, created_at
+      `select id::text, contest, title, annotation, synopsis, genre, status, created_at
          from contest_entries
         where author_id = $1
         order by created_at`,
@@ -165,6 +166,8 @@ async function handlePOST(req: NextRequest) {
   const title = String(form.get('title') ?? '').trim().slice(0, 200)
   const annotation = String(form.get('annotation') ?? '').trim().slice(0, 1500)
   const genre = String(form.get('genre') ?? '').trim().slice(0, 100)
+  // 31.10.2026: синопсис на сторінку для серіального конкурсу (окремо від анотації).
+  const synopsis = String(form.get('synopsis') ?? '').trim().slice(0, SYNOPSIS_MAX)
   // 14.10.2026: опис головних героїв для обкладинки (необовʼязково).
   const coverBrief = String(form.get('coverBrief') ?? '').trim().slice(0, 3000)
 
@@ -284,9 +287,10 @@ async function handlePOST(req: NextRequest) {
           `update contest_entries
               set title = $2, annotation = coalesce(nullif($3,''), annotation),
                   genre = coalesce(nullif($4,''), genre),
-                  cover_brief = coalesce(nullif($5,''), cover_brief), updated_at = now()
+                  cover_brief = coalesce(nullif($5,''), cover_brief),
+                  synopsis = coalesce(nullif($6,''), synopsis), updated_at = now()
             where id = $1`,
-          [entryId, title, annotation, genre, coverBrief],
+          [entryId, title, annotation, genre, coverBrief, synopsis],
         )
       }
     } else {
@@ -304,9 +308,9 @@ async function handlePOST(req: NextRequest) {
         return NextResponse.json({ ok: false, error: 'Вкажіть назву твору' }, { status: 400 })
       }
       const ins = await dbQuery(
-        `insert into contest_entries (author_id, author_name, email, contest, title, annotation, genre, cover_brief)
-         values ($1,$2,$3,$4,$5,$6,$7,nullif($8,'')) returning id::text`,
-        [user.id, authorName, email, contest.id, title, annotation, genre, coverBrief],
+        `insert into contest_entries (author_id, author_name, email, contest, title, annotation, genre, cover_brief, synopsis)
+         values ($1,$2,$3,$4,$5,$6,$7,nullif($8,''),nullif($9,'')) returning id::text`,
+        [user.id, authorName, email, contest.id, title, annotation, genre, coverBrief, synopsis],
       )
       entryId = (ins.rows[0] as { id: string }).id
     }
@@ -363,12 +367,12 @@ async function handlePOST(req: NextRequest) {
     // Оцінка ШІ — у фоні, після відповіді автору (до 3 хв для серіалу).
     after(async () => {
       try {
-        const e = await dbQuery(`select contest, title, annotation, genre from contest_entries where id::text = $1`, [entryId])
-        const row = e.rows[0] as { contest: string; title: string; annotation: string | null; genre: string | null } | undefined
+        const e = await dbQuery(`select contest, title, annotation, synopsis, genre from contest_entries where id::text = $1`, [entryId])
+        const row = e.rows[0] as { contest: string; title: string; annotation: string | null; synopsis: string | null; genre: string | null } | undefined
         if (!row) return
         const eps = await dbQuery(`select ord, body from contest_episodes where entry_id::text = $1 order by ord`, [entryId])
         const input = {
-          contest: row.contest, title: row.title ?? '', annotation: row.annotation ?? '', genre: row.genre ?? '',
+          contest: row.contest, title: row.title ?? '', annotation: row.annotation ?? '', synopsis: row.synopsis ?? '', genre: row.genre ?? '',
           episodes: (eps.rows as { ord: number; body: string }[]).map((x) => ({ ord: x.ord, body: x.body ?? '' })),
         }
         const hash = reviewHash(input)
