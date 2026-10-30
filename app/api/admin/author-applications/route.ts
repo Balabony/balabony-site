@@ -4,13 +4,15 @@ import { sendProblemAlert } from '@/lib/problem-alert'
 import { dbQuery } from '@/lib/db'
 import { slugify } from '@/lib/slugify'
 import { mailApplicationAccepted, mailApplicationRejected } from '@/lib/author-applications'
+import { ensureReviewTable, sendApplicationToEditors } from '@/lib/application-review'
 
 /**
  * Заявки авторів для адмінки: /api/admin/author-applications
  *
  * GET            — перелік заявок (без тексту).
  * GET ?id=<id>   — одна заявка з текстом історії.
- * POST {id, action: 'accept' | 'reject', note?}
+ * POST {id, action: 'accept' | 'reject' | 'send_editors', note?}
+ *   send_editors — 30.10.2026: заявка йде в кабінети редакторів (Оксана, Тетяна), як у конкурсах.
  *
  * «Прийняти» робить за один рух те, що раніше робилося руками:
  *   1. профіль автора (author_profiles) на ТОМУ Ж акаунті, з якого подано
@@ -46,6 +48,7 @@ type Row = {
   created_at: string
   consent_ip: string | null
   answers: Record<string, string> | null
+  reviews: { editor: string; verdict: string | null; comment: string | null; at: string | null }[]
 }
 
 export async function GET(req: NextRequest) {
@@ -58,9 +61,15 @@ export async function GET(req: NextRequest) {
       if (!r.rowCount) return NextResponse.json({ ok: false, error: 'Заявку не знайдено' }, { status: 404 })
       return NextResponse.json({ ok: true, body: (r.rows[0] as { body: string }).body })
     }
+    await ensureReviewTable()
     const r = await dbQuery(
       `select id::text, user_id::text, email, full_name, pen_name, phone, title, genre, words,
-              filename, status, admin_note, content_id::text, decided_at, created_at, consent_ip, answers
+              filename, status, admin_note, content_id::text, decided_at, created_at, consent_ip, answers,
+              (select coalesce(json_agg(json_build_object('editor', ed.name, 'verdict', rv.verdict,
+                                                         'comment', rv.comment, 'at', rv.responded_at)
+                                        order by ed.name), '[]'::json)
+                 from application_reviews rv join editors ed on ed.id = rv.editor_id
+                where rv.application_id = author_applications.id) as reviews
          from author_applications
         order by (status = 'new') desc, created_at desc
         limit 300`,
@@ -84,8 +93,17 @@ async function handlePOST(req: NextRequest) {
   } catch {
     return NextResponse.json({ ok: false, error: 'Невірний запит' }, { status: 400 })
   }
-  if (!id || !['accept', 'reject'].includes(action)) {
+  if (!id || !['accept', 'reject', 'send_editors'].includes(action)) {
     return NextResponse.json({ ok: false, error: 'Потрібні id і дія' }, { status: 400 })
+  }
+
+  if (action === 'send_editors') {
+    try {
+      const r = await sendApplicationToEditors(id)
+      return NextResponse.json({ ok: true, ...r })
+    } catch (err) {
+      return NextResponse.json({ ok: false, error: `Не вдалося надіслати: ${(err as Error)?.message ?? ''}` }, { status: 500 })
+    }
   }
 
   try {
