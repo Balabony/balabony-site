@@ -6,6 +6,7 @@
 // =============================================================================
 
 import { Resend } from 'resend'
+import { greetName } from './greeting'
 
 /** Пробна історія: коротка історія до ~10 хвилин або одна серія. */
 export const APP_MIN_WORDS = 150
@@ -69,7 +70,7 @@ type AppInfo = {
 /** Підтвердження автору + копія редакції одразу після подачі. */
 export async function mailApplicationReceived(a: AppInfo): Promise<void> {
   const toAuthor = wrap(
-    P(`Вітаємо, <strong style="color:#f5f0e8">${esc(a.fullName)}</strong>!`) +
+    P(greetName(a.fullName) ? `Вітаємо, <strong style="color:#f5f0e8">${esc(greetName(a.fullName) ?? '')}</strong>!` : 'Вітаємо!') +
     P(`Ми отримали вашу пробну історію <strong style="color:#ef9f27">«${esc(a.title)}»</strong> (${a.words} слів).`) +
     P('Редакція прочитає її протягом 5 робочих днів і відповість на цю адресу. Якщо історія підійде, для вас відкриється кабінет автора: там ви заповните реквізити й підпишете угоду.') +
     SMALL(`Лист не прийшов або є питання — пишіть на ${EDITOR_EMAIL}.`),
@@ -88,7 +89,7 @@ export async function mailApplicationReceived(a: AppInfo): Promise<void> {
 /** Лист після «Прийняти». Вхід — звичайним шляхом через /login, без одноразових посилань, які згорають. */
 export async function mailApplicationAccepted(p: { fullName: string; email: string; title: string; note?: string; reconsidered?: boolean }): Promise<boolean> {
   const html = wrap(
-    P(`Вітаємо, <strong style="color:#f5f0e8">${esc(p.fullName)}</strong>!`) +
+    P(greetName(p.fullName) ? `Вітаємо, <strong style="color:#f5f0e8">${esc(greetName(p.fullName) ?? '')}</strong>!` : 'Вітаємо!') +
     P(p.reconsidered
       ? `Редакція ще раз переглянула вашу історію <strong style="color:#ef9f27">«${esc(p.title)}»</strong> і змінила рішення: ми раді вітати вас серед авторів Балабонів.`
       : `Редакція прочитала вашу історію <strong style="color:#ef9f27">«${esc(p.title)}»</strong> і рада вітати вас серед авторів Балабонів.`) +
@@ -109,7 +110,7 @@ export async function mailApplicationAccepted(p: { fullName: string; email: stri
 /** Лист після «Відхилити». Коментар редакції додається, якщо його написали. */
 export async function mailApplicationRejected(p: { fullName: string; email: string; title: string; note: string }): Promise<boolean> {
   const html = wrap(
-    P(`Вітаємо, <strong style="color:#f5f0e8">${esc(p.fullName)}</strong>!`) +
+    P(greetName(p.fullName) ? `Вітаємо, <strong style="color:#f5f0e8">${esc(greetName(p.fullName) ?? '')}</strong>!` : 'Вітаємо!') +
     P(`Дякуємо, що надіслали нам історію <strong style="color:#ef9f27">«${esc(p.title)}»</strong>. Редакція уважно її прочитала, але цього разу ми не готові її опублікувати.`) +
     (p.note ? P(`Коментар редакції:<br><em>${esc(p.note).replace(/\n/g, '<br>')}</em>`) : '') +
     P('Це не остаточне рішення щодо вас як автора. Ви можете надіслати іншу історію тією самою формою на сторінці «Стати автором», а також взяти участь у наших конкурсах: для них кабінет автора не потрібен.') +
