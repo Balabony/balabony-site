@@ -53,6 +53,7 @@ type EntryRow = {
   contest: string
   title: string
   annotation: string
+  synopsis: string | null
   genre: string
   status: string
   created_at: string
@@ -78,7 +79,7 @@ export async function GET(req: NextRequest) {
 
     const list = await dbQuery(
       `select e.id::text, e.author_id::text, e.author_name, e.email, e.contest,
-              e.title, e.annotation, e.genre, e.status, e.created_at,
+              e.title, e.annotation, e.synopsis, e.genre, e.status, e.created_at,
               count(ep.id)::int                                        as episodes,
               coalesce(sum(ep.words), 0)::int                          as words,
               count(ep.content_id)::int                                as published,
