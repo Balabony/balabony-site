@@ -12,6 +12,7 @@ import { dbQuery } from '@/lib/db'
 import { toPlainText } from '@/lib/plain-text'
 import { CONTESTS, findContest, isOpen, acceptsEpisodes, countWords } from '@/lib/contests'
 import { realPen } from '@/lib/pen-name'
+import { greetName } from '@/lib/greeting'
 
 /**
  * Прийом конкурсних заявок: /api/contest/submit
@@ -451,7 +452,7 @@ async function sendMail(p: {
 <body style="font-family:Arial,sans-serif;background:#0a1628;color:#f5f0e8;padding:32px;max-width:680px;margin:0 auto;">
   <div style="background:#0f1e3a;border-radius:16px;padding:28px;border:1px solid rgba(239,159,39,0.3);">
     <div style="font-size:22px;font-weight:700;color:#ef9f27;margin-bottom:20px;">Balabony</div>
-    <p style="color:#c8d4e8;">Вітаємо${p.authorName ? ', <strong style="color:#f5f0e8">' + esc(p.authorName) + '</strong>' : ''}!</p>
+    <p style="color:#c8d4e8;">Вітаємо${greetName(p.authorName) ? ', <strong style="color:#f5f0e8">' + esc(greetName(p.authorName) ?? '') + '</strong>' : ''}!</p>
     <p style="color:#c8d4e8;">Заявку на конкурс <strong style="color:#ef9f27">${esc(p.contestName)}</strong> отримано.</p>
     <p style="color:#c8d4e8;">Твір: <strong style="color:#f5f0e8">${esc(p.title)}</strong></p>
     ${p.entryNumber ? `<p style="color:#c8d4e8;">Номер вашої роботи: <strong style="color:#ef9f27;font-size:18px">№ ${p.entryNumber}</strong>. Вказуйте його в листах до редакції.</p>` : ''}
