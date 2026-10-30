@@ -38,6 +38,7 @@ type Entry = {
   contest: string
   title: string
   annotation: string
+  synopsis?: string | null
   genre: string
   status: string
   created_at: string
@@ -572,6 +573,17 @@ export default function AdminKonkursyPage() {
               <p style={{ fontSize: 13.5, color: '#B8C6D8', margin: '.5rem 0 0', lineHeight: 1.6 }}>
                 {e.annotation}
               </p>
+            )}
+
+            {e.contest === 'ce-dovha-istoriya' && (
+              e.synopsis
+                ? (
+                  <details style={{ fontSize: 13.5, color: '#B8C6D8', margin: '.5rem 0 0', lineHeight: 1.6 }}>
+                    <summary style={{ cursor: 'pointer', color: '#eab308' }}>Синопсис ({e.synopsis.length} знаків)</summary>
+                    <p style={{ whiteSpace: 'pre-wrap', margin: '.4rem 0 0' }}>{e.synopsis}</p>
+                  </details>
+                )
+                : <p style={{ fontSize: 13, color: '#ff9b9b', margin: '.5rem 0 0' }}>синопсиса нема</p>
             )}
 
             {openId === e.id && (
