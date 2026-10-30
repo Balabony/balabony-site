@@ -105,7 +105,7 @@ export default function AuthorApplyForm() {
   if (!st.authorized) {
     return (
       <div id="zayavka" style={box}>
-        <h2 style={h}>Подати пробну історію</h2>
+        <h2 style={h}>Подати історію</h2>
         <p style={p}>
           Спершу увійдіть на сайт — через Google або за адресою пошти, без пароля.
           Так ми знатимемо, що пошта справжня, і саме на цьому акаунті відкриємо ваш кабінет автора.
@@ -155,7 +155,7 @@ export default function AuthorApplyForm() {
 
   return (
     <div id="zayavka" style={box}>
-      <h2 style={h}>Подати пробну історію</h2>
+      <h2 style={h}>Подати історію</h2>
       <p style={{ ...p, color: C.muted, fontSize: 14 }}>Ви увійшли як {st.email}. На цю адресу прийде відповідь.</p>
 
       <label style={label} htmlFor="aa-name">Прізвище та імʼя *</label>
