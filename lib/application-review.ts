@@ -57,7 +57,7 @@ export async function sendApplicationToEditors(appId: string): Promise<{ sent: s
     if (!ins.rowCount) { already.push(ed.name); continue }
     await mail(ed.email, `[Балабони] Нова заявка автора на оцінку: «${app.title}»`, `
       <p style="color:#c8d4e8;line-height:1.7;">Вітаємо, <strong style="color:#f5f0e8;">${esc(ed.name)}</strong>!</p>
-      <p style="color:#c8d4e8;line-height:1.7;">Вам скеровано пробну історію нового автора:</p>
+      <p style="color:#c8d4e8;line-height:1.7;">Вам скеровано історію нового автора:</p>
       <p style="color:#f5f0e8;line-height:1.7;font-size:16px;"><strong>«${esc(app.title)}»</strong><br><span style="color:#8899bb;">${esc(app.genre ?? '')}${app.genre ? ' · ' : ''}${app.words} слів</span></p>
       <p style="color:#c8d4e8;line-height:1.7;">Прочитайте й порадьте: приймати, приймати після доопрацювання чи відхилити. Текст і форма — у кабінеті.</p>
       <a href="${SITE}/editor/zayavka/${app.id}" style="display:block;text-align:center;background:#f0a500;color:#081420;padding:15px 20px;border-radius:10px;text-decoration:none;font-weight:700;font-size:16px;margin:20px 0;">Відкрити заявку</a>
