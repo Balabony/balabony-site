@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { CONTESTS, findContest, isOpen, acceptsEpisodes, type ContestId } from '@/lib/contests'
+import { CONTESTS, findContest, isOpen, acceptsEpisodes, SYNOPSIS_MAX, type ContestId } from '@/lib/contests'
 import { trackConversion } from '@/lib/conversion'
 
 /**
@@ -36,6 +36,7 @@ interface Entry {
   contest: string
   title: string
   annotation: string
+  synopsis?: string | null
   genre: string
   status: string
   episodes: Episode[]
@@ -55,6 +56,10 @@ export default function ContestSubmitForm() {
   )
   const [title, setTitle] = useState('')
   const [annotation, setAnnotation] = useState('')
+  // 31.10.2026: синопсис на сторінку — окреме поле (анотацію бачать читачі, синопсис — редакція).
+  const [synopsis, setSynopsis] = useState('')
+  const [synBusy, setSynBusy] = useState(false)
+  const [synNote, setSynNote] = useState('')
   const [genre, setGenre] = useState('')
   const [files, setFiles] = useState<File[]>([])
   const [busy, setBusy] = useState(false)
@@ -91,6 +96,31 @@ export default function ContestSubmitForm() {
   const accepted = entry?.episodes.length ?? 0
   const left = contest.episodes - accepted
 
+  // Синопсис уже поданої заявки підставляємо в поле, щоб автор бачив і міг виправити.
+  useEffect(() => {
+    setSynopsis(entry?.synopsis ?? '')
+    setSynNote('')
+  }, [entry?.id, entry?.synopsis])
+
+  const saveSynopsis = async () => {
+    setSynBusy(true); setSynNote('')
+    try {
+      const res = await fetch('/api/contest/synopsis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contest: contestId, synopsis: synopsis.trim() }),
+      })
+      const d = await res.json() as { ok?: boolean; error?: string }
+      if (!d.ok) { setSynNote(d.error ?? 'Не вдалося зберегти синопсис.'); return }
+      setEntries(prev => prev.map(e => (e.id === entry?.id ? { ...e, synopsis: synopsis.trim() } : e)))
+      setSynNote('Синопсис збережено. Редакція побачить його разом із серіями.')
+    } catch {
+      setSynNote('Не вдалося звʼязатися з сайтом.')
+    } finally {
+      setSynBusy(false)
+    }
+  }
+
   const load = useCallback(async () => {
     try {
       const res = await fetch('/api/contest/submit')
@@ -122,6 +152,7 @@ export default function ContestSubmitForm() {
     const e: FieldErr[] = []
     if (needName && authorName.trim().length < 3) e.push({ id: 'f-author', msg: 'Вкажіть ваше ім’я та прізвище (або псевдонім).' })
     if (!entry && !title.trim()) e.push({ id: 'f-title', msg: 'Вкажіть назву твору.' })
+    if (!entry && contest.synopsis && synopsis.trim().length < 300) e.push({ id: 'f-synopsis', msg: 'Додайте синопсис: сюжет усього серіалу від початку до розв’язки, орієнтовно одна сторінка.' })
     if (files.length === 0) e.push({ id: 'f-files', msg: 'Не вибрано жодного файлу. Прикріпіть файл із текстом твору.' })
     if (!aiOk) e.push({ id: 'f-ai', msg: 'Поставте позначку про використання штучного інтелекту.' })
     if (!newOk) e.push({ id: 'f-new', msg: 'Поставте позначку, що твір не опублікований на інших платформах.' })
@@ -133,7 +164,7 @@ export default function ContestSubmitForm() {
   useEffect(() => {
     setErrors(prev => (prev.length ? validate() : prev))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, files, aiOk, newOk, authorName])
+  }, [title, files, aiOk, newOk, authorName, synopsis])
 
   const goTo = (id: string) => {
     const el = document.getElementById(id)
@@ -159,6 +190,7 @@ export default function ContestSubmitForm() {
       if (needName) fd.append('authorName', authorName.trim())
       fd.append('title', title.trim())
       fd.append('annotation', annotation.trim())
+      if (!entry && contest.synopsis) fd.append('synopsis', synopsis.trim())
       fd.append('genre', genre.trim())
       fd.append('aiConsent', aiOk ? 'yes' : 'no')
       fd.append('newConsent', newOk ? 'yes' : 'no')
@@ -303,6 +335,38 @@ export default function ContestSubmitForm() {
               <li key={ep.ord}>Серія {ep.ord} — {ep.words} слів ({ep.filename})</li>
             ))}
           </ul>
+
+          {contest.synopsis && (
+            <div style={{ marginTop: 16 }}>
+              <label htmlFor="f-synopsis-edit" style={label}>
+                {entry.synopsis ? 'Синопсис (можна виправити)' : 'Синопсис ще не додано — вставте сюжет усього серіалу, орієнтовно одна сторінка. Бачить лише редакція.'}
+              </label>
+              <textarea
+                id="f-synopsis-edit" value={synopsis}
+                onChange={e => setSynopsis(e.target.value)}
+                rows={8}
+                style={{ ...field, resize: 'vertical' }}
+                maxLength={SYNOPSIS_MAX}
+                aria-describedby="f-synopsis-edit-count"
+              />
+              <p id="f-synopsis-edit-count" style={{ color: BRAND.muted, fontSize: '0.8rem', margin: '-8px 0 10px' }}>
+                {synopsis.trim().length} із {SYNOPSIS_MAX} знаків.
+              </p>
+              <button
+                type="button"
+                onClick={() => void saveSynopsis()}
+                disabled={synBusy || synopsis.trim() === (entry.synopsis ?? '').trim()}
+                style={{
+                  padding: '9px 18px', borderRadius: 9, border: `1px solid ${BRAND.amber}`,
+                  background: 'transparent', color: BRAND.amber, fontWeight: 700, fontSize: 14,
+                  cursor: synBusy ? 'default' : 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                {synBusy ? 'Зберігаємо…' : 'Зберегти синопсис'}
+              </button>
+              {synNote && <p role="status" style={{ color: BRAND.amberSoft, fontSize: '0.88rem', margin: '10px 0 0' }}>{synNote}</p>}
+            </div>
+          )}
         </div>
       )}
 
@@ -327,6 +391,24 @@ export default function ContestSubmitForm() {
                 style={{ ...field, resize: 'vertical' }}
                 maxLength={1500}
               />
+
+              {contest.synopsis && (
+                <>
+                  <label htmlFor="f-synopsis" style={label}>Синопсис — сюжет усього серіалу від початку до розв’язки, орієнтовно одна сторінка. Бачить лише редакція.</label>
+                  <textarea
+                    id="f-synopsis" value={synopsis}
+                    onChange={e => setSynopsis(e.target.value)}
+                    rows={10}
+                    style={{ ...field, resize: 'vertical' }}
+                    maxLength={SYNOPSIS_MAX}
+                    aria-invalid={bad('f-synopsis') || undefined}
+                    aria-describedby="f-synopsis-count"
+                  />
+                  <p id="f-synopsis-count" style={{ color: BRAND.muted, fontSize: '0.8rem', margin: '-8px 0 14px' }}>
+                    {synopsis.trim().length} із {SYNOPSIS_MAX} знаків. Можна вставити текст із Word.
+                  </p>
+                </>
+              )}
 
               <label htmlFor="f-genre" style={label}>Жанр</label>
               <input
