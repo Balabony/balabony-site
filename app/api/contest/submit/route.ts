@@ -224,7 +224,7 @@ async function handlePOST(req: NextRequest) {
   if (!authorName) {
     const typed = String(form.get('authorName') ?? '').replace(/\s+/g, ' ').trim().slice(0, 120)
     if (typed.length < 3) {
-      return NextResponse.json({ ok: false, error: 'Вкажіть ваше ім’я та прізвище (або псевдонім) — так підпишемо твір.' }, { status: 400 })
+      return NextResponse.json({ ok: false, needName: true, error: 'Вкажіть ваше ім’я та прізвище (або псевдонім) — так підпишемо твір.' }, { status: 400 })
     }
     authorName = typed
   }
