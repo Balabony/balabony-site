@@ -3,6 +3,7 @@ import { dbQuery } from '@/lib/db'
 import { getEditor } from '@/lib/editor-auth'
 import { findContest } from '@/lib/contests'
 import LogoutButton from './LogoutButton'
+import { ensureReviewTable, VERDICTS, type Verdict } from '@/lib/application-review'
 
 /**
  * Кабінет редактора конкурсів — перелік призначених робіт.
@@ -65,6 +66,18 @@ export default async function EditorHomePage() {
   )
   const works = res.rows as Row[]
 
+  // 30.10.2026: заявки нових авторів, надіслані з адмінки на оцінку (як у конкурсах).
+  await ensureReviewTable()
+  const ap = await dbQuery(
+    `select a.id::text, a.title, a.genre, a.words, r.verdict
+       from application_reviews r
+       join author_applications a on a.id = r.application_id
+      where r.editor_id = $1 and a.status = 'new'
+      order by r.assigned_at`,
+    [editor.id],
+  )
+  const apps = ap.rows as { id: string; title: string; genre: string | null; words: number; verdict: Verdict | null }[]
+
   return (
     <main style={{ background: NAVY, minHeight: '100vh', padding: '28px 18px 80px', fontFamily: FONT, color: CREAM }}>
       <div style={{ maxWidth: 820, margin: '0 auto' }}>
@@ -78,6 +91,38 @@ export default async function EditorHomePage() {
           <LogoutButton color={MUTED} />
         </div>
 
+        {apps.length > 0 && (
+          <>
+            <h1 style={{ fontSize: 21, color: GOLD_L, fontWeight: 600, margin: '1.4rem 0 .3rem' }}>
+              Заявки нових авторів
+            </h1>
+            <p style={{ color: MUTED, fontSize: 13.5, margin: '0 0 1rem', lineHeight: 1.6 }}>
+              Пробні історії з форми «Стати автором». Порадьте, чи приймати автора, — рішення ухвалює редакція.
+            </p>
+            {apps.map(a => (
+              <a
+                key={a.id}
+                href={`/editor/zayavka/${a.id}`}
+                style={{
+                  display: 'block', textDecoration: 'none', color: CREAM,
+                  background: CARD, border: `1px solid ${LINE}`, borderRadius: 12,
+                  padding: '.9rem 1rem', marginBottom: '.7rem',
+                }}
+              >
+                <div style={{ display: 'flex', gap: '.7rem', alignItems: 'baseline', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 15.5, fontWeight: 600, color: GOLD_L }}>«{a.title}»</span>
+                  <span style={{ fontSize: 12.5, color: a.verdict ? '#22c55e' : MUTED, marginLeft: 'auto' }}>
+                    {a.verdict ? `відгук: ${VERDICTS[a.verdict].toLowerCase()}` : 'відгуку немає'}
+                  </span>
+                </div>
+                <div style={{ fontSize: 12.5, color: MUTED, marginTop: 4 }}>
+                  {a.genre ? `${a.genre} · ` : ''}слів: {a.words.toLocaleString('uk-UA')}
+                </div>
+              </a>
+            ))}
+          </>
+        )}
+
         <h1 style={{ fontSize: 21, color: GOLD_L, fontWeight: 600, margin: '1.4rem 0 .3rem' }}>
           Ваші роботи
         </h1>
@@ -86,7 +131,7 @@ export default async function EditorHomePage() {
           авторів не показуються нікому з редакторів.
         </p>
 
-        {works.length === 0 && (
+        {works.length === 0 && apps.length === 0 && (
           <p style={{ color: MUTED }}>
             Робіт поки не призначено. Коли вони з’являться, ви побачите їх тут.
           </p>
