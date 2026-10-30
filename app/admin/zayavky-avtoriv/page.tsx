@@ -30,6 +30,12 @@ type App = {
   status: 'new' | 'accepted' | 'rejected'; admin_note: string | null; content_id: string | null
   decided_at: string | null; created_at: string
   answers: Record<string, string> | null
+  reviews?: { editor: string; verdict: 'accept' | 'revise' | 'reject' | null; comment: string | null; at: string | null }[]
+}
+
+// 30.10.2026: відгуки редакторів (Оксана, Тетяна) — як у конкурсах, через кабінет редактора.
+const VERDICT: Record<string, [string, string]> = {
+  accept: ['радить прийняти', '#7fd08a'], revise: ['радить прийняти після доопрацювання', '#ef9f27'], reject: ['радить відхилити', '#ff9b8a'],
 }
 
 const fmt = (d: string) => new Date(d).toLocaleString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -139,6 +145,29 @@ export default function Page() {
     }
   }
 
+  const toEditors = async (a: App) => {
+    if (!window.confirm(`Надіслати «${a.title}» редакторам на оцінку? Кожна отримає лист, заявка зʼявиться в її кабінеті.`)) return
+    setBusy(a.id)
+    try {
+      const r = await fetch('/api/admin/author-applications', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: a.id, action: 'send_editors' }),
+      })
+      const d = await r.json() as { ok?: boolean; error?: string; sent?: string[]; already?: string[] }
+      setMsg(m => ({
+        ...m,
+        [a.id]: d.ok
+          ? [d.sent?.length ? `Надіслано: ${d.sent.join(', ')}.` : '', d.already?.length ? `Уже мали: ${d.already.join(', ')}.` : ''].filter(Boolean).join(' ') || 'Немає редакторів з правом оцінювати.'
+          : (d.error ?? 'Помилка'),
+      }))
+      if (d.ok) await load()
+    } catch {
+      setMsg(m => ({ ...m, [a.id]: 'Немає звʼязку з сервером' }))
+    } finally {
+      setBusy(null)
+    }
+  }
+
   const shown = filter === 'new' ? apps.filter(a => a.status === 'new') : apps
   const fresh = apps.filter(a => a.status === 'new').length
 
@@ -193,6 +222,20 @@ export default function Page() {
                 <div style={{ fontSize: 14, marginTop: 8, lineHeight: 1.6 }}>
                   <strong style={{ color: GOLD }}>Герої для обкладинки:</strong>
                   <div style={{ whiteSpace: 'pre-wrap' }}>{a.answers.cover}</div>
+                </div>
+              )}
+              {a.reviews && a.reviews.length > 0 && (
+                <div style={{ fontSize: 14, marginTop: 8, lineHeight: 1.6 }}>
+                  <strong style={{ color: GOLD }}>Редактори:</strong>
+                  {a.reviews.map((r) => {
+                    const [vl, vc] = r.verdict ? VERDICT[r.verdict] ?? [r.verdict, MUTED] : ['ще читає', MUTED]
+                    return (
+                      <div key={r.editor} style={{ marginTop: 4 }}>
+                        {r.editor} — <span style={{ color: vc, fontWeight: 700 }}>{vl}</span>
+                        {r.comment && <div style={{ whiteSpace: 'pre-wrap', color: MUTED, fontSize: 13 }}>{r.comment}</div>}
+                      </div>
+                    )
+                  })}
                 </div>
               )}
               {a.admin_note && <p style={{ fontSize: 13, color: MUTED, fontStyle: 'italic', margin: '8px 0 0' }}>Коментар: {a.admin_note}</p>}
@@ -305,6 +348,9 @@ export default function Page() {
                     <button type="button" disabled={busy === a.id} onClick={() => act(a, 'accept')} style={{ ...btn(GREEN, NAVY), opacity: busy === a.id ? 0.6 : 1 }}>
                       {a.status === 'rejected' ? 'Змінити рішення: прийняти' : 'Прийняти'}
                     </button>
+                    {a.status === 'new' && <button type="button" disabled={busy === a.id} onClick={() => toEditors(a)} style={{ ...btn('transparent', GOLD), border: `1px solid ${GOLD}`, opacity: busy === a.id ? 0.6 : 1 }}>
+                      Надіслати редакторам
+                    </button>}
                     {a.status === 'new' && <button type="button" disabled={busy === a.id} onClick={() => act(a, 'reject')} style={{ ...btn('transparent', RED), border: `1px solid ${RED}`, opacity: busy === a.id ? 0.6 : 1 }}>
                       Відхилити
                     </button>}
