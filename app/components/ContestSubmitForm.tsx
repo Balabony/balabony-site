@@ -165,8 +165,10 @@ export default function ContestSubmitForm() {
       files.forEach(f => fd.append('files', f))
 
       const res = await fetch('/api/contest/submit', { method: 'POST', body: fd })
-      const d = await res.json() as { ok?: boolean; error?: string; totalNow?: number; totalNeed?: number }
+      const d = await res.json() as { ok?: boolean; error?: string; totalNow?: number; totalNeed?: number; needName?: boolean }
 
+      // 30.10.2026: сервер не знайшов імені (поле було сховане) — показуємо поле, щоб автор міг дописати й надіслати знову.
+      if (d.needName) setNeedName(true)
       if (!d.ok) { setNote(d.error ?? 'Не вдалося надіслати'); return }
       if (needName) setNeedName(false)
 
