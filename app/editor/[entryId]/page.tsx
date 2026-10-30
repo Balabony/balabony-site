@@ -31,6 +31,7 @@ type Entry = {
   entry_number: number | null
   title: string
   annotation: string | null
+  synopsis: string | null
   genre: string | null
   contest: string
   role: string
@@ -46,7 +47,7 @@ export default async function EditorScorePage(
   if (!editor) redirect('/editor/login')
 
   const e = await dbQuery(
-    `select en.entry_number, en.title, en.annotation, en.genre, en.contest, a.role
+    `select en.entry_number, en.title, en.annotation, en.synopsis, en.genre, en.contest, a.role
        from contest_assignments a
        join contest_entries en on en.id = a.entry_id
       where a.entry_id = $1 and a.editor_id = $2
@@ -96,6 +97,13 @@ export default async function EditorScorePage(
           <p style={{ fontSize: 14, color: '#B8C6D8', lineHeight: 1.7, margin: '0 0 1.4rem' }}>
             {entry.annotation}
           </p>
+        )}
+
+        {entry.synopsis && (
+          <details style={{ margin: '0 0 1.4rem', fontSize: 14, color: '#B8C6D8', lineHeight: 1.7 }}>
+            <summary style={{ cursor: 'pointer', color: '#F5B754' }}>Синопсис автора (сюжет усього серіалу, є спойлери)</summary>
+            <p style={{ whiteSpace: 'pre-wrap', margin: '.6rem 0 0' }}>{entry.synopsis}</p>
+          </details>
         )}
 
         <ContestBrief contest={entry.contest} />
