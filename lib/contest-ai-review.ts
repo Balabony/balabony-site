@@ -40,7 +40,7 @@ const COMMON: Requirement[] = [
 
 export const REQUIREMENTS: Record<ContestId, Requirement[]> = {
   'ce-dovha-istoriya': [
-    { id: 'synopsis', text: 'Є синопсис на одну сторінку (поле «анотація»), і він відповідає поданому тексту.' },
+    { id: 'synopsis', text: 'Є синопсис на одну сторінку (поле «синопсис»), і він відповідає поданому тексту.' },
     { id: 'hook', text: 'Кожна подана серія закінчується гачком — подією або відкриттям, яке змінює становище героя. Гачок — це не обірване речення й не штучна пауза.' },
     { id: 'no_spoilers', text: 'Немає передвісників на кшталт «я ще не знав, що…», «згодом зрозумів», «якби ж я тоді послухав»; назви серій не викривають загадку.' },
     { id: 'whole', text: 'Подані серії тримаються разом як одна історія з наскрізним героєм і сюжетом.' },
@@ -106,6 +106,8 @@ export type EntryInput = {
   contest: string
   title: string
   annotation: string
+  /** 31.10.2026: окремий синопсис; порожньо — не подано. */
+  synopsis?: string
   genre: string
   episodes: { ord: number; body: string }[]
 }
@@ -113,6 +115,8 @@ export type EntryInput = {
 export function reviewHash(e: EntryInput): string {
   const h = createHash('sha256')
   h.update(e.contest + '\n' + e.title + '\n' + e.annotation + '\n')
+  // Синопсис додаємо в хеш лише коли він є — старі оцінки без синопсиса не перераховуються.
+  if (e.synopsis) h.update('synopsis\n' + e.synopsis + '\n')
   for (const ep of e.episodes) h.update(`#${ep.ord}\n${ep.body}\n`)
   return h.digest('hex')
 }
@@ -194,7 +198,8 @@ function buildPrompt(e: EntryInput, reqs: Requirement[], fairy: boolean): string
 Конкурс: ${c?.name ?? e.contest}
 Назва твору: ${e.title}
 Жанр (з заявки): ${e.genre || '—'}
-Анотація / синопсис: ${e.annotation || '— (порожньо)'}
+Анотація (для читачів): ${e.annotation || '— (порожньо)'}
+Синопсис (для редакції): ${e.synopsis || '— (не подано)'}
 
 ВИМОГИ ДО ОЦІНКИ (кожну окремо, бал 0–10 або "na", якщо вимогу не можна застосувати до цього тексту):
 ${reqs.map((r) => `- [${r.id}] ${r.text}`).join('\n')}

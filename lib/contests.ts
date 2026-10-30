@@ -33,6 +33,12 @@ export interface Contest {
    * Порожньо — підпис збирається автоматично з episodes і меж слів.
    */
   volumeLabel?: string
+  /**
+   * 31.10.2026: заявка містить синопсис на сторінку (окреме поле, не анотація:
+   * анотацію бачать читачі, а синопсис — лише редакція, у ньому спойлери).
+   * До цього форма мала тільки анотацію до 1500 знаків, і синопсис не вміщався.
+   */
+  synopsis?: boolean
   /** true — всі серії за один раз; false — можна досилати по черзі. */
   atOnce: boolean
   /** Прийом заявок, включно з обома датами. */
@@ -102,6 +108,9 @@ export interface Contest {
   }
 }
 
+/** 31.10.2026: синопсис на сторінку — до 6000 знаків (≈ 800 слів із запасом). */
+export const SYNOPSIS_MAX = 6000
+
 export const CONTESTS: Contest[] = [
   {
     id: 'ce-dovha-istoriya',
@@ -110,6 +119,7 @@ export const CONTESTS: Contest[] = [
     episodes: 10,
     minWords: 1500,
     maxWords: 1800,
+    synopsis: true,
     atOnce: false,
     opensAt: '2026-09-01',
     closesAt: '2026-10-31',
