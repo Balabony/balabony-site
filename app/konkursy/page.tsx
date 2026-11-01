@@ -6,6 +6,7 @@ import WinnerBadge from '@/app/components/WinnerBadge'
 import { AWARDS as WINNERS, PLACE_LABEL } from '@/lib/contest-winners'
 import { CONTESTS, findContest, isOpen, prizeFund, prizeLine, topPrize, type Contest } from '@/lib/contests'
 import KlubCta from '@/app/components/KlubCta'
+import { KIDS_CONTEST, contestState } from '@/lib/kids-contest'
 
 /**
  * Сторінка перезбирається щогодини.
@@ -139,12 +140,12 @@ const SCHEMES = {
 type Accent = Scheme
 
 export const metadata: Metadata = {
-  title: 'Це довга історія — конкурс серіалів · Балабони',
+  title: 'Літературні конкурси 2026 для авторів і дітей · Балабони',
   description:
     `Конкурс серіалів «Це довга історія» на Балабонах: десять серій за десять тижнів. Головна нагорода — ${topPrize(findContest('ce-dovha-istoriya')!)} і багатоголосе озвучення.`,
   alternates: { canonical: '/konkursy' },
   openGraph: {
-    title: 'Це довга історія — конкурс серіалів · Балабони',
+    title: 'Літературні конкурси 2026 для авторів і дітей · Балабони',
     description:
       'Десять тижнів, десять серій. Переможця обирають ті, хто дочитав. Нагороди — гроші, багатоголосе озвучення й газета.',
     url: 'https://balabony.com/konkursy',
@@ -1065,7 +1066,11 @@ function ShortContestCard({ c }: { c: ShortContest }) {
   )
 }
 
-/** Три плитки вгорі: одразу видно, який конкурс про що і скільки коштує. */
+/**
+ * Плитки вгорі (01.11.2026, рішення Богдана): спершу ті, що ПРИЙМАЮТЬ заявки,
+ * окремо — дитячий конкурс, нижче — конкурси з закритим прийомом (там уже
+ * читаємо твори). Розподіл — за датами з lib/contests, руками правити не треба.
+ */
 function ContestPicker() {
   const tiles = [
     { id: 'ce-dovha-istoriya', href: '#dovha-istoriya', accent: SCHEMES.serial, mark: 'weeks' as const, name: 'Це довга історія',           what: 'Серіал · 10 серій',        prize: `${topPrize(findContest('ce-dovha-istoriya')!)} головна нагорода`, main: true  },
@@ -1074,60 +1079,95 @@ function ContestPicker() {
     { id: 'z-viterczem',       href: '#z-viterczem',    accent: SCHEMES.humour, mark: 'gust'  as const, name: 'З вітерцем',                 what: 'Одна історія · гумор',     prize: `${topPrize(findContest('z-viterczem')!)} перше місце`,       main: false },
     { id: 'odnoho-razu-pered-rizdvom', href: '#odnoho-razu-pered-rizdvom', accent: SCHEMES.winter, mark: 'break' as const, name: 'Одного разу перед Різдвом', what: 'Три казки на ніч', prize: `${topPrize(findContest('odnoho-razu-pered-rizdvom')!)} перше місце`, main: false },
   ]
+  const open = tiles.filter(t => !acceptanceLabel(t.id).closed)
+  const closed = tiles.filter(t => acceptanceLabel(t.id).closed)
+  const kids = contestState()
+
+  const label = (text: string, sub?: string) => (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', margin: '0 0 12px' }}>
+      <h2 style={{ fontFamily: SERIF, fontSize: 22, color: CREAM, margin: 0, fontWeight: 700 }}>{text}</h2>
+      {sub && <span style={{ fontSize: 13, color: MUTED }}>{sub}</span>}
+    </div>
+  )
+  const tag = (text: string, filled: boolean) => (
+    <span style={{
+      display: 'inline-block', fontSize: 10.5, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase',
+      color: filled ? NAVY_DEEP : GOLD, background: filled ? GOLD : 'rgba(239,159,39,0.12)',
+      border: `1px solid ${GOLD}`, borderRadius: 6, padding: '3px 8px', marginLeft: 10, verticalAlign: 'middle',
+    }}>{text}</span>
+  )
 
   return (
-    <div
-      id="vybir-konkursu"
-      className="k-no-print"
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
-        gap: 12,
-        margin: '0 0 26px',
-        scrollMarginTop: 90,
-      }}
-    >
-      {tiles.map(t => (
-        <a
-          key={t.href}
-          href={t.href}
-          style={{
-            display: 'block',
-            textDecoration: 'none',
-            position: 'relative',
-            background: `${t.accent.glow}, ${t.accent.bg}`,
-            border: `1px solid ${t.accent.edge}`,
-            borderRadius: 13,
-            padding: '16px 16px 15px',
-            overflow: 'hidden',
-            boxShadow: t.main
-              ? '0 12px 30px rgba(239,159,39,0.16)'
-              : '0 10px 26px rgba(0,0,0,0.28)',
-          }}
-        >
-          <div
-            aria-hidden
-            style={{
-              position: 'absolute', top: 0, left: 0, right: 0, height: t.main ? 4 : 3,
-              background: `linear-gradient(90deg, ${t.accent.line} 0%, rgba(0,0,0,0) 100%)`,
-            }}
-          />
-          <Mark kind={t.mark} color={t.accent.line} />
-          <div style={{ fontFamily: SERIF, fontSize: 17.5, fontWeight: 700, color: t.accent.title, margin: '10px 0 3px', lineHeight: 1.25 }}>
-            {t.name}
+    <div id="vybir-konkursu" className="k-no-print" style={{ margin: '0 0 26px', scrollMarginTop: 90 }}>
+      {open.length > 0 && (
+        <>
+          {label('Приймаємо заявки', 'для дорослих авторів')}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 12, margin: '0 0 22px' }}>
+            {open.map(t => (
+              <a key={t.href} href={t.href} style={{
+                display: 'block', textDecoration: 'none', position: 'relative',
+                background: `${t.accent.glow}, ${t.accent.bg}`, border: `1.5px solid ${GOLD}`,
+                borderRadius: 13, padding: '16px 16px 15px', overflow: 'hidden', boxShadow: '0 12px 30px rgba(239,159,39,0.16)',
+              }}>
+                <div aria-hidden style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: `linear-gradient(90deg, ${GOLD} 0%, rgba(0,0,0,0) 100%)` }} />
+                <Mark kind={t.mark} color={t.accent.line} />
+                {tag('Для дорослих авторів', false)}
+                <div style={{ fontFamily: SERIF, fontSize: 18.5, fontWeight: 700, color: t.accent.title, margin: '10px 0 3px', lineHeight: 1.25 }}>{t.name}</div>
+                <div style={{ fontSize: 13, color: t.accent.quiet }}>{t.what}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: GOLD_SOFT }}>{acceptanceLabel(t.id).text}</span>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: t.accent.line }}>{t.prize}</span>
+                </div>
+              </a>
+            ))}
           </div>
-          <div style={{ fontSize: 13, color: t.accent.quiet }}>{t.what}</div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
-            <span style={{
-              fontSize: 12.5,
-              color: acceptanceLabel(t.id).closed ? t.accent.quiet : t.accent.body,
-            }}>
-              {acceptanceLabel(t.id).text}
-            </span>
-            <span style={{ fontSize: 14, fontWeight: 800, color: t.accent.line }}>{t.prize}</span>
+        </>
+      )}
+
+      {kids !== 'closed' && (
+        <>
+          {label('Дитячі конкурси', 'для учнів 1–11 класів, подають батьки або вчитель')}
+          <a href={KIDS_CONTEST.path} style={{
+            display: 'block', textDecoration: 'none', position: 'relative', overflow: 'hidden',
+            background: `radial-gradient(120% 120% at 100% 0%, rgba(250,199,117,0.34) 0%, rgba(0,0,0,0) 60%), ${NAVY}`,
+            border: `2px solid ${GOLD}`, borderRadius: 16, padding: '20px 20px 18px', margin: '0 0 22px',
+            boxShadow: '0 14px 34px rgba(239,159,39,0.20)',
+          }}>
+            <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 800, letterSpacing: 1.4, textTransform: 'uppercase', color: NAVY_DEEP, background: GOLD, borderRadius: 6, padding: '4px 10px' }}>Для дітей · 1–11 клас</span>
+            <div style={{ fontFamily: SERIF, fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 700, color: CREAM, margin: '12px 0 4px', lineHeight: 1.2 }}>
+              Конкурс скоромовок {KIDS_CONTEST.title}
+            </div>
+            <div style={{ fontSize: 15, color: SOFT, lineHeight: 1.6, maxWidth: 640 }}>
+              Придумай власну скоромовку українською — 1–4 рядки. Переможцям — книжки українських письменників і цифрові дипломи, усім учасникам — цифрові сертифікати. Вчителів запрошуємо подавати роботи класу.
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginTop: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 13.5, fontWeight: 700, color: GOLD_SOFT }}>
+                {kids === 'soon' ? `Прийом з ${KIDS_CONTEST.startText}` : `Заявки до ${KIDS_CONTEST.endText.replace(' 2026 року', '')}`} · переможці {KIDS_CONTEST.resultsText.replace(' 2026 року', '')}
+              </span>
+              <span style={{ background: GOLD, color: NAVY_DEEP, fontWeight: 800, fontSize: 14, borderRadius: 10, padding: '10px 18px' }}>Умови й подача →</span>
+            </div>
+          </a>
+        </>
+      )}
+
+      {closed.length > 0 && (
+        <>
+          {label('Прийом закрито', 'читайте конкурсні твори')}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 10 }}>
+            {closed.map(t => (
+              <a key={t.href} href={t.href} style={{
+                display: 'block', textDecoration: 'none', background: t.accent.bg,
+                border: '1px solid rgba(143,163,196,0.22)', borderRadius: 12, padding: '12px 14px', opacity: 0.85,
+              }}>
+                <Mark kind={t.mark} color={t.accent.line} />
+                <div style={{ fontFamily: SERIF, fontSize: 16, fontWeight: 700, color: t.accent.title, margin: '8px 0 2px', lineHeight: 1.25 }}>{t.name}</div>
+                <div style={{ fontSize: 12.5, color: t.accent.quiet }}>{t.what}</div>
+                <div style={{ fontSize: 12.5, color: t.accent.quiet, marginTop: 8 }}>{acceptanceLabel(t.id).text}</div>
+              </a>
+            ))}
           </div>
-        </a>
-      ))}
+        </>
+      )}
     </div>
   )
 }
@@ -1187,7 +1227,8 @@ export default function KonkursyPage() {
             Літературні конкурси Балабонів
           </div>
           <ul style={{ margin: '0 0 18px', paddingLeft: 20, color: SOFT, fontSize: 16, lineHeight: 1.7 }}>
-            <li>П'ять конкурсів, призи до 20 000 ₴, участь безкоштовна.</li>
+            <li>Конкурси для дорослих авторів, призи до 20 000 ₴, участь безкоштовна.</li>
+            <li>Для дітей — окремий <a href="/konkurs-skoromovok" style={{ color: GOLD, fontWeight: 700 }}>конкурс скоромовок «Скоромовка Балабонів»</a> для учнів 1–11 класів.</li>
             <li>Потрібен новий твір — історія, серіал чи казки, яких ще немає на інших літературних платформах, в електронних бібліотеках і медіа.</li>
             <li>Перший крок — вхід через Google або пошту, без пароля. Одразу після входу — форма подачі.</li>
           </ul>

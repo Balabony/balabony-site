@@ -60,7 +60,7 @@ export default function KonkursyBanner() {
       const n = daysLeft(c.closesAt, now)
       return {
         key: c.id,
-        tag: c.episodes > 1 ? `Серіал · ${c.episodes} серій` : 'Для авторів',
+        tag: c.episodes > 1 ? 'Для дорослих · серіал' : 'Для дорослих авторів',
         nazva: c.name.replace(/\s+—.*$/, ''),
         pryz: `${topPrize(c)} ${c.awards.length > 1 ? 'перше місце' : 'головна нагорода'}`,
         umova: umova(c),
