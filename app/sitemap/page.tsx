@@ -70,8 +70,9 @@ const GROUPS: SitemapGroup[] = [
       { href: '/games/domino',       label: 'Доміно',              note: 'Центрове, три рівні' },
       { href: '/games/sudoku',       label: 'Судоку',              note: 'Логічна головоломка, три рівні' },
       { href: '/games/narde',        label: 'Довгі нарди',         note: 'Проти машини, три рівні' },
-      { href: '/pravopys',      label: 'Правопис',            note: 'Довідник чинного правопису' },
-      { href: '/pravopys/dity', label: 'Правопис для дітей',  note: 'Прості правила з картинками' },
+      { href: '/pravopys',           label: 'Правопис',               note: 'Правопис української мови 2026' },
+      { href: '/pravopys/uchnyam',   label: 'Правопис для учнів',     note: 'Правила 5–9 клас, підказки й мінітести' },
+      { href: '/pravopys/studentam', label: 'Правопис для студентів', note: 'Правила з § стандарту, підготовка до НМТ' },
     ],
   },
   {

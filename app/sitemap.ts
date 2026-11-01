@@ -1,5 +1,6 @@
 import { CONTESTS } from '@/lib/contests'
 import { ZAHADKY_TOPICS } from '@/lib/zahadky'
+import { RULES as PRAVOPYS_RULES, GRADES as PRAVOPYS_GRADES } from '@/lib/pravopys/data'
 import type { MetadataRoute } from 'next'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { authorSlug } from '@/lib/author-slug'
@@ -119,8 +120,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/kalendar-2027`,         lastModified: now, changeFrequency: 'weekly',  priority: 0.9 },
     { url: `${BASE_URL}/kalendar-2027/na-odnomu-arkushi`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE_URL}/kalendar-2027/dytiachyi`,         lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${BASE_URL}/pravopys`,              lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/pravopys/dity`,         lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
+    // 01.11.2026: розділ «Правопис» — Учням / Студентам, сторінки класів і окрема сторінка на кожне правило (lib/pravopys/data.ts).
+    // /pravopys/dity прибрано: це тепер постійна переадресація на /pravopys/uchnyam.
+    { url: `${BASE_URL}/pravopys`,              lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE_URL}/pravopys/uchnyam`,      lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE_URL}/pravopys/studentam`,    lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    ...PRAVOPYS_GRADES.map((g) => ({ url: `${BASE_URL}/pravopys/uchnyam/${g}-klas`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.8 })),
+    ...PRAVOPYS_RULES.flatMap((r) => [
+      { url: `${BASE_URL}/pravopys/uchnyam/${r.slug}`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.7 },
+      { url: `${BASE_URL}/pravopys/studentam/${r.slug}`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.7 },
+    ]),
     // Загадки (27.10.2026): «загадки» — 40 500 запитів/міс за Планувальником.
     { url: `${BASE_URL}/zahadky`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     ...ZAHADKY_TOPICS.map((t) => ({
