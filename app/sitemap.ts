@@ -237,7 +237,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: 'monthly' as const,
             priority,
             // Обкладинки: без цього Google не знає про них жодної.
-            ...(row.cover_url ? { images: [row.cover_url] } : {}),
+            // 01.11.2026: Google вимагає повну адресу картинки; обкладинки «/panas-poses/…» давали 14 помилок.
+            ...(row.cover_url ? { images: [row.cover_url.startsWith('/') ? `${BASE_URL}${row.cover_url}` : row.cover_url] } : {}),
           }
         })
     }
