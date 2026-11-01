@@ -1,20 +1,19 @@
 'use client'
 
-import { findContest, topPrize } from '@/lib/contests'
+import Link from 'next/link'
+import { CONTESTS, topPrize, type Contest } from '@/lib/contests'
+import { KIDS_CONTEST, contestState } from '@/lib/kids-contest'
 
 /**
- * Блок конкурсів на головній.
+ * Блок «Літературні конкурси» на головній.
  *
- * Конкурси — найсильніший привід зайти для автора й найпомітніша причина
- * повернутися для читача, а на головній їх не було взагалі. Заявки на «Це
- * довгу історію» приймаються до 31 жовтня, і без цього блока про них знає
- * лише той, хто сам відкриє /konkursy.
- *
- * Блок зникає сам, коли обидва прийоми закінчаться: показувати конкурс із
- * простроченим дедлайном гірше, ніж не показувати нічого.
+ * 01.11.2026 (рішення Богдана): показуємо ЛИШЕ конкурси, які приймають заявки
+ * зараз або скоро почнуть. Конкурс із закритим прийомом зникає з блока сам —
+ * за датами з lib/contests.ts, руками нічого правити не треба. Новий конкурс,
+ * доданий у CONTESTS, з'являється тут автоматично.
+ * Дитячий конкурс скоромовок — окрема картка з позначкою «Для дітей».
+ * Коли відкритих конкурсів немає, блок ховається повністю.
  */
-
-import Link from 'next/link'
 
 const NAVY_CARD = '#14253B'
 const GOLD = '#EF9F27'
@@ -22,148 +21,100 @@ const GOLD_SOFT = '#FAC775'
 const CREAM = '#FFF8EE'
 const FONT = "'Montserrat', Arial, sans-serif"
 const SERIF = "'Lora', Georgia, serif"
+const MONTHS = ['січня', 'лютого', 'березня', 'квітня', 'травня', 'червня', 'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня']
 
-/** Кінець прийому робіт короткого конкурсу — після нього блок ховається. */
-const HIDE_AFTER = new Date('2026-12-16T00:00:00+02:00')
+type Card = { key: string; tag: string; nazva: string; pryz: string; umova: string; deadline: string; href: string; kids?: boolean }
 
-type Konkurs = {
-  nazva: string
-  pryz: string
-  umova: string
-  deadline: string
-  aktyvnyi: boolean
+function human(iso: string): string {
+  const [, m, d] = iso.split('-')
+  return `${Number(d)} ${MONTHS[Number(m) - 1]}`
+}
+
+function daysLeft(iso: string, now: Date): number {
+  const end = new Date(iso + 'T23:59:59+02:00').getTime()
+  return Math.max(0, Math.ceil((end - now.getTime()) / 86400000))
+}
+
+function plural(n: number): string {
+  const a = n % 10, b = n % 100
+  if (a === 1 && b !== 11) return 'день'
+  if (a >= 2 && a <= 4 && (b < 12 || b > 14)) return 'дні'
+  return 'днів'
+}
+
+function umova(c: Contest): string {
+  if (c.volumeLabel) return c.volumeLabel.charAt(0).toUpperCase() + c.volumeLabel.slice(1)
+  if (c.episodes === 1) return `Одна історія до ${c.maxWords} слів`
+  return `${c.episodes} серій по ${c.minWords}–${c.maxWords} слів`
 }
 
 export default function KonkursyBanner() {
   const now = new Date()
-  if (now >= HIDE_AFTER) return null
+  const today = now.toISOString().slice(0, 10)
 
-  const dovga = now < new Date('2026-11-01T00:00:00+02:00')
+  const cards: Card[] = CONTESTS
+    .filter((c) => today <= c.closesAt)
+    .sort((a, b) => a.closesAt.localeCompare(b.closesAt))
+    .map((c) => {
+      const soon = today < c.opensAt
+      const n = daysLeft(c.closesAt, now)
+      return {
+        key: c.id,
+        tag: c.episodes > 1 ? `Серіал · ${c.episodes} серій` : 'Для авторів',
+        nazva: c.name.replace(/\s+—.*$/, ''),
+        pryz: `${topPrize(c)} ${c.awards.length > 1 ? 'перше місце' : 'головна нагорода'}`,
+        umova: umova(c),
+        deadline: soon ? `Прийом з ${human(c.opensAt)}` : `Заявки до ${human(c.closesAt)} · ${n === 0 ? 'останній день' : `залишилось ${n} ${plural(n)}`}`,
+        href: '/konkursy',
+      }
+    })
 
-  const konkursy: Konkurs[] = [
-    {
-      nazva: 'Це довга історія',
-      pryz: topPrize(findContest('ce-dovha-istoriya')!),
-      umova: 'Десять серій за десять тижнів',
-      deadline: dovga ? 'Заявки до 31 жовтня' : 'Прийом завершено',
-      aktyvnyi: dovga,
-    },
-    {
-      nazva: 'Коротка історія',
-      pryz: findContest('odyn-den')!.awards.map(a => a.amount).join(' · '),
-      umova: 'Одна історія до 1500 слів',
-      deadline: 'Прийом з 1 листопада до 15 грудня',
-      aktyvnyi: true,
-    },
-  ]
+  const ks = contestState(now.getTime())
+  if (ks !== 'closed') {
+    cards.push({
+      key: KIDS_CONTEST.id,
+      tag: 'Для дітей · 1–11 клас',
+      nazva: KIDS_CONTEST.title,
+      pryz: 'Книжки й цифрові дипломи',
+      umova: 'Власна скоромовка, 1–4 рядки',
+      deadline: ks === 'soon' ? `Прийом з ${KIDS_CONTEST.startText}` : `Заявки до ${KIDS_CONTEST.endText.replace(' 2026 року', '')}`,
+      href: KIDS_CONTEST.path,
+      kids: true,
+    })
+  }
+
+  if (!cards.length) return null
 
   return (
-    <section
-      aria-label="Конкурси для авторів"
-      style={{ maxWidth: 1100, margin: '0 auto', padding: '8px 20px 4px' }}
-    >
-      <div
-        style={{
-          border: `1px solid rgba(239,159,39,0.45)`,
-          borderRadius: 14,
-          background: NAVY_CARD,
-          padding: '18px 20px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'baseline',
-            justifyContent: 'space-between',
-            gap: 12,
-            flexWrap: 'wrap',
-            marginBottom: 14,
-          }}
-        >
+    <section aria-label="Літературні конкурси" style={{ maxWidth: 1100, margin: '0 auto', padding: '8px 20px 4px' }}>
+      <div style={{ border: '1px solid rgba(239,159,39,0.45)', borderRadius: 14, background: NAVY_CARD, padding: '18px 20px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
           <div>
-            <div
-              style={{
-                fontFamily: FONT,
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: 1.2,
-                color: GOLD,
-                marginBottom: 4,
-              }}
-            >
-              КОНКУРСИ ДЛЯ АВТОРІВ
-            </div>
-            <div style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 500, color: CREAM }}>
-              Напишіть свою історію
-            </div>
+            <div style={{ fontFamily: FONT, fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: GOLD, marginBottom: 4 }}>ЛІТЕРАТУРНІ КОНКУРСИ</div>
+            <div style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 500, color: CREAM }}>Приймаємо заявки зараз</div>
           </div>
-
-          <Link
-            href="/konkursy"
-            style={{
-              fontFamily: FONT,
-              fontSize: 13,
-              fontWeight: 700,
-              color: '#0E1A2B',
-              background: GOLD,
-              padding: '9px 18px',
-              borderRadius: 20,
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Умови участі →
+          <Link href="/konkursy" style={{ fontFamily: FONT, fontSize: 13, fontWeight: 700, color: '#0E1A2B', background: GOLD, padding: '9px 18px', borderRadius: 20, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            Усі конкурси →
           </Link>
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))',
-            gap: 12,
-          }}
-        >
-          {konkursy.map((k) => (
-            <Link
-              key={k.nazva}
-              href="/konkursy"
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 12 }}>
+          {cards.map((k) => (
+            <Link key={k.key} href={k.href}
               style={{
-                display: 'block',
-                textDecoration: 'none',
-                border: '1px solid rgba(239,159,39,0.28)',
-                borderRadius: 10,
-                padding: '13px 15px',
-                opacity: k.aktyvnyi ? 1 : 0.55,
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: FONT,
-                  fontSize: 15,
-                  fontWeight: 700,
-                  color: CREAM,
-                  marginBottom: 5,
-                }}
-              >
-                {k.nazva}
-              </div>
-              <div
-                style={{
-                  fontFamily: FONT,
-                  fontSize: 19,
-                  fontWeight: 700,
-                  color: GOLD_SOFT,
-                  marginBottom: 6,
-                }}
-              >
-                {k.pryz}
-              </div>
-              <div style={{ fontFamily: FONT, fontSize: 13, color: '#B5C6DA', marginBottom: 8 }}>
-                {k.umova}
-              </div>
-              <div style={{ fontFamily: FONT, fontSize: 12, fontWeight: 600, color: GOLD }}>
-                {k.deadline}
-              </div>
+                display: 'block', textDecoration: 'none', borderRadius: 10, padding: '13px 15px',
+                border: k.kids ? `1.5px solid ${GOLD}` : '1px solid rgba(239,159,39,0.28)',
+                background: k.kids ? 'radial-gradient(120% 100% at 100% 0%, rgba(239,159,39,0.22) 0%, rgba(0,0,0,0) 65%)' : 'transparent',
+              }}>
+              <span style={{
+                display: 'inline-block', fontFamily: FONT, fontSize: 10.5, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase',
+                color: k.kids ? '#0E1A2B' : GOLD, background: k.kids ? GOLD : 'transparent', border: `1px solid ${GOLD}`,
+                borderRadius: 6, padding: '2px 7px', marginBottom: 8,
+              }}>{k.tag}</span>
+              <div style={{ fontFamily: FONT, fontSize: 15, fontWeight: 700, color: CREAM, marginBottom: 5 }}>{k.nazva}</div>
+              <div style={{ fontFamily: FONT, fontSize: 17, fontWeight: 700, color: GOLD_SOFT, marginBottom: 6 }}>{k.pryz}</div>
+              <div style={{ fontFamily: FONT, fontSize: 13, color: '#B5C6DA', marginBottom: 8 }}>{k.umova}</div>
+              <div style={{ fontFamily: FONT, fontSize: 12, fontWeight: 600, color: GOLD }}>{k.deadline}</div>
             </Link>
           ))}
         </div>
