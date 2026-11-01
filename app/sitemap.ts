@@ -127,6 +127,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/pravopys/studentam`,    lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     // 01.11.2026: дитячий конкурс скоромовок
     { url: `${BASE_URL}/konkurs-skoromovok`,    lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
+    // 01.11.2026: рубрики скоромовок
+    ...['na-zvuk-r', 'na-zvuk-l', 'na-zvuk-sh', 'na-zvuk-s', 'na-zvuk-zh-ch', 'dlia-doshkilnyat', '1-klas', '2-klas', 'dlia-dyktsii', 'pro-zymu', 'pro-osin', 'smishni', 'skladni', 'korotki'].map((s) => ({ url: `${BASE_URL}/skoromovky/${s}`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.7 })),
     ...PRAVOPYS_GRADES.map((g) => ({ url: `${BASE_URL}/pravopys/uchnyam/${g}-klas`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.8 })),
     ...PRAVOPYS_RULES.flatMap((r) => [
       { url: `${BASE_URL}/pravopys/uchnyam/${r.slug}`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.7 },

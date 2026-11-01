@@ -1,112 +1,85 @@
+// 01.11.2026: «Скоромовки українською» — головна сторінка розділу: усі рубрики, поради, конкурс, FAQ (SEO: «скоромовки», ~10 тис. пошуків/міс).
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import Header from '@/app/components/Header'
-import Footer from '@/app/components/Footer'
-import Breadcrumbs from '@/app/components/Breadcrumbs'
-import { ThemeProvider } from '@/app/context/ThemeContext'
-import { SKOROMOVKY_GROUPS, SKOROMOVKY_TOTAL } from '@/lib/skoromovky'
+import { C, Card, Label, H1, Lead, Crumbs, FaqLd } from '../pravopys/ui'
+import { TEMY, SKOROMOVKY, byTema, sk } from '@/lib/skoromovky-balabony'
+import { Page, H2, List, Chips, Tip, ContestCta, MoreLinks } from './parts'
 
-/* Розділ створено 27.10.2026. «скоромовки» — 9 900 запитів/міс
-   (Планувальник ключових слів). Аудиторія: батьки, логопеди, вчителі,
-   а також 55+ — скоромовки тренують мовлення так само, як ігри «Клубу
-   довголіття» тренують пам'ять. */
+const N = SKOROMOVKY.length
+const TITLE = 'Скоромовки українською для дітей і дорослих — ' + sk(N) + ' | Балабони'
+const DESC = `${sk(N)} українською: для дітей і дорослих, на звуки Р, Л, Ш, С, Ж, для дошкільнят, 1 і 2 класу, для дикції, про зиму й осінь, смішні й складні. Поради, як тренуватися.`
+
 export const metadata: Metadata = {
-  title: 'Скоромовки українською для дітей і дорослих — для розвитку мовлення | Балабони',
-  description:
-    'Українські скоромовки для дітей і дорослих: короткі й довші, для розвитку мовлення, дикції й вимови. Як тренуватися — поради від редакції Балабонів.',
-  alternates: { canonical: '/skoromovky' },
-  openGraph: {
-    title: 'Скоромовки українською для дітей і дорослих | Балабони',
-    description: 'Короткі й довші українські скоромовки для розвитку мовлення та дикції.',
-    url: 'https://balabony.com/skoromovky',
-    type: 'website',
-  },
+  title: TITLE,
+  description: DESC,
+  alternates: { canonical: 'https://balabony.com/skoromovky' },
+  openGraph: { title: TITLE, description: DESC, url: 'https://balabony.com/skoromovky', type: 'website' },
 }
 
-const TIPS: string[] = [
-  'Спершу прочитайте скоромовку повільно й чітко, по складах.',
-  'Повторіть тричі поспіль у звичайному темпі — без запинок.',
-  'Лише тоді пришвидшуйтеся. Швидкість без чіткості нічого не тренує.',
-  'Дитині покажіть, як рухаються губи й язик, — і проговорюйте разом.',
-  'Дорослим скоромовки допомагають розім’яти мовлення зранку чи перед виступом.',
+const FAQ = [
+  { q: 'Навіщо дітям скоромовки?', a: 'Скоромовки тренують артикуляцію, чітку вимову звуків, швидкість мовлення й пам’ять. Логопеди радять їх для закріплення звуків Р, Л, Ш, С, Ж.' },
+  { q: 'Як правильно вчити скоромовку?', a: 'Спершу повільно й чітко, по складах. Потім тричі поспіль у звичайному темпі без запинок. Лише тоді — швидше. Швидкість без чіткості нічого не тренує.' },
+  { q: 'Чи корисні скоромовки дорослим?', a: 'Так. Скоромовки для дикції — найпростіша розминка перед виступом, уроком, ефіром чи важливою розмовою.' },
+  { q: 'Чи можна придумати власну скоромовку?', a: 'Так! Візьміть 2–3 схожі звуки й складіть з ними коротку смішну історію. А ще можна взяти участь у дитячому конкурсі «Скоромовка Балабонів».' },
 ]
 
-export default function SkoromovkyPage() {
+export default function Skoromovky() {
+  const itemLd = {
+    '@context': 'https://schema.org', '@type': 'ItemList', name: 'Скоромовки українською',
+    numberOfItems: N,
+    itemListElement: TEMY.map((t, i) => ({ '@type': 'ListItem', position: i + 1, name: t.h1, url: `https://balabony.com/skoromovky/${t.slug}` })),
+  }
   return (
-    <ThemeProvider>
-      <Header />
-      <main style={{ maxWidth: 820, margin: '0 auto', padding: '32px 20px' }}>
-        <Breadcrumbs items={[{ label: 'Скоромовки' }]} />
-        <h1 style={{ fontFamily: '"Comfortaa", sans-serif', fontSize: 32, margin: '0 0 8px', color: 'var(--accent-gold)' }}>
-          Скоромовки українською
-        </h1>
-        <p style={{ color: '#cbd5e1', fontSize: 17, lineHeight: 1.65, margin: '0 0 26px' }}>
-          {SKOROMOVKY_TOTAL} скоромовок для дітей і дорослих — для розвитку мовлення, дикції та гарного настрою.
-          Спробуйте промовити швидко й не запнутися.
-        </p>
+    <Page>
+      <Crumbs items={[{ name: 'Балабони', href: '/' }, { name: 'Скоромовки', href: '/skoromovky' }]} />
+      <div style={{ height: 18 }} />
+      <Card>
+        <Label>Для дітей і дорослих · {sk(N)}</Label>
+        <H1>Скоромовки українською для дітей і дорослих</H1>
+        <Lead><b style={{ color: C.NAVY }}>Скоромовки українською</b> — {sk(N)}: народні й авторські, для дітей і дорослих — для розвитку мовлення, дикції та гарного настрою.</Lead>
+        <p style={{ margin: '0 0 14px' }}>Тут є <b style={{ color: C.NAVY }}>скоромовки для дітей</b> на звуки Р, Л, Ш, С і Ж, для дошкільнят, 1 і 2 класу, <b style={{ color: C.NAVY }}>скоромовки для дикції</b> дорослим, про зиму й осінь, смішні, короткі й найскладніші. Оберіть рубрику:</p>
+        <Chips />
+      </Card>
 
-        <section
-          aria-labelledby="yak-trenuvatysia"
-          style={{
-            background: 'rgba(239,159,39,0.08)',
-            border: '1px solid rgba(239,159,39,0.4)',
-            borderRadius: 14,
-            padding: '18px 20px',
-            margin: '0 0 36px',
-          }}
-        >
-          <h2 id="yak-trenuvatysia" style={{ fontFamily: '"Comfortaa", sans-serif', fontSize: 20, margin: '0 0 10px', color: 'var(--accent-gold)' }}>
-            Як тренуватися
-          </h2>
-          <ol style={{ margin: 0, paddingLeft: 22, color: '#e2e8f0', fontSize: 16, lineHeight: 1.7 }}>
-            {TIPS.map((t) => <li key={t}>{t}</li>)}
-          </ol>
-        </section>
+      <Card>
+        <H2>Як тренуватися зі скоромовками</H2>
+        <ol style={{ margin: 0, paddingLeft: 24 }}>
+          <li>Прочитайте скоромовку повільно й чітко, по складах.</li>
+          <li>Повторіть тричі поспіль у звичайному темпі — без запинок.</li>
+          <li>Лише тоді пришвидшуйтеся. Швидкість без чіткості нічого не тренує.</li>
+          <li>Дитині покажіть, як рухаються губи й язик, — і проговорюйте разом.</li>
+        </ol>
+        <Tip>Дорослим скоромовки допомагають розім’яти мовлення зранку чи перед виступом: 2–3 складні скоромовки — і голос звучить чіткіше.</Tip>
+      </Card>
 
-        {SKOROMOVKY_GROUPS.map((g) => (
-          <section key={g.id} id={g.id} style={{ marginBottom: 40, scrollMarginTop: 90 }}>
-            <h2 style={{ fontFamily: '"Comfortaa", sans-serif', fontSize: 24, margin: '0 0 6px', color: 'var(--accent-gold)' }}>
-              {g.title}
-            </h2>
-            <p style={{ color: '#94a3b8', fontSize: 15, margin: '0 0 16px' }}>{g.note}</p>
-            <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 12 }}>
-              {g.items.map((it, i) => (
-                <li
-                  key={i}
-                  style={{
-                    background: '#0f1e3a',
-                    border: '1px solid rgba(143,163,196,0.22)',
-                    borderRadius: 14,
-                    padding: '16px 20px',
-                    display: 'flex',
-                    gap: 12,
-                  }}
-                >
-                  <span aria-hidden="true" style={{ color: 'var(--accent-gold)', fontWeight: 700, fontSize: 18, minWidth: 26 }}>
-                    {i + 1}.
-                  </span>
-                  <p style={{ margin: 0, fontFamily: "'Lora', Georgia, serif", fontSize: 20, lineHeight: 1.55, color: '#f5f0e8' }}>
-                    {it.lines.map((l, k) => (
-                      <span key={k} style={{ display: 'block' }}>{l}</span>
-                    ))}
-                    {it.author && (
-                      <span style={{ display: 'block', marginTop: 6, fontSize: 13, color: '#8899bb', fontFamily: 'inherit' }}>
-                        Автор: {it.author}
-                      </span>
-                    )}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </section>
+      {TEMY.map((t, i) => {
+        const items = byTema(t.slug)
+        return (
+          <div key={t.slug}>
+            <Card id={t.slug}>
+              <H2>{t.h1}</H2>
+              <p style={{ margin: '0 0 14px' }}>{t.lead}</p>
+              <List items={items.slice(0, 4)} />
+              <p style={{ margin: '14px 0 0' }}>
+                <a href={`/skoromovky/${t.slug}`} style={{ color: C.NAVY, fontWeight: 800 }}>{t.name}: усі {sk(items.length)} →</a>
+              </p>
+            </Card>
+            {i === 3 && <ContestCta />}
+          </div>
+        )
+      })}
+
+      <Card>
+        <H2>Питання й відповіді про скоромовки</H2>
+        {FAQ.map((f) => (
+          <div key={f.q} style={{ margin: '0 0 14px' }}>
+            <h3 style={{ fontSize: 20, color: C.NAVY, margin: '0 0 4px' }}>{f.q}</h3>
+            <p style={{ margin: 0 }}>{f.a}</p>
+          </div>
         ))}
-
-        <p style={{ color: '#94a3b8', fontSize: 15, lineHeight: 1.6 }}>
-          Ще для гри з дитиною: <Link href="/zahadky" style={{ color: '#FAC775' }}>загадки з відповідями</Link> і{' '}
-          <Link href="/fairytales" style={{ color: '#FAC775' }}>казки на ніч</Link>.
-        </p>
-      </main>
-      <Footer />
-    </ThemeProvider>
+      </Card>
+      <MoreLinks />
+      <FaqLd faq={FAQ} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemLd) }} />
+    </Page>
   )
 }
