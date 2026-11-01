@@ -102,18 +102,21 @@ const FREE_EPISODES = 2
 // Тізер для замкненої серії: перші сцени до ~4 абзаців. Решта тексту
 // серверно НЕ потрапляє в браузер (на відміну від клієнтського приховування).
 function buildTeaser(raw: string, minParagraphs = 4): string {
+  // 01.11.2026: було «перші СЦЕНИ до ~4 абзаців». Сцена без порожнього рядка
+  // між абзацами бралася цілком, і в серіях, записаних однією сценою, «тізером»
+  // ставав увесь текст. Перевірка без входу: /tysha/tysha-s1e47 віддавала всю
+  // платну серію в HTML — сховану лише висотою блоку, але видиму ботам, ШІ й
+  // режиму читання браузера. Тепер беремо окремі абзаци й не більше ~900 знаків.
   const cleaned = raw.replace(/^[ \t]*\*[ \t]*\*[ \t]*\*[ \t]*$/gm, '')
-  const scenes = cleaned.split(/\n{2,}/)
+  const paras = cleaned.split(/\n+/).map((s) => s.trim()).filter((s) => s.length > 0)
   const out: string[] = []
-  let collected = 0
-  for (const scene of scenes) {
-    const paras = scene.split(/\n/).filter((s) => s.trim().length > 0)
-    if (paras.length === 0) continue
-    out.push(scene)
-    collected += paras.length
-    if (collected >= minParagraphs) break
+  let chars = 0
+  for (const p of paras) {
+    out.push(p)
+    chars += p.length
+    if (out.length >= minParagraphs || chars >= 900) break
   }
-  return out.join('\n\n')
+  return out.join('\n')
 }
 
 interface TyshaRow {
