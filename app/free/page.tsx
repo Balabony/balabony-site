@@ -1,9 +1,11 @@
-﻿import type { Metadata } from 'next'
+import type { Metadata } from 'next'
 import FreeHero from '../components/FreeHero'
 import HowItWorks from '../components/HowItWorks'
 import FAQ from '../components/FAQ'
 
 export const metadata: Metadata = {
+  // 01.11.2026: власний canonical — без нього сторінка брала '/' з layout і Google вважав її копією головної.
+  alternates: { canonical: '/free' },
   title: 'Спробуй безкоштовно — Balabony',
   description:
     'Понад 1000 історій і 24 серії. Спробуй, перш ніж щось купувати.',

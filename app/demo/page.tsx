@@ -7,6 +7,8 @@ const GOLD      = '#f0a500'
 const FONT      = "'Montserrat', Arial, sans-serif"
 
 export const metadata: Metadata = {
+  // 01.11.2026: власний canonical — без нього сторінка брала '/' з layout і Google вважав її копією головної.
+  alternates: { canonical: '/demo' },
   title: 'Тестовий голос — Balabony',
   description: 'Послухайте демо озвучення серії «Панас і 5G на вишні» на платформі Balabony.',
 }

@@ -12,6 +12,8 @@ import Breadcrumbs from '@/app/components/Breadcrumbs'
  */
 
 export const metadata: Metadata = {
+  // 01.11.2026: власний canonical — без нього сторінка брала '/' з layout і Google вважав її копією головної.
+  alternates: { canonical: '/vydannya' },
   title: 'Друковані видання · Балабони',
   description:
     'Перелік чинних і колишніх друкованих видань, з якими співпрацює платформа Балабони: газети «Життя», «Життя. Історії», «Життєві історії», «Найкращі жіночі історії».',

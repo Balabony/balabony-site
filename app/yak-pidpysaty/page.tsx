@@ -18,6 +18,8 @@ import type { Metadata } from 'next'
  */
 
 export const metadata: Metadata = {
+  // 01.11.2026: власний canonical — без нього сторінка брала '/' з layout і Google вважав її копією головної.
+  alternates: { canonical: '/yak-pidpysaty' },
   title: 'Як підписати договір · Балабони',
   description:
     'Покрокова інструкція, як підписати авторський договір Балабонів кваліфікованим електронним підписом через Дію, ЦЗО або застосунок банку.',

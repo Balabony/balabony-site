@@ -19,6 +19,8 @@ export const dynamic = 'force-dynamic'
 const FETCH_TIMEOUT_MS = 10_000
 
 export const metadata: Metadata = {
+  // 01.11.2026: власний canonical — без нього сторінка брала '/' з layout і Google вважав її копією головної.
+  alternates: { canonical: '/wolne-lektury' },
   title: 'Львів і Галичина у Wolne Lektury — вільні тексти й аудіо | Balabony',
   description:
     'Твори авторів, пов’язаних зі Львовом і Галичиною, з польської цифрової бібліотеки Wolne Lektury: вільні тексти, доступні формати, безкоштовні аудіокниги. Дані з відкритого API, читання — на сайті бібліотеки.',

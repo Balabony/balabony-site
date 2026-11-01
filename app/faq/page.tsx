@@ -4,6 +4,8 @@ import Footer from '../components/Footer'
 import FAQ from '../components/FAQ'
 
 export const metadata: Metadata = {
+  // 01.11.2026: власний canonical — без нього сторінка брала '/' з layout і Google вважав її копією головної.
+  alternates: { canonical: '/faq' },
   title: 'Часті питання — Balabony',
   description:
     'Відповіді на питання про Балабони: безкоштовний доступ, реєстрація, тарифи, пільговий тариф, подарунки та співпраця з авторами.',
