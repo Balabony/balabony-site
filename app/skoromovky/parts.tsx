@@ -73,6 +73,7 @@ export function MoreLinks() {
         <li><a href="/pravopys/uchnyam" style={{ color: C.NAVY, fontWeight: 700 }}>Правопис для учнів 5–9 класу</a> — правила з прикладами й тестами</li>
         <li><a href="/fairytales" style={{ color: C.NAVY, fontWeight: 700 }}>Казки на ніч українською</a> — читати й слухати</li>
         <li><a href="/games" style={{ color: C.NAVY, fontWeight: 700 }}>Ігри для мозку</a> — пам’ять, увага, логіка</li>
+        <li><a href="/kvesty" style={{ color: C.NAVY, fontWeight: 700 }}>Квести для дітей онлайн</a> — загадки, скоромовки й правопис у пригоді</li>
       </ul>
     </Card>
   )
