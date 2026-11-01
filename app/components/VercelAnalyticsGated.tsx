@@ -13,7 +13,7 @@ export default function VercelAnalyticsGated() {
   const [on, setOn] = useState(false)
   useEffect(() => {
     const read = () => {
-      try { setOn(localStorage.getItem(KEY) === 'granted') } catch { setOn(false) }
+      try { setOn(localStorage.getItem(KEY) !== 'denied') } catch { setOn(true) } // 01.11.2026: вимикається лише за «Відмовитися»
     }
     read()
     window.addEventListener('balabony:consent-changed', read)

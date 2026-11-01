@@ -122,7 +122,7 @@ export default function CookieConsent() {
       }}
     >
       <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45, flex: '1 1 220px' }}>
-        Порахувати, які історії читають, і оцінити нашу рекламу в Google?{' '}
+        Ми рахуємо, які історії читають, і перевіряємо нашу рекламу в Google — для цього потрібні cookie.{' '}
         <a href="/legal/cookies" style={{ color: GOLD, fontWeight: 600, fontSize: 12.5 }}>
           Політика Cookies
         </a>
@@ -133,14 +133,14 @@ export default function CookieConsent() {
           onClick={() => decide('granted')}
           style={{ ...btn, background: GOLD, color: '#0a1628', border: 'none', fontWeight: 700 }}
         >
-          Прийняти
+          Гаразд
         </button>
         <button
           type="button"
           onClick={() => decide('denied')}
           style={{ ...btn, background: 'transparent', color: '#f5f0e8', border: '1px solid rgba(255,255,255,0.35)', fontWeight: 600 }}
         >
-          Тільки необхідні
+          Відмовитися
         </button>
       </div>
     </div>

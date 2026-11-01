@@ -33,14 +33,37 @@ export default function GoogleAnalytics() {
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           window.gtag = gtag;
-          // Consent Mode: до згоди користувача аналітика й реклама нічого не зберігають
-          gtag('consent', 'default', {
-            ad_storage: 'denied',
-            ad_user_data: 'denied',
-            ad_personalization: 'denied',
-            analytics_storage: 'denied',
-            wait_for_update: 500
-          });
+          // 01.11.2026 (рішення Богдана): аудиторія Балабонів — Україна, не ЄС.
+          // Поза ЄЕЗ/Британією/Швейцарією аналітика й облік реклами працюють одразу
+          // (банер — повідомлення з кнопкою «Відмовитися»); персоналізація реклами —
+          // лише за явним «Гаразд». Для ЄЕЗ/UK/CH — як раніше: усе вимкнено до згоди.
+          // Причина: Ad Grants рахує конверсії лише тих, хто натиснув «Прийняти»,
+          // а більшість банер ігнорувала — кампанії «навчалися» наосліп.
+          var bbStored = null;
+          try { bbStored = localStorage.getItem('balabony_cookie_consent'); } catch (e) {}
+          if (bbStored === 'denied') {
+            gtag('consent', 'default', {
+              ad_storage: 'denied',
+              ad_user_data: 'denied',
+              ad_personalization: 'denied',
+              analytics_storage: 'denied'
+            });
+          } else {
+            gtag('consent', 'default', {
+              ad_storage: 'granted',
+              ad_user_data: 'granted',
+              ad_personalization: 'denied',
+              analytics_storage: 'granted'
+            });
+            gtag('consent', 'default', {
+              ad_storage: 'denied',
+              ad_user_data: 'denied',
+              ad_personalization: 'denied',
+              analytics_storage: 'denied',
+              region: ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IS','IE','IT','LV','LI','LT','LU','MT','NL','NO','PL','PT','RO','SK','SI','ES','SE','GB','CH'],
+              wait_for_update: 500
+            });
+          }
           // 18.09.2026: згода, дана раніше, вмикається ТУТ, до config.
           // CookieConsent теж її вмикає, але робить це одразу після
           // гідрації, а цей скрипт (lazyOnload) приходить пізніше — тоді
