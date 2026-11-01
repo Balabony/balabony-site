@@ -1223,9 +1223,9 @@ export default function KonkursyPage() {
             background: NAVY, border: `1px solid ${GOLD}`,
           }}
         >
-          <div style={{ fontFamily: SERIF, fontSize: 'clamp(22px, 4.5vw, 28px)', color: CREAM, fontWeight: 700, margin: '0 0 10px' }}>
+          <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(22px, 4.5vw, 28px)', color: CREAM, fontWeight: 700, margin: '0 0 10px' }}>
             Літературні конкурси Балабонів
-          </div>
+          </h1>
           <ul style={{ margin: '0 0 18px', paddingLeft: 20, color: SOFT, fontSize: 16, lineHeight: 1.7 }}>
             <li>Конкурси для дорослих авторів, призи до 20 000 ₴, участь безкоштовна.</li>
             <li>Для дітей — окремий <a href="/konkurs-skoromovok" style={{ color: GOLD, fontWeight: 700 }}>конкурс скоромовок «Скоромовка Балабонів»</a> для учнів 1–11 класів.</li>
@@ -1298,7 +1298,7 @@ export default function KonkursyPage() {
             <Mark kind="weeks" color={GOLD} />
           </span>
 
-          <h1
+          <h2
             style={{
               fontFamily: SERIF,
               fontSize: 'clamp(34px, 6.5vw, 54px)',
@@ -1309,7 +1309,7 @@ export default function KonkursyPage() {
             }}
           >
             Це довга <span style={{ color: GOLD }}>історія</span>
-          </h1>
+          </h2>
 
           <div style={{ width: 82, height: 4, background: GOLD, borderRadius: 2, margin: '16px 0 18px' }} />
 

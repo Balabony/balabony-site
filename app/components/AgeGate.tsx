@@ -40,9 +40,9 @@ export default function AgeGate({ children }: { children: React.ReactNode }) {
           fontSize: 15, fontWeight: 800, padding: '4px 12px', borderRadius: 8,
           letterSpacing: 0.5, marginBottom: 18,
         }}>18+</div>
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#f5f0e8', margin: '0 0 10px' }}>
+        <p style={{ fontSize: 22, fontWeight: 700, color: '#f5f0e8', margin: '0 0 10px' }}>
           Вміст для дорослих
-        </h2>
+        </p>
         <p style={{ fontSize: 15, lineHeight: 1.6, color: '#c8d4e8', margin: '0 0 24px' }}>
           Цей матеріал призначений для повнолітніх. Підтвердіть, будь ласка, що вам виповнилося 18 років.
         </p>
