@@ -7,6 +7,7 @@ import { authorSlug } from '@/lib/author-slug'
 import { REYTYNG_DEMO } from '@/lib/reytyng'
 import { GENRES, GENRE_PAGES } from '@/lib/genres'
 import { realPen } from '@/lib/pen-name'
+import { fetchAll } from '@/lib/fetch-all'
 
 const BASE_URL = 'https://balabony.com'
 
@@ -181,11 +182,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 2. Твори: серії «Балабонів», серії «Тиші», історії
   let workPages: MetadataRoute.Sitemap = []
   try {
-    const { data, error } = await supabase
+    // 01.11.2026: fetchAll — Supabase віддає максимум 1000 рядків, хоч би що
+    // стояло в .limit(). Творів 1 533, тож ~450 історій у карту не потрапляли.
+    const { data, error } = await fetchAll((a, b) => supabase
       .from('content')
       .select('type, slug, approved_at, created_at, cover_url, status, publish_at')
       .in('status', ['approved', 'published', 'scheduled'])
-      .limit(5000)
+      .order('id', { ascending: true })
+      .range(a, b), 10000)
 
     if (!error && data) {
       // Кожен тип має власне правило видимості, і карта мусить його
@@ -254,23 +258,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .eq('is_active', true)
       .limit(2000)
 
-    const { data: works } = await supabase
+    const { data: works } = await fetchAll((a, b) => supabase
       .from('content')
       .select('author_id')
       .in('status', ['approved', 'published'])
-      .limit(5000)
+      .order('id', { ascending: true })
+      .range(a, b), 10000)
 
     // Автори БЕЗ заведеного профілю: їхні твори записані лише за іменем,
     // author_id порожній. Сторінка /avtor/[slug] для них працює — вона
     // шукає за author_name — але в карту сайту вони не потрапляли, і Google
     // про сімдесят робочих сторінок просто не знав.
-    const { data: plainWorks } = await supabase
+    const { data: plainWorks } = await fetchAll((a, b) => supabase
       .from('content')
       .select('author_name')
       .is('author_id', null)
       .not('author_name', 'is', null)
       .in('status', ['approved', 'published'])
-      .limit(5000)
+      .order('id', { ascending: true })
+      .range(a, b), 10000)
 
     if (profiles && works) {
       const withWorks = new Set(

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import Header from '@/app/components/Header'
 import Footer from '@/app/components/Footer'
@@ -64,12 +64,34 @@ async function getProfile(slug: string): Promise<ProfileRow | null> {
 
   if (error || !data) return null
 
-  const match = (data as ProfileRow[]).find((p) => {
+  const rows = data as ProfileRow[]
+  const match = rows.find((p) => {
     const name = realPen(p.pen_name) || p.display_name?.trim() || ''
     return name !== '' && authorSlug(name) === slug
   })
+  if (match) return match
 
-  return match ?? null
+  // 01.11.2026: запасний шлях. Картки творів ведуть на /avtor/<slug з author_name>,
+  // а в профілі ім'я може бути інакше («Наталія Василів» у творах, «Василів Наталія»
+  // у профілі; «зла юля» як псевдонім). Такі посилання давали 404 — у Наталії Василів
+  // на 99 творів. Шукаємо автора за ім'ям у його ж творах; сторінка потім
+  // перенаправляє на основну адресу профілю.
+  for (let from = 0; from < 100_000; from += 1000) {
+    const { data: w, error: we } = await supabase
+      .from('content')
+      .select('author_id, author_name')
+      .in('status', ['approved', 'published'])
+      .not('author_id', 'is', null)
+      .order('id', { ascending: true })
+      .range(from, from + 999)
+    if (we || !w) break
+    const hit = (w as { author_id: string | null; author_name: string | null }[]).find(
+      (r) => (r.author_name ?? '').trim() !== '' && authorSlug((r.author_name ?? '').trim()) === slug,
+    )
+    if (hit) return rows.find((p) => p.user_id === hit.author_id) ?? null
+    if (w.length < 1000) break
+  }
+  return null
 }
 
 /**
@@ -283,6 +305,12 @@ export default async function AuthorPage({
   const profile = await getProfile(slug)
   const plainName = profile ? null : await getUnlinkedName(slug)
   if (!profile && !plainName) notFound()
+
+  // Одна адреса на автора: якщо зайшли за іменем із творів, ведемо на адресу профілю.
+  if (profile) {
+    const own = authorSlug(displayName(profile))
+    if (own && own !== slug) permanentRedirect(`/avtor/${own}`)
+  }
 
   const name = profile ? displayName(profile) : plainName!
   const { groups, total, ids } = profile

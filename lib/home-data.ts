@@ -5,6 +5,7 @@ import { readingMinutes } from '@/lib/readingTime'
 import { GENRES } from '@/lib/genres'
 import { authorSlug } from '@/lib/author-slug'
 import { realPen } from '@/lib/pen-name'
+import { fetchAll } from '@/lib/fetch-all'
 
 /**
  * Дані головної, зібрані на сервері.
@@ -234,7 +235,8 @@ export async function getFreshStories(limit = 6): Promise<HomeStory[]> {
     const supabase = getSupabaseAdmin()
 
     // Крок 1 — легкий запит для ротації.
-    const { data: light, error: lightErr } = await supabase
+    // 01.11.2026: fetchAll — .limit(3000) насправді давав 1000 рядків (стеля Supabase).
+    const { data: light, error: lightErr } = await fetchAll((a, b) => supabase
       .from('content')
       .select('id, author_name, approved_at')
       .eq('type', 'story')
@@ -251,7 +253,8 @@ export async function getFreshStories(limit = 6): Promise<HomeStory[]> {
       .order('approved_at', { ascending: false, nullsFirst: false })
       // Було 500. Стеля відрізала все, що старіше, і ті твори не доходили до
       // ротації взагалі. Запит легкий — три поля, — тож беремо весь каталог.
-      .limit(3000)
+      .order('id', { ascending: true })
+      .range(a, b), 10000)
 
     if (lightErr) throw lightErr
 
