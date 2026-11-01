@@ -9,6 +9,15 @@ import FreshStoriesGrid, { type Story } from '../components/FreshStoriesGrid'
 import Breadcrumbs from '../components/Breadcrumbs'
 import { toExcerpt } from '@/lib/plain-text'
 import { pickPublishedText } from '@/lib/published-text'
+import TemyNav from './TemyNav'
+
+// 01.11.2026: питання для FAQ (видно на сторінці й у розмітці для Google).
+const FAQ = [
+  { q: 'Які казки на ніч почитати дитині?', a: 'Для малюків — короткі казки на 3–5 хвилин: про їжачка Колючка, сніговика Ґудзика, друзів-мурах. Старшим дітям — довші історії з продовженням, як «Теплі історії пана Кота». Добірки за темами — вгорі сторінки.' },
+  { q: 'Чи безкоштовно читати казки на Балабонах?', a: 'Так, казки на ніч можна читати онлайн безкоштовно, без реєстрації.' },
+  { q: 'Хто пише ці казки?', a: 'Сучасні українські авторки й автори, а також редакція Балабонів. Є й казки народів світу в українському перекладі.' },
+  { q: 'Скільки часу читати казку перед сном?', a: 'Оптимально 5–15 хвилин. Якщо дитина втомлена, оберіть коротку казку з добірки «Короткі казки на ніч».' },
+]
 
 /* Сторінка лишається заточеною під запит «казки» — це найсильніше
    пошукове слово в дитячому сегменті. Дитячі оповідання додано СЮДИ ж,
@@ -120,6 +129,7 @@ export default async function FairytalesPage() {
         <p style={{ color: '#94a3b8', fontSize: 15, lineHeight: 1.6, margin: '0 0 24px', maxWidth: 640 }}>
           Казки на ніч і оповідання для дітей — читати онлайн українською, безкоштовно.
         </p>
+        <TemyNav />
 
         {stories.length === 0 ? (
           <p style={{ color: '#94a3b8' }}>Казок поки немає.</p>
@@ -136,12 +146,32 @@ export default async function FairytalesPage() {
           </section>
         )}
 
+        <section style={{ marginTop: 48, maxWidth: 760 }}>
+          <h2 style={{ fontFamily: '"Comfortaa", sans-serif', fontSize: 24, marginBottom: 12, color: 'var(--accent-gold)' }}>Казки на ніч українською</h2>
+          <p style={{ color: '#cbd5e1', fontSize: 16, lineHeight: 1.7, margin: '0 0 12px' }}>
+            Казка перед сном — це кілька тихих хвилин, коли дитина заспокоюється, а дорослий поруч. На Балабонах зібрані добрі казки на ніч від сучасних українських авторів і редакції: короткі — на 3–5 хвилин, довші — з продовженням на кілька вечорів. Усі можна читати онлайн безкоштовно.
+          </p>
+          <p style={{ color: '#cbd5e1', fontSize: 16, lineHeight: 1.7, margin: 0 }}>
+            Шукаєте щось конкретне? Перегляньте добірки: <Link href="/fairytales/korotki" style={{ color: '#FAC775' }}>короткі казки на ніч</Link>, <Link href="/fairytales/pro-tvaryn" style={{ color: '#FAC775' }}>казки про тварин</Link> і <Link href="/fairytales/zymovi" style={{ color: '#FAC775' }}>зимові й новорічні казки</Link>.
+          </p>
+          <h2 style={{ fontFamily: '"Comfortaa", sans-serif', fontSize: 24, margin: '32px 0 12px', color: 'var(--accent-gold)' }}>Питання й відповіді</h2>
+          {FAQ.map((f) => (
+            <div key={f.q} style={{ margin: '0 0 14px' }}>
+              <h3 style={{ fontSize: 18, color: '#f1f5f9', margin: '0 0 4px' }}>{f.q}</h3>
+              <p style={{ color: '#cbd5e1', fontSize: 16, lineHeight: 1.7, margin: 0 }}>{f.a}</p>
+            </div>
+          ))}
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) }) }} />
+        </section>
+
         {/* Перелінковка дитячих розділів (27.10.2026): казки ↔ загадки ↔ скоромовки. */}
         <p style={{ color: '#94a3b8', fontSize: 15, lineHeight: 1.6, marginTop: 40 }}>
           Ще для дитини:{' '}
           <Link href="/zahadky" style={{ color: '#FAC775' }}>загадки з відповідями</Link>
           {' · '}
           <Link href="/skoromovky" style={{ color: '#FAC775' }}>скоромовки</Link>
+          {' · '}
+          <Link href="/kvesty" style={{ color: '#FAC775' }}>квести з дипломом</Link>
         </p>
       </main>
       <Footer />
