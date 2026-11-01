@@ -18,6 +18,13 @@ const FONT = "'Montserrat', Arial, sans-serif"
 
 type Item = { id: string; slug: string | null; title: string; author_name: string | null; genre: string | null }
 
+/** Стабільне число з рядка: однаковий твір — однакова добірка, різні твори — різні. */
+function seedOf(s: string): number {
+  let h = 2166136261
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619)
+  return h >>> 0
+}
+
 async function fetchItems(params: {
   excludeId: string
   authorName?: string | null
@@ -29,20 +36,30 @@ async function fetchItems(params: {
   const { excludeId, authorName, excludeAuthor, genre, limit } = params
   try {
     const supabase = getSupabaseAdmin()
-    let q = supabase
-      .from('content')
-      .select('id, slug, title, author_name, genre')
-      .eq('type', 'story')
-      .in('status', ['approved', 'published'])
-      .neq('id', excludeId)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const scope = (q: any) => {
+      let r = q
+        .eq('type', 'story')
+        .in('status', ['approved', 'published'])
+        .neq('id', excludeId)
+      if (authorName) r = r.eq('author_name', authorName)
+      if (excludeAuthor) r = r.neq('author_name', excludeAuthor)
+      if (genre) r = r.eq('genre', genre)
+      return r
+    }
+
+    // 01.11.2026: було «завжди найсвіжіші» — і на всіх тисячі сторінок стояли
+    // ті самі 12 творів, а 572 історії мали лише одне вхідне посилання (зі
+    // сторінки автора). Тепер кожна сторінка показує своє «вікно» в списку,
+    // зсунуте на число з її id: посилання рівномірно розходяться по каталогу.
+    const { count } = await scope(supabase.from('content').select('id', { count: 'exact', head: true }))
+    const n = count ?? 0
+    const off = n > limit ? seedOf(excludeId + (genre ?? '') + (authorName ?? '')) % (n - limit + 1) : 0
+
+    const { data, error } = await scope(supabase.from('content').select('id, slug, title, author_name, genre'))
       .order('approved_at', { ascending: false, nullsFirst: false })
-      .limit(limit)
-
-    if (authorName) q = q.eq('author_name', authorName)
-    if (excludeAuthor) q = q.neq('author_name', excludeAuthor)
-    if (genre) q = q.eq('genre', genre)
-
-    const { data, error } = await q
+      .order('id', { ascending: true })
+      .range(off, off + limit - 1)
     if (error) throw error
     return (data ?? []) as Item[]
   } catch {
