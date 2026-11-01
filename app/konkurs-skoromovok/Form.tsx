@@ -17,6 +17,7 @@ export default function Form() {
   const [role, setRole] = useState<'parent' | 'teacher'>('parent')
   const [f, setF] = useState({ adultName: '', school: '', childName: '', childAge: '', ageGroup: '', city: '', title: '', text: '' })
   const [consent, setConsent] = useState(false)
+  const [eduOptin, setEduOptin] = useState(false)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null)
 
@@ -30,7 +31,7 @@ export default function Form() {
     e.preventDefault()
     setBusy(true); setMsg(null)
     try {
-      const r = await fetch('/api/kids-contest', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...f, role, childAge: Number(f.childAge), consent }) })
+      const r = await fetch('/api/kids-contest', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...f, role, childAge: Number(f.childAge), consent, eduOptin }) })
       const j = await r.json()
       if (j.ok) {
         setMsg({ ok: true, t: `Дякуємо! Скоромовку № ${j.id} прийнято. Можна подати ще одну — для цієї ж дитини (до ${MAX_PER_CHILD}) або для іншої.` })
@@ -106,6 +107,11 @@ export default function Form() {
           <label style={{ display: 'flex', gap: 12, alignItems: 'flex-start', margin: '18px 0', fontSize: 17, cursor: 'pointer' }}>
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} style={{ width: 24, height: 24, marginTop: 2, flex: '0 0 auto' }} required />
             <span>Я — законний представник дитини{role === 'teacher' ? ' або маю згоду батьків' : ''}. Погоджуюся з <a href="#polozhennia" style={{ color: NAVY, fontWeight: 700 }}>положенням конкурсу</a>, з публікацією та озвученням скоромовки на Балабонах і з публікацією імені, віку й міста дитини. Прізвище дитини не публікується.</span>
+          </label>
+
+          <label style={{ display: 'flex', gap: 12, alignItems: 'flex-start', margin: '0 0 18px', fontSize: 16, cursor: 'pointer', color: MUTED }}>
+            <input type="checkbox" checked={eduOptin} onChange={(e) => setEduOptin(e.target.checked)} style={{ width: 22, height: 22, marginTop: 2, flex: '0 0 auto' }} />
+            <span>Необов’язково. Хочу отримувати від Балабонів на цю пошту добірку можливостей вступу після 9 класу у своєму місті. Ваші контакти ми нікому не передаємо; відписатися можна будь-коли.</span>
           </label>
 
           <button type="submit" disabled={busy || s.state !== 'open'} style={{ ...btn, opacity: busy || s.state !== 'open' ? 0.55 : 1 }}>{busy ? 'Надсилаю…' : 'Подати скоромовку'}</button>

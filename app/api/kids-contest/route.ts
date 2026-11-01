@@ -35,7 +35,7 @@ export async function GET() {
 
 type Body = {
   role?: string; adultName?: string; school?: string; childName?: string; childAge?: unknown
-  ageGroup?: string; city?: string; title?: string; text?: string; consent?: boolean
+  ageGroup?: string; city?: string; title?: string; text?: string; consent?: boolean; eduOptin?: boolean
 }
 
 function bad(error: string, status = 400) {
@@ -93,10 +93,10 @@ export async function POST(req: NextRequest) {
 
     const ins = await dbQuery(
       `insert into kids_contest_entries
-         (contest, user_id, email, role, adult_name, school, child_name, child_age, age_group, city, title, body, consent)
-       values ($1,$2,$3,$4,$5,nullif($6,''),$7,$8,$9,$10,nullif($11,''),$12,true)
+         (contest, user_id, email, role, adult_name, school, child_name, child_age, age_group, city, title, body, consent, edu_optin)
+       values ($1,$2,$3,$4,$5,nullif($6,''),$7,$8,$9,$10,nullif($11,''),$12,true,$13)
        returning id::text`,
-      [KIDS_CONTEST.id, user.id, user.email ?? '', role, adultName, school, childName, childAge, ageGroup, city, title, text],
+      [KIDS_CONTEST.id, user.id, user.email ?? '', role, adultName, school, childName, childAge, ageGroup, city, title, text, b.eduOptin === true],
     )
     const id = (ins.rows[0] as { id: string } | undefined)?.id ?? ''
 
