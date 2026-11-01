@@ -68,6 +68,8 @@ export default async function EpisodesPage() {
     <ThemeProvider>
       <Header />
       <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 20px' }}>
+        {/* 01.11.2026: розмітка schema.org для Google і ШІ-пошуку */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([{ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Головна', item: 'https://balabony.com/' }, { '@type': 'ListItem', position: 2, name: 'Серіал «Балабони»', item: 'https://balabony.com/episodes' }] }, { '@context': 'https://schema.org', '@type': 'BookSeries', name: 'Балабони', url: 'https://balabony.com/episodes', inLanguage: 'uk', genre: 'Сімейний гумор', author: { '@type': 'Person', name: 'Назар Колодій' }, publisher: { '@type': 'Organization', name: 'Балабони', url: 'https://balabony.com' } }]) }} />
         <h1 style={{ fontFamily: '"Comfortaa", sans-serif', fontSize: 32, marginBottom: 24, color: 'var(--accent-gold)' }}>
           Усі серії Балабонів
         </h1>

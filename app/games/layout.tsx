@@ -26,5 +26,11 @@ export const metadata: Metadata = {
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+  return (
+    <>
+      {/* 01.11.2026: розмітка schema.org для Google і ШІ-пошуку */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([{ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Головна', item: 'https://balabony.com/' }, { '@type': 'ListItem', position: 2, name: 'Ігри для мозку', item: 'https://balabony.com/games' }] }]) }} />
+      {children}
+    </>
+  )
 }

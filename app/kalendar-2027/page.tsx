@@ -79,6 +79,8 @@ const h2: React.CSSProperties = {
 export default function Kalendar2027Page() {
   return (
     <main style={{ background: NAVY, minHeight: '100vh', padding: '40px 20px 88px', fontFamily: SANS, color: CREAM }}>
+      {/* 01.11.2026: розмітка schema.org для Google і ШІ-пошуку */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([{ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Головна', item: 'https://balabony.com/' }, { '@type': 'ListItem', position: 2, name: 'Календар 2027', item: 'https://balabony.com/kalendar-2027' }] }, { '@context': 'https://schema.org', '@type': 'CreativeWork', name: TITLE, description: DESC, url: 'https://balabony.com/kalendar-2027', inLanguage: 'uk', isAccessibleForFree: true, publisher: { '@type': 'Organization', name: 'Балабони', url: 'https://balabony.com' } }]) }} />
       <div style={{ maxWidth: 900, margin: '0 auto', lineHeight: 1.7 }}>
 
         <nav aria-label="Хлібні крихти" style={{ fontSize: '.85rem', color: MUTED, marginBottom: '1rem' }}>

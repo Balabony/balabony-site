@@ -24,6 +24,8 @@ export default function TyshaIndexPage() {
       <TyshaAgeGate />
       <Header />
       <main style={{ minHeight: '40vh', paddingTop: 8 }}>
+        {/* 01.11.2026: розмітка schema.org для Google і ШІ-пошуку */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([{ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Головна', item: 'https://balabony.com/' }, { '@type': 'ListItem', position: 2, name: 'Серіал «Тиша»', item: 'https://balabony.com/tysha' }] }, { '@context': 'https://schema.org', '@type': 'BookSeries', name: 'Тиша', url: 'https://balabony.com/tysha', inLanguage: 'uk', genre: 'Військова драма', isFamilyFriendly: false, author: { '@type': 'Person', name: 'Назар Колодій' }, publisher: { '@type': 'Organization', name: 'Балабони', url: 'https://balabony.com' } }]) }} />
         {/* Головна сторінка серіалу зі 103 серіями не мала h1 узагалі —
             ні тут, ні в TyshaSection. Для екранної читалки це означало
             сторінку без точки входу. */}
