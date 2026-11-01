@@ -61,11 +61,6 @@ export function FooterLegalSection() {
             <a style={linkStyle} href="mailto:nazar@balabony.com">
               nazar@balabony.com
             </a>
-            <br />
-            WhatsApp:{" "}
-            <a style={linkStyle} href="tel:+380505859141">
-              +380 50 585 91 41
-            </a>
           </p>
         </div>
       </div>
