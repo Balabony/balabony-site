@@ -32,6 +32,8 @@ export const KAZKY_TEMY: KazkyTema[] = [
       'zymivlya-zviriv',
       'kazka-pro-khudozhnyka-stepanka',
       'najkrashi-druzi33',
+      'persha-zirka-dlia-babusi-hanny',
+      'lyst-do-sviatoho-mykolaia',
     ],
     tips: [
       'Читайте повільніше, ніж зазвичай: спокійний темп заколисує краще за будь-які слова.',
@@ -62,6 +64,9 @@ export const KAZKY_TEMY: KazkyTema[] = [
       'istoriyi',
       'podorozh-do-krayini-rukokrilih',
       'tortik-z-vishenkoyu-i-fioletovi-koti',
+      'yak-vedmezhatko-ne-prospalo-rizdvo',
+      'yak-yalynka-shukala-prykrasu',
+      'kit-murko-i-dvanadtsiat-strav',
       'khlopchyk-horobchyk',
     ],
     tips: [
@@ -85,6 +90,11 @@ export const KAZKY_TEMY: KazkyTema[] = [
     slugs: [
       'snihovyk-gudzyk-i-zahublena-zirochka',
       'mriyi-zdijsnyuyutsya',
+      'yak-vedmezhatko-ne-prospalo-rizdvo',
+      'lyst-do-sviatoho-mykolaia',
+      'persha-zirka-dlia-babusi-hanny',
+      'yak-yalynka-shukala-prykrasu',
+      'kit-murko-i-dvanadtsiat-strav',
       'zymivlya-zviriv',
       'yak-sonechko-nebo-prykrashalo',
     ],
