@@ -26,6 +26,7 @@ import StoryRecipe from '@/app/components/StoryRecipe'
 import ContestBadge from '@/app/components/ContestBadge'
 import SeriesNav, { SeriesBadge, type SeriesPart } from '@/app/components/SeriesNav'
 import { dbQuery } from '@/lib/db'
+import { parseCycle } from '@/lib/cycle-order'
 import { CONTESTS } from '@/lib/contests'
 
 // Базовий кегль тексту історії — має збігатися зі стилем <article> нижче.
@@ -259,6 +260,35 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
   } catch (e) {
     // Без навігації твір читається й так — збій не має ламати сторінку.
     console.error('[stories] series lookup failed:', e)
+  }
+
+  // 01.11.2026: запасний шлях — цикл за назвою («Менталес. 3. …», «… Частина 2»)
+  // у того самого автора. Архівні цикли (газети, Сторріс) договору не мають,
+  // тож між їхніми частинами не було жодного посилання — ні для читача, ні для Google.
+  if (!series) {
+    const cyc = parseCycle(story.title)
+    if (cyc) {
+      try {
+        const r = await dbQuery(
+          `select slug, title from content
+            where type = 'story' and status in ('approved', 'published')
+              and slug is not null and lower(btrim(author_name)) = lower(btrim($1))`,
+          [story.author_name],
+        )
+        const parts = r.rows
+          .map((x) => ({ slug: String(x.slug), title: String(x.title), c: parseCycle(String(x.title)) }))
+          .filter((x) => x.c !== null && x.c.key === cyc.key)
+          .sort((a, b) => (a.c?.part ?? 0) - (b.c?.part ?? 0))
+          .map(({ slug, title }) => ({ slug, title }))
+        const index = parts.findIndex((p) => p.slug === id)
+        if (parts.length > 1 && index >= 0) {
+          const name = cyc.key.charAt(0).toUpperCase() + cyc.key.slice(1)
+          series = { name, parts, index }
+        }
+      } catch (e) {
+        console.error('[stories] cycle lookup failed:', e)
+      }
+    }
   }
 
   const v    = story.published_version ?? 'original'
