@@ -21,7 +21,8 @@ async function dbRules(): Promise<DbRule[]> {
 }
 
 export default async function Studentam() {
-  const extra = await dbRules()
+  // Статті з бази показуємо лише ті, яких ще немає окремими сторінками (апостроф, ґ, пів, складні слова, -а/-у, фемінітиви вже переписані).
+  const extra = (await dbRules()).filter((r) => !/апостроф|ґ|пів|складні|родовий|фемінітив/i.test(r.topic))
   return (
     <Shell>
       <Crumbs items={[{ name: 'Балабони', href: '/' }, { name: 'Правопис', href: '/pravopys' }, { name: 'Студентам', href: '/pravopys/studentam' }]} />
