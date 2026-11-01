@@ -81,6 +81,24 @@ export default function GoogleAnalytics() {
           } catch (e) {}
           gtag('js', new Date());
           gtag('config', '${GA_ID}');
+          // 01.11.2026: подія «прочитав історію» (prochytav_istoriiu) для конверсій Google Ads:
+          // сторінка /stories/... або /episodes/..., прокручено 50% і минуло 40 секунд.
+          (function () {
+            var sent = false, t0 = Date.now(), last = location.pathname;
+            function chk() {
+              if (location.pathname !== last) { last = location.pathname; sent = false; t0 = Date.now(); }
+              if (sent) return;
+              var p = location.pathname;
+              if (p.indexOf('/stories/') !== 0 && p.indexOf('/episodes/') !== 0) return;
+              if (p.indexOf('/stories/zhanr') === 0) return;
+              var d = document.documentElement;
+              if ((window.scrollY + window.innerHeight) / d.scrollHeight < 0.5) return;
+              if (Date.now() - t0 < 40000) return;
+              sent = true;
+              gtag('event', 'prochytav_istoriiu', { page_path: p });
+            }
+            window.addEventListener('scroll', chk, { passive: true });
+          })();
         `}
       </Script>
     </>
