@@ -82,6 +82,12 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: 'Google-Extended',
         disallow: '/',
       },
+      // 01.11.2026: тренувальні боти Apple, Meta, ByteDance, Amazon — те саме правило (рішення Богдана).
+      // Звичайні пошукові боти (Applebot, Bingbot тощо) не зачеплено.
+      { userAgent: 'Applebot-Extended', disallow: '/' },
+      { userAgent: 'meta-externalagent', disallow: '/' },
+      { userAgent: 'Bytespider', disallow: '/' },
+      { userAgent: 'Amazonbot', disallow: '/' },
       // Цитувальні боти — дозволяємо явно. Вони нічого не тренують:
       // шукають відповідь на питання читача і ведуть його до нас із
       // посиланням на джерело. Заборонити їх означало б зникнути з
