@@ -132,7 +132,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // 01.11.2026: квести для дітей
     { url: `${BASE_URL}/kvesty`,    lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
     // 01.11.2026: добірки казок на ніч
-    ...['korotki', 'pro-tvaryn', 'zymovi'].map((s) => ({ url: `${BASE_URL}/fairytales/${s}`, lastModified: now, changeFrequency: 'weekly' as const, priority: 0.8 })),
+    ...['korotki', 'pro-tvaryn', 'zymovi', 'dlia-3-5-rokiv', 'pro-mamu-i-simiu', 'pro-druzhbu'].map((s) => ({ url: `${BASE_URL}/fairytales/${s}`, lastModified: now, changeFrequency: 'weekly' as const, priority: 0.8 })),
     ...['vriatui-novorichnu-kazku', 'taiemnytsia-osinnoho-lisu', 'litera-g-zahubylasia'].map((s) => ({ url: `${BASE_URL}/kvesty/${s}`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.7 })),
     // 01.11.2026: рубрики скоромовок
     ...['na-zvuk-r', 'na-zvuk-l', 'na-zvuk-sh', 'na-zvuk-s', 'na-zvuk-zh-ch', 'dlia-doshkilnyat', '1-klas', '2-klas', 'dlia-dyktsii', 'pro-zymu', 'pro-osin', 'smishni', 'skladni', 'korotki'].map((s) => ({ url: `${BASE_URL}/skoromovky/${s}`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.7 })),
