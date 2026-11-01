@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   title: 'Історії читачів — Балабони',
   description: 'Реальні історії читачів Балабонів: казки, життєві історії, особисті спогади. Українською мовою.',
   alternates: { canonical: '/stories' },
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: 'Історії читачів — Балабони',
     description: 'Реальні історії читачів Балабонів: казки, життєві історії, особисті спогади.',
     url: 'https://balabony.com/stories',

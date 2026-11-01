@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   description:
     'Народні українські загадки з відповідями: про зиму, про тварин, для найменших і логічні. Відповідь відкривається одним натиском — зручно загадувати вголос.',
   alternates: { canonical: '/zahadky' },
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: 'Загадки для дітей з відповідями | Балабони',
     description: 'Народні українські загадки з відповідями — про зиму, тварин, для найменших і на кмітливість.',
     url: 'https://balabony.com/zahadky',

@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!k) return {}
   const title = `Квест «${k.title}» для дітей ${k.age} — онлайн | Балабони`
   const url = `https://balabony.com/kvesty/${k.slug}`
-  return { title, description: k.description, alternates: { canonical: url }, openGraph: { title, description: k.description, url, type: 'website' } }
+  return { title, description: k.description, alternates: { canonical: url }, openGraph: { images: ['https://balabony.com/og-image-v6.jpg'], title, description: k.description, url, type: 'website' } }
 }
 
 export default async function KvestPage({ params }: { params: Promise<{ slug: string }> }) {

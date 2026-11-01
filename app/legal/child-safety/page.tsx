@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     "Як платформа Balabony убезпечує неповнолітніх користувачів: контент, дані, взаємодія, звернення.",
   alternates: { canonical: "https://balabony.com/legal/child-safety" },
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: "Політика захисту дітей — Balabony",
     description:
       "Як платформа Balabony убезпечує неповнолітніх користувачів.",

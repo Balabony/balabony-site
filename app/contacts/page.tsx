@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     "Контакти платформи Balabony: видавець і редакція, зв'язок, реквізити отримувача платежів",
   alternates: { canonical: "https://balabony.com/contacts" },
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: "Контакти — Balabony",
     description:
       "Контакти платформи Balabony: видавець і редакція, зв'язок, реквізити отримувача платежів",

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     "Умови та порядок повернення коштів за платні цифрові послуги платформи balabony.com (ФОП Хомин Ігор Іванович).",
   alternates: { canonical: "https://balabony.com/legal/refund" },
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: "Правила повернення коштів — Balabony",
     description:
       "Умови та порядок повернення коштів за платні цифрові послуги платформи balabony.com.",

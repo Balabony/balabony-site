@@ -144,7 +144,7 @@ export const metadata: Metadata = {
   description:
     `Конкурс серіалів «Це довга історія» на Балабонах: десять серій за десять тижнів. Головна нагорода — ${topPrize(findContest('ce-dovha-istoriya')!)} і багатоголосе озвучення.`,
   alternates: { canonical: '/konkursy' },
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: 'Літературні конкурси 2026 для авторів і дітей · Балабони',
     description:
       'Десять тижнів, десять серій. Переможця обирають ті, хто дочитав. Нагороди — гроші, багатоголосе озвучення й газета.',

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: 'Усі серії Балабонів — українські історії для всієї родини',
   description: 'Каталог усіх серій Балабонів. Сімейні історії від Панаса, баби Гані та інших — для дітей, батьків і бабусь.',
   alternates: { canonical: '/episodes' },
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: 'Усі серії Балабонів',
     description: 'Каталог усіх серій Балабонів. Сімейні історії для дітей, батьків і бабусь.',
     url: 'https://balabony.com/episodes',

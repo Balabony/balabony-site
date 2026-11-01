@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/reytyng' },
   // Поки дані умовні — сторінку не індексуємо (див. lib/reytyng.ts).
   robots: REYTYNG_DEMO ? { index: false, follow: false } : undefined,
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: 'Рейтинг авторів — Балабони',
     description: 'Щотижневий рейтинг авторів Балабонів.',
     url: 'https://balabony.com/reytyng',

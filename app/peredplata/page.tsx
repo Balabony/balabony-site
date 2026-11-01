@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   description:
     'Тарифи Балабонів: місячна і річна передплата, сімейний і пенсійний пакети, разова оплата, подарункова підписка. Пільговий доступ 1 ₴ на рік для ветеранів, ВПО та людей з інвалідністю.',
   alternates: { canonical: 'https://balabony.com/peredplata' },
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: 'Передплата — Балабони',
     description:
       'Тарифи Балабонів, подарункова підписка і пільговий доступ 1 ₴ на рік.',

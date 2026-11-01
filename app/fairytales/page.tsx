@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   title: 'Казки на ніч — читати онлайн українською | Балабони',
   description: 'Казки на ніч читати онлайн українською — безкоштовно. Добрі й сучасні казки та оповідання для дітей на кожен вечір.',
   alternates: { canonical: '/fairytales' },
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: 'Казки на ніч — читати онлайн українською | Балабони',
     description: 'Казки на ніч українською: добрі й сучасні історії для дітей на кожен вечір.',
     url: 'https://balabony.com/fairytales',

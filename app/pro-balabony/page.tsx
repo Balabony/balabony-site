@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     "Balabony — україномовна платформа історій і казок із пріоритетом доступності. Стан проєкту, технологія, місія. About the Balabony project (UA/EN).",
   alternates: { canonical: "https://balabony.com/pro-balabony" },
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: "Про проєкт — Balabony",
     description:
       "Україномовна платформа історій і казок із пріоритетом доступності.",

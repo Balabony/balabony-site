@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ tema: str
   const t = findTema((await params).tema)
   if (!t) return {}
   const url = `https://balabony.com/skoromovky/${t.slug}`
-  return { title: t.title, description: t.description, alternates: { canonical: url }, openGraph: { title: t.title, description: t.description, url, type: 'website' } }
+  return { title: t.title, description: t.description, alternates: { canonical: url }, openGraph: { images: ['https://balabony.com/og-image-v6.jpg'], title: t.title, description: t.description, url, type: 'website' } }
 }
 
 export default async function TemaPage({ params }: { params: Promise<{ tema: string }> }) {

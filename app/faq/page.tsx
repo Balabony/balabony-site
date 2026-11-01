@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'Часті питання — Balabony',
   description:
     'Відповіді на питання про Балабони: безкоштовний доступ, реєстрація, тарифи, пільговий тариф, подарунки та співпраця з авторами.',
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: 'Часті питання — Balabony',
     description: 'Усе, що варто знати про Балабони: доступ, тарифи, пільги та авторство.',
     url: 'https://balabony.com/faq',

@@ -49,7 +49,7 @@ export const metadata: Metadata = {
   title: `${TITLE} — читати онлайн безкоштовно | Балабони`,
   description: DESCRIPTION,
   alternates: { canonical: '/istorii-dlia-pidlitkiv' },
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: `${TITLE} — Балабони`,
     description: DESCRIPTION,
     url: 'https://balabony.com/istorii-dlia-pidlitkiv',

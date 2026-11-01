@@ -211,7 +211,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: `${ep.title} · ТИША · Балабони`,
     description: desc,
     alternates: { canonical: `/tysha/${slug}` },
-    openGraph: { type: 'article', siteName: 'Balabony™', locale: 'uk_UA', title: `${ep.title} · ТИША`, description: desc },
+    openGraph: { images: [ep.cover_url ? (ep.cover_url.startsWith('/') ? `https://balabony.com${ep.cover_url}` : ep.cover_url) : 'https://balabony.com/tysha-oblozhka-20260910-d.webp'], type: 'article', siteName: 'Balabony™', locale: 'uk_UA', title: `${ep.title} · ТИША`, description: desc },
   }
 }
 

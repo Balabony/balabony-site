@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   description:
     'Умови авторського договору Balabony: ставки 50% і 40%, формула винагороди, строк ліцензії, що вона дозволяє платформі й що залишається автору, підстави відмови в публікації.',
   alternates: { canonical: 'https://balabony.com/legal/author-contract' },
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: 'Договір з автором — Balabony',
     description:
       'Умови авторського договору Balabony: ставки, формула винагороди, права автора й підстави відмови в публікації.',

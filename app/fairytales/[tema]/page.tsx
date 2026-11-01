@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ tema: str
     title: t.title,
     description: t.description,
     alternates: { canonical: `/fairytales/${t.slug}` },
-    openGraph: { title: t.title, description: t.description, url, type: 'website' },
+    openGraph: { images: ['https://balabony.com/og-image-v6.jpg'], title: t.title, description: t.description, url, type: 'website' },
   }
 }
 

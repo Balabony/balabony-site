@@ -10,7 +10,7 @@ const DESC = 'Квести для дітей онлайн українською
 export const metadata: Metadata = {
   title: TITLE, description: DESC,
   alternates: { canonical: 'https://balabony.com/kvesty' },
-  openGraph: { title: TITLE, description: DESC, url: 'https://balabony.com/kvesty', type: 'website' },
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'], title: TITLE, description: DESC, url: 'https://balabony.com/kvesty', type: 'website' },
 }
 
 const FAQ = [

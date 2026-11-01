@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   title: TITLE,
   description: DESC,
   alternates: { canonical: 'https://balabony.com/bonusy' },
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: TITLE,
     description: DESC,
     url: 'https://balabony.com/bonusy',

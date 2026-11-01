@@ -89,7 +89,7 @@ export async function generateMetadata(
     title,
     description,
     alternates: { canonical: `https://balabony.com/konkursy/${c.id}` },
-    openGraph: { title, description, url: `https://balabony.com/konkursy/${c.id}`, type: 'article' },
+    openGraph: { images: ['https://balabony.com/og-image-v6.jpg'], title, description, url: `https://balabony.com/konkursy/${c.id}`, type: 'article' },
   }
 }
 

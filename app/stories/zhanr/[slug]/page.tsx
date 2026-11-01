@@ -63,7 +63,7 @@ export async function generateMetadata({
     title: `${page.title} — читати онлайн українською | Балабони`,
     description: page.description,
     alternates: { canonical },
-    openGraph: {
+    openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
       title: `${page.title} — Балабони`,
       description: page.description,
       url,

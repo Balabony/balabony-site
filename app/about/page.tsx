@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     "Богдан Хомин — засновник літературної платформи Balabony. Місія платформи й пільговий доступ для ВПО, ветеранів і людей з інвалідністю.",
   alternates: { canonical: "https://balabony.com/about" },
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: "Про автора — Balabony",
     description:
       "Богдан Хомин — засновник літературної платформи Balabony.",

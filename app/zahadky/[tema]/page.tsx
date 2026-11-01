@@ -25,7 +25,7 @@ export async function generateMetadata(
     title: `${t.h1} | Балабони`,
     description: t.description,
     alternates: { canonical: `/zahadky/${t.slug}` },
-    openGraph: {
+    openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
       title: `${t.h1} | Балабони`,
       description: t.description,
       url: `https://balabony.com/zahadky/${t.slug}`,

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: 'ТИША — авторський серіал Назара Колодія · Балабони',
   description: 'Усі серії авторського серіалу «ТИША». Проза для дорослих читачів (18+) українською мовою.',
   alternates: { canonical: '/tysha' },
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/tysha-oblozhka-20260910-d.webp'],
     title: 'ТИША — авторський серіал',
     description: 'Усі серії авторського серіалу «ТИША». Українською мовою.',
     url: 'https://balabony.com/tysha',

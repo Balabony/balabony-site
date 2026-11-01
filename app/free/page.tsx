@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'Спробуй безкоштовно — Balabony',
   description:
     'Понад 1000 історій і 24 серії. Спробуй, перш ніж щось купувати.',
-  openGraph: {
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'],
     title: 'Спробуй безкоштовно — Balabony',
     description:
       'Понад 1000 історій і 24 серії. Без картки.',

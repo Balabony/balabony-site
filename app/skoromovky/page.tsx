@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: TITLE,
   description: DESC,
   alternates: { canonical: 'https://balabony.com/skoromovky' },
-  openGraph: { title: TITLE, description: DESC, url: 'https://balabony.com/skoromovky', type: 'website' },
+  openGraph: { images: ['https://balabony.com/og-image-v6.jpg'], title: TITLE, description: DESC, url: 'https://balabony.com/skoromovky', type: 'website' },
 }
 
 const FAQ = [
