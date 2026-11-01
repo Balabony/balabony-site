@@ -1138,13 +1138,13 @@ function ContestPicker() {
               Конкурс скоромовок {KIDS_CONTEST.title}
             </div>
             <div style={{ fontSize: 15, color: SOFT, lineHeight: 1.6, maxWidth: 640 }}>
-              Придумай власну скоромовку українською — 1–4 рядки. Переможцям — книжки українських письменників і цифрові дипломи, усім учасникам — цифрові сертифікати. Вчителів запрошуємо подавати роботи класу.
+              Придумай власну скоромовку українською — 1–4 рядки. Переможцям — книжки українських письменників і цифрові дипломи, усім учасникам — цифрові сертифікати. Вчителів запрошуємо подавати роботи класу. Обов’язкова реєстрація на Балабонах: зверніться до батьків або педагогів — вони допоможуть.
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginTop: 14, alignItems: 'center', flexWrap: 'wrap' }}>
               <span style={{ fontSize: 13.5, fontWeight: 700, color: GOLD_SOFT }}>
                 {kids === 'soon' ? `Прийом з ${KIDS_CONTEST.startText}` : `Заявки до ${KIDS_CONTEST.endText.replace(' 2026 року', '')}`} · переможці {KIDS_CONTEST.resultsText.replace(' 2026 року', '')}
               </span>
-              <span style={{ background: GOLD, color: NAVY_DEEP, fontWeight: 800, fontSize: 14, borderRadius: 10, padding: '10px 18px' }}>Умови й подача →</span>
+              <span style={{ background: GOLD, color: NAVY_DEEP, fontWeight: 800, fontSize: 14, borderRadius: 10, padding: '10px 18px' }}>Реєстрація й подача →</span>
             </div>
           </a>
         </>

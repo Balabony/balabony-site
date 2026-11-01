@@ -45,8 +45,8 @@ export default function Form() {
 
   if (!s.user) return (
     <div>
-      <p style={{ margin: '0 0 14px' }}>Роботу подає дорослий: один із батьків, законний представник або вчитель. Увійдіть на Балабони — це безкоштовно і займає хвилину (пошта або Google).</p>
-      <a href={`/login?next=${encodeURIComponent(KIDS_CONTEST.path)}`} style={btn}>Увійти й подати скоромовку →</a>
+      <p style={{ margin: '0 0 14px' }}><b style={{ color: NAVY }}>Реєстрація обов’язкова.</b> Роботу подає дорослий: один із батьків, законний представник або вчитель. Зареєструйтеся або увійдіть на Балабони — це безкоштовно і займає хвилину (пошта або Google).</p>
+      <a href={`/login?next=${encodeURIComponent(KIDS_CONTEST.path)}`} style={btn}>Зареєструватися й подати скоромовку →</a>
     </div>
   )
 

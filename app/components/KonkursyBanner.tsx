@@ -76,7 +76,7 @@ export default function KonkursyBanner() {
       tag: 'Для дітей · 1–11 клас',
       nazva: KIDS_CONTEST.title,
       pryz: 'Книжки й цифрові дипломи',
-      umova: 'Власна скоромовка, 1–4 рядки',
+      umova: 'Власна скоромовка, 1–4 рядки · реєстрація обов’язкова',
       deadline: ks === 'soon' ? `Прийом з ${KIDS_CONTEST.startText}` : `Заявки до ${KIDS_CONTEST.endText.replace(' 2026 року', '')}`,
       href: KIDS_CONTEST.path,
       kids: true,
