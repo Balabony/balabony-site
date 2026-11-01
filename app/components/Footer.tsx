@@ -93,6 +93,7 @@ const READ_LINKS = [
   // всіх сторінках, тож це головне джерело внутрішньої ваги для /zahadky.
   { label: 'Загадки з відповідями', href: '/zahadky' },
   { label: 'Скоромовки',          href: '/skoromovky' },
+  { label: 'Правопис',          href: '/pravopys' },
   { label: 'Автори Балабонів',  href: '/avtory' },
   { label: 'Клуб Балабонів',    href: '/klub' },
 ]
