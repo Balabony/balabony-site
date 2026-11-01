@@ -94,7 +94,11 @@ export default function AnalyticsTracker() {
       const a = (e.target as HTMLElement | null)?.closest?.('a') as HTMLAnchorElement | null
       if (!a) return
       const href = a.getAttribute('href') || ''
-      if (/\.pdf(\?|#|$)/i.test(href) && !href.includes('/api/')) trackConversion('zavantazhennia_pdf', href.split('/').pop() || href)
+      // 01.11.2026: рахуємо лише НАШІ безкоштовні PDF (календарі тощо). Зовнішні
+      // файли (офіційний правопис на mova.gov.ua, договори в сховищі) і службові
+      // /docs/, /legal/ — не конверсія: інакше Ads вчиться на чужих завантаженнях.
+      const own = href.startsWith('/') || /^https?:\/\/(www\.)?balabony\.com\//i.test(href)
+      if (own && /\.pdf(\?|#|$)/i.test(href) && !/\/(api|docs|legal)\//.test(href)) trackConversion('zavantazhennia_pdf', href.split('/').pop() || href)
       // 18.10.2026: перехід до гри з блоку «Відпочиньте між історіями» чи підвалу.
       // Звичайна подія GA4 для звіту, НЕ ключова й не конверсія Ads
       // (гра — не змістовна дія за правилами Ad Grants).
