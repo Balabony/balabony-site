@@ -31,7 +31,7 @@ const GROUPS: SitemapGroup[] = [
       { href: '/',           label: 'Головна',           note: 'Свіжі історії, серії, тарифи' },
       { href: '/episodes',   label: 'Серіал «Балабони»', note: 'Усі випуски' },
       { href: '/tysha',      label: 'Серіал «Тиша»',     note: 'Авторський, 18+' },
-      { href: '/series',     label: 'Усі серії',         note: 'Повний перелік серій' },
+      { href: '/episodes',   label: 'Усі серії',         note: 'Повний перелік серій' },
       { href: '/fairytales', label: 'Казки',             note: 'Українські казки' },
       { href: '/stories',    label: 'Історії читачів',   note: 'Реальні авторські історії' },
       { href: '/avtory',     label: 'Автори Балабонів',  note: 'Усі автори з опублікованими творами' },

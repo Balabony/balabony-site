@@ -144,7 +144,7 @@ export default function NotFound() {
               { href: '/episodes', label: 'Серії' },
               { href: '/games', label: 'Ігри' },
               { href: '/about', label: 'Про автора' },
-              { href: '/contact', label: 'Контакти' },
+              { href: '/contacts', label: 'Контакти' },
             ].map(link => (
               <a
                 key={link.href}

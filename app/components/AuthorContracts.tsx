@@ -292,7 +292,7 @@ export default function AuthorContracts(
       <p style={{ color: BRAND.muted, fontSize: '0.82rem', marginTop: 16, lineHeight: 1.6 }}>
         Немає Дія.Підпису? Підпишіть договір кваліфікованим електронним підписом і додайте файл нижче,
         або{' '}
-        <a href="/contact" style={{ color: BRAND.amberDark }}>замовте паперовий примірник</a>.
+        <a href="/contacts" style={{ color: BRAND.amberDark }}>замовте паперовий примірник</a>.
       </p>
     </section>
   )

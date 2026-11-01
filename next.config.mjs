@@ -66,6 +66,14 @@ const nextConfig = {
       { source: '/stories/pomichnik-boga', destination: '/stories/pomichnik-boga333', permanent: true },
       { source: '/stories/slipe-kohannya', destination: '/stories/slipe-kohannya892', permanent: true },
       { source: '/stories/usinovlennya2', destination: '/stories/usinovlennya', permanent: true },
+      // 01.11.2026: дублікати (однаковий текст двічі); лишаємо опубліковану версію, копію — в чернетки.
+      { source: '/stories/chornij-den-z-biloyu-oznakoyu', destination: '/stories/chornij-den-z-biloyu-oznakoyu8923', permanent: true },
+      { source: '/stories/dity-ne-vynuvati', destination: '/stories/diti-ne-vinuvati', permanent: true },
+      { source: '/stories/dobryy-znak', destination: '/stories/dobrij-znak', permanent: true },
+      { source: '/stories/ne-svataj-u-susidiv-divku', destination: '/stories/ne-svataj-divki-v-susidiv', permanent: true },
+      { source: '/stories/shasliva-naperekir-batkam', destination: '/stories/shasliva-naperekir-batkam953', permanent: true },
+      { source: '/stories/troyanda-chi-budyak', destination: '/stories/troyanda-chi-budyak2', permanent: true },
+      { source: '/stories/ya-bachu', destination: '/stories/ya-bachu333', permanent: true },
       // 18.09.2026: у дописах Facebook посилання злипалося з наступним словом
       // («balabony.com/konkursyПитання», «…/konkursyБажаємо») — люди з Facebook
       // потрапляли на 404. Будь-який «хвіст», приклеєний до /konkursy без

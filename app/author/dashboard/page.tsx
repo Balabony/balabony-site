@@ -1442,7 +1442,7 @@ export default async function AuthorDashboardPage() {
 
         <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.8rem', marginTop: '1rem', lineHeight: 1.5 }}>
           Нарахування з&apos;являються після оплат читачів за ваші історії. Виплати —
-          за умовами угоди автора. Питання: <a href="/contact" style={{ color: BRAND.amber }}>напишіть редакції</a>.
+          за умовами угоди автора. Питання: <a href="/contacts" style={{ color: BRAND.amber }}>напишіть редакції</a>.
         </p>
       </div>
     </main>

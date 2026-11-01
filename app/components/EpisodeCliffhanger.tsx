@@ -82,7 +82,7 @@ function plural(n: number, one: string, few: string, many: string): string {
   return many
 }
 
-export default function EpisodeCliffhanger({ hook, next, allSeriesUrl = '/series' }: EpisodeCliffhangerProps) {
+export default function EpisodeCliffhanger({ hook, next, allSeriesUrl = '/episodes' }: EpisodeCliffhangerProps) {
   const { colors } = useTheme()
   // Нічна тема визначається за кольором тексту: у ThemeContext
   // night.fg = '#FFFFFF', day.fg = '#081420'.

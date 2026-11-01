@@ -37,7 +37,7 @@ const SLUGS = [
   'shlyah-dodomu546',
   'v-yazka-klyuchiv',
   'znaki-nespokoyu',
-  'ya-bachu',
+  'ya-bachu333',
   'ne-toi-avtobus-abo-ne-pospishai-zhyty',
 ]
 
