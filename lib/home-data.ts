@@ -103,6 +103,22 @@ export const PINNED_FRESH = 0
  * Випадковості немає ніде: усе рахується від номера годинного відрізка,
  * тож сервер і /api/stories завжди дають однаковий набір.
  */
+/**
+ * Вага автора на вітрині — скільки разів за коло він з'являється.
+ * 01.11.2026 (рішення Богдана): просуваємо авторів, які багато пишуть
+ * для Балабонів. Раніше всі мали вагу 1: автор із 78 творами виходив на
+ * головну так само рідко, як автор з одним (≈1 година на 14), і на показ
+ * усіх його текстів треба було півтора місяця. Тепер:
+ *   1–4 твори → 1, 5–19 → 2, 20–49 → 3, 50+ → 4.
+ * Правило «один автор на екран» лишається.
+ */
+export function authorWeight(works: number): number {
+  if (works >= 50) return 4
+  if (works >= 20) return 3
+  if (works >= 5) return 2
+  return 1
+}
+
 export function rotateDaily<T extends Row>(rows: T[], limit: number): T[] {
   if (rows.length === 0 || limit <= 0) return []
 
@@ -132,18 +148,34 @@ export function rotateDaily<T extends Row>(rows: T[], limit: number): T[] {
   const authors = [...byAuthor.values()].sort((a, b) => cmp(a[0], b[0]))
   const n = authors.length
 
+  // Коло з урахуванням ваги: автор з вагою w стоїть у колі w разів,
+  // рівномірно розкиданий (позиції (k + зсув) / w), щоб його появи не
+  // злипалися поруч.
+  type Seat = { a: number; k: number; pos: number }
+  const seats: Seat[] = []
+  authors.forEach((list, a) => {
+    const w = authorWeight(list.length)
+    for (let k = 0; k < w; k++) seats.push({ a, k, pos: (k + a / n) / w })
+  })
+  seats.sort((x, y) => (x.pos !== y.pos ? x.pos - y.pos : x.a - y.a))
+  const L = seats.length
+
   const slot = Math.floor(Date.now() / ROTATION_STEP_MS)
-  const start = ((slot * limit) % n + n) % n
-  // Скільки повних кіл по авторах уже пройдено — це і є номер твору,
-  // який показуємо від кожного автора цього разу.
-  const round = Math.floor((slot * limit) / n)
+  const start = ((slot * limit) % L + L) % L
+  // Скільки повних кіл уже пройдено.
+  const round = Math.floor((slot * limit) / L)
 
   const out: T[] = []
-  for (let i = 0; i < limit && i < n; i++) {
-    const idx = (start + i) % n
-    const list = authors[idx]
-    // + idx: щоб усі автори не перемикали свій твір одночасно.
-    out.push(list[(round + idx) % list.length])
+  const used = new Set<number>()
+  for (let i = 0; i < L && out.length < limit; i++) {
+    const s = seats[(start + i) % L]
+    if (used.has(s.a)) continue // один автор на екран
+    used.add(s.a)
+    const list = authors[s.a]
+    const w = authorWeight(list.length)
+    // Кожна поява автора — наступний його твір. + s.a: щоб усі автори не
+    // перемикали свій твір одночасно.
+    out.push(list[(round * w + s.k + s.a) % list.length])
   }
   return out
 }
