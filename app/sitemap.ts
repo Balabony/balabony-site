@@ -69,6 +69,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/episodes`,              lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
     { url: `${BASE_URL}/tysha`,                 lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
     { url: `${BASE_URL}/fairytales`,            lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
+    { url: `${BASE_URL}/istorii-dlia-pidlitkiv`, lastModified: now, changeFrequency: 'weekly',  priority: 0.7 },
     { url: `${BASE_URL}/top`,                   lastModified: now, changeFrequency: 'daily',   priority: 0.8 },
     { url: `${BASE_URL}/avtory`,                lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
     { url: `${BASE_URL}/konkursy`,              lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
