@@ -137,6 +137,27 @@ export default function ContestSubmitForm() {
 
   useEffect(() => { void load() }, [load])
 
+  // 02.11.2026: автори не знаходили поле «Синопсис»: форма відкривалася на ІНШОМУ (відкритому)
+  // конкурсі, а поле є лише в картці серіалу. Якщо в автора є заявка без синопсиса — відкриваємо її.
+  const missingSyn = entries.find(e => {
+    const c = findContest(e.contest as ContestId)
+    return Boolean(c?.synopsis) && c != null && acceptsEpisodes(c) && !(e.synopsis ?? '').trim()
+  })
+  const autoPicked = useRef(false)
+  useEffect(() => {
+    if (autoPicked.current || !missingSyn) return
+    autoPicked.current = true
+    setContestId(missingSyn.contest as ContestId)
+  }, [missingSyn])
+  const goSynopsis = () => {
+    if (missingSyn) setContestId(missingSyn.contest as ContestId)
+    setTimeout(() => {
+      const el = document.getElementById('f-synopsis-edit')
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      ;(el as HTMLTextAreaElement | null)?.focus()
+    }, 50)
+  }
+
   const noteRef = useRef<HTMLParagraphElement | null>(null)
   useEffect(() => {
     if (note) noteRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -276,6 +297,25 @@ export default function ContestSubmitForm() {
 
   return (
     <div>
+      {missingSyn && (
+        <div role="status" style={{ ...box, borderColor: BRAND.amber, borderWidth: 2 }}>
+          <p style={{ color: BRAND.text, margin: '0 0 10px', lineHeight: 1.6 }}>
+            <strong style={{ color: BRAND.amber }}>Додайте синопсис.</strong> До заявки «{missingSyn.title}» ще немає синопсиса —
+            без нього редакції важко оцінити серіал цілком.
+          </p>
+          <button
+            type="button"
+            onClick={goSynopsis}
+            style={{
+              padding: '9px 18px', borderRadius: 9, border: 'none', background: BRAND.amber,
+              color: '#1a1206', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            Перейти до поля «Синопсис»
+          </button>
+        </div>
+      )}
+
       {errors.length > 0 && (
         <div
           ref={summaryRef}
@@ -341,6 +381,12 @@ export default function ContestSubmitForm() {
               <label htmlFor="f-synopsis-edit" style={label}>
                 {entry.synopsis ? 'Синопсис (можна виправити)' : 'Синопсис ще не додано — вставте сюжет усього серіалу, орієнтовно одна сторінка. Бачить лише редакція.'}
               </label>
+              <div style={{ color: BRAND.muted, fontSize: '0.88rem', lineHeight: 1.6, margin: '0 0 10px', padding: '10px 12px', border: '1px dashed rgba(239,159,39,0.45)', borderRadius: 8 }}>
+                <strong style={{ color: BRAND.text }}>Як заповнити:</strong> перекажіть сюжет усього серіалу від першої до десятої серії —
+                хто головні герої, що між ними відбувається, які ключові повороти і <strong>чим усе закінчується</strong> (фінал не приховуйте:
+                синопсис бачить лише редакція, читачі — ні). Обсяг — від 300 до {SYNOPSIS_MAX} знаків, орієнтовно одна сторінка.
+                Можна вставити готовий текст із Word, а потім натиснути «Зберегти синопсис».
+              </div>
               <textarea
                 id="f-synopsis-edit" value={synopsis}
                 onChange={e => setSynopsis(e.target.value)}
