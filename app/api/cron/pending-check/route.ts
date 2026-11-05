@@ -75,7 +75,10 @@ export async function GET(req: NextRequest) {
       })
     }
     let reminded: string[] = []
-    try { reminded = await sendCoverReminders() } catch (err) { console.error('[cover-reminder run]', (err as Error)?.message) }
+    // 06.11.2026 (Богдан): листи авторам про обкладинки вимкнено — Богдан пише їм сам.
+    if (process.env.COVER_EMAILS === 'on') {
+      try { reminded = await sendCoverReminders() } catch (err) { console.error('[cover-reminder run]', (err as Error)?.message) }
+    }
     if (reminded.length) {
       await sendProblemAlert({
         kind: 'report', where: 'нагадування авторам про обкладинку',
@@ -102,7 +105,9 @@ export async function GET(req: NextRequest) {
     } catch (err) { console.error('[featured-author run]', (err as Error)?.message) }
     // 20.10.2026: лист «обкладинка через Gemini» — один раз кожному автору з творами без обкладинки
     let howto: string[] = []
-    try { howto = await sendCoverHowto() } catch (err) { console.error('[cover-howto run]', (err as Error)?.message) }
+    if (process.env.COVER_EMAILS === 'on') {
+      try { howto = await sendCoverHowto() } catch (err) { console.error('[cover-howto run]', (err as Error)?.message) }
+    }
     if (howto.length) {
       await sendProblemAlert({
         kind: 'report', where: 'лист авторам — обкладинка через Gemini',
