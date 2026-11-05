@@ -1,4 +1,12 @@
 import { dbQuery } from '@/lib/db'
+import { CONTESTS } from '@/lib/contests'
+
+// 05.11.2026 (Богдан): дочитування зараховуються лише в офіційні дати конкурсу
+// (stages.publishFrom … stages.reviewUntil, за Києвом). Раніше рахувалися з моменту
+// публікації — твір, що вийшов у жовтні, мав фору перед тим, що вийде в січні.
+const WINDOWS = CONTESTS.map((c) =>
+  `('${c.id}', ${c.stages?.publishFrom ? `date '${c.stages.publishFrom}'` : 'null::date'}, ${c.stages?.reviewUntil ? `date '${c.stages.reviewUntil}'` : 'null::date'})`,
+).join(',\n         ')
 
 /**
  * Підрахунок зарахованих дочитувань по конкурсних роботах.
@@ -73,14 +81,21 @@ export type PublicContestRow = {
  * розійдуться в цифрах, і довести, яка з них правильна, буде нічим.
  */
 const BASE_CTE = `
-  with works as (
+  with win(contest, f, u) as (
+    values ${WINDOWS}
+  ),
+  works as (
     select ep.id        as episode_id,
            ep.entry_id  as entry_id,
            ep.content_id,
            c.author_id,
-           c.status     as content_status
+           c.status     as content_status,
+           w0.f         as win_from,
+           w0.u         as win_until
       from contest_episodes ep
       join content c on c.id = ep.content_id
+      join contest_entries e0 on e0.id = ep.entry_id
+      left join win w0 on w0.contest = e0.contest
      where ep.content_id is not null
   ),
   counted as (
@@ -93,6 +108,8 @@ const BASE_CTE = `
       join users u
         on u.id = ar.user_id
      where (w.author_id is null or ar.user_id <> w.author_id)
+       and (w.win_from is null or ar.read_date >= w.win_from)
+       and (w.win_until is null or ar.read_date <= w.win_until)
        and exists (
              select 1
                from article_reads ar2

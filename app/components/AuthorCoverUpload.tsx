@@ -212,7 +212,7 @@ export default function AuthorCoverUpload({
           )}
 
           <div style={{ marginTop: 10, fontSize: '0.76rem', color: BRAND.muted, lineHeight: 1.55 }}>
-            JPG, PNG або WebP, до 8 МБ. Зображення автоматично зменшується.
+            JPG, PNG, WebP або фото з телефона. Велике фото зменшиться автоматично.
             Нова обкладинка зʼявляється на сайті одразу.
           </div>
         </div>

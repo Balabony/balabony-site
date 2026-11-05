@@ -11,7 +11,7 @@
 // cron publish-scheduled. За ДВА ДНІ до виходу Богдан отримує лист-нагадування
 // (cron pending-check), щоб ще раз переглянути текст.
 // Відхилена робота знімається з розкладу (unscheduleEntry).
-// Конкурси з однією серією (казки, «Один день», «З вітерцем») тут не плануються.
+// Конкурси з однією серією (казки, «Один день», «З вітерцем») виходять одразу після прийняття (05.11.2026).
 // =============================================================================
 
 import { dbQuery } from '@/lib/db'
@@ -55,8 +55,9 @@ export async function scheduleEntry(entryId: string): Promise<number> {
   )
   let n = 0
   for (const ep of eps.rows as { ord: number; content_id: string }[]) {
-    const when = episodeDate(entry.contest, entry.entry_number, ep.ord)
-    if (!when) continue
+    // 05.11.2026 (Богдан): конкурси з однією серією — вихід одразу після погодження редакторами
+    // (найближчий щогодинний запуск). Дочитування однаково рахуються лише в офіційні дати.
+    const when = episodeDate(entry.contest, entry.entry_number, ep.ord) ?? new Date().toISOString()
     await dbQuery(
       `update content set status = 'scheduled', publish_at = $2, updated_at = now()
         where id::text = $1 and status in ('draft', 'scheduled')`,
