@@ -147,7 +147,7 @@ function buildCards(now: Date): Card[] {
       href: '/konkursy#pyat-vechoriv',
       label: 'До оголошення переможців',
       value: days(daysUntil(FIVE_RESULTS, now)),
-      what: 'Публікація серій — 3, 6, 10, 13 і 17 листопада',
+      what: 'Публікація серій — 6, 10, 13, 17 і 20 листопада',
       hint: 'Прийом закрито. Серії фіналістів виходять о 18:00, підсумки — 11 грудня.',
       urgent: false,
     })

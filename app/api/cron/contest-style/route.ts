@@ -13,6 +13,9 @@ export const maxDuration = 300
 function authorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET
   if (secret && req.headers.get('authorization') === `Bearer ${secret}`) return true
+  // 05.11.2026: CRON_SECRET на Vercel не задано — щогодинна публікація з вересня отримувала 403
+  // (73 твори не вийшли). Без секрету довіряємо самому Vercel Cron (user-agent vercel-cron/…).
+  if (!secret && (req.headers.get('user-agent') ?? '').startsWith('vercel-cron/')) return true
   const pass = process.env.ADMIN_PASSWORD
   return Boolean(pass) && req.cookies.get('admin_session')?.value === pass
 }
