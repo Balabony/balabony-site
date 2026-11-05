@@ -524,6 +524,9 @@ export default async function AuthorDashboardPage() {
   type AuthorReview = { title: string; slug: string | null; rating: number; comment: string | null; created_at: string }
   let myReviews: AuthorReview[] = []
   let reviewStats = { total: 0, avg: null as number | null }
+  // 05.11.2026 (Богдан, після листа О. Трегубова): скільки відгуків лише з оцінкою —
+  // щоб «Відгуків: 4» при трьох видимих текстах не дивувало автора.
+  let reviewsNoText = 0
   try {
     const rs = await dbQuery(
       `select count(*)::int as total, round(avg(r.rating)::numeric, 1)::float8 as avg
@@ -548,6 +551,17 @@ export default async function AuthorDashboardPage() {
       [user.id],
     )
     myReviews = rv.rows as AuthorReview[]
+    const vc = await dbQuery(
+      `select count(*)::int as n
+         from reviews r
+         join content c on c.id::text = r.content_id::text
+        where c.author_id = $1
+          and r.rating >= 3
+          and coalesce(trim(r.comment), '') <> ''
+          and (r.user_id is null or r.user_id::text <> $1::text)`,
+      [user.id],
+    )
+    reviewsNoText = Math.max(0, reviewStats.total - ((vc.rows[0] as { n: number } | undefined)?.n ?? 0))
   } catch {
     // Блок не критичний: якщо запит упав, його просто не буде.
   }
@@ -661,6 +675,11 @@ export default async function AuthorDashboardPage() {
               </ul>
             ) : (
               <div style={{ color: '#9fb0c6', fontSize: '0.88rem' }}>Читачі поставили оцінки, але текстових відгуків ще немає.</div>
+            )}
+            {myReviews.length > 0 && reviewsNoText > 0 && (
+              <div style={{ color: '#9fb0c6', fontSize: '0.88rem', marginTop: 10 }}>
+                Ще {reviewsNoText} {reviewsNoText % 10 === 1 && reviewsNoText % 100 !== 11 ? 'відгук' : reviewsNoText % 10 >= 2 && reviewsNoText % 10 <= 4 && (reviewsNoText % 100 < 12 || reviewsNoText % 100 > 14) ? 'відгуки' : 'відгуків'} — лише оцінка, без тексту. Вони враховані в кількості й середній оцінці. Імена читачів ми не показуємо, щоб відгуки були щирими.
+              </div>
             )}
           </section>
         )}
