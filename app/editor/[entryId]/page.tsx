@@ -5,6 +5,8 @@ import { findContest } from '@/lib/contests'
 import ScoreForm, { type ExistingScore } from '../ScoreForm'
 import EpisodeEditor from '../EpisodeEditor'
 import ContestBrief from '../ContestBrief'
+import GrammarReport from '../GrammarReport'
+import { getGrammar } from '@/lib/grammar-auto'
 
 /**
  * Сторінка оцінювання однієї конкурсної роботи.
@@ -74,6 +76,7 @@ export default async function EditorScorePage(
     [entryId, editor.id],
   )
   const existing = (sc.rowCount ? sc.rows[0] : null) as ExistingScore | null
+  const grammar = await getGrammar('contest', entryId)
 
   return (
     <main style={{ background: NAVY, minHeight: '100vh', padding: '28px 18px 80px', fontFamily: FONT, color: CREAM }}>
@@ -92,6 +95,8 @@ export default async function EditorScorePage(
           {entry.genre ? ` · ${entry.genre}` : ''}
           {entry.role === 'recheck' ? ' · друга думка' : ''}
         </div>
+
+        <GrammarReport g={grammar} />
 
         {entry.annotation && (
           <p style={{ fontSize: 14, color: '#B8C6D8', lineHeight: 1.7, margin: '0 0 1.4rem' }}>

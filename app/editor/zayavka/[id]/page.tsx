@@ -4,6 +4,8 @@ import { getEditor } from '@/lib/editor-auth'
 import { AUTHOR_QUESTIONS } from '@/lib/author-questions'
 import { ensureReviewTable, type Verdict } from '@/lib/application-review'
 import VerdictForm from './VerdictForm'
+import GrammarReport from '../../GrammarReport'
+import { getGrammar } from '@/lib/grammar-auto'
 
 /**
  * Заявка нового автора в кабінеті редактора (30.10.2026, «як у конкурсах»).
@@ -45,6 +47,7 @@ export default async function EditorApplicationPage({ params }: { params: Promis
     answers: Record<string, string> | null; status: string
     verdict: Verdict | null; comment: string | null
   }
+  const grammar = await getGrammar('application', id)
 
   return (
     <main style={{ background: NAVY, minHeight: '100vh', padding: '28px 18px 80px', fontFamily: FONT, color: CREAM }}>
@@ -56,6 +59,8 @@ export default async function EditorApplicationPage({ params }: { params: Promis
           Заявка нового автора{a.genre ? ` · ${a.genre}` : ''} · слів: {a.words.toLocaleString('uk-UA')}
           {a.status !== 'new' ? ' · рішення вже ухвалено' : ''}
         </div>
+
+        <GrammarReport g={grammar} />
 
         <div style={{
           whiteSpace: 'pre-wrap', fontFamily: SERIF, fontSize: 16.5, lineHeight: 1.8, color: CREAM,
