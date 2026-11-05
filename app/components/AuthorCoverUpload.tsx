@@ -2,6 +2,27 @@
 
 import { useRef, useState } from 'react'
 
+// 05.11.2026 (скарги авторів): фото з телефона часто 5–12 МБ, а сервер (Vercel) приймає
+// до 4,5 МБ — завантаження падало з «Немає звʼязку». Стискаємо в браузері до JPEG ≤2000 px.
+async function shrinkImage(file: File): Promise<File> {
+  const okType = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
+  if (okType && file.size <= 2 * 1024 * 1024) return file
+  let bmp: ImageBitmap
+  try {
+    bmp = await createImageBitmap(file)
+  } catch {
+    throw new Error('Не вдалося відкрити фото. Збережіть його як JPG і спробуйте ще раз.')
+  }
+  const k = Math.min(1, 2000 / Math.max(bmp.width, bmp.height))
+  const c = document.createElement('canvas')
+  c.width = Math.round(bmp.width * k)
+  c.height = Math.round(bmp.height * k)
+  c.getContext('2d')!.drawImage(bmp, 0, 0, c.width, c.height)
+  const blob: Blob | null = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.88))
+  if (!blob) throw new Error('Не вдалося стиснути фото. Спробуйте інше зображення.')
+  return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' })
+}
+
 /**
  * Заміна обкладинки твору в кабінеті автора.
  *
@@ -53,7 +74,7 @@ export default function AuthorCoverUpload({
     try {
       const fd = new FormData()
       fd.append('content_id', contentId)
-      fd.append('file', file)
+      fd.append('file', await shrinkImage(file))
       fd.append('rights_confirmed', 'yes')
 
       const res = await fetch('/api/author/cover', { method: 'POST', body: fd })
@@ -67,8 +88,8 @@ export default function AuthorCoverUpload({
       } else {
         setErr(d?.error ?? 'Не вдалося завантажити')
       }
-    } catch {
-      setErr('Немає звʼязку з сервером')
+    } catch (e) {
+      setErr(e instanceof Error && e.message.startsWith('Не вдалося') ? e.message : 'Немає звʼязку з сервером')
     } finally {
       setBusy(false)
     }
@@ -136,7 +157,7 @@ export default function AuthorCoverUpload({
           <input
             ref={inputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/*"
             style={{ color: BRAND.text, fontSize: '0.85rem', maxWidth: '100%' }}
           />
 
