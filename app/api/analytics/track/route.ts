@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { dbQuery } from '@/lib/db'
 import { getOrCreateAnonUserId } from '@/lib/anon-user'
+import { logAudioPlay } from '@/lib/analytics-extra'
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,6 +28,10 @@ export async function POST(req: NextRequest) {
           utm_campaign: cut(body.utm_campaign, 100),
           is_team: isTeam,
         })
+        break
+
+      case 'audio_play':
+        if (body.key) await logAudioPlay(String(body.key), body.title ? String(body.title) : null, cut(body.session_id, 64), cut(body.visitor_id, 64))
         break
 
       // Час на сторінці: клієнт шле, коли людина йде зі сторінки (перехід, закриття, згортання).

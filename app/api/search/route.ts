@@ -1,3 +1,4 @@
+import { logSearch } from '@/lib/analytics-extra'
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { authorSlug } from '@/lib/author-slug'
@@ -143,6 +144,8 @@ export async function GET(req: Request) {
       authors.push({ name, slug, avatar: null })
     }
 
+    // 06.11.2026: журнал пошуку — що шукають і чого не знаходять.
+    await logSearch(q, works.length + Math.min(authors.length, 12), req.headers.get('x-bly-sid'))
     return NextResponse.json({
       query: q,
       works,

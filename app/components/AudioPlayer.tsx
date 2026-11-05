@@ -405,7 +405,18 @@ export default function AudioPlayer({ audioUrl, audioStatus, title, contentId, s
         }}
         onDurationChange={(e) => { readDuration(e.currentTarget) }}
         onTimeUpdate={(e) => setCurrent(e.currentTarget.currentTime || 0)}
-        onPlay={() => { playedRef.current = true; setPlaying(true) }}
+        onPlay={() => {
+          // 06.11.2026: перший запуск аудіо за показ сторінки — для звіту «аудіо проти тексту».
+          if (!playedRef.current) {
+            try {
+              navigator.sendBeacon('/api/analytics/track', new Blob([JSON.stringify({
+                type: 'audio_play', key: progressKey ?? title, title,
+                session_id: sessionStorage.getItem('bly_sid'), visitor_id: localStorage.getItem('bly_vid'),
+              })], { type: 'application/json' }))
+            } catch { /* ignore */ }
+          }
+          playedRef.current = true; setPlaying(true)
+        }}
         onPause={() => setPlaying(false)}
         onEnded={(e) => {
           // Якщо файл так і не повідомив тривалість, беремо її з точки завершення.
