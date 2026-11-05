@@ -2,6 +2,27 @@
 
 import { useEffect, useRef, useState } from 'react'
 
+// 05.11.2026 (скарги авторів): фото з телефона часто 5–12 МБ, а сервер (Vercel) приймає
+// до 4,5 МБ — завантаження падало з «Немає звʼязку». Стискаємо в браузері до JPEG ≤2000 px.
+async function shrinkImage(file: File): Promise<File> {
+  const okType = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
+  if (okType && file.size <= 2 * 1024 * 1024) return file
+  let bmp: ImageBitmap
+  try {
+    bmp = await createImageBitmap(file)
+  } catch {
+    throw new Error('Не вдалося відкрити фото. Збережіть його як JPG і спробуйте ще раз.')
+  }
+  const k = Math.min(1, 2000 / Math.max(bmp.width, bmp.height))
+  const c = document.createElement('canvas')
+  c.width = Math.round(bmp.width * k)
+  c.height = Math.round(bmp.height * k)
+  c.getContext('2d')!.drawImage(bmp, 0, 0, c.width, c.height)
+  const blob: Blob | null = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.88))
+  if (!blob) throw new Error('Не вдалося стиснути фото. Спробуйте інше зображення.')
+  return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' })
+}
+
 /**
  * Фото і біографія автора — блок у кабінеті.
  *
@@ -102,7 +123,7 @@ export default function AuthorProfileEditor({
       fd.append('avatar_position', String(position))
       fd.append('hide_from_directory', hidden ? 'yes' : 'no')
       if (file) {
-        fd.append('file', file)
+        fd.append('file', await shrinkImage(file))
         fd.append('photo_consent', 'yes')
       }
 
@@ -128,8 +149,8 @@ export default function AuthorProfileEditor({
       } else {
         setErr(d?.error ?? 'Не вдалося зберегти')
       }
-    } catch {
-      setErr('Немає звʼязку з сервером')
+    } catch (e) {
+      setErr(e instanceof Error && e.message.startsWith('Не вдалося') ? e.message : 'Немає звʼязку з сервером')
     } finally {
       setBusy(false)
     }
@@ -202,7 +223,7 @@ export default function AuthorProfileEditor({
           <input
             ref={inputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/*"
             onChange={onPick}
             style={{ color: BRAND.text, fontSize: '0.85rem', maxWidth: '100%' }}
           />
