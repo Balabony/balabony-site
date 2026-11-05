@@ -36,6 +36,7 @@ interface WorkRow {
   type:         string | null
   genre:        string | null
   created_at:   string | null
+  cover_url?:   string | null
 }
 
 type Phase = 'idle' | 'loading' | 'done' | 'error'
@@ -44,12 +45,14 @@ const STATUS_LABELS: Record<string, string> = {
   draft:     'Чернетка',
   approved:  'Схвалено',
   published: 'Опубліковано',
+  scheduled: 'Заплановано',
 }
 
 const STATUS_COLORS: Record<string, string> = {
   draft:     '#8a8fa3',
   approved:  '#d0a355',
   published: '#4caf7d',
+  scheduled: '#6aa7e8',
 }
 
 export default function AdminWorksPage() {
@@ -65,6 +68,7 @@ export default function AdminWorksPage() {
   const [genre,   setGenre]   = useState('all')
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [type,    setType]    = useState('all')
+  const [cover,   setCover]   = useState('all')
   const [total,   setTotal]   = useState(0)
   const [more,    setMore]    = useState(false)
 
@@ -82,7 +86,7 @@ export default function AdminWorksPage() {
     setReady(true)
   }, [])
 
-  const load = useCallback(async (q: string, st: string, tp: string) => {
+  const load = useCallback(async (q: string, st: string, tp: string, cv = 'all') => {
     setPhase('loading')
     setError('')
     try {
@@ -90,6 +94,7 @@ export default function AdminWorksPage() {
       if (q) params.set('q', q)
       params.set('status', st)
       params.set('type', tp)
+      params.set('cover', cv)
       params.set('limit', '200')
       const res = await fetch(`/api/admin/works?${params.toString()}`)
       const data = await res.json()
@@ -112,6 +117,7 @@ export default function AdminWorksPage() {
       if (search) params.set('q', search)
       params.set('status', status)
       params.set('type', type)
+      params.set('cover', cover)
       params.set('limit', '200')
       params.set('offset', String(items.length))
       const res = await fetch(`/api/admin/works?${params.toString()}`)
@@ -124,12 +130,12 @@ export default function AdminWorksPage() {
     } finally {
       setMore(false)
     }
-  }, [search, status, type, items.length])
+  }, [search, status, type, cover, items.length])
 
   useEffect(() => {
     if (!ready) return
     const t = setTimeout(() => {
-      void load(search, status, type)
+      void load(search, status, type, cover)
       const sp = new URLSearchParams()
       if (search) sp.set('q', search)
       if (status !== 'all') sp.set('status', status)
@@ -138,7 +144,7 @@ export default function AdminWorksPage() {
       window.history.replaceState(null, '', qs ? `?${qs}` : window.location.pathname)
     }, 350)
     return () => clearTimeout(t)
-  }, [search, status, type, load, ready])
+  }, [search, status, type, cover, load, ready])
 
   function toggle(id: string) {
     setPicked(prev => {
@@ -244,7 +250,7 @@ export default function AdminWorksPage() {
               borderRadius: 10, border: '1px solid #24365c',
               background: NAVY_DEEP, color: '#fff', fontSize: 15, fontFamily: FONT,
             }}
-            placeholder="Назва або автор…"
+            placeholder="Шукайте за словами з назви чи прізвищем автора, напр.: Теплова казки"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -259,7 +265,20 @@ export default function AdminWorksPage() {
             <option value="all">Усі статуси</option>
             <option value="draft">Чернетки</option>
             <option value="approved">Схвалено</option>
+            <option value="scheduled">Заплановано</option>
             <option value="published">Опубліковано</option>
+          </select>
+          <select
+            style={{
+              padding: '12px 14px', borderRadius: 10, border: '1px solid #24365c',
+              background: NAVY_DEEP, color: '#fff', fontSize: 15, fontFamily: FONT,
+            }}
+            value={cover}
+            onChange={e => setCover(e.target.value)}
+          >
+            <option value="all">Обкладинка: усі</option>
+            <option value="none">Без обкладинки</option>
+            <option value="has">З обкладинкою</option>
           </select>
           <select
             style={{
@@ -365,6 +384,15 @@ export default function AdminWorksPage() {
                     onChange={() => toggle(w.id)}
                     style={{ width: 20, height: 20, marginTop: 4, cursor: 'pointer', accentColor: GOLD }}
                   />
+                  {/* 06.11.2026: мініатюра обкладинки — одразу видно, де її немає */}
+                  <a href={`/admin/content/stories/${w.id}/edit`} title="Відкрити й змінити обкладинку"
+                     style={{ width: 64, height: 64, borderRadius: 8, overflow: 'hidden', flex: '0 0 64px',
+                              background: '#1a2a4a', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: '#8a97b5', fontSize: 11, textAlign: 'center', textDecoration: 'none' }}>
+                    {w.cover_url
+                      ? <img src={w.cover_url} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : 'без обкладинки'}
+                  </a>
                   <div style={{ flex: '1 1 300px', minWidth: 200 }}>
                     <div style={{ color: '#fff', fontSize: 17, fontWeight: 600 }}>
                       {w.title || '(без назви)'}

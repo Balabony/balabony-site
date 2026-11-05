@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
     const limit  = Math.min(Number(searchParams.get('limit')) || 200, 500)
     const offset = Math.max(0, Number(searchParams.get('offset')) || 0)
     const type   = searchParams.get('type') || 'all'
+    const cover  = searchParams.get('cover') || 'all'
 
     // 15.09.2026. Роут віддавав 200 найновіших записів і на цьому все: без
     // зсуву й без фільтра за типом. У базі майже 1200 творів, тож серії
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
     const supabase = getSupabaseAdmin()
     let query = supabase
       .from('content')
-      .select('id, title, author_name, status, type, genre, created_at', { count: 'exact' })
+      .select('id, title, author_name, status, type, genre, created_at, cover_url', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
@@ -44,10 +45,14 @@ export async function GET(req: NextRequest) {
       query = query.eq('type', type)
     }
 
+    // 06.11.2026: кожне слово шукається окремо в назві АБО в автора — «Теплова казки» знайде твір.
     if (q) {
-      const safe = q.replace(/[%,()]/g, ' ')
-      query = query.or(`title.ilike.%${safe}%,author_name.ilike.%${safe}%`)
+      for (const w of q.replace(/[%,()'"«»]/g, ' ').split(/\s+/).filter((x) => x.length >= 2).slice(0, 5)) {
+        query = query.or(`title.ilike.%${w}%,author_name.ilike.%${w}%`)
+      }
     }
+    if (cover === 'none') query = query.is('cover_url', null)
+    if (cover === 'has') query = query.not('cover_url', 'is', null)
 
     const { data, error, count } = await query
     if (error) throw error
