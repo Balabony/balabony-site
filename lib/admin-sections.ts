@@ -80,6 +80,7 @@ export const ADMIN_GROUPS: AdminGroup[] = [
       { href: '/admin/reviews',            label: 'Відгуки',            note: 'Відгуки читачів' },
       { href: '/admin/analytics',          label: 'Аналітика',          note: 'Перегляди, сесії, доходимість', quick: true },
       { href: '/admin/konversii',          label: 'Конверсії (реклама)', note: 'Підписки, заявки, пожертви, реєстрації — скільки й звідки; відвідування сторінок клубу, календаря, пільги', quick: true, short: 'Конверсії' },
+      { href: '/admin/dzherela',          label: 'Джерела й повернення', note: 'Звідки приходять, час на сторінках, повторні візити, команда, серійне читання', quick: true, short: 'Джерела' },
       { href: '/admin/dochytuvannia',      label: 'Дочитуваність',      note: 'Скільки читачів дійшли до кінця — з позицій читання', quick: true, short: 'Дочитуваність' },
       { href: '/admin/kanaly',             label: 'Канали приходу',     note: 'Газета, пошта і банери Storriss: приходи, дочитування, підписки', quick: true, short: 'Канали' },
       { href: '/admin/chytach',            label: 'Шлях читача',        note: 'Що робить читач після першої серії — воронка, жанри, профілі', quick: true, short: 'Читач' },

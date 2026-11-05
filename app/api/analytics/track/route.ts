@@ -8,6 +8,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const db = getSupabaseAdmin()
     const country = req.headers.get('x-vercel-ip-country') ?? null
+    // 06.11.2026: аналітика джерел/часу/повернень/команди. Команда = браузер, з якого заходили
+    // в адмінку чи кабінет редактора (мітка з клієнта) або є cookie адмінки.
+    const cut = (v: unknown, n = 300) => (typeof v === 'string' && v ? v.slice(0, n) : null)
+    const isTeam = body.team === true || Boolean(req.cookies.get('admin_session')?.value)
 
     switch (body.type) {
       case 'page_view':
@@ -16,8 +20,28 @@ export async function POST(req: NextRequest) {
           device: body.device ?? null,
           country,
           session_id: body.session_id ?? null,
+          visitor_id: cut(body.visitor_id, 64),
+          referrer: cut(body.referrer),
+          utm_source: cut(body.utm_source, 100),
+          utm_medium: cut(body.utm_medium, 100),
+          utm_campaign: cut(body.utm_campaign, 100),
+          is_team: isTeam,
         })
         break
+
+      // Час на сторінці: клієнт шле, коли людина йде зі сторінки (перехід, закриття, згортання).
+      case 'page_time': {
+        const sec = Math.round(Number(body.seconds))
+        if (body.session_id && body.url && sec > 0 && sec < 4 * 3600) {
+          await dbQuery(
+            `update page_views set duration_seconds = coalesce(duration_seconds, 0) + $3
+              where id = (select id from page_views where session_id = $1 and url = $2
+                           order by created_at desc limit 1)`,
+            [String(body.session_id).slice(0, 64), String(body.url).slice(0, 500), sec],
+          )
+        }
+        break
+      }
 
       case 'story_event': {
         // story_id історично text: більшість трекерів шлють uuid контенту,
@@ -69,6 +93,13 @@ export async function POST(req: NextRequest) {
           device: body.device ?? null,
           city: body.city ?? null,
           start_time: new Date().toISOString(),
+          visitor_id: cut(body.visitor_id, 64),
+          referrer: cut(body.referrer),
+          utm_source: cut(body.utm_source, 100),
+          utm_medium: cut(body.utm_medium, 100),
+          utm_campaign: cut(body.utm_campaign, 100),
+          landing_path: cut(body.landing_path, 300),
+          is_team: isTeam,
         }, { onConflict: 'session_id' })
         break
 

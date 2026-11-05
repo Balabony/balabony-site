@@ -14,6 +14,36 @@ function getSessionId(): string {
   return id
 }
 
+// 06.11.2026: анонімна мітка браузера — щоб бачити повторні візити (без імен і пошти).
+function getVisitorId(): string {
+  try {
+    let v = localStorage.getItem('bly_vid')
+    if (!v) { v = crypto.randomUUID(); localStorage.setItem('bly_vid', v) }
+    return v
+  } catch { return '' }
+}
+
+// Команда: браузер, з якого хоч раз відкривали адмінку чи кабінет редактора.
+function isTeam(path: string): boolean {
+  try {
+    if (/^\/(admin|editor)(\/|$)/.test(path)) localStorage.setItem('bly_team', '1')
+    return localStorage.getItem('bly_team') === '1'
+  } catch { return false }
+}
+
+// Джерело візиту: мітки з адреси + сайт, з якого прийшли (лише першої сторінки візиту).
+function visitSource() {
+  const p = new URLSearchParams(window.location.search)
+  let ref = document.referrer || ''
+  try { if (ref && new URL(ref).hostname === window.location.hostname) ref = '' } catch { ref = '' }
+  return {
+    referrer: ref || null,
+    utm_source: p.get('utm_source'),
+    utm_medium: p.get('utm_medium'),
+    utm_campaign: p.get('utm_campaign'),
+  }
+}
+
 function getDevice(): string {
   if (typeof window === 'undefined') return 'unknown'
   const w = window.innerWidth
@@ -51,7 +81,11 @@ export default function AnalyticsTracker() {
       }
     } catch { /* ignore */ }
 
-    post({ type: 'session_start', session_id: sid, device: getDevice() })
+    post({
+      type: 'session_start', session_id: sid, device: getDevice(),
+      visitor_id: getVisitorId(), team: isTeam(window.location.pathname),
+      landing_path: window.location.pathname, ...visitSource(),
+    })
 
     // First-touch attribution: send UTM + referrer once per browser.
     // Server keeps only the earliest touch per balabony_uid.
@@ -118,8 +152,41 @@ export default function AnalyticsTracker() {
     }
   }, [])
 
+  // Перша сторінка візиту несе джерело; далі — внутрішні переходи.
+  const firstView = useRef(true)
   useEffect(() => {
-    post({ type: 'page_view', url: pathname, device: getDevice(), session_id: getSessionId() })
+    const src = firstView.current ? visitSource() : {}
+    firstView.current = false
+    post({
+      type: 'page_view', url: pathname, device: getDevice(), session_id: getSessionId(),
+      visitor_id: getVisitorId(), team: isTeam(pathname), ...src,
+    })
+    // Час на сторінці: рахуємо лише видимий час; шлемо при переході або коли вкладку сховали.
+    let shown = document.visibilityState === 'visible' ? Date.now() : 0
+    let total = 0
+    const flush = () => {
+      if (shown) { total += Date.now() - shown; shown = 0 }
+      const seconds = Math.round(total / 1000)
+      total = 0
+      if (seconds < 1) return
+      try {
+        navigator.sendBeacon('/api/analytics/track', new Blob(
+          [JSON.stringify({ type: 'page_time', session_id: getSessionId(), url: pathname, seconds })],
+          { type: 'application/json' },
+        ))
+      } catch { /* ignore */ }
+    }
+    const onVis = () => {
+      if (document.visibilityState === 'hidden') flush()
+      else shown = Date.now()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    window.addEventListener('pagehide', flush)
+    return () => {
+      flush()
+      document.removeEventListener('visibilitychange', onVis)
+      window.removeEventListener('pagehide', flush)
+    }
   }, [pathname])
 
   return null
