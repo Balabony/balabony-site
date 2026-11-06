@@ -56,18 +56,32 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const res = await dbQuery(
-      `update content
-          set status       = 'published',
-              published_at = coalesce(published_at, publish_at, now()),
-              updated_at   = now()
-        where status = 'scheduled'
-          and publish_at is not null
-          and publish_at <= now()
-        returning slug, title, publish_at`,
+    // 06.11.2026: публікуємо ПО ОДНОМУ. Тригер check_publish_consent блокує твір без згоди автора,
+    // і раніше одна така серія скасовувала весь UPDATE — о 18:00 не вийшла жодна з 11 серій
+    // «П'яти вечорів». Тепер заблокований твір пропускаємо й повертаємо у списку blocked.
+    const due = await dbQuery(
+      `select id::text as id from content
+        where status = 'scheduled' and publish_at is not null and publish_at <= now()
+        order by publish_at`,
     )
-
-    const rows = res.rows as Published[]
+    const rows: Published[] = []
+    const blocked: { id: string; error: string }[] = []
+    for (const d of due.rows as { id: string }[]) {
+      try {
+        const r = await dbQuery(
+          `update content
+              set status       = 'published',
+                  published_at = coalesce(published_at, publish_at, now()),
+                  updated_at   = now()
+            where id::text = $1 and status = 'scheduled'
+            returning slug, title, publish_at`,
+          [d.id],
+        )
+        rows.push(...(r.rows as Published[]))
+      } catch (e) {
+        blocked.push({ id: d.id, error: String((e as Error)?.message ?? e).slice(0, 300) })
+      }
+    }
 
     if (rows.length) {
       console.log(
@@ -75,11 +89,15 @@ export async function GET(req: NextRequest) {
         rows.map(r => r.slug).join(', '),
       )
     }
+    if (blocked.length) {
+      console.error(`[cron/publish-scheduled] заблоковано ${blocked.length}: ` + blocked.map(b => b.error).join(' | '))
+    }
 
     return NextResponse.json({
       ok: true,
       published: rows.length,
       items: rows.map(r => ({ slug: r.slug, title: r.title })),
+      blocked,
     })
   } catch (err) {
     console.error('[cron/publish-scheduled]', (err as Error)?.message)
