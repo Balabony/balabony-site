@@ -249,7 +249,8 @@ export default function AccessibilityPage() {
           position: sticky;
           top: 0;
           z-index: 50;
-          background: var(--a11y-surface);
+          /* 06.11.2026: у темній темі surface напівпрозорий — текст сторінки просвічував крізь панель */
+          background: linear-gradient(var(--a11y-surface), var(--a11y-surface)), var(--a11y-bg);
           border-bottom: 1px solid var(--a11y-border);
           padding: 14px 24px;
         }
