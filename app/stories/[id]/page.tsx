@@ -42,6 +42,7 @@ interface StoryRow {
   author_name:       string
   author_id:         string | null
   status?:           string | null
+  publish_at?:       string | null
   genre:             string
   text:              string
   corrected_text:    string | null
@@ -73,7 +74,7 @@ async function getStory(id: string): Promise<StoryRow | null> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('content')
-    .select('id, slug, title, author_name, author_id, genre, status, text, corrected_text, humanized_text, published_version, cover_url, images, is_adult, is_free, is_premium, approved_at, updated_at, audio_url, audio_status, recipe')
+    .select('id, slug, title, author_name, author_id, genre, status, publish_at, text, corrected_text, humanized_text, published_version, cover_url, images, is_adult, is_free, is_premium, approved_at, updated_at, audio_url, audio_status, recipe')
     .eq('type', 'story')
     .eq('slug', id)
     .maybeSingle()
@@ -392,11 +393,20 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
             fontFamily: "'Montserrat', sans-serif", fontSize: 14, lineHeight: 1.6,
             color: '#FAC775',
           }}>
-            <strong style={{ color: '#FFF8EE' }}>Це чернетка.</strong>{' '}
-            Так твір побачить читач. Крім вас, цю сторінку зараз не бачить ніхто.{' '}
-            <a href="/author/dashboard" style={{ color: '#FAC775', fontWeight: 700 }}>
-              Опублікувати в кабінеті →
-            </a>
+            {/* 06.11.2026: конкурсні серії мають status 'scheduled' і виходять самі — не кличемо автора «опублікувати». */}
+            {story.status === 'scheduled' ? <>
+              <strong style={{ color: '#FFF8EE' }}>Заплановано.</strong>{' '}
+              {story.publish_at
+                ? <>Твір з’явиться на сайті автоматично {new Date(story.publish_at).toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })} (протягом години після цього часу).</>
+                : <>Твір з’явиться на сайті автоматично за розкладом.</>}{' '}
+              Нічого натискати не потрібно. Поки що цю сторінку бачите лише ви.
+            </> : <>
+              <strong style={{ color: '#FFF8EE' }}>Це чернетка.</strong>{' '}
+              Так твір побачить читач. Крім вас, цю сторінку зараз не бачить ніхто.{' '}
+              <a href="/author/dashboard" style={{ color: '#FAC775', fontWeight: 700 }}>
+                Опублікувати в кабінеті →
+              </a>
+            </>}
           </div>
         )}
 
