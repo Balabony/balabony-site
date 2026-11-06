@@ -588,13 +588,25 @@ export default function AccessibilityPage() {
         .a11y-footer p { margin: 4px 0; }
 
         /* Адаптив: заголовки й email не вилазять за екран на мобільному */
+        /* 06.11.2026: слова не ріжемо посередині (було word-break: break-word + hyphens — у режимі
+           «Дислексія» заголовок рвався «ветеран / ів»). Переносимо лише цілі слова. */
         .a11y-hero h1,
         .a11y-section h2,
         .a11y-inclusion h2,
-        .a11y-feedback h2 {
-          overflow-wrap: break-word;
-          word-break: break-word;
-          hyphens: auto;
+        .a11y-feedback h2,
+        .a11y-card h3 {
+          overflow-wrap: normal;
+          word-break: normal;
+          hyphens: manual;
+          -webkit-hyphens: manual;
+        }
+        .a11y-card-icon svg { width: calc(44px * var(--a11y-fs)); height: calc(44px * var(--a11y-fs)); display: block; }
+        /* Дислексія: заголовки — щільніший рядок і без зайвого розрядження, щоб слова вміщалися */
+        html[data-a11y-theme="dyslexic"] .a11y-page h1,
+        html[data-a11y-theme="dyslexic"] .a11y-page h2,
+        html[data-a11y-theme="dyslexic"] .a11y-page h3 {
+          line-height: 1.3 !important;
+          letter-spacing: 0.02em !important;
         }
         .a11y-mail {
           max-width: 100%;
@@ -608,6 +620,11 @@ export default function AccessibilityPage() {
           .a11y-inclusion h2 { font-size: calc(23px * var(--a11y-fs)); }
           .a11y-feedback h2 { font-size: calc(26px * var(--a11y-fs)); }
           .a11y-mail { font-size: 15px; padding: 14px 18px; }
+          .a11y-inclusion, .a11y-card { padding: 22px; }
+          .a11y-inclusion-mark { width: 56px; height: 56px; }
+          html[data-a11y-theme="dyslexic"] .a11y-inclusion h2,
+          html[data-a11y-theme="dyslexic"] .a11y-section h2 { font-size: calc(21px * var(--a11y-fs)); }
+          html[data-a11y-theme="dyslexic"] .a11y-hero h1 { font-size: calc(28px * var(--a11y-fs)); }
         }
       `}</style>
 
@@ -679,7 +696,7 @@ export default function AccessibilityPage() {
               <span className="accent">не читати.</span>
             </h1>
             <p className="a11y-hero-lead">
-              Balabony — це понад 990 історій, казок і серій від понад ста українських авторів.
+              Balabony — це понад 1300 історій, казок і серій від понад 150 українських авторів.
               Ми робимо їх доступними для тих, кому звичайний сайт читати важко: людям зі слабким
               зором, із дислексією, старшим читачам, ветеранам і внутрішньо переміщеним особам.
             </p>
@@ -688,17 +705,17 @@ export default function AccessibilityPage() {
           {/* ФУНКЦІЇ */}
           <section className="a11y-features" aria-label="Функції доступності">
             <article className="a11y-card">
-              <div className="a11y-card-icon" aria-hidden="true">A↕</div>
+              <div className="a11y-card-icon" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M6 38 16 10l10 28M9.5 29h13"/><path d="M38 8v32M32 14l6-6 6 6M32 34l6 6 6-6"/></svg></div>
               <h3>Налаштування шрифту</h3>
               <p>Збільшуйте текст до 200%. Разом із розміром змінюється весь інтерфейс, а не лише абзац. Вибір зберігається у вашому браузері й діє при наступних відвідинах.</p>
             </article>
             <article className="a11y-card">
-              <div className="a11y-card-icon" aria-hidden="true">◐</div>
+              <div className="a11y-card-icon" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="24" cy="24" r="17"/><path d="M24 7a17 17 0 0 1 0 34Z" fill="currentColor"/></svg></div>
               <h3>Чотири теми</h3>
               <p>Звичайна, темна, високий контраст і окремий режим для дислексії — зі збільшеними міжлітерним і міжслівним інтервалами та вищим рядком.</p>
             </article>
             <article className="a11y-card">
-              <div className="a11y-card-icon" aria-hidden="true">✎</div>
+              <div className="a11y-card-icon" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="3" strokeLinejoin="round"><path d="M24 12c-5-4-12-4-18-2v28c6-2 13-2 18 2 5-4 12-4 18-2V10c-6-2-13-2-18 2Z"/><path d="M24 12v28"/></svg></div>
               <h3>Читалка під себе</h3>
               <p>У кожному творі можна вибрати шрифт, один із п&apos;яти розмірів і денний або нічний режим. Місце, де ви зупинилися, зберігається — сайт відкриє текст там, де ви його лишили.</p>
             </article>
@@ -779,7 +796,7 @@ export default function AccessibilityPage() {
 
           {/* ІНКЛЮЗІЯ */}
           <section className="a11y-inclusion" aria-labelledby="ubd-heading">
-            <div className="a11y-inclusion-mark" aria-hidden="true">❤</div>
+            <div className="a11y-inclusion-mark" aria-hidden="true"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.2 3 4.5 6.6 4.5c2.2 0 3.6 1.2 5.4 3.2 1.8-2 3.2-3.2 5.4-3.2 3.6 0 5.7 3.7 4.2 7.2C19.5 16.4 12 21 12 21Z"/></svg></div>
             <div>
               <h2 id="ubd-heading">Для ветеранів, людей з інвалідністю та ВПО</h2>
               <p>
