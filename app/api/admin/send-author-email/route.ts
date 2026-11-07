@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { dbQuery } from '@/lib/db'
-import { renderAuthorEmail, renderCustomEmail, type AuthorEmailTemplate } from '@/lib/author-emails'
+import { renderAuthorEmailWithUnsub, renderCustomEmail, type AuthorEmailTemplate } from '@/lib/author-emails'
+import { unsubUrl } from '@/lib/unsub-token'
 
 /**
  * Надсилання листа одному авторові з адмінки.
@@ -125,9 +126,11 @@ export async function POST(req: NextRequest) {
     // Таблиці згод може не бути — це не привід блокувати відправлення.
   }
 
+  // 07.11.2026: посилання «Відписатися» в кожному листі й заголовок List-Unsubscribe для поштових сервісів.
+  const unsub = unsubUrl(userId)
   const { subject, html, text } = customText
-    ? renderCustomEmail(customSubject, customText, { name, email })
-    : renderAuthorEmail(template, { name, email })
+    ? renderCustomEmail(customSubject, customText, { name, email }, unsub)
+    : renderAuthorEmailWithUnsub(template, { name, email }, unsub)
 
   // --- Відправлення -------------------------------------------------------
   const from = process.env.RESEND_FROM_EMAIL ?? 'editorial@balabony.com'
@@ -143,7 +146,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
-    const res = await resend.emails.send({ from, replyTo, to: email, subject, html, text })
+    const res = await resend.emails.send({ from, replyTo, to: email, subject, html, text,
+      headers: { 'List-Unsubscribe': `<${unsub}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } })
     if (res.error) sendError = res.error.message || 'Resend відхилив лист'
   } catch (e) {
     const err = e as { message?: string }

@@ -129,7 +129,7 @@ function escapeHtml(s: string) {
  * має виглядати як документ з редакції, а не як промо — інакше читається
  * як фішинг.
  */
-export function toHtml(text: string) {
+export function toHtml(text: string, unsub?: string) {
   const body = text
     .split('\n')
     .map(line => {
@@ -152,7 +152,7 @@ ${body}
 <div style="height:22px"></div>
 <div style="border-top:1px solid #e4e4e7;padding-top:14px;font-size:12px;color:#71717a">
 Балабони · <a href="${SITE}" style="color:#71717a">balabony.com</a><br>
-Ви отримали цей лист як автор, чиї твори публікуються на Балабонах.
+Ви отримали цей лист як автор, чиї твори публікуються на Балабонах.${unsub ? `<br><a href="${unsub}" style="color:#71717a">Відписатися від листів редакції</a>` : ''}
 </div>
 </div>
 </body></html>`
@@ -161,6 +161,11 @@ ${body}
 export function renderAuthorEmail(template: AuthorEmailTemplate, v: Vars) {
   const text = BUILDERS[template](v)
   return { subject: SUBJECTS[template], text, html: toHtml(text) }
+}
+
+export function renderAuthorEmailWithUnsub(template: AuthorEmailTemplate, v: Vars, unsub: string) {
+  const text = BUILDERS[template](v)
+  return { subject: SUBJECTS[template], text: `${text}\n\nВідписатися: ${unsub}`, html: toHtml(text, unsub) }
 }
 
 /**
@@ -188,9 +193,9 @@ export function fillVars(text: string, v: Vars) {
 }
 
 /** Верстка листа з довільного тексту — для листів, написаних вручну. */
-export function renderCustomEmail(subject: string, text: string, v: Vars) {
+export function renderCustomEmail(subject: string, text: string, v: Vars, unsub?: string) {
   const filled = fillVars(text, v)
-  return { subject: fillVars(subject, v), text: filled, html: toHtml(filled) }
+  return { subject: fillVars(subject, v), text: unsub ? `${filled}\n\nВідписатися: ${unsub}` : filled, html: toHtml(filled, unsub) }
 }
 
 /**
