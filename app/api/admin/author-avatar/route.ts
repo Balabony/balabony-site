@@ -12,12 +12,17 @@ export async function POST(req: NextRequest) {
   const email = String(fd.get('email') ?? '').trim().toLowerCase()
   const file = fd.get('file')
   const pos = Math.min(100, Math.max(0, Number(fd.get('position') ?? 50) || 0))
-  if (!email || !file || typeof file === 'string') return NextResponse.json({ error: 'Потрібні пошта автора й фото' }, { status: 400 })
+  const bio = String(fd.get('bio') ?? '').trim().slice(0, 600)
+  const hasFile = file && typeof file !== 'string'
+  if (!email || (!hasFile && !bio)) return NextResponse.json({ error: 'Потрібні пошта автора й фото або текст «Про себе»' }, { status: 400 })
 
   const r = await dbQuery(
     `select p.user_id from author_profiles p join auth.users u on u.id = p.user_id where lower(u.email) = $1 limit 1`, [email])
   const userId = (r.rows[0] as { user_id: string } | undefined)?.user_id
   if (!userId) return NextResponse.json({ error: 'Автора з такою поштою не знайдено' }, { status: 404 })
+
+  if (bio) await dbQuery(`update author_profiles set bio = $2 where user_id = $1`, [userId, bio])
+  if (!hasFile) return NextResponse.json({ ok: true, url: '' })
 
   let output: Buffer, original: Buffer
   try {
