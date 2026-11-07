@@ -179,8 +179,11 @@ export function draftAuthorEmail(template: AuthorEmailTemplate) {
 
 /** Підставляє дані автора у відредагований текст. */
 export function fillVars(text: string, v: Vars) {
+  // 07.11.2026: автор без імені в профілі — «Доброго дня, !» виглядало б як помилка.
+  const name = (v.name ?? '').trim()
+  if (!name) text = text.replace(new RegExp(`,\\s*${VAR_NAME.replace(/[{}]/g, '\\$&')}`, 'g'), '').split(VAR_NAME).join('')
   return text
-    .split(VAR_NAME).join(v.name)
+    .split(VAR_NAME).join(name)
     .split(VAR_EMAIL).join(v.email)
 }
 
