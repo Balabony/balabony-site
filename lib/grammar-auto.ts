@@ -40,8 +40,8 @@ export async function autoGrammarChecks(budgetMs = 240_000): Promise<string[]> {
   const r = await dbQuery(
     `(select 'contest' as source, e.id::text as id, e.title, e.created_at
         from contest_entries e
-       where (e.status = 'new' or exists (select 1 from contest_assignments a where a.entry_id = e.id))
-         and e.status <> 'rejected'
+       -- 07.11.2026 (Богдан): перевіряємо всі невідхилені конкурсні роботи, зокрема вже прийняті казки
+       where e.status <> 'rejected'
          and exists (select 1 from contest_episodes ep where ep.entry_id = e.id)
          and not exists (select 1 from grammar_checks g where g.source = 'contest' and g.source_id = e.id::text))
      union all

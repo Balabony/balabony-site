@@ -11,7 +11,10 @@
 // cron publish-scheduled. За ДВА ДНІ до виходу Богдан отримує лист-нагадування
 // (cron pending-check), щоб ще раз переглянути текст.
 // Відхилена робота знімається з розкладу (unscheduleEntry).
-// Конкурси з однією серією (казки, «Один день», «З вітерцем») виходять одразу після прийняття (05.11.2026).
+// Конкурси з однією серією — за умовами конкурсу (07.11.2026, Богдан: «умови не порушуємо»):
+//   казки «Одного разу перед Різдвом» — по одній на день 25.11–19.12.2026, 18:00;
+//   «Один день, який усе змінив» і «З вітерцем» — по одній на день 12–29.01.2027, 18:00.
+//   Черга — у порядку прийняття: кожна нова робота бере наступний вільний день.
 // =============================================================================
 
 import { dbQuery } from '@/lib/db'
@@ -22,6 +25,12 @@ const AT = 'T16:00:00Z'
 // 05.11.2026 (Богдан): старт перенесено на 6 листопада — 6, 10, 13, 17, 20.11, 18:00.
 const FIVE_EVENINGS = ['2026-11-06', '2026-11-10', '2026-11-13', '2026-11-17', '2026-11-20']
 const SERIAL_START = '2026-11-25'
+// Черги для конкурсів з однією серією: [перший день, кількість днів].
+const QUEUES: Record<string, [string, number]> = {
+  'odnoho-razu-pered-rizdvom': ['2026-11-25', 25],
+  'odyn-den': ['2027-01-12', 18],
+  'z-viterczem': ['2027-01-12', 18],
+}
 
 function addDays(ymd: string, days: number): string {
   const d = new Date(`${ymd}T12:00:00Z`)
@@ -53,11 +62,23 @@ export async function scheduleEntry(entryId: string): Promise<number> {
       where ep.entry_id::text = $1 and c.status in ('draft', 'scheduled')`,
     [entryId],
   )
+  // Черга конкурсу з однією серією: скільки інших робіт уже мають дату — така й наша позиція.
+  let queued: string | null = null
+  const q = QUEUES[entry.contest]
+  if (q) {
+    const taken = await dbQuery(
+      `select count(distinct ep.entry_id)::int as n
+         from contest_episodes ep join contest_entries e on e.id = ep.entry_id join content c on c.id = ep.content_id
+        where e.contest = $1 and ep.entry_id::text <> $2 and c.publish_at is not null and c.status in ('scheduled', 'published')`,
+      [entry.contest, entryId],
+    )
+    const slot = ((taken.rows[0] as { n: number } | undefined)?.n ?? 0) % q[1]
+    queued = addDays(q[0], slot) + AT
+  }
   let n = 0
   for (const ep of eps.rows as { ord: number; content_id: string }[]) {
-    // 05.11.2026 (Богдан): конкурси з однією серією — вихід одразу після погодження редакторами
-    // (найближчий щогодинний запуск). Дочитування однаково рахуються лише в офіційні дати.
-    const when = episodeDate(entry.contest, entry.entry_number, ep.ord) ?? new Date().toISOString()
+    const when = episodeDate(entry.contest, entry.entry_number, ep.ord) ?? queued
+    if (!when) continue
     await dbQuery(
       `update content set status = 'scheduled', publish_at = $2, updated_at = now()
         where id::text = $1 and status in ('draft', 'scheduled')`,
@@ -85,7 +106,8 @@ export async function schedulePending(): Promise<void> {
        join contest_episodes ep on ep.entry_id = e.id
        join content c on c.id = ep.content_id
       where e.status = 'accepted' and c.status = 'draft'
-        and e.contest in ('pyat-vechoriv', 'ce-dovha-istoriya')`,
+        and e.contest in ('pyat-vechoriv', 'ce-dovha-istoriya', 'odnoho-razu-pered-rizdvom', 'odyn-den', 'z-viterczem')
+      order by e.id::text`,
   )
   for (const row of r.rows as { id: string }[]) {
     try { await scheduleEntry(row.id) } catch (err) { console.error('[contest-schedule]', row.id, (err as Error)?.message) }
