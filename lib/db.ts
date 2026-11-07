@@ -5,8 +5,14 @@ let pool: Pool | null = null
 export function getPool(): Pool {
   if (!pool) {
     if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL not configured')
+    // 07.11.2026: EMAXCONNSESSION повторилася (адмінка «Кабінети авторів»). Session pooler Supabase
+    // (порт 5432) дає лише 15 з'єднань на всі копії функцій Vercel. Transaction pooler (порт 6543)
+    // розрахований саме на serverless: з'єднання віддається після кожного запиту. Сесійних функцій
+    // (LISTEN, advisory locks, temp tables, SET) у коді немає — перевірено.
+    let url = process.env.DATABASE_URL
+    if (/pooler\.supabase\.com:5432\//.test(url)) url = url.replace('pooler.supabase.com:5432/', 'pooler.supabase.com:6543/')
     pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: url,
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
       // 17.10.2026: на Vercel кожна копія функції має свій пул. За замовчуванням pg
       // відкриває до 10 з'єднань на копію, а Session pooler Supabase тримає лише 15
