@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { authorSlug } from '@/lib/author-slug'
 import { realPen } from '@/lib/pen-name'
+import { fuzzyWorks } from '@/lib/fuzzy-search'
 
 /**
  * Пошук по каталогу: назви творів, імена й псевдоніми авторів.
@@ -82,7 +83,13 @@ export async function GET(req: Request) {
 
     if (worksRes.error) throw worksRes.error
 
-    const rows = (worksRes.data ?? []) as WorkRow[]
+    let rows = (worksRes.data ?? []) as WorkRow[]
+    // 07.11.2026: точний пошук нічого не дав — шукаємо з допуском на помилки («гаржина» → «Гаражина»).
+    let fuzzy = false
+    if (rows.length === 0) {
+      rows = (await fuzzyWorks(q, ['story', 'balabony', 'tysha'])) as WorkRow[]
+      fuzzy = rows.length > 0
+    }
 
     const works = rows
       .filter((w) => w.slug && SECTION[w.type ?? ''])
@@ -101,6 +108,16 @@ export async function GET(req: Request) {
 
     // Автори з кабінетами. Ім'я й slug рахуємо так само, як на /avtory,
     // інакше посилання приведе на 404.
+    if (fuzzy && (profilesRes.data ?? []).length === 0) {
+      const ids = [...new Set(rows.map((r) => r.author_id).filter(Boolean))] as string[]
+      if (ids.length) {
+        const { data: fp } = await supabase
+          .from('author_profiles')
+          .select('user_id, display_name, pen_name, avatar_url, hide_from_directory')
+          .eq('is_active', true).in('user_id', ids.slice(0, 30))
+        ;(profilesRes as { data: unknown }).data = fp ?? []
+      }
+    }
     const profiles = ((profilesRes.data ?? []) as ProfileRow[]).filter(
       (p) => !p.hide_from_directory,
     )
@@ -137,7 +154,7 @@ export async function GET(req: Request) {
     for (const w of rows) {
       if (w.author_id) continue
       const name = (w.author_name ?? '').trim()
-      if (!name || !name.toLowerCase().includes(needle)) continue
+      if (!name || (!fuzzy && !name.toLowerCase().includes(needle))) continue
       const slug = authorSlug(name)
       if (!slug || taken.has(slug)) continue
       taken.add(slug)
@@ -150,6 +167,7 @@ export async function GET(req: Request) {
       query: q,
       works,
       authors: authors.slice(0, 12),
+      fuzzy,
     })
   } catch {
     return NextResponse.json({ query: q, works: [], authors: [] }, { status: 500 })

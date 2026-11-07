@@ -233,10 +233,31 @@ export default function StoryReadTracker({
     window.addEventListener('resize', onScroll, { passive: true })
     onScroll()   // короткий твір може вміститися на екран одразу
 
+    // 07.11.2026: де саме кидають читати. Коли читач іде зі сторінки, не дочитавши, шлемо, скільки він
+    // побачив (лише для аналітики «Де кидають читати»; на виплати й конкурси не впливає).
+    let lastProgress = 0
+    const sendProgress = () => {
+      if (sentRef.current) return
+      const p = Math.round(maxShareRef.current * 100)
+      if (p < 5 || p - lastProgress < 5) return
+      lastProgress = p
+      const blob = new Blob([JSON.stringify({ contentId, event: 'progress', percent: p })], { type: 'application/json' })
+      if (!navigator.sendBeacon?.('/api/story-read', blob)) {
+        fetch('/api/story-read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+          body: JSON.stringify({ contentId, event: 'progress', percent: p }) }).catch(() => {})
+      }
+    }
+    const onHide = () => { if (document.visibilityState === 'hidden') sendProgress() }
+    document.addEventListener('visibilitychange', onHide)
+    window.addEventListener('pagehide', sendProgress)
+
     return () => {
+      sendProgress()
       window.clearInterval(timer)
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
+      document.removeEventListener('visibilitychange', onHide)
+      window.removeEventListener('pagehide', sendProgress)
     }
   }, [contentId, slug, title, charCount, promo, analytics, selfRead, guest])
 

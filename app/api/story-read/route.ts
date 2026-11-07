@@ -129,6 +129,18 @@ export async function POST(req: Request) {
     const readDate = kyivToday()
     const db = getSupabaseAdmin()
 
+    // 07.11.2026: проміжний відсоток для аналітики «Де кидають читати». Лише піднімаємо
+    // read_percentage у незавершеному рядку за сьогодні; completed і виплат не торкаємося.
+    if (body?.event === 'progress') {
+      if (percent > 0 && percent < 100) {
+        await db.from('article_reads')
+          .update({ read_percentage: percent })
+          .eq('user_id', userId).eq('content_id', contentId).eq('read_date', readDate)
+          .eq('completed', false).lt('read_percentage', percent)
+      }
+      return NextResponse.json({ ok: true })
+    }
+
     if (event === 'open') {
       await db.from('article_reads').upsert(
         {
