@@ -56,11 +56,34 @@ export async function runGrammarCheck(title: string, full: string): Promise<Gram
   let parsed: GrammarResult | null = null
   let lastErr: Error | null = null
   for (let attempt = 0; attempt < 2 && !parsed; attempt++) {
+    // 07.11.2026: звіт повертаємо через інструмент — модель заповнює поля, і JSON завжди валідний
+    // (раніше лапки в цитатах з тексту ламали JSON, і роботу пропускали щогодини знову й знову).
     const msg = await client.messages.create({
       model: STYLE_MODEL,
       max_tokens: 6000,
+      tools: [{
+        name: 'grammar_report',
+        description: 'Звіт про грамотність тексту',
+        input_schema: {
+          type: 'object',
+          properties: {
+            level: { type: 'string' }, potential: { type: 'string' }, summary: { type: 'string' },
+            counts: { type: 'object' },
+            issues: { type: 'array', items: { type: 'object', properties: {
+              type: { type: 'string' }, quote: { type: 'string' }, fix: { type: 'string' }, why: { type: 'string' } } } },
+            strengths: { type: 'array', items: { type: 'string' } }, advice: { type: 'string' },
+          },
+          required: ['level', 'summary', 'issues'],
+        },
+      }],
+      tool_choice: { type: 'tool', name: 'grammar_report' },
       messages: [{ role: 'user', content: prompt(title, text) }],
     })
+    const tool = msg.content.find((c) => c.type === 'tool_use')
+    if (tool && tool.type === 'tool_use' && tool.input && typeof tool.input === 'object') {
+      parsed = tool.input as GrammarResult
+      break
+    }
     const raw = msg.content.map((c) => (c.type === 'text' ? c.text : '')).join('').trim()
     const clean = raw.replace(/```json/g, '').replace(/```/g, '').trim()
     const s = clean.indexOf('{'), e = clean.lastIndexOf('}')
