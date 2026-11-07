@@ -66,13 +66,17 @@ export async function scheduleEntry(entryId: string): Promise<number> {
   let queued: string | null = null
   const q = QUEUES[entry.contest]
   if (q) {
+    // Перший вільний день черги (після відхилення роботи її день звільняється й займається знову).
     const taken = await dbQuery(
-      `select count(distinct ep.entry_id)::int as n
+      `select distinct to_char(c.publish_at, 'YYYY-MM-DD') as d
          from contest_episodes ep join contest_entries e on e.id = ep.entry_id join content c on c.id = ep.content_id
         where e.contest = $1 and ep.entry_id::text <> $2 and c.publish_at is not null and c.status in ('scheduled', 'published')`,
       [entry.contest, entryId],
     )
-    const slot = ((taken.rows[0] as { n: number } | undefined)?.n ?? 0) % q[1]
+    const used = new Set((taken.rows as { d: string }[]).map((r) => r.d))
+    let slot = -1
+    for (let i = 0; i < q[1]; i++) if (!used.has(addDays(q[0], i))) { slot = i; break }
+    if (slot < 0) slot = used.size % q[1] // усі дні зайняті — друга робота на день
     queued = addDays(q[0], slot) + AT
   }
   let n = 0
