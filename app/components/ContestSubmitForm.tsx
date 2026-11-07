@@ -175,6 +175,11 @@ export default function ContestSubmitForm() {
     if (!entry && !title.trim()) e.push({ id: 'f-title', msg: 'Вкажіть назву твору.' })
     if (!entry && contest.synopsis && synopsis.trim().length < 300) e.push({ id: 'f-synopsis', msg: 'Додайте синопсис: сюжет усього серіалу від початку до розв’язки, орієнтовно одна сторінка.' })
     if (files.length === 0) e.push({ id: 'f-files', msg: 'Не вибрано жодного файлу. Прикріпіть файл із текстом твору.' })
+    // 07.11.2026 (Л. Лазаренко): великий .docx з картинками сервер (Vercel, межа 4,5 МБ на запит) відкидав
+    // не JSON-ом — автор бачив «Перевірте інтернет». Тепер кажемо прямо, що файл завеликий.
+    const big = files.find(f => f.size > 2 * 1024 * 1024)
+    if (big) e.push({ id: 'f-files', msg: `Файл «${big.name}» завеликий: ${(big.size / 1048576).toFixed(1)} МБ, а можна до 2 МБ. Найчастіше розмір дають картинки: видаліть їх із документа (ілюстрації можна надіслати окремо на nazar@balabony.com) або збережіть текст як .txt.` })
+    if (files.reduce((n, f) => n + f.size, 0) > 4 * 1024 * 1024) e.push({ id: 'f-files', msg: 'Разом файли важать понад 4 МБ. Надішліть їх двома частинами.' })
     if (!aiOk) e.push({ id: 'f-ai', msg: 'Поставте позначку про використання штучного інтелекту.' })
     if (!newOk) e.push({ id: 'f-new', msg: 'Поставте позначку, що твір не опублікований на інших платформах.' })
     return e
@@ -218,6 +223,12 @@ export default function ContestSubmitForm() {
       files.forEach(f => fd.append('files', f))
 
       const res = await fetch('/api/contest/submit', { method: 'POST', body: fd })
+      if (!(res.headers.get('content-type') ?? '').includes('json')) {
+        setNote(res.status === 413
+          ? 'Файл завеликий для завантаження. Видаліть із документа картинки або збережіть текст як .txt і спробуйте ще раз.'
+          : `Сайт не зміг прийняти файл (помилка ${res.status}). Спробуйте ще раз за кілька хвилин; якщо не вийде — надішліть файл на nazar@balabony.com.`)
+        return
+      }
       const d = await res.json() as { ok?: boolean; error?: string; totalNow?: number; totalNeed?: number; needName?: boolean }
 
       // 30.10.2026: сервер не знайшов імені (поле було сховане) — показуємо поле, щоб автор міг дописати й надіслати знову.
