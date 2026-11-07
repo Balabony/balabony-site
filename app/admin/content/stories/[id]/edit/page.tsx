@@ -12,6 +12,7 @@ import { analyzeEpisode } from '@/lib/episode-metrics'
 import EditorialTools from '@/components/admin/EditorialTools'
 // Список жанрів — один на весь проєкт, див. lib/genres.ts
 import { GENRE_OPTIONS as GENRES } from '@/lib/genres'
+import { shrinkImage } from '@/lib/shrink-image'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
 const GOLD      = '#d0a355'
@@ -145,7 +146,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
     setError('')
     try {
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', await shrinkImage(file))
 
       const res = await fetch('/api/admin/stories1/upload-cover', {
         method: 'POST',

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Cropper, { Area, Point } from 'react-easy-crop'
 // Список жанрів — один на весь проєкт, див. lib/genres.ts
 import { GENRE_OPTIONS as GENRES } from '@/lib/genres'
+import { shrinkImage } from '@/lib/shrink-image'
 
 const FONT      = "'Montserrat', Arial, sans-serif"
 const GOLD      = '#d0a355'
@@ -98,7 +99,7 @@ export default function EditStoryPage() {
     setUploadError('')
     try {
       const fd = new FormData()
-      fd.append('file', file)
+      fd.append('file', await shrinkImage(file))
       if (id) fd.append('storyId', id)
 
       const res = await fetch('/api/admin/stories1/upload-cover', {

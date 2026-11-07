@@ -61,6 +61,8 @@ export default function AuthorApplyForm() {
     const missing = AUTHOR_QUESTIONS.filter((q) => q.required && !(answers[q.id] ?? '').trim())
     if (missing.length) { setErr(`Дайте відповідь на обовʼязкові запитання: ${missing.map((q) => q.id.slice(1)).join(', ')}.`); return }
     if (!cAuthor || !cPublish) { setErr('Поставте обидві позначки згоди.'); return }
+    // 07.11.2026: файл понад 2 МБ (зазвичай .docx з картинками) сервер відкидав без пояснення.
+    if (file && file.size > 2 * 1024 * 1024) { setErr(`Файл «${file.name}» завеликий: ${(file.size / 1048576).toFixed(1)} МБ, а можна до 2 МБ. Видаліть із документа картинки або вставте текст у поле нижче.`); return }
     setBusy(true)
     try {
       const fd = new FormData()
@@ -75,6 +77,10 @@ export default function AuthorApplyForm() {
       fd.append('consentAuthor', cAuthor ? 'yes' : 'no')
       fd.append('consentPublish', cPublish ? 'yes' : 'no')
       const r = await fetch('/api/author-application', { method: 'POST', body: fd })
+      if (!(r.headers.get('content-type') ?? '').includes('json')) {
+        setErr(r.status === 413 ? 'Файл завеликий. Видаліть із документа картинки або вставте текст у поле.' : `Сайт не зміг прийняти заявку (помилка ${r.status}). Спробуйте за кілька хвилин або напишіть на nazar@balabony.com.`)
+        return
+      }
       const d = await r.json() as { ok?: boolean; error?: string }
       if (!d.ok) { setErr(d.error ?? 'Не вдалося надіслати'); return }
       trackConversion('stati_avtorom')

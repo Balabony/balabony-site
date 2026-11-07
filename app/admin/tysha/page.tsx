@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef, type ReactNode } from 'react'
 import { checkTysha, summarize, autofixTypography, type Finding, type Severity } from '@/lib/canon/tysha'
 import { MAKSYM_REF, refForEpisode, buildCoverPrompt, hasCoverPrompt } from '@/lib/tysha/coverPrompts'
+import { shrinkImage } from '@/lib/shrink-image'
 
 const FONT = "'Montserrat', Arial, sans-serif"
 const GOLD = '#d0a355'
@@ -265,7 +266,7 @@ export default function TyshaMaisternia() {
     setCoverBusy('upload'); setErr(''); setMsg('')
     try {
       const fd = new FormData()
-      fd.append('file', file)
+      fd.append('file', await shrinkImage(file))
       fd.append('episode_id', selectedId)
       const r = await fetch('/api/admin/tysha-upload-cover', { method: 'POST', body: fd, credentials: 'same-origin' })
       const d = await r.json()
