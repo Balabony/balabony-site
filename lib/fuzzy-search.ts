@@ -40,7 +40,7 @@ function wordHit(q: string, words: string[]): boolean {
     if (w.startsWith(q)) return true
     if (dist(q, w, max) <= max) return true
     // недописане слово: порівнюємо з початком довшого слова
-    if (w.length > q.length && q.length >= 4 && dist(q, w.slice(0, q.length), max) <= max) return true
+    if (w.length > q.length && q.length >= 4 && (dist(q, w.slice(0, q.length), max) <= max || dist(q, w.slice(0, q.length + 1), max) <= max)) return true
   }
   return false
 }
