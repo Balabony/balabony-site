@@ -10,8 +10,8 @@ export const maxDuration = 60
 
 const FONT = "'Montserrat', Arial, sans-serif"
 const GOLD = '#ef9f27'
-const th: React.CSSProperties = { textAlign: 'left', padding: '6px 8px', borderBottom: '1px solid #ddd', fontSize: 12.5, color: '#555' }
-const td: React.CSSProperties = { padding: '6px 8px', borderBottom: '1px solid #eee', fontSize: 13.5, verticalAlign: 'top' }
+const th: React.CSSProperties = { textAlign: 'left', padding: '6px 8px', borderBottom: '1px solid #3a4f73', fontSize: 12.5, color: '#9fb0c6' }
+const td: React.CSSProperties = { padding: '6px 8px', borderBottom: '1px solid #24365a', fontSize: 13.5, verticalAlign: 'top' }
 
 const L: Record<string, string> = {
   dzherelo: 'Джерело', vizytiv: 'Візитів', storinka: 'Сторінка', perehliadiv: 'Переглядів', mediana_sek: 'Медіана, с',
@@ -27,7 +27,7 @@ const L: Record<string, string> = {
 }
 
 function T({ rows }: { rows: Row[] }) {
-  if (!rows.length) return <p style={{ color: '#888', fontSize: 13.5 }}>Даних ще немає (нові показники збираються з 06.11.2026).</p>
+  if (!rows.length) return <p style={{ color: '#9fb0c6', fontSize: 13.5 }}>Даних ще немає (нові показники збираються з 06.11.2026).</p>
   const keys = Object.keys(rows[0])
   return (
     <div style={{ overflowX: 'auto' }}>
@@ -39,7 +39,7 @@ function T({ rows }: { rows: Row[] }) {
   )
 }
 const H = ({ children }: { children: React.ReactNode }) => <h2 style={{ fontSize: 17, color: GOLD, margin: '26px 0 4px' }}>{children}</h2>
-const N = ({ children }: { children: React.ReactNode }) => <p style={{ fontSize: 12.5, color: '#777', margin: '0 0 4px' }}>{children}</p>
+const N = ({ children }: { children: React.ReactNode }) => <p style={{ fontSize: 12.5, color: '#9fb0c6', margin: '0 0 4px' }}>{children}</p>
 const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : '—')
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ d?: string }> }) {
@@ -52,14 +52,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ d
   const lr = later.reduce((a, s) => a + s.readers, 0), ls = later.reduce((a, s) => a + s.prev_first, 0)
 
   return (
-    <main style={{ fontFamily: FONT, maxWidth: 1040, margin: '0 auto', padding: '24px 16px 60px' }}>
-      <h1 style={{ fontSize: 23, margin: 0 }}>Аналітика: читачі, джерела, тексти</h1>
-      <N>Період: {days} дн. · <a href="?d=7">7</a> · <a href="?d=30">30</a> · <a href="?d=90">90</a>. Команда (браузери, з яких заходили в адмінку чи кабінет редактора) з показників читачів виключена.</N>
+    <main style={{ fontFamily: FONT, color: '#e8eef7', maxWidth: 1040, margin: '0 auto', padding: '24px 16px 60px' }}>
+      <h1 style={{ fontSize: 23, margin: 0, color: '#f5f0e8' }}>Аналітика: читачі, джерела, тексти</h1>
+      <N>Період: {days} дн. · <a href="?d=7" style={{ color: GOLD }}>7</a> · <a href="?d=30" style={{ color: GOLD }}>30</a> · <a href="?d=90" style={{ color: GOLD }}>90</a>. Команда (браузери, з яких заходили в адмінку чи кабінет редактора) з показників читачів виключена.</N>
 
       <H>Висновки й поради ШІ (щопонеділка)</H>
       {ins ? (
-        <div style={{ whiteSpace: 'pre-wrap', fontSize: 14.5, lineHeight: 1.6, background: '#fff8ee', border: '1px solid #f3d9a8', borderRadius: 10, padding: '12px 14px' }}>
-          <div style={{ fontSize: 12, color: '#999', marginBottom: 6 }}>Сформовано: {new Date(ins.created_at).toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv' })}</div>
+        <div style={{ whiteSpace: 'pre-wrap', fontSize: 14.5, lineHeight: 1.6, background: '#13233f', color: '#e8eef7', border: '1px solid #3a4f73', borderRadius: 10, padding: '12px 14px' }}>
+          <div style={{ fontSize: 12, color: '#9fb0c6', marginBottom: 6 }}>Сформовано: {new Date(ins.created_at).toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv' })}</div>
           {ins.text}
         </div>
       ) : <N>Перші висновки — у понеділок о 08:30 або кнопкою нижче.</N>}
