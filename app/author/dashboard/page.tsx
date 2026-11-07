@@ -27,6 +27,7 @@ import ShareWorkTemplate from '@/app/components/ShareWorkTemplate'
 import RequestUnpublishButton from '@/app/components/RequestUnpublishButton'
 import CopyLinkButton from '@/app/components/CopyLinkButton'
 import { realPen } from '@/lib/pen-name'
+import { authorSlug } from '@/lib/author-slug'
 
 export const dynamic = 'force-dynamic'
 
@@ -1078,6 +1079,23 @@ export default async function AuthorDashboardPage() {
           displayName={realPen(profile.pen_name) || profile.display_name || 'Автор'}
           initialHidden={profile.hide_from_directory ?? false}
         />
+
+        {/* 07.11.2026: автори не могли знайти посилання на свою сторінку. */}
+        {myName && (
+          <div style={{
+            border: '1px solid rgba(239,159,39,0.45)', borderRadius: 12,
+            padding: '12px 16px', margin: '0 0 1.5rem',
+          }}>
+            <div style={{ fontWeight: 700, marginBottom: 4 }}>Ваша сторінка автора</div>
+            <a href={`/avtor/${authorSlug(myName)}`} style={{ color: '#FAC775', wordBreak: 'break-all' }}>
+              {`https://balabony.com/avtor/${authorSlug(myName)}`}
+            </a>
+            <div style={{ fontSize: '0.85rem', opacity: 0.75, marginTop: 4 }}>
+              Якщо змінити ім&apos;я чи псевдонім у профілі, адреса сторінки теж зміниться.
+            </div>
+            <CopyLinkButton url={`https://balabony.com/avtor/${authorSlug(myName)}`} />
+          </div>
+        )}
 
         {/* Конкурси — усі активні, з дедлайнами. Компонент рахує дні в браузері. */}
         <ContestCountdown />
