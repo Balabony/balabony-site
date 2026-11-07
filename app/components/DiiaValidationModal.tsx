@@ -22,6 +22,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { trackConversion } from '@/lib/conversion'
+import { shrinkImage } from '@/lib/shrink-image'
 
 export type DiiaDocType =
   | 'reference-internally-displaced-person'
@@ -162,7 +163,12 @@ export default function DiiaValidationModal({
     try {
       const fd = new FormData()
       fd.append('category', selected.category)
-      fd.append('document', file)
+      if (file.type === 'application/pdf' && file.size > 4 * 1024 * 1024) {
+        setMessage('PDF завеликий (понад 4 МБ). Сфотографуйте документ телефоном або стисніть PDF і спробуйте ще раз.')
+        setLoading(false)
+        return
+      }
+      fd.append('document', await shrinkImage(file, 2600, 0.9))
 
       const res = await fetch('/api/benefit/manual', { method: 'POST', body: fd })
 
@@ -172,6 +178,11 @@ export default function DiiaValidationModal({
         return
       }
 
+      if (!(res.headers.get('content-type') ?? '').includes('json')) {
+        setMessage(res.status === 413 ? 'Файл завеликий. Сфотографуйте документ ще раз або оберіть менший файл.' : `Сайт не зміг прийняти файл (помилка ${res.status}). Спробуйте за кілька хвилин.`)
+        setLoading(false)
+        return
+      }
       const data = (await res.json()) as { ok?: boolean; error?: string }
 
       if (data.ok) {
@@ -181,8 +192,8 @@ export default function DiiaValidationModal({
       } else {
         setMessage(data.error ?? 'Не вдалося надіслати заявку. Спробуйте ще раз.')
       }
-    } catch {
-      setMessage('Не вдалося зв’язатися з сервером. Спробуйте ще раз.')
+    } catch (e) {
+      setMessage(e instanceof Error && e.message.startsWith('Не вдалося') ? e.message : 'Не вдалося зв’язатися з сервером. Спробуйте ще раз.')
     } finally {
       setLoading(false)
     }
