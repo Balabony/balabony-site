@@ -4,8 +4,11 @@ import { CONTESTS } from '@/lib/contests'
 // 05.11.2026 (Богдан): дочитування зараховуються лише в офіційні дати конкурсу
 // (stages.publishFrom … stages.reviewUntil, за Києвом). Раніше рахувалися з моменту
 // публікації — твір, що вийшов у жовтні, мав фору перед тим, що вийде в січні.
+// 07.11.2026: для конкурсів з однією серією в опублікованих умовах — окреме вікно для КОЖНОГО твору:
+// казки — 21 день від виходу казки, «Один день» і «З вітерцем» — 30 днів від виходу твору.
+const PER_WORK_DAYS: Record<string, number> = { 'odnoho-razu-pered-rizdvom': 21, 'odyn-den': 30, 'z-viterczem': 30 }
 const WINDOWS = CONTESTS.map((c) =>
-  `('${c.id}', ${c.stages?.publishFrom ? `date '${c.stages.publishFrom}'` : 'null::date'}, ${c.stages?.reviewUntil ? `date '${c.stages.reviewUntil}'` : 'null::date'})`,
+  `('${c.id}', ${c.stages?.publishFrom ? `date '${c.stages.publishFrom}'` : 'null::date'}, ${c.stages?.reviewUntil ? `date '${c.stages.reviewUntil}'` : 'null::date'}, ${PER_WORK_DAYS[c.id] ?? 'null::int'})`,
 ).join(',\n         ')
 
 /**
@@ -81,7 +84,7 @@ export type PublicContestRow = {
  * розійдуться в цифрах, і довести, яка з них правильна, буде нічим.
  */
 const BASE_CTE = `
-  with win(contest, f, u) as (
+  with win(contest, f, u, days) as (
     values ${WINDOWS}
   ),
   works as (
@@ -91,7 +94,9 @@ const BASE_CTE = `
            c.author_id,
            c.status     as content_status,
            w0.f         as win_from,
-           w0.u         as win_until
+           w0.u         as win_until,
+           w0.days      as win_days,
+           (coalesce(c.published_at, c.publish_at) at time zone 'Europe/Kyiv')::date as pub_day
       from contest_episodes ep
       join content c on c.id = ep.content_id
       join contest_entries e0 on e0.id = ep.entry_id
@@ -110,6 +115,7 @@ const BASE_CTE = `
      where (w.author_id is null or ar.user_id <> w.author_id)
        and (w.win_from is null or ar.read_date >= w.win_from)
        and (w.win_until is null or ar.read_date <= w.win_until)
+       and (w.win_days is null or (w.pub_day is not null and ar.read_date >= w.pub_day and ar.read_date < w.pub_day + w.win_days))
        and exists (
              select 1
                from article_reads ar2
