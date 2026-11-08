@@ -83,7 +83,7 @@ export async function sendSignCode(authorId: string, contractId: string): Promis
      values ($1, $2, $3, $4, now() + ($5 || ' minutes')::interval)`,
     [c.id, authorId, hashCode(c.id, code), c.email, String(TTL_MIN)],
   )
-  await mailer().emails.send({
+  const sent = await mailer().emails.send({
     from: FROM(), to: c.email,
     subject: `Код для підписання договору № ${c.number}: ${code}`,
     html: wrap(`<p style="color:#c8d4e8;margin:0 0 14px">Ваш код для підписання авторського договору № ${c.number}:</p>
@@ -91,6 +91,8 @@ export async function sendSignCode(authorId: string, contractId: string): Promis
 <p style="color:#c8d4e8;margin:0 0 8px">Код діє ${TTL_MIN} хвилин. Введіть його на сторінці договору — і договір буде підписано.</p>
 <p style="color:#8899bb;font-size:13px;margin:16px 0 0">Ви не підписували договір? Просто проігноруйте цей лист — без коду нічого не станеться.</p>`),
   })
+  // Resend не кидає виняток, а повертає { error } — інакше автор бачив би «надіслано», а листа немає
+  if (sent?.error) { console.error('[otp] resend', sent.error); return { ok: false, error: 'Не вдалося надіслати лист із кодом. Спробуйте ще раз за хвилину або напишіть у редакцію.', status: 502 } }
   return { ok: true, to: maskEmail(c.email) }
 }
 
