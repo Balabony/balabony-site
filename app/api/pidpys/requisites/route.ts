@@ -28,7 +28,9 @@ export async function POST(req: NextRequest) {
 
   try {
     const up = await dbQuery(
-      `update author_profiles set full_name = $1, rnokpp = $2, birth_date = $3, phone = $4, is_fop = $5,
+      // Лише порожні поля: посилання можуть переслати, тож чужі дані через нього не перезаписати (виправлення — у кабінеті).
+      `update author_profiles set full_name = coalesce(nullif(full_name, ''), $1), rnokpp = coalesce(nullif(rnokpp, ''), $2),
+              birth_date = coalesce(birth_date, $3::date), phone = coalesce(nullif(phone, ''), $4), is_fop = $5,
               revenue_share = $6, requisites_updated_at = now()
         where user_id = $7`,
       [fullName, rnokpp, birthDate, phone, isFop, isFop ? 0.5 : 0.4, authorId],
