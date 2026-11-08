@@ -55,6 +55,7 @@ export const KAZKY_TEMY: KazkyTema[] = [
     intro: 'Їжачок Колючко рахує осінь, пан Кіт розповідає теплі історії, мурахи вчать дружити, а звірі разом рятуються від зими. Казки про тварин — найулюбленіші в дитинстві: через пригоди звірят дитина вчиться співчувати, ділитися й не боятися.',
     slugs: [
       'yak-yizhachok-kolyuchko-rakhuvav-osin',
+      'rizdviani-pryhody-chervonoi-pandy-sema-ta-ienotyka-avi',
       'zymivlya-zviriv',
       'druzi-murakhy',
       'mavpyachi-khytroshchi',
@@ -89,6 +90,7 @@ export const KAZKY_TEMY: KazkyTema[] = [
     intro: 'Сніг за вікном, ялинка, чекання на святого Миколая — найкращий час для зимових казок. Добірка поповнюється до Різдва: редакція Балабонів готує нові новорічні історії, а автори подають різдвяні казки на наш конкурс.',
     slugs: [
       'snihovyk-gudzyk-i-zahublena-zirochka',
+      'rizdviani-pryhody-chervonoi-pandy-sema-ta-ienotyka-avi',
       'mriyi-zdijsnyuyutsya',
       'yak-vedmezhatko-ne-prospalo-rizdvo',
       'lyst-do-sviatoho-mykolaia',
@@ -183,6 +185,7 @@ export const KAZKY_TEMY: KazkyTema[] = [
     intro: 'Як подружитися з сусідом, з яким досі лише сварився? Що робити, коли підвів друга? Мурахи рятують одне одного, іграшкова Ксеня шукає свою дівчинку, Гордійко й Макс нарешті стають друзями, а двоє сміливців разом ловлять привида.',
     slugs: [
       'druzi-murakhy',
+      'rizdviani-pryhody-chervonoi-pandy-sema-ta-ienotyka-avi',
       'najkrashi-druzi33',
       'druh-dlia-maizhe-chempiona',
       'yak-my-z-roneyu-upiymaly-pryvyda',
