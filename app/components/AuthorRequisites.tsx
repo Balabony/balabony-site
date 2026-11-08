@@ -51,7 +51,8 @@ type Props = { initial: Requisites }
 // app/author/contract/[id]/page.tsx (масив missing).
 const RED = '#e06666'
 
-const REQUIRED: (keyof Requisites)[] = ['full_name', 'rnokpp', 'birth_date', 'address', 'phone', 'payout_iban', 'bank_name']
+// 08.11.2026: для договору досить чотирьох полів; адреса, IBAN і банк — перед першою виплатою.
+const REQUIRED: (keyof Requisites)[] = ['full_name', 'rnokpp', 'birth_date', 'phone']
 
 // Поштові поля потрібні НЕ для договору, а для паперової розсилки (1 жовтня).
 // Тому вони просяться у формі, але НЕ входять до REQUIRED: договір без
@@ -115,7 +116,7 @@ export default function AuthorRequisites({ initial }: Props) {
     const rnokpp = (form.rnokpp ?? '').replace(/\D/g, '')
     if (rnokpp.length !== 10) return bad('rnokpp', `Поле «РНОКПП»: потрібно рівно 10 цифр, зараз ${rnokpp.length}.`)
     const iban = (form.payout_iban ?? '').replace(/\s/g, '').toUpperCase()
-    if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban)) return bad('payout_iban', 'Поле «IBAN»: впишіть повний номер рахунку — український (UA…) або іноземний (напр. польський PL…). Пробіли можна лишати.')
+    if (iban && !/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban)) return bad('payout_iban', 'Поле «IBAN»: впишіть повний номер рахунку — український (UA…) або іноземний (напр. польський PL…). Пробіли можна лишати.')
     const bd = (form.birth_date ?? '').trim()
     if (!/^\d{4}-\d{2}-\d{2}$/.test(bd)) return bad('birth_date', 'Оберіть дату народження тут — це окреме поле, у «Про себе» вона не зараховується.')
     const born = new Date(bd)
@@ -123,12 +124,11 @@ export default function AuthorRequisites({ initial }: Props) {
     const eighteen = new Date(born.getFullYear() + 18, born.getMonth(), born.getDate())
     if (eighteen > new Date()) return bad('birth_date', 'Договір укладається з особами, які досягли 18 років. Напишіть нам — оформимо за згодою батьків.')
     if ((form.phone ?? '').replace(/\D/g, '').length < 10) return bad('phone', 'Впишіть номер повністю, 10 цифр.')
-    if (!(form.address ?? '').trim()) return bad('address', 'Впишіть адресу для листування.')
     // Назву банку не перевіряємо на вміст: платіж іде за IBAN, а назва
     // довідкова. Спроба вимагати слово «банк» відсікла б клієнтів ПУМБ і
     // будь-якої установи з назвою без цього слова — заблокувати людину
     // помилково гірше, ніж пропустити неточність у довідковому полі.
-    if (!(form.bank_name ?? '').trim()) {
+    if (iban && !(form.bank_name ?? '').trim()) {
       return bad('bank_name', 'Оберіть банк кнопкою — ПриватБанк, Ощадбанк, monobank — або впишіть назву своєї установи.')
     }
     const zip = (form.postal_code ?? '').replace(/\D/g, '')

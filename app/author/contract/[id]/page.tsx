@@ -7,6 +7,7 @@ import { buildVars, fmtDate, DASH } from '@/lib/contract/vars'
 import { computeDocHash, shortHash } from '@/lib/contract/hash'
 import type { ContractSnapshot } from '@/lib/contract/snapshot'
 import PrintButton from '@/app/components/PrintButton'
+import ContractText from '@/app/components/ContractText'
 
 export const metadata: Metadata = {
   title: 'Авторський договір · Балабони',
@@ -63,10 +64,7 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
     ['full_name',   'прізвище, імʼя та по батькові'],
     ['rnokpp',      'РНОКПП'],
     ['birth_date',  'дата народження'],
-    ['address',     'адреса'],
     ['phone',       'номер телефону'],
-    ['payout_iban', 'IBAN'],
-    ['bank_name',   'назва банку'],
   ] as const)
     .filter(([k]) => !String(prof[k] ?? '').trim())
     .map(([, label]) => label)
@@ -153,34 +151,7 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
           </div>
         )}
 
-        {blocks.map((b, i) => {
-          const t = b.t
-          if (b.k === 'h1') {
-            return <h1 key={i} style={{ fontSize: 23, textAlign: 'center', margin: '0 0 6px', fontWeight: 700, letterSpacing: 0.5 }}>{t}</h1>
-          }
-          // Підзаголовок під назвою договору
-          if (i === 1) {
-            return <p key={i} style={{ fontSize: 16, textAlign: 'center', margin: '0 0 26px', fontWeight: 700 }}>{t}</p>
-          }
-          // Рядок «№ … від …» і місто — по краях одного рядка
-          if (t.startsWith('№') && t.includes('м. Львів')) {
-            const city = 'м. Львів'
-            const left = t.replace(city, '').trim()
-            return (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap', fontSize: 14.5, fontWeight: 700, margin: '0 0 20px' }}>
-                <span>{left}</span>
-                <span>{city}</span>
-              </div>
-            )
-          }
-          if (b.k === 'h2') {
-            return <h2 key={i} style={{ fontSize: 16, margin: '20px 0 8px', fontWeight: 700 }}>{t}</h2>
-          }
-          if (b.k === 'req') {
-            return <p key={i} style={{ fontSize: 15, margin: '18px 0 6px', fontWeight: 700, letterSpacing: 0.5 }}>{t}</p>
-          }
-          return <p key={i} style={{ fontSize: 14.5, lineHeight: 1.6, margin: '0 0 8px', textAlign: 'justify' }}>{t}</p>
-        })}
+        <ContractText blocks={blocks} />
 
         <div style={{
           marginTop: 30, paddingTop: 14, borderTop: '1px solid #d8dee8',

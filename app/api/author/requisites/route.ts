@@ -53,11 +53,12 @@ export async function POST(req: NextRequest) {
   if (rnokpp.length !== 10) {
     return NextResponse.json({ ok: false, error: 'РНОКПП має містити 10 цифр' }, { status: 400 })
   }
-  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban)) {
+  // 08.11.2026: IBAN, банк і адреса — не обовʼязкові для договору (додаються перед першою виплатою)
+  if (iban && !/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban)) {
     return NextResponse.json({ ok: false, error: 'Невірний формат IBAN' }, { status: 400 })
   }
-  if (!address || !bankName || phone.replace(/\D/g, '').length < 10) {
-    return NextResponse.json({ ok: false, error: 'Заповніть усі обовʼязкові поля' }, { status: 400 })
+  if (phone.replace(/\D/g, '').length < 10) {
+    return NextResponse.json({ ok: false, error: 'Впишіть номер телефону повністю' }, { status: 400 })
   }
 
   // Дата народження — п. 6.1-2 договору: підтвердження повноліття Автора.
@@ -100,7 +101,7 @@ export async function POST(req: NextRequest) {
             requisites_updated_at = now()
       where user_id = $14`,
     [
-      fullName, rnokpp, address, phone, iban, bankName,
+      fullName, rnokpp, address || null, phone, iban || null, bankName || null,
       (b.payoutRecipient ?? '')?.trim() || null,
       realPen(b.penName) || null, // «немає» → порожньо
       birthDate,

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import KepUpload from '@/app/components/KepUpload'
+import OtpSign from '@/app/components/OtpSign'
 
 const BRAND = {
   cream: '#0f1e3a',
@@ -167,8 +168,8 @@ export default function AuthorContracts(
       {rows.length === 0 && (
         <div>
           <p style={{ color: BRAND.text, lineHeight: 1.6, margin: '0 0 12px' }}>
-            Договору ще немає. Заповніть реквізити вище — і сформуйте договір, він одразу підставить
-            ваші дані.
+            Договору ще немає. Заповніть вище лише 4 поля — ПІБ, РНОКПП, дату народження й телефон — і
+            сформуйте договір. Банківський рахунок і адресу можна додати пізніше, перед першою виплатою.
           </p>
           <button
             type="button"
@@ -192,7 +193,7 @@ export default function AuthorContracts(
               </div>
               {c.signed_at && (
                 <div style={{ color: BRAND.muted, fontSize: '0.8rem', marginTop: 4 }}>
-                  Підписано {new Date(c.signed_at).toLocaleDateString('uk-UA')} · Дія.Підпис
+                  Підписано {new Date(c.signed_at).toLocaleDateString('uk-UA')}
                 </div>
               )}
             </div>
@@ -224,11 +225,7 @@ export default function AuthorContracts(
                 ? `Підтвердити твори (${c.pending_count} очікують)`
                 : 'Перелік творів'}
             </a>
-            {c.status !== 'signed' && diiaEnabled && (
-              <button type="button" onClick={() => start(c.id)} disabled={busy} style={primaryBtn}>
-                Підписати через Дію
-              </button>
-            )}
+
             {c.status === 'signed' && c.signed_pdf_url && (
               <a href={c.signed_pdf_url} style={linkBtn}>Договір із підписом</a>
             )}
@@ -237,7 +234,30 @@ export default function AuthorContracts(
             )}
           </div>
 
-          {c.status !== 'signed' && <KepUpload contractId={c.id} docUrl={c.doc_url} />}
+          {/* 08.11.2026 (рішення засновника): головний спосіб — код з пошти; Дія, КЕП і папір — під «Інші способи». */}
+          {c.status !== 'signed' && (
+            <OtpSign
+              contractId={c.id}
+              pendingCount={c.pending_count ?? 0}
+              docUrl={c.doc_url}
+              onSigned={() => setRows(prev => prev.map(x => x.id === c.id ? { ...x, status: 'signed', signed_at: new Date().toISOString() } : x))}
+            />
+          )}
+          {c.status !== 'signed' && (
+            <details style={{ marginTop: 12 }}>
+              <summary style={{ cursor: 'pointer', color: BRAND.muted, fontSize: '0.9rem' }}>Інші способи підписати: «Дія», ключ КЕП, папір поштою</summary>
+              {diiaEnabled && (
+                <button type="button" onClick={() => start(c.id)} disabled={busy} style={{ ...primaryBtn, marginTop: 10 }}>
+                  Підписати через Дію
+                </button>
+              )}
+              <KepUpload contractId={c.id} docUrl={c.doc_url} />
+              <p style={{ color: BRAND.muted, fontSize: '0.82rem', marginTop: 10, lineHeight: 1.6 }}>
+                Хочете на папері?{' '}
+                <a href="/contacts" style={{ color: BRAND.amberDark }}>Замовте паперовий примірник</a> — надішлемо поштою за наш рахунок.
+              </p>
+            </details>
+          )}
 
           {activeId === c.id && session && (
             <div style={{ marginTop: 16, padding: '1rem', border: `1px solid ${BRAND.line}`, borderRadius: 12, background: '#fffdf8' }}>
@@ -289,11 +309,6 @@ export default function AuthorContracts(
         <p style={{ color: BRAND.text, fontSize: '0.88rem', marginTop: 12 }}>{note}</p>
       )}
 
-      <p style={{ color: BRAND.muted, fontSize: '0.82rem', marginTop: 16, lineHeight: 1.6 }}>
-        Немає Дія.Підпису? Підпишіть договір кваліфікованим електронним підписом і додайте файл нижче,
-        або{' '}
-        <a href="/contacts" style={{ color: BRAND.amberDark }}>замовте паперовий примірник</a>.
-      </p>
     </section>
   )
 }

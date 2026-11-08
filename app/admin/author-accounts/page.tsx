@@ -124,6 +124,19 @@ export default function AdminAuthorAccountsPage() {
    */
   const [paperBusy, setPaperBusy] = useState<string | null>(null)
 
+  // 08.11.2026: персональне посилання на підпис договору без входу в кабінет (/pidpys/…) — копіюється в буфер.
+  const [linkNote, setLinkNote] = useState<Record<string, string>>({})
+  async function signLink(userId: string) {
+    setLinkNote(p => ({ ...p, [userId]: '…' }))
+    try {
+      const res = await fetch('/api/admin/contract-sign-link', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ authorId: userId }) })
+      const d = await res.json() as { ok?: boolean; url?: string; error?: string }
+      if (!d.ok || !d.url) { setLinkNote(p => ({ ...p, [userId]: d.error ?? 'Помилка' })); return }
+      try { await navigator.clipboard.writeText(d.url); setLinkNote(p => ({ ...p, [userId]: 'скопійовано ✓ (діє 21 день)' })) }
+      catch { window.prompt('Посилання на підпис (скопіюйте):', d.url); setLinkNote(p => ({ ...p, [userId]: '' })) }
+    } catch { setLinkNote(p => ({ ...p, [userId]: 'Немає звʼязку' })) }
+  }
+
   async function markPaper(contractId: string, undo: boolean) {
     if (paperBusy) return
     setPaperBusy(contractId)
@@ -681,13 +694,21 @@ export default function AdminAuthorAccountsPage() {
                                     : r.contract_method === 'paper'
                                       ? 'зняти позначку'
                                       : r.contract_status === 'signed'
-                                        ? 'підписано КЕП'
+                                        ? (r.contract_method === 'otp' ? 'підписано кодом з пошти' : 'підписано КЕП')
                                         : 'підписано на папері'}
                                 </button>
                               )}
                             </>
                           )
                           : <span style={{ color: MUTED }}><Dot tone="warn" />немає</span>}
+                        {r.contract_status !== 'signed' && (
+                          <div style={{ marginTop: 5 }}>
+                            <button onClick={() => void signLink(r.user_id)} style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', fontSize: 12, color: GOLD, textDecoration: 'underline', cursor: 'pointer' }}>
+                              посилання на підпис
+                            </button>
+                            {linkNote[r.user_id] && <span style={{ color: MUTED, fontSize: 12, marginLeft: 6 }}>{linkNote[r.user_id]}</span>}
+                          </div>
+                        )}
                       </td>
 
                       <td style={td}>
