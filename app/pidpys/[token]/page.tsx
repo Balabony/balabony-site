@@ -53,8 +53,14 @@ export default async function Pidpys({ params }: { params: Promise<{ token: stri
     const w = await dbQuery(`select content_id, title, confirmed_at from contract_works where contract_id = $1`, [contract.id])
     pending = w.rows.filter((x) => !x.confirmed_at).length
     const V = buildVars(contract, prof, email, w.rows.length)
-    blocks = contract.doc_snapshot?.blocks?.length
-      ? contract.doc_snapshot.blocks
+    // Посилання можуть переслати — тож РНОКПП, дату народження й телефон тут показуємо частково.
+    // У підписаному знімку (saveContractSnapshot) — повні значення, як у кабінеті.
+    const tail = (v: string, n: number) => (v && v !== DASH ? '•'.repeat(Math.max(0, v.length - n)) + v.slice(-n) : v)
+    V.AUTHOR_RNOKPP = tail(V.AUTHOR_RNOKPP, 3)
+    V.AUTHOR_BIRTHDATE = V.AUTHOR_BIRTHDATE && V.AUTHOR_BIRTHDATE !== DASH ? '••.••.' + V.AUTHOR_BIRTHDATE.slice(-4) : V.AUTHOR_BIRTHDATE
+    V.AUTHOR_PHONE = tail(V.AUTHOR_PHONE, 2)
+    blocks = contract.doc_snapshot?.blocks?.length && contract.status === 'signed'
+      ? []
       : CONTRACT_BLOCKS.map((b) => ({ k: b.k, t: b.t.replace(/\{\{(\w+)\}\}/g, (_, k: string) => V[k] ?? DASH) }))
   }
   const name = String(prof.full_name ?? '').split(' ').slice(1, 3).join(' ')
@@ -78,13 +84,13 @@ export default async function Pidpys({ params }: { params: Promise<{ token: stri
           token={token}
           needRequisites={missing.length > 0 || !contract}
           missing={missing}
-          initial={{ fullName: String(prof.full_name ?? ''), rnokpp: String(prof.rnokpp ?? ''), birthDate: prof.birth_date ? String(prof.birth_date).slice(0, 10) : '', phone: String(prof.phone ?? ''), isFop: prof.is_fop === true }}
+          initial={{ fullName: String(prof.full_name ?? ''), rnokpp: '', birthDate: prof.birth_date ? String(prof.birth_date).slice(0, 10) : '', phone: String(prof.phone ?? ''), isFop: prof.is_fop === true }}
           contractId={contract?.id ?? null}
           signed={contract?.status === 'signed'}
           pending={pending}
         />
 
-        {contract && missing.length === 0 && (
+        {contract && missing.length === 0 && contract.status !== 'signed' && (
           <div id="dogovir" style={{ fontFamily: "'Times New Roman', Georgia, serif", marginTop: 30, borderTop: '1px solid #d8dee8', paddingTop: 24 }}>
             <ContractText blocks={blocks} />
           </div>
