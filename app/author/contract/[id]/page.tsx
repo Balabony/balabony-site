@@ -1,3 +1,4 @@
+import { syncAuthorWorks } from '@/lib/contract/sync-works'
 import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
@@ -20,6 +21,7 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login?next=/author/dashboard')
+  await syncAuthorWorks(user.id)
 
   const c = await dbQuery(
     `select id, number, status, rate, is_fop, created_at, signed_at, doc_hash,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { dbQuery } from '@/lib/db'
+import { syncContractWorks } from '@/lib/contract/sync-works'
 
 /**
  * Наповнення переліку творів (Додаток № 1) за договором.
@@ -106,35 +107,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Договір не знайдено' }, { status: 404 })
   }
 
-  // 1. Зшити старі ручні рядки з реальними творами за назвою.
-  const healed = await dbQuery(
-    `update contract_works w
-        set content_id = t.id
-       from content t
-      where w.contract_id = $1::uuid
-        and w.content_id is null
-        and t.author_id = $2::uuid
-        and lower(btrim(t.title)) = lower(btrim(w.title))
-        and not exists (
-          select 1 from contract_works w2
-           where w2.contract_id = w.contract_id
-             and w2.content_id = t.id)`,
-    [contract.id, contract.author_id],
-  )
-
-  // 2. Додати те, чого в переліку ще немає.
-  const added = await dbQuery(
-    `insert into contract_works (contract_id, content_id, title)
-     select $1::uuid, t.id, t.title
-       from content t
-      where t.author_id = $2::uuid
-        and t.status <> 'draft'
-        and not exists (
-          select 1 from contract_works w
-           where w.contract_id = $1::uuid
-             and w.content_id = t.id)`,
-    [contract.id, contract.author_id],
-  )
+  const { healed, added } = await syncContractWorks(contract.id, contract.author_id)
 
   const total = await dbQuery(
     `select count(*)::int as n from contract_works where contract_id = $1::uuid`,
@@ -144,8 +117,8 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    healed: healed.rowCount ?? 0,
-    added: added.rowCount ?? 0,
+    healed,
+    added,
     total: row?.n ?? 0,
   })
 }

@@ -1,3 +1,4 @@
+import { syncAuthorWorks } from '@/lib/contract/sync-works'
 import type { ReactNode } from 'react'
 import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
@@ -216,6 +217,8 @@ export default async function AuthorDashboardPage() {
   if (!user) {
     redirect('/login?next=/author/dashboard')
   }
+  // 08.11.2026: перелік творів у договорі — завжди свіжий (раніше лише після ручної синхронізації в адмінці)
+  await syncAuthorWorks(user.id)
 
   // Профіль автора (RLS: лише свій). Якщо профілю немає — користувач не автор.
   const { data: profile } = await supabase

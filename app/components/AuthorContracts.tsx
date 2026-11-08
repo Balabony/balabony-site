@@ -165,6 +165,33 @@ export default function AuthorContracts(
         <a href="/legal/author-contract" style={{ color: BRAND.amberDark }}>сторінці умов</a>.
       </p>
 
+      {/* 08.11.2026 (Богдан: «поясни авторам, що як робити, поруч у кабінеті») */}
+      {(rows.length === 0 || rows.some(r => r.status !== 'signed')) && (
+        <div style={{ border: `1px solid ${BRAND.line}`, borderRadius: 12, padding: '14px 16px', margin: '0 0 16px', background: 'rgba(239,159,39,0.06)' }}>
+          <div style={{ fontWeight: 800, color: BRAND.ink, fontSize: '1.02rem', marginBottom: 8 }}>Як підписати договір — 3 кроки, 2 хвилини</div>
+          <ol style={{ color: BRAND.text, margin: 0, paddingLeft: 22, lineHeight: 1.7, fontSize: '0.95rem' }}>
+            <li>У «Реквізитах» вище впишіть 4 поля: <b>ПІБ, РНОКПП, дату народження й телефон</b>. Банківський рахунок і адресу — пізніше, перед першою виплатою.</li>
+            <li>Натисніть <b>«Сформувати договір»</b> і прочитайте його — кнопка «Прочитати договір».</li>
+            <li>Поставте позначку <b>«Погоджуюсь»</b>, натисніть <b>«Надіслати код на пошту»</b> і введіть 6 цифр з листа. Готово — копія договору прийде на пошту.</li>
+          </ol>
+          <details style={{ marginTop: 10 }}>
+            <summary style={{ cursor: 'pointer', color: BRAND.amberDark, fontWeight: 700, fontSize: '0.92rem' }}>Часті питання</summary>
+            <dl style={{ color: BRAND.text, fontSize: '0.92rem', lineHeight: 1.6, margin: '10px 0 0' }}>
+              <dt style={{ fontWeight: 700, color: BRAND.ink, marginTop: 8 }}>Що таке «перелік творів»? Його треба сформувати до підпису?</dt>
+              <dd style={{ margin: '2px 0 0' }}>Ні. Перелік — це Додаток № 1: твори, які Ви подаєте на Балабони. Він поповнюється сам, коли Ви подаєте нові твори. Порожній перелік підписанню не заважає.</dd>
+              <dt style={{ fontWeight: 700, color: BRAND.ink, marginTop: 8 }}>Можна підписати без банківського рахунку?</dt>
+              <dd style={{ margin: '2px 0 0' }}>Так. Рахунок потрібен лише для виплат — впишіть його в реквізитах до першої виплати.</dd>
+              <dt style={{ fontWeight: 700, color: BRAND.ink, marginTop: 8 }}>Підпис кодом має юридичну силу?</dt>
+              <dd style={{ margin: '2px 0 0' }}>Так, як письмовий (п. 16.1 договору, ст. 12 Закону «Про електронну комерцію»). Якщо хочете інакше — під кнопкою «Інші способи підписати» є «Дія», ключ КЕП і папір поштою.</dd>
+              <dt style={{ fontWeight: 700, color: BRAND.ink, marginTop: 8 }}>Мій твір уже публікувався в інших виданнях чи на сайтах</dt>
+              <dd style={{ margin: '2px 0 0' }}>Не ставте позначку «раніше не публікувалися». Після підпису відкрийте «Перелік творів» і зазначте, де твір публікувався, — тоді щодо нього права будуть невиключні. Публікації в газетах «Життя» та інших наших виданнях і на Ваших сторінках у соцмережах не рахуються.</dd>
+              <dt style={{ fontWeight: 700, color: BRAND.ink, marginTop: 8 }}>Лист із кодом не прийшов</dt>
+              <dd style={{ margin: '2px 0 0' }}>Перевірте папки «Спам» і «Промоакції», зачекайте хвилину й натисніть «Надіслати код ще раз». Не допомогло — напишіть на <a href="mailto:nazar@balabony.com" style={{ color: BRAND.amberDark }}>nazar@balabony.com</a>.</dd>
+            </dl>
+          </details>
+        </div>
+      )}
+
       {rows.length === 0 && (
         <div>
           <p style={{ color: BRAND.text, lineHeight: 1.6, margin: '0 0 12px' }}>

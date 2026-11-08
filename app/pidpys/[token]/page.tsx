@@ -2,6 +2,7 @@
 // Автор відкриває посилання з листа → (якщо бракує) 4 поля → читає договір → «Погоджуюсь» → код з пошти → підписано.
 import type { Metadata } from 'next'
 import { dbQuery } from '@/lib/db'
+import { syncAuthorWorks } from '@/lib/contract/sync-works'
 import { readSignToken } from '@/lib/contract/sign-link'
 import { CONTRACT_BLOCKS } from '@/lib/contract/template'
 import { buildVars, DASH } from '@/lib/contract/vars'
@@ -29,6 +30,7 @@ export default async function Pidpys({ params }: { params: Promise<{ token: stri
     )
   }
 
+  await syncAuthorWorks(authorId)
   const p = await dbQuery(
     `select p.full_name, p.rnokpp, p.birth_date, p.address, p.phone, p.payout_iban, p.bank_name, p.payout_recipient, p.pen_name, p.is_fop,
             u.email
