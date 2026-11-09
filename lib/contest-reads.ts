@@ -113,9 +113,16 @@ const BASE_CTE = `
       join users u
         on u.id = ar.user_id
      where (w.author_id is null or ar.user_id <> w.author_id)
-       and (w.win_from is null or ar.read_date >= w.win_from)
-       and (w.win_until is null or ar.read_date <= w.win_until)
-       and (w.win_days is null or (w.pub_day is not null and ar.read_date >= w.pub_day and ar.read_date < w.pub_day + w.win_days))
+       and (
+             -- звичайне вікно конкурсу
+             ((w.win_from is null or ar.read_date >= w.win_from)
+              and (w.win_until is null or ar.read_date <= w.win_until)
+              and (w.win_days is null or (w.pub_day is not null and ar.read_date >= w.pub_day and ar.read_date < w.pub_day + w.win_days)))
+             -- 09.11.2026 (Богдан, звернення Зоряни Л.): 05–07.11 конкурсні твори з однією серією виходили одразу після погодження,
+             -- а 07.11 їх повернули в чергу (status 'scheduled') з пізнішою датою. Дочитування до офіційної дати виходу можливі лише
+             -- через цю нашу помилку (чернетку бачить тільки автор, а його власні прочитання не рахуються) — тому зараховуємо їх авторові.
+             or (w.pub_day is not null and ar.read_date < w.pub_day)
+           )
        and exists (
              select 1
                from article_reads ar2
