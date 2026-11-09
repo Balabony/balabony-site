@@ -149,6 +149,21 @@ export default function ContestSubmitForm() {
     autoPicked.current = true
     setContestId(missingSyn.contest as ContestId)
   }, [missingSyn])
+
+  // 09.11.2026: Юлія Кузьмяк подала «Гусак» в «Один день» і вирішила, що «Різдва» вже немає:
+  // форма відкривалася на конкурсі з повною заявкою, без поля для файлу. Якщо вибраний конкурс
+  // уже заповнений, а є відкритий, куди автор ще не подавав, — відкриваємо той.
+  const freePicked = useRef(false)
+  useEffect(() => {
+    if (loading || freePicked.current) return
+    freePicked.current = true // лише один раз після завантаження — ручний вибір автора не чіпаємо
+    if (autoPicked.current || missingSyn) return
+    const cur = findContest(contestId)
+    const curEntry = entries.find(e => e.contest === contestId)
+    if (!cur || !curEntry || curEntry.episodes.length < cur.episodes) return
+    const free = CONTESTS.find(c => isOpen(c) && !entries.some(e => e.contest === c.id))
+    if (free) setContestId(free.id)
+  }, [loading, entries, missingSyn, contestId])
   const goSynopsis = () => {
     if (missingSyn) setContestId(missingSyn.contest as ContestId)
     setTimeout(() => {
