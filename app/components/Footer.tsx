@@ -639,6 +639,18 @@ export default function Footer() {
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '3px 0 0 0' }}>
           Авторське право: свідоцтво АП №147106 від 18.05.2026 (УКРНОІВІ).
         </p>
+        {/* 09.11.2026: підпис студії-розробника — активне посилання на OLBO на всіх сторінках */}
+        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', margin: '10px 0 0 0' }}>
+          Розробка:{' '}
+          <a
+            href="https://olbo.com.ua/?utm_source=balabony&utm_medium=footer&utm_campaign=credit"
+            target="_blank"
+            rel="noopener"
+            style={{ color: '#ffffff', fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 3 }}
+          >
+            OLBO
+          </a>
+        </p>
       </div>
 
       {/* ════════ РЕКВІЗИТИ ФОП (юридичний блок, видно на всіх сторінках) ════════ */}
