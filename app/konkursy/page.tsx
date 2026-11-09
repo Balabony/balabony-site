@@ -1050,7 +1050,7 @@ function ShortContestCard({ c }: { c: ShortContest }) {
           спільну кнопку деінде на сторінці. */}
       <div style={{ marginTop: 24 }}>
         <Link
-          href="/konkursy/podaty"
+          href={findContest(c.id) ? `/konkursy/podaty?konkurs=${c.id}` : '/konkursy/podaty'}
           style={{
             display: 'inline-block',
             background: GOLD, color: NAVY_DEEP,

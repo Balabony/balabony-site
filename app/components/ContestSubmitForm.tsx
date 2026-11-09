@@ -54,6 +54,18 @@ export default function ContestSubmitForm() {
   const [contestId, setContestId] = useState(
     CONTESTS.find(c => isOpen(c))?.id ?? CONTESTS[0].id,
   )
+  // 09.11.2026: конкурс НЕ вибрано заздалегідь. Юлія Кузьмяк подала гумор «Гусак» в «Один день»,
+  // бо список стояв на першому відкритому конкурсі, і вона його не помітила. Тепер автор спершу
+  // сам обирає конкурс великою карткою — лише тоді з'являються поля твору.
+  const [chosen, setChosen] = useState(false)
+  // Посилання з картки конкурсу: /konkursy/podaty?konkurs=z-viterczem — конкурс уже обрано.
+  useEffect(() => {
+    try {
+      const k = new URLSearchParams(window.location.search).get('konkurs')
+      const c = k ? findContest(k) : undefined
+      if (c && isOpen(c)) { setContestId(c.id as ContestId); setChosen(true) }
+    } catch { /* без параметра — просто показуємо вибір */ }
+  }, [])
   const [title, setTitle] = useState('')
   const [annotation, setAnnotation] = useState('')
   // 31.10.2026: синопсис на сторінку — окреме поле (анотацію бачать читачі, синопсис — редакція).
@@ -148,24 +160,12 @@ export default function ContestSubmitForm() {
     if (autoPicked.current || !missingSyn) return
     autoPicked.current = true
     setContestId(missingSyn.contest as ContestId)
+    setChosen(true)
   }, [missingSyn])
 
-  // 09.11.2026: Юлія Кузьмяк подала «Гусак» в «Один день» і вирішила, що «Різдва» вже немає:
-  // форма відкривалася на конкурсі з повною заявкою, без поля для файлу. Якщо вибраний конкурс
-  // уже заповнений, а є відкритий, куди автор ще не подавав, — відкриваємо той.
-  const freePicked = useRef(false)
-  useEffect(() => {
-    if (loading || freePicked.current) return
-    freePicked.current = true // лише один раз після завантаження — ручний вибір автора не чіпаємо
-    if (autoPicked.current || missingSyn) return
-    const cur = findContest(contestId)
-    const curEntry = entries.find(e => e.contest === contestId)
-    if (!cur || !curEntry || curEntry.episodes.length < cur.episodes) return
-    const free = CONTESTS.find(c => isOpen(c) && !entries.some(e => e.contest === c.id))
-    if (free) setContestId(free.id)
-  }, [loading, entries, missingSyn, contestId])
   const goSynopsis = () => {
     if (missingSyn) setContestId(missingSyn.contest as ContestId)
+    setChosen(true)
     setTimeout(() => {
       const el = document.getElementById('f-synopsis-edit')
       el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -369,24 +369,61 @@ export default function ContestSubmitForm() {
         </div>
       )}
 
-      <div style={box}>
-        <label htmlFor="f-contest" style={label}>Конкурс</label>
-        <select
-          id="f-contest" value={contestId}
-          onChange={e => { setContestId(e.target.value as ContestId); setFiles([]); setNote(''); setDone('') }}
-          style={field}
-        >
-          {open.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-        <p style={{ color: BRAND.muted, fontSize: '0.85rem', lineHeight: 1.6, margin: '0 0 4px' }}>
-          {contest.hint}{' '}
-          {onlyEpisodes
-            ? 'Прийом нових заявок закрито — можна досилати серії до вашої.'
-            : `Прийом до ${contest.closesAt.split('-').reverse().join('.')}.`}
+      <fieldset style={{ ...box, border: 'none', margin: '0 0 1.25rem' }}>
+        <legend style={{ fontFamily: SERIF, fontSize: '1.25rem', color: BRAND.amber, padding: 0, marginBottom: 6 }}>
+          Крок 1. Оберіть конкурс
+        </legend>
+        <p style={{ color: BRAND.muted, fontSize: '0.9rem', lineHeight: 1.6, margin: '0 0 14px' }}>
+          Натисніть на картку конкурсу, у який подаєте твір. Перевірте обсяг — він різний у кожному конкурсі.
         </p>
+        <div style={{ display: 'grid', gap: 10 }}>
+          {open.map(c => {
+            const mine = entries.find(e => e.contest === c.id)
+            const full = mine ? mine.episodes.length >= c.episodes : false
+            const on = chosen && c.id === contestId
+            const volume = c.volumeLabel ?? `${c.minWords}–${c.maxWords} слів`
+            return (
+              <label
+                key={c.id}
+                style={{
+                  display: 'flex', gap: 12, alignItems: 'flex-start', cursor: 'pointer',
+                  padding: '14px 16px', borderRadius: 12,
+                  border: on ? `2px solid ${BRAND.amber}` : '1px solid rgba(239,159,39,0.35)',
+                  background: on ? 'rgba(239,159,39,0.12)' : 'transparent',
+                }}
+              >
+                <input
+                  type="radio" name="f-contest" value={c.id} checked={on}
+                  onChange={() => { setContestId(c.id as ContestId); setChosen(true); setFiles([]); setNote(''); setDone('') }}
+                  style={{ marginTop: 5, width: 20, height: 20, accentColor: BRAND.amber, flexShrink: 0 }}
+                />
+                <span style={{ display: 'block' }}>
+                  <strong style={{ display: 'block', color: BRAND.text, fontSize: '1.05rem' }}>{c.name}</strong>
+                  <span style={{ display: 'block', color: BRAND.muted, fontSize: '0.9rem', lineHeight: 1.55, marginTop: 2 }}>{c.tagline}</span>
+                  <span style={{ display: 'block', color: BRAND.text, fontSize: '0.88rem', marginTop: 6 }}>
+                    Обсяг: {volume} · {isOpen(c) ? `прийом до ${c.closesAt.split('-').reverse().join('.')}` : 'досилання серій до вашої заявки'}
+                  </span>
+                  {mine && (
+                    <span style={{ display: 'block', color: BRAND.amber, fontSize: '0.88rem', fontWeight: 700, marginTop: 6 }}>
+                      Ви вже подали: «{mine.title}»{full ? ' — заявка повна' : ''}
+                    </span>
+                  )}
+                </span>
+              </label>
+            )
+          })}
+        </div>
         {upcomingNote}
-      </div>
+      </fieldset>
 
+      {chosen && (
+        <p style={{ color: BRAND.muted, fontSize: '0.88rem', lineHeight: 1.6, margin: '-6px 0 16px' }}>
+          {contest.hint}{' '}
+          {onlyEpisodes ? 'Прийом нових заявок закрито — можна досилати серії до вашої.' : ''}
+        </p>
+      )}
+
+      {chosen && (<>
       {entry && (
         <div style={{ ...box, borderColor: 'rgba(239,159,39,0.45)' }}>
           <h3 style={{ fontFamily: SERIF, fontSize: '1.15rem', color: BRAND.amber, margin: '0 0 10px' }}>
@@ -562,6 +599,8 @@ export default function ContestSubmitForm() {
           </button>
         </div>
       )}
+
+      </>)}
 
       {note && (
         <p role="alert" ref={noteRef} style={{ color: BRAND.amberSoft, lineHeight: 1.7, background: 'rgba(239,159,39,0.08)', padding: '12px 14px', borderRadius: 10 }}>
