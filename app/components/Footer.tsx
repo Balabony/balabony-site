@@ -646,9 +646,11 @@ export default function Footer() {
             href="https://olbo.com.ua/?utm_source=balabony&utm_medium=footer&utm_campaign=credit"
             target="_blank"
             rel="noopener"
-            style={{ color: '#ffffff', fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 3 }}
+            aria-label="Розробка: студія OLBO (відкривається в новій вкладці)"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#ffffff', fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 3, verticalAlign: 'middle' }}
           >
-            OLBO
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/olbo-logo.svg" alt="" height={14} style={{ height: 14, width: 'auto', display: 'block' }} />
           </a>
         </p>
       </div>
