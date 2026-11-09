@@ -6,7 +6,7 @@ export default function FeaturedAuthor({ a }: { a: FA | null }) {
   if (!a) return null
   return (
     <section aria-labelledby="featured-author-title" style={{ maxWidth: 1000, margin: '0 auto', padding: '8px 20px 28px' }}>
-      <h2 id="featured-author-title" style={{ fontFamily: "'Comfortaa', sans-serif", fontSize: 'clamp(19px, 4.6vw, 24px)', fontWeight: 700, color: '#FAC775', margin: '0 0 12px' }}>
+      <h2 id="featured-author-title" style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 'clamp(19px, 4.6vw, 24px)', fontWeight: 700, color: '#FAC775', margin: '0 0 12px' }}>
         Знайомтеся: автор тижня
       </h2>
       <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'flex-start', padding: 18, borderRadius: 14, background: 'rgba(239,159,39,0.05)', border: '1px solid rgba(239,159,39,0.25)', fontFamily: "'Montserrat', sans-serif" }}>
@@ -16,7 +16,7 @@ export default function FeaturedAuthor({ a }: { a: FA | null }) {
         )}
         <div style={{ flex: '1 1 280px', minWidth: 0 }}>
           <p style={{ margin: 0 }}>
-            <a href={`/avtor/${a.slug}`} style={{ color: '#ef9f27', fontWeight: 700, fontSize: 22, textDecoration: 'none', fontFamily: "'Comfortaa', sans-serif" }}>{a.name}</a>
+            <a href={`/avtor/${a.slug}`} style={{ color: '#ef9f27', fontWeight: 700, fontSize: 22, textDecoration: 'none', fontFamily: "'Montserrat', sans-serif" }}>{a.name}</a>
           </p>
           <p style={{ margin: '2px 0 8px', color: '#8CA0B8', fontSize: 14 }}>{a.total} {tvoriv(a.total)} на Балабонах</p>
           {a.bio && <p style={{ margin: 0, color: '#D9DEE8', fontSize: 15, lineHeight: 1.6 }}>{a.bio}</p>}
