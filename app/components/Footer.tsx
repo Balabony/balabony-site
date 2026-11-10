@@ -380,6 +380,18 @@ export default function Footer() {
           >
             Як підписати договір →
           </a>
+          {/* 10.11.2026: практика в редакції «Життя» й перша публікація для студентів */}
+          <a
+            href="/maibutnim-avtoram"
+            className="footer-link"
+            style={{
+              display: 'block', marginTop: 6,
+              color: 'var(--accent-gold)', fontSize: 14, fontWeight: 600,
+              textDecoration: 'none', fontFamily: "'Montserrat', sans-serif",
+            }}
+          >
+            Практика для студентів →
+          </a>
           {/* 13.09.2026: було «Озвучення на замовлення» — напис обіцяв платну
               послугу, якої на /holosy немає (там голоси платформи й голосування
               читачів). Комерційний сигнал у підвалі зайвий і при перевірці на
