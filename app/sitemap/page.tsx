@@ -56,6 +56,7 @@ const GROUPS: SitemapGroup[] = [
     title: 'Ігри та мова',
     links: [
       { href: '/games',         label: 'Ігри для мозку',      note: 'Пам’ять, увага, мислення' },
+      { href: '/moia-ukraina',  label: 'Моя Україна на мапі', note: 'Гра для школярів про міста, історію й памʼять України' },
       { href: '/games/flash',        label: 'Що промайнуло?',      note: 'Швидкість сприйняття' },
       { href: '/games/attention',    label: 'Подвійна увага',      note: 'Розділена увага' },
       { href: '/games/maze',         label: 'Лабіринт',            note: 'Просторове мислення' },

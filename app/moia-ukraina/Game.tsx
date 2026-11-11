@@ -85,6 +85,7 @@ export default function Game() {
       <div aria-hidden="true" style={{ height: 10, background: 'linear-gradient(#0057B7 0 50%, #FFD700 50% 100%)' }} />
       <div style={{ padding: '24px 16px 0' }}>
       <div style={{ maxWidth: 860, margin: '0 auto' }}>
+        <nav aria-label="Навігація" style={{ marginBottom: 14, fontSize: 15 }}><a href="/" style={{ color: GOLD_L, textDecoration: 'none' }}>← Балабони</a> <span style={{ color: SOFT }}>·</span> <a href="/games" style={{ color: GOLD_L, textDecoration: 'none' }}>Ігри</a> <span style={{ color: SOFT }}>·</span> <a href="/skoromovky" style={{ color: GOLD_L, textDecoration: 'none' }}>Скоромовки</a></nav>
         <p style={{ margin: 0, color: GOLD_L, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 }}><Flag />Моє місце · голоси молоді України</p>
         {mode === 'home' && <Home onQuiz={start} onMap={() => setMode('map')} onRating={() => setMode('rating')} onSuggest={() => setMode('suggest')} onFind={() => setMode('find')} noTimer={noTimer} setNoTimer={setNoTimer} head={head} />}
         {mode === 'quiz' && items[i] && (

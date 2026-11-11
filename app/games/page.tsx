@@ -109,6 +109,13 @@ export default function GamesPage() {
           грайте у своєму темпі, без поспіху й таймера.
         </p>
 
+        {/* 11.11.2026: перелінковка на гру для школярів «Моя Україна на мапі». */}
+        <a href="/moia-ukraina" style={{ display: 'block', textDecoration: 'none', margin: '0 0 24px', padding: '16px 18px', borderRadius: 16, border: '2px solid #FFD700', background: 'linear-gradient(135deg, rgba(0,87,183,.45), rgba(255,215,0,.12))' }}>
+          <div style={{ height: 6, borderRadius: 3, background: 'linear-gradient(90deg,#0057B7 0 50%,#FFD700 50% 100%)', width: 56, marginBottom: 10 }} />
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, fontWeight: 600, color: '#fff' }}>Моя Україна на мапі</div>
+          <div style={{ fontSize: 15.5, color: TEXT_SOFT, lineHeight: 1.5, marginTop: 4 }}>Нова гра для школярів: понад 100 запитань про міста, історію й памʼять України, «Знайди місто на мапі» і рейтинг шкіл →</div>
+        </a>
+
         <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD_LIGHT, margin: '0 0 12px 2px', textShadow: '0 0 12px rgba(239,159,39,0.4)' }}>
           З наукових досліджень
         </div>
