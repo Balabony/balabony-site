@@ -19,6 +19,9 @@ import { getSupabaseAdmin } from '@/lib/supabase-server'
  */
 
 const PUBLISHABLE = ['draft']
+// 11.11.2026: для запланованих творів кнопка лише фіксує згоду; статус лишається scheduled,
+// твір виходить за графіком (або одразу, якщо дата вже минула — це зробить cron).
+const CONSENT_ONLY = ['scheduled']
 
 function getIP(req: NextRequest): string {
   return (
@@ -72,7 +75,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Це не ваш твір' }, { status: 403 })
     }
 
-    if (!PUBLISHABLE.includes(String(row.status))) {
+    const consentOnly = CONSENT_ONLY.includes(String(row.status))
+    if (!PUBLISHABLE.includes(String(row.status)) && !consentOnly) {
       return NextResponse.json(
         { ok: false, error: 'Цей твір уже в роботі редакції' },
         { status: 400 },
@@ -97,6 +101,10 @@ export async function POST(req: NextRequest) {
         { ok: false, error: 'Не вдалося зафіксувати згоду' },
         { status: 500 },
       )
+    }
+
+    if (consentOnly) {
+      return NextResponse.json({ ok: true, status: 'scheduled' })
     }
 
     const { error: updErr } = await admin

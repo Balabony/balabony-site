@@ -281,6 +281,14 @@ export default async function AuthorDashboardPage() {
   const coverById = new Map<string, string | null>()
   for (const c of coverRows ?? []) coverById.set(c.id, c.cover_url)
 
+  // 11.11.2026: які твори вже мають згоду автора. Запланований твір без згоди не виходить
+  // (тригер check_publish_consent), тож показуємо автору кнопку «Дати згоду».
+  const { data: consentRows } = await supabase
+    .from('publish_consents')
+    .select('content_id')
+    .eq('author_id', user.id) as { data: { content_id: string }[] | null }
+  const hasConsent = new Set((consentRows ?? []).map((r) => r.content_id))
+
   // Голоси читачів за озвучення кожного твору автора — для карток нижче.
   // Рейтинг АВТОРІВ — окремо від черги творів. Черга показує лише те, за що
   // вже голосували; тут є всі, зокрема з нулем, і автор бачить своє місце
@@ -1408,6 +1416,9 @@ export default async function AuthorDashboardPage() {
                     <EditDraftForm contentId={s.content_id} />
                   )}
 
+                  {s.status === 'scheduled' && !hasConsent.has(s.content_id) && (
+                    <PublishWorkButton contentId={s.content_id} title={s.title} consentOnly />
+                  )}
                   {s.status === 'draft' && (
                     <PublishWorkButton contentId={s.content_id} title={s.title} />
                   )}

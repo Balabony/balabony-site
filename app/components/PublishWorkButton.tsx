@@ -20,9 +20,11 @@ const FONT = "'Montserrat', Arial, sans-serif"
 export default function PublishWorkButton({
   contentId,
   title,
+  consentOnly = false,
 }: {
   contentId: string
   title?: string
+  consentOnly?: boolean
 }) {
   const [consent, setConsent] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -32,7 +34,7 @@ export default function PublishWorkButton({
   if (done) {
     return (
       <div style={{ marginTop: 10, fontFamily: FONT, fontSize: '0.85rem', color: '#4ade80' }}>
-        ✓ Опубліковано. Оновіть сторінку, щоб побачити оновлений статус.
+        {consentOnly ? '✓ Згоду збережено. Твір вийде за графіком.' : '✓ Опубліковано. Оновіть сторінку, щоб побачити оновлений статус.'}
       </div>
     )
   }
@@ -90,6 +92,7 @@ export default function PublishWorkButton({
           style={{ marginTop: 3, flexShrink: 0 }}
         />
         <span>
+          {consentOnly && <strong style={{ display: 'block', color: AMBER, marginBottom: 4 }}>Твір у графіку, але ще немає вашої згоди — без неї він не вийде.</strong>}
           Я — автор цього твору{title ? ` «${title}»` : ''} і даю згоду опублікувати
           його на Балабонах для всіх читачів.
         </span>
@@ -112,7 +115,7 @@ export default function PublishWorkButton({
           cursor: consent && !busy ? 'pointer' : 'default',
         }}
       >
-        {busy ? 'Публікуємо…' : 'Опублікувати'}
+        {busy ? 'Зберігаємо…' : consentOnly ? 'Дати згоду на публікацію' : 'Опублікувати'}
       </button>
 
       {error && (
