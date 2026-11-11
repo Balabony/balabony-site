@@ -6,6 +6,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import UaMap from './UaMap'
+import type { Region } from './ua-regions'
 import { CITIES, QUESTIONS, TOT_NOTE, OBL, type City, type Q } from './data'
 
 const NAVY = '#0E1A2B', NAVY2 = '#14253B', CARD = '#193049', GOLD = '#EF9F27', GOLD_L = '#FAC775', SOFT = '#CFE3FA'
@@ -285,7 +286,7 @@ function MyMap({ onBack, head }: { onBack: () => void; head: HeadRef }) {
         </label>
       </div>
       <div style={{ ...card, padding: 10, marginTop: 16 }}>
-        <UaMap geo marks={marks} thread={a && b && a !== b ? [a, b] : undefined} label={a && b ? `Нитка від міста ${a.n} до міста ${b.n}` : 'Мапа України'} />
+        <UaMap geo regions="names" marks={marks} thread={a && b && a !== b ? [a, b] : undefined} label={a && b ? `Нитка від міста ${a.n} до міста ${b.n}` : 'Мапа України'} />
       </div>
       <div aria-live="polite" style={{ marginTop: 14 }}>
         {d !== null && a && b && (
@@ -441,15 +442,28 @@ function Confetti() {
 const UA_FACTS = ['603 628 км² — найбільша країна, що повністю лежить у Європі', '24 області, Автономна Республіка Крим, Київ і Севастополь', 'Кордон із 7 державами', 'Говерла — 2061 м', 'Дніпро — найдовша річка в межах України', 'Береги Чорного й Азовського морів']
 function Explorer() {
   const [c, setC] = useState<City | null>(null)
+  const [reg, setReg] = useState<Region | null>(null)
   const info = c ? OBL[c.n] : undefined
+  const rInfo = reg ? OBL[reg.c] : undefined
   const fact = c ? QUESTIONS.find((q) => q.city === c.n)?.w : undefined
   return (
     <div style={{ margin: '18px 0' }}>
       <div style={{ ...card, padding: 10 }}>
-        <UaMap geo onPick={setC} active={c?.n} label="Інтерактивна мапа України: міста, річки, моря й гори. Оберіть місто, щоб дізнатися про нього." />
-        <p style={{ margin: '6px 8px 4px', fontSize: 15, color: SOFT }}>Наведи або торкнись будь-якої крапки — дізнаєшся про місто й область. Зірка — столиця, трикутник — Говерла.</p>
+        <UaMap geo regions="zoom" onRegion={(r) => { setReg(r); setC(null) }} onPick={setC} active={c?.n} label="Інтерактивна мапа України: області, міста, річки, моря й гори. Оберіть область, щоб збільшити її, або місто, щоб дізнатися про нього." />
+        <p style={{ margin: '6px 8px 4px', fontSize: 15, color: SOFT }}>Торкнись області — вона збільшиться з назвами міст. Торкнись крапки — дізнаєшся про місто. Зірка — столиця, трикутник — Говерла.</p>
       </div>
       <div aria-live="polite">
+        {reg && !c && (
+          <div style={{ ...card, marginTop: 12, borderColor: '#FFD700' }}>
+            <p style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>{rInfo?.o ?? reg.n}</p>
+            {reg.cities.some((n) => CITIES.find((x) => x.n === n)?.tot) && <p style={{ margin: '2px 0 8px', color: GOLD_L, fontWeight: 700 }}>{TOT_NOTE}</p>}
+            {rInfo && <ul style={{ margin: '6px 0 10px', paddingLeft: 22, display: 'grid', gap: 4, fontSize: 18, lineHeight: 1.45 }}>{rInfo.f.map((x) => <li key={x}>{x}</li>)}</ul>}
+            <p style={{ margin: '0 0 8px', color: SOFT, fontSize: 16 }}>Міста цієї області в грі — обери будь-яке:</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {reg.cities.map((n) => { const x = CITIES.find((q) => q.n === n); return x ? <button key={n} type="button" onClick={() => setC(x)} style={{ background: 'rgba(0,87,183,.35)', color: '#fff', border: '1px solid rgba(255,215,0,.6)', borderRadius: 999, padding: '7px 14px', fontSize: 16, fontWeight: 700, cursor: 'pointer' }}>{n}</button> : null })}
+            </div>
+          </div>
+        )}
         {c && (
           <div style={{ ...card, marginTop: 12, borderColor: '#FFD700' }}>
             <p style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>{c.n}</p>
@@ -508,7 +522,7 @@ function Find({ onBack, head }: { onBack: () => void; head: HeadRef }) {
       <H head={head}>Де на мапі місто {target.n}?</H>
       <p style={{ margin: '0 0 12px', color: SOFT, fontSize: 17 }}>Торкнись мапи там, де, на твою думку, це місто. Чим ближче — тим більше балів.</p>
       <div style={{ ...card, padding: 10 }}>
-        <UaMap geo showAll={false} onMapClick={pick}
+        <UaMap geo regions="names" showAll={false} onMapClick={pick}
           marks={guess && gc ? [{ city: gc, color: BLUE, label: '' }, { city: target, color: '#FFD700' }] : []}
           thread={guess && gc ? [gc, target] : undefined} label={`Мапа для пошуку міста ${target.n}`} />
       </div>
