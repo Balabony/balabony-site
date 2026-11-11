@@ -13,6 +13,7 @@ import AuthorMessageForm from '@/app/components/AuthorMessageForm'
 import ContestCountdown from '@/app/components/ContestCountdown'
 import ContestIntent from '@/app/components/ContestIntent'
 import AuthorCoverUpload from '@/app/components/AuthorCoverUpload'
+import AuthorSeriesCovers from '@/app/components/AuthorSeriesCovers'
 import AuthorProfileEditor from '@/app/components/AuthorProfileEditor'
 import { dbQuery } from '@/lib/db'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
@@ -255,6 +256,20 @@ export default async function AuthorDashboardPage() {
 
   const stories = stats || []
   const groups = groupStories(stories)
+  // 11.11.2026: серіали автора (назви «… Серія N») — для масового завантаження обкладинок.
+  const seriesCovers = (() => {
+    const m = new Map<string, { contentId: string; n: number }[]>()
+    for (const s of stories) {
+      const r = (s.title || '').match(/^(.+?)[.\s–—-]*\s*Серія\s*(\d+)\s*$/i)
+      const n = r ? Number(r[2]) : s.episode_number
+      const base = r ? r[1].trim() : null
+      if (!base || n == null) continue
+      const arr = m.get(base) ?? []
+      arr.push({ contentId: s.content_id, n })
+      m.set(base, arr)
+    }
+    return Array.from(m.entries()).filter(([, eps]) => eps.length >= 2)
+  })()
 
   // Обкладинки тягнемо окремо: view author_story_stats зібрана під
   // статистику і колонки cover_url не має.
@@ -1274,6 +1289,9 @@ export default async function AuthorDashboardPage() {
                   при трьох історіях поле пошуку — зайвий елемент. */}
               {stories.length >= 8 && <WorksFilter total={stories.length} />}
 
+              {seriesCovers.map(([title, eps]) => (
+                <AuthorSeriesCovers key={title} title={title} episodes={eps} />
+              ))}
               {groups.map((g) => (
                 <div key={g.key} data-group={g.key}>
                   <div style={{

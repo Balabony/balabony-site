@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 
 // 05.11.2026 (скарги авторів): фото з телефона часто 5–12 МБ, а сервер (Vercel) приймає
 // до 4,5 МБ — завантаження падало з «Немає звʼязку». Стискаємо в браузері до JPEG ≤2000 px.
-async function shrinkImage(file: File): Promise<File> {
+export async function shrinkImage(file: File): Promise<File> {
   const okType = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
   if (okType && file.size <= 2 * 1024 * 1024) return file
   let bmp: ImageBitmap

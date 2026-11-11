@@ -59,8 +59,11 @@ export async function POST(req: NextRequest) {
 
     await dbQuery(`update contest_entries set cover_url = $2, updated_at = now() where id::text = $1`, [entryId, publicUrl])
     const upd = await dbQuery(
+      // 11.11.2026: не перезаписуємо серії, яким автор уже поставив власну обкладинку
+      // (8.11 спільна обкладинка конкурсу затерла авторські фото серій 4–10 «Десни»).
       `update content set cover_url = $2, cover_position = 'center'
-        where id in (select content_id from contest_episodes where entry_id::text = $1 and content_id is not null)`,
+        where id in (select content_id from contest_episodes where entry_id::text = $1 and content_id is not null)
+          and cover_uploaded_by is null`,
       [entryId, publicUrl],
     )
     return NextResponse.json({ ok: true, cover_url: publicUrl, applied: upd.rowCount ?? 0 })
