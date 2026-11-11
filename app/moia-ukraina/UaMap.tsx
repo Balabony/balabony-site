@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { VIEW_W, VIEW_H, project } from './ukraine-map'
 import { REGIONS, type Region } from './ua-regions'
 import { CITIES, TOT_NOTE, type City } from './data'
+import { placeLabels } from './city-labels'
 
 // Мапа України з Кримом, межами й назвами областей.
 // 11.11.2026: наведення/дотик до крапки показує назву міста, клік обирає місто (onPick),
@@ -73,7 +74,7 @@ export function unproject(x: number, y: number) {
 }
 
 // Межі збільшення: область + підписи її міст (вони стоять праворуч від крапки), щоб усе було по центру.
-function fit(r: Region, px: number): [number, number, number, number] {
+export function fit(r: Region, px: number): [number, number, number, number] {
   const ratio = VIEW_W / VIEW_H
   let [x0, y0, x1, y1] = r.box
   let w = 0
@@ -148,6 +149,8 @@ export default function UaMap({ marks = [], thread, label, showAll = true, onPic
   const sp = vb[2] / px // одиниць мапи на 1 пiксель екрана
   const fs = (base: number, min: number) => Math.max(base * k, min * sp)
   const inZoom = zoom ? new Set(zoom.cities) : null
+  // позиції підписів рахуємо для кінцевого кадру, щоб під час анімації вони не стрибали
+  const placed = useMemo(() => (zoom ? placeLabels(zoom.cities, fit(zoom, px), px, VIEW_W) : {}), [zoom, px])
 
   function choose(r: Region | null) {
     const z = r ? zoomOf(r) : null
@@ -246,7 +249,7 @@ export default function UaMap({ marks = [], thread, label, showAll = true, onPic
               <circle cx={x} cy={y} r={zoom ? fs(on ? 7 : c.obl ? 4.4 : 3.2, on ? 8 : c.obl ? 5 : 4) : (on ? 7 : c.obl ? 3.4 : 2.4) * k} fill={on ? '#FFD700' : c.tot ? '#9FB4CC' : '#CFE3FA'} opacity={on ? 1 : 0.85}
                 stroke={on ? '#0057B7' : 'none'} strokeWidth={on ? 2.5 * k : 0} />
               {zoom && !on && (
-                <text x={x + fs(8, 8)} y={y + fs(5, 5)} fontSize={fs(c.obl ? 16 : 14, c.obl ? 15 : 13)} fontWeight={c.obl ? 800 : 600} fill="#fff" stroke="#0E1A2B" strokeWidth={fs(3.5, 3.5)} paintOrder="stroke" pointerEvents="none">{c.n}</text>
+                <text x={placed[c.n]?.x ?? x + fs(8, 8)} y={placed[c.n]?.y ?? y + fs(5, 5)} textAnchor={placed[c.n]?.anchor ?? 'start'} fontSize={fs(c.obl ? 16 : 14, c.obl ? 15 : 13)} fontWeight={c.obl ? 800 : 600} fill="#fff" stroke="#0E1A2B" strokeWidth={fs(3.5, 3.5)} paintOrder="stroke" pointerEvents="none">{c.n}</text>
               )}
             </g>
           )
