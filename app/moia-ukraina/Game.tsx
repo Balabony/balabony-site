@@ -2,7 +2,7 @@
 
 // 11.11.2026: гра «Моя Україна на мапі» — демоверсія для проєкту «Моє місце: голоси молоді України» (ЛОГО «ІГС»).
 // Три режими: вікторина (10 випадкових запитань із банку), «Моя мапа» (нитка від рідного міста до теперішнього, відстань),
-// рейтинг шкіл (місто + номер школи + клас; жодних імен і персональних даних дітей).
+// рейтинг шкіл (місто + номер школи + клас; жодних імен і персональних даних дітей). Рейтингу міст свідомо немає — щоб не стравлювати регіони.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import UaMap from './UaMap'
@@ -10,7 +10,7 @@ import { CITIES, QUESTIONS, TOT_NOTE, type City, type Q } from './data'
 
 const NAVY = '#0E1A2B', NAVY2 = '#14253B', CARD = '#193049', GOLD = '#EF9F27', GOLD_L = '#FAC775', SOFT = '#CFE3FA'
 const GREEN = '#36AB62', RED = '#E8434B', BLUE = '#5AA9FF'
-const ROUND = 10, LIMIT = 20
+const ROUND = 10, LIMIT = 20, SLOW = 40
 
 const byName = new Map(CITIES.map((c) => [c.n, c]))
 const sortedCities = [...CITIES].sort((a, b) => a.n.localeCompare(b.n, 'uk'))
@@ -44,6 +44,8 @@ export default function Game() {
   const [right, setRight] = useState(0)
   const [left, setLeft] = useState(LIMIT)
   const [noTimer, setNoTimer] = useState(false)
+  // 11.11.2026: таймер лишається завжди (щоб не шукали відповіді в ШІ); «більше часу» — 40 с замість 20 для тих, кому треба.
+  const lim = noTimer ? SLOW : LIMIT
   const head = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => { head.current?.focus() }, [mode, i])
@@ -51,25 +53,25 @@ export default function Game() {
   function start() {
     const pool = shuffle(QUESTIONS).slice(0, ROUND)
     setItems(pool.map((q) => ({ q, opts: shuffle([...q.o]) })))
-    setI(0); setPicked(null); setScore(0); setRight(0); setLeft(LIMIT); setMode('quiz')
+    setI(0); setPicked(null); setScore(0); setRight(0); setLeft(lim); setMode('quiz')
   }
 
   // Таймер: 20 секунд на запитання. Можна вимкнути — для тих, кому потрібно більше часу (екранні читачі, дислексія).
   useEffect(() => {
-    if (mode !== 'quiz' || picked !== null || noTimer) return
+    if (mode !== 'quiz' || picked !== null) return
     if (left <= 0) { setPicked(''); return }
     const t = setTimeout(() => setLeft((x) => x - 1), 1000)
     return () => clearTimeout(t)
-  }, [mode, picked, left, noTimer])
+  }, [mode, picked, left])
 
   function answer(o: string) {
     if (picked !== null) return
     setPicked(o)
-    if (o === items[i].q.o[0]) { setRight((x) => x + 1); setScore((s) => s + 100 + (noTimer ? 0 : left * 5)) }
+    if (o === items[i].q.o[0]) { setRight((x) => x + 1); setScore((s) => s + 100 + Math.round((left * 5 * LIMIT) / lim)) }
   }
   function next() {
     if (i + 1 >= items.length) { setMode('done'); return }
-    setI(i + 1); setPicked(null); setLeft(LIMIT)
+    setI(i + 1); setPicked(null); setLeft(lim)
   }
 
   return (
@@ -78,7 +80,7 @@ export default function Game() {
         <p style={{ margin: 0, color: GOLD_L, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', fontSize: 14 }}>Моє місце · голоси молоді України</p>
         {mode === 'home' && <Home onQuiz={start} onMap={() => setMode('map')} onRating={() => setMode('rating')} noTimer={noTimer} setNoTimer={setNoTimer} head={head} />}
         {mode === 'quiz' && items[i] && (
-          <QuizStep item={items[i]} n={i} picked={picked} left={left} noTimer={noTimer} score={score} onAnswer={answer} onNext={next} head={head} />
+          <QuizStep item={items[i]} n={i} picked={picked} left={left} lim={lim} score={score} onAnswer={answer} onNext={next} head={head} />
         )}
         {mode === 'done' && <Done score={score} right={right} onAgain={start} onMap={() => setMode('map')} onRating={() => setMode('rating')} head={head} />}
         {mode === 'map' && <MyMap onBack={() => setMode('home')} head={head} />}
@@ -116,13 +118,13 @@ function Home({ onQuiz, onMap, onRating, noTimer, setNoTimer, head }: { onQuiz: 
       </div>
       <label style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 16, fontSize: 17, color: SOFT, cursor: 'pointer' }}>
         <input type="checkbox" checked={noTimer} onChange={(e) => setNoTimer(e.target.checked)} style={{ width: 22, height: 22 }} />
-        Грати без таймера (більше часу на кожне запитання)
+        Більше часу на відповідь — 40 секунд замість 20
       </label>
     </>
   )
 }
 
-function QuizStep({ item, n, picked, left, noTimer, score, onAnswer, onNext, head }: { item: Item; n: number; picked: string | null; left: number; noTimer: boolean; score: number; onAnswer: (o: string) => void; onNext: () => void; head: HeadRef }) {
+function QuizStep({ item, n, picked, left, lim, score, onAnswer, onNext, head }: { item: Item; n: number; picked: string | null; left: number; lim: number; score: number; onAnswer: (o: string) => void; onNext: () => void; head: HeadRef }) {
   const { q, opts } = item
   const city = q.city ? byName.get(q.city) : undefined
   const ok = picked !== null && picked === q.o[0]
@@ -132,13 +134,13 @@ function QuizStep({ item, n, picked, left, noTimer, score, onAnswer, onNext, hea
         <span style={{ background: '#2A4566', borderRadius: 999, padding: '6px 14px', fontWeight: 700, fontSize: 15 }}>{q.c}</span>
         <span style={{ fontSize: 17, color: SOFT }}>Запитання {n + 1} з {ROUND} · <b style={{ color: GOLD_L }}>{score} балів</b></span>
       </div>
-      {!noTimer && (
+      {(
         <div aria-hidden="true" style={{ height: 8, background: '#2A4566', borderRadius: 99, marginTop: 14, overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${(left / LIMIT) * 100}%`, background: left > 6 ? GOLD : RED, transition: 'width 1s linear' }} />
+          <div style={{ height: '100%', width: `${(left / lim) * 100}%`, background: left > 6 ? GOLD : RED, transition: 'width 1s linear' }} />
         </div>
       )}
       <H head={head}><span style={{ fontSize: 'clamp(22px,3.6vw,30px)' }}>{q.q}</span></H>
-      {!noTimer && picked === null && <p style={{ margin: '0 0 12px', color: SOFT, fontSize: 16 }}>Залишилось {left} с</p>}
+      {picked === null && <p style={{ margin: '0 0 12px', color: SOFT, fontSize: 16 }}>Залишилось {left} с</p>}
       <div style={{ display: 'grid', gap: 10 }}>
         {opts.map((o) => {
           const isRight = o === q.o[0]
@@ -277,11 +279,6 @@ function Rating({ onBack, onQuiz, head }: { onBack: () => void; onQuiz: () => vo
   useEffect(() => {
     fetch('/api/moia-ukraina', { cache: 'no-store' }).then((r) => r.json()).then((j) => { if (j?.ok) setRows(j.rows); else setErr(true) }).catch(() => setErr(true))
   }, [])
-  const cities = useMemo(() => {
-    const m = new Map<string, number>()
-    for (const r of rows ?? []) m.set(r.city, (m.get(r.city) ?? 0) + r.points)
-    return [...m.entries()].sort((x, y) => y[1] - x[1]).slice(0, 10)
-  }, [rows])
   return (
     <>
       <H head={head}>Рейтинг шкіл</H>
@@ -295,12 +292,6 @@ function Rating({ onBack, onQuiz, head }: { onBack: () => void; onQuiz: () => vo
             <h2 style={{ margin: '0 0 10px', fontSize: 22 }}>Школи</h2>
             <ol style={{ margin: 0, paddingLeft: 26, display: 'grid', gap: 6, fontSize: 18 }}>
               {rows.slice(0, 20).map((r) => <li key={r.city + r.school}>{r.city}, школа №{r.school} — <b style={{ color: GOLD_L }}>{r.points}</b> <span style={{ color: SOFT, fontSize: 15 }}>({r.players} {r.players % 10 === 1 && r.players % 100 !== 11 ? 'гра' : r.players % 10 >= 2 && r.players % 10 <= 4 && (r.players % 100 < 12 || r.players % 100 > 14) ? 'гри' : 'ігор'})</span></li>)}
-            </ol>
-          </div>
-          <div style={card}>
-            <h2 style={{ margin: '0 0 10px', fontSize: 22 }}>Міста</h2>
-            <ol style={{ margin: 0, paddingLeft: 26, display: 'grid', gap: 6, fontSize: 18 }}>
-              {cities.map(([c, p]) => <li key={c}>{c} — <b style={{ color: GOLD_L }}>{p}</b>{byName.get(c)?.tot ? <span style={{ color: SOFT, fontSize: 15 }}> · {TOT_NOTE}</span> : null}</li>)}
             </ol>
           </div>
         </div>
