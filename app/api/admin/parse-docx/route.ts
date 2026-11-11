@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import mammoth from 'mammoth'
+import { docxToText } from '@/lib/docx-text'
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData()
@@ -8,8 +8,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const buffer = Buffer.from(await file.arrayBuffer())
-    const result = await mammoth.extractRawText({ buffer })
-    return NextResponse.json({ text: result.value.trim(), filename: file.name })
+    return NextResponse.json({ text: await docxToText(buffer), filename: file.name })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Помилка парсингу'
     return NextResponse.json({ error: msg }, { status: 500 })

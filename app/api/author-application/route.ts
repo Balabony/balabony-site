@@ -1,7 +1,7 @@
 import { after } from 'next/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { alertIfFailed } from '@/lib/problem-alert'
-import mammoth from 'mammoth'
+import { docxToText } from '@/lib/docx-text'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { dbQuery } from '@/lib/db'
 import { toPlainText } from '@/lib/plain-text'
@@ -167,7 +167,7 @@ async function handlePOST(req: NextRequest) {
     try {
       const buffer = Buffer.from(await file.arrayBuffer())
       body = name.endsWith('.docx')
-        ? toPlainText((await mammoth.extractRawText({ buffer })).value)
+        ? toPlainText(await docxToText(buffer))
         : toPlainText(buffer.toString('utf-8'))
     } catch {
       return NextResponse.json({ ok: false, error: 'Не вдалося прочитати файл. Збережіть його у .docx або вставте текст у поле.' }, { status: 400 })

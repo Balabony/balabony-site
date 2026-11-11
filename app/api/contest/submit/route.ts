@@ -6,7 +6,7 @@ import { runContestReview, reviewHash, REVIEW_MODEL } from '@/lib/contest-ai-rev
 import { NextRequest, NextResponse } from 'next/server'
 import { alertIfFailed } from '@/lib/problem-alert'
 import { Resend } from 'resend'
-import mammoth from 'mammoth'
+import { docxToText } from '@/lib/docx-text'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { dbQuery } from '@/lib/db'
 import { toPlainText } from '@/lib/plain-text'
@@ -60,8 +60,7 @@ async function readFile(file: File): Promise<string> {
   const name = file.name.toLowerCase()
 
   if (name.endsWith('.docx')) {
-    const result = await mammoth.extractRawText({ buffer })
-    return toPlainText(result.value)
+    return toPlainText(await docxToText(buffer))
   }
   // .txt і все інше читаємо як звичайний текст: Word 97 (.doc) mammoth не
   // відкриває, тому такі файли відсіюємо ще у формі.
