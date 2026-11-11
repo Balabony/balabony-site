@@ -8,6 +8,7 @@ import { dueInTwoDays } from '@/lib/contest-schedule'
 import { sendCoverHowto } from '@/lib/cover-howto'
 import { featuredCandidates, featuredThisWeek, setFeatured } from '@/lib/featured-author'
 import { revalidatePath } from 'next/cache'
+import { sendConsentReminders } from '@/lib/consent-reminder'
 
 /**
  * Щоденна перевірка «що зависло» (14.10.2026), 10:00 за Києвом.
@@ -65,6 +66,17 @@ export async function GET(req: NextRequest) {
         })
       }
     } catch (err) { console.error('[contest due run]', (err as Error)?.message) }
+    // 11.11.2026: згода на публікацію — автору один лист, засновнику — що горить (3 дні / прострочене).
+    try {
+      const cr = await sendConsentReminders()
+      if (cr.sent.length || cr.urgent.length) {
+        await sendProblemAlert({
+          kind: cr.urgent.length ? 'todo' : 'report', where: 'згода на публікацію',
+          error: `${cr.sent.length ? `Нагадування авторам: ${cr.sent.length}. ` : ''}${cr.urgent.length ? `Без згоди й виходять за 3 дні або прострочені: ${cr.urgent.length}.` : ''}`,
+          extra: [...cr.sent.map((x) => `лист: ${x}`), ...cr.urgent].join(' • '),
+        })
+      }
+    } catch (err) { console.error('[consent-reminder run]', (err as Error)?.message) }
     let edReminded: string[] = []
     try { edReminded = await sendEditorDeadlineReminders() } catch (err) { console.error('[editor-deadline run]', (err as Error)?.message) }
     if (edReminded.length) {
