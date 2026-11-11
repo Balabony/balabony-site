@@ -27,7 +27,7 @@ function km(a: City, b: City) {
   return Math.round(2 * R * Math.asin(Math.sqrt(h)))
 }
 
-type Mode = 'home' | 'quiz' | 'done' | 'map' | 'rating'
+type Mode = 'home' | 'quiz' | 'done' | 'map' | 'rating' | 'suggest'
 type Item = { q: Q; opts: string[] }
 type Row = { city: string; school: number; points: number; players: number }
 
@@ -42,6 +42,8 @@ export default function Game() {
   const [picked, setPicked] = useState<string | null>(null)
   const [score, setScore] = useState(0)
   const [right, setRight] = useState(0)
+  const [streak, setStreak] = useState(0)
+  const [results, setResults] = useState<{ city?: string; ok: boolean }[]>([])
   const [left, setLeft] = useState(LIMIT)
   const [noTimer, setNoTimer] = useState(false)
   // 11.11.2026: таймер лишається завжди (щоб не шукали відповіді в ШІ); «більше часу» — 40 с замість 20 для тих, кому треба.
@@ -53,13 +55,13 @@ export default function Game() {
   function start() {
     const pool = shuffle(QUESTIONS).slice(0, ROUND)
     setItems(pool.map((q) => ({ q, opts: shuffle([...q.o]) })))
-    setI(0); setPicked(null); setScore(0); setRight(0); setLeft(lim); setMode('quiz')
+    setI(0); setPicked(null); setScore(0); setRight(0); setStreak(0); setResults([]); setLeft(lim); setMode('quiz')
   }
 
   // Таймер: 20 секунд на запитання. Можна вимкнути — для тих, кому потрібно більше часу (екранні читачі, дислексія).
   useEffect(() => {
     if (mode !== 'quiz' || picked !== null) return
-    if (left <= 0) { setPicked(''); return }
+    if (left <= 0) { setPicked(''); setStreak(0); setResults((r) => [...r, { city: items[i]?.q.city, ok: false }]); return }
     const t = setTimeout(() => setLeft((x) => x - 1), 1000)
     return () => clearTimeout(t)
   }, [mode, picked, left])
@@ -67,28 +69,36 @@ export default function Game() {
   function answer(o: string) {
     if (picked !== null) return
     setPicked(o)
-    if (o === items[i].q.o[0]) { setRight((x) => x + 1); setScore((s) => s + 100 + Math.round((left * 5 * LIMIT) / lim)) }
+    const good = o === items[i].q.o[0]
+    setResults((r) => [...r, { city: items[i].q.city, ok: good }])
+    // серія: від 3 правильних поспіль — +50 за кожну наступну
+    if (good) { const st = streak + 1; setStreak(st); setRight((x) => x + 1); setScore((s) => s + 100 + Math.round((left * 5 * LIMIT) / lim) + (st >= 3 ? 50 : 0)) }
+    else setStreak(0)
   }
   function next() {
-    if (i + 1 >= items.length) { setMode('done'); return }
+    if (i + 1 >= items.length) { setMode('done'); fetch('/api/moia-ukraina?played=1', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).catch(() => {}); return }
     setI(i + 1); setPicked(null); setLeft(lim)
   }
 
   return (
-    <div style={{ background: NAVY, color: '#fff', minHeight: '100vh', padding: '28px 16px 60px' }}>
+    <div style={{ background: `radial-gradient(1200px 500px at 85% -10%, rgba(0,87,183,.35), transparent 60%), radial-gradient(900px 400px at -10% 110%, rgba(255,215,0,.12), transparent 60%), ${NAVY}`, color: '#fff', minHeight: '100vh', padding: '0 0 60px' }}>
+      <div aria-hidden="true" style={{ height: 10, background: 'linear-gradient(#0057B7 0 50%, #FFD700 50% 100%)' }} />
+      <div style={{ padding: '24px 16px 0' }}>
       <div style={{ maxWidth: 860, margin: '0 auto' }}>
-        <p style={{ margin: 0, color: GOLD_L, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', fontSize: 14 }}>Моє місце · голоси молоді України</p>
-        {mode === 'home' && <Home onQuiz={start} onMap={() => setMode('map')} onRating={() => setMode('rating')} noTimer={noTimer} setNoTimer={setNoTimer} head={head} />}
+        <p style={{ margin: 0, color: GOLD_L, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 }}><Flag />Моє місце · голоси молоді України</p>
+        {mode === 'home' && <Home onQuiz={start} onMap={() => setMode('map')} onRating={() => setMode('rating')} onSuggest={() => setMode('suggest')} noTimer={noTimer} setNoTimer={setNoTimer} head={head} />}
         {mode === 'quiz' && items[i] && (
-          <QuizStep item={items[i]} n={i} picked={picked} left={left} lim={lim} score={score} onAnswer={answer} onNext={next} head={head} />
+          <QuizStep item={items[i]} n={i} picked={picked} left={left} lim={lim} score={score} streak={streak} onAnswer={answer} onNext={next} head={head} />
         )}
-        {mode === 'done' && <Done score={score} right={right} onAgain={start} onMap={() => setMode('map')} onRating={() => setMode('rating')} head={head} />}
+        {mode === 'done' && <Done score={score} right={right} results={results} onAgain={start} onMap={() => setMode('map')} onRating={() => setMode('rating')} head={head} />}
         {mode === 'map' && <MyMap onBack={() => setMode('home')} head={head} />}
+        {mode === 'suggest' && <Suggest onBack={() => setMode('home')} head={head} />}
         {mode === 'rating' && <Rating onBack={() => setMode('home')} onQuiz={start} head={head} />}
         <p style={{ marginTop: 40, fontSize: 14, color: SOFT, opacity: 0.8, lineHeight: 1.5 }}>
           Демоверсія гри проєкту «Моє місце: голоси молоді України» · ЛОГО «Інститут громадянського суспільства» (Львів).
           Без реєстрації. Ми не збираємо імен і персональних даних дітей. Крим — це Україна.
         </p>
+      </div>
       </div>
     </div>
   )
@@ -99,8 +109,10 @@ const H = ({ head, children }: { head: HeadRef; children: React.ReactNode }) => 
   <h1 ref={head} tabIndex={-1} style={{ fontSize: 'clamp(28px,5vw,42px)', lineHeight: 1.15, margin: '8px 0 14px', outline: 'none' }}>{children}</h1>
 )
 
-function Home({ onQuiz, onMap, onRating, noTimer, setNoTimer, head }: { onQuiz: () => void; onMap: () => void; onRating: () => void; noTimer: boolean; setNoTimer: (v: boolean) => void; head: HeadRef }) {
+function Home({ onQuiz, onMap, onRating, onSuggest, noTimer, setNoTimer, head }: { onQuiz: () => void; onMap: () => void; onRating: () => void; onSuggest: () => void; noTimer: boolean; setNoTimer: (v: boolean) => void; head: HeadRef }) {
   const demo = useMemo(() => [byName.get('Львів')!, byName.get('Маріуполь')!], [])
+  const [stats, setStats] = useState<{ games: number; schools: number } | null>(null)
+  useEffect(() => { fetch('/api/moia-ukraina?stats=1', { cache: 'no-store' }).then((r) => r.json()).then((j) => { if (j?.ok) setStats(j.stats) }).catch(() => {}) }, [])
   return (
     <>
       <H head={head}>Моя Україна на мапі</H>
@@ -115,7 +127,9 @@ function Home({ onQuiz, onMap, onRating, noTimer, setNoTimer, head }: { onQuiz: 
         <button style={btn(GOLD)} onClick={onQuiz}>Почати вікторину · 10 запитань</button>
         <button style={btn(GOLD_L)} onClick={onMap}>Моя мапа: звідки я і де я зараз</button>
         <button style={btn('#2A4566', '#fff')} onClick={onRating}>Рейтинг шкіл</button>
+        <button style={btn('#2A4566', '#fff')} onClick={onSuggest}>Запропонуй запитання про своє місто</button>
       </div>
+      {stats && stats.games > 0 && <p style={{ margin: '14px 0 0', fontSize: 17, color: SOFT }}>Зіграно ігор: <b style={{ color: GOLD_L }}>{stats.games}</b> · Шкіл у рейтингу: <b style={{ color: GOLD_L }}>{stats.schools}</b></p>}
       <label style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 16, fontSize: 17, color: SOFT, cursor: 'pointer' }}>
         <input type="checkbox" checked={noTimer} onChange={(e) => setNoTimer(e.target.checked)} style={{ width: 22, height: 22 }} />
         Більше часу на відповідь — 40 секунд замість 20
@@ -124,7 +138,7 @@ function Home({ onQuiz, onMap, onRating, noTimer, setNoTimer, head }: { onQuiz: 
   )
 }
 
-function QuizStep({ item, n, picked, left, lim, score, onAnswer, onNext, head }: { item: Item; n: number; picked: string | null; left: number; lim: number; score: number; onAnswer: (o: string) => void; onNext: () => void; head: HeadRef }) {
+function QuizStep({ item, n, picked, left, lim, score, streak, onAnswer, onNext, head }: { item: Item; n: number; picked: string | null; left: number; lim: number; score: number; streak: number; onAnswer: (o: string) => void; onNext: () => void; head: HeadRef }) {
   const { q, opts } = item
   const city = q.city ? byName.get(q.city) : undefined
   const ok = picked !== null && picked === q.o[0]
@@ -132,6 +146,7 @@ function QuizStep({ item, n, picked, left, lim, score, onAnswer, onNext, head }:
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
         <span style={{ background: '#2A4566', borderRadius: 999, padding: '6px 14px', fontWeight: 700, fontSize: 15 }}>{q.c}</span>
+        {streak >= 2 && <span style={{ background: 'linear-gradient(90deg,#0057B7,#FFD700)', color: NAVY, borderRadius: 999, padding: '6px 14px', fontWeight: 900, fontSize: 15 }}>Серія ×{streak}{streak >= 3 ? ' · +50' : ''}</span>}
         <span style={{ fontSize: 17, color: SOFT }}>Запитання {n + 1} з {ROUND} · <b style={{ color: GOLD_L }}>{score} балів</b></span>
       </div>
       {(
@@ -178,7 +193,7 @@ function QuizStep({ item, n, picked, left, lim, score, onAnswer, onNext, head }:
 
 const CLASSES = ['5', '6', '7', '8', '9', '10', '11']
 
-function Done({ score, right, onAgain, onMap, onRating, head }: { score: number; right: number; onAgain: () => void; onMap: () => void; onRating: () => void; head: HeadRef }) {
+function Done({ score, right, results, onAgain, onMap, onRating, head }: { score: number; right: number; results: { city?: string; ok: boolean }[]; onAgain: () => void; onMap: () => void; onRating: () => void; head: HeadRef }) {
   const [city, setCity] = useState('')
   const [school, setSchool] = useState('')
   const [cls, setCls] = useState('')
@@ -194,8 +209,11 @@ function Done({ score, right, onAgain, onMap, onRating, head }: { score: number;
   }
   return (
     <>
-      <H head={head}>Твій результат: {score} балів</H>
-      <p style={{ fontSize: 20, color: SOFT, marginTop: 0 }}>Правильних відповідей: <b style={{ color: GOLD_L }}>{right} з {ROUND}</b></p>
+      <Confetti />
+      <p style={{ margin: '10px 0 0', fontSize: 15, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', color: GOLD_L }}>Твоє звання</p>
+      <H head={head}>{rank(right).t}</H>
+      <p style={{ fontSize: 19, color: SOFT, marginTop: 0, lineHeight: 1.5 }}>{rank(right).d} Результат: <b style={{ color: GOLD_L }}>{score} балів</b>, правильних відповідей — <b style={{ color: GOLD_L }}>{right} з {ROUND}</b>.</p>
+      <Discoveries results={results} />
       <form onSubmit={send} style={{ ...card, display: 'grid', gap: 12, marginTop: 10 }}>
         <p style={{ margin: 0, fontSize: 19, fontWeight: 800 }}>Додай бали своїй школі</p>
         <p style={{ margin: 0, fontSize: 16, color: SOFT }}>Лише місто, номер школи й клас — без імен.</p>
@@ -301,5 +319,114 @@ function Rating({ onBack, onQuiz, head }: { onBack: () => void; onQuiz: () => vo
         <button style={btn('#2A4566', '#fff')} onClick={onBack}>← На початок</button>
       </div>
     </>
+  )
+}
+
+const L = ({ t, children }: { t: string; children: React.ReactNode }) => <label style={{ display: 'grid', gap: 6, fontSize: 17 }}>{t}{children}</label>
+
+// 11.11.2026: діти пропонують власні запитання про свої міста. Ніщо не публікується без перевірки ментором і психологом.
+function Suggest({ onBack, head }: { onBack: () => void; head: HeadRef }) {
+  const [f, setF] = useState({ city: '', place: '', q: '', a: '', w1: '', w2: '', w3: '', why: '', sign: '' })
+  const [state, setState] = useState<'idle' | 'busy' | 'ok' | 'err'>('idle')
+  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setF({ ...f, [k]: e.target.value })
+  async function send(e: React.FormEvent) {
+    e.preventDefault()
+    setState('busy')
+    try {
+      const r = await fetch('/api/moia-ukraina?suggest=1', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(f) })
+      setState(r.ok ? 'ok' : 'err')
+    } catch { setState('err') }
+  }
+  const inp: React.CSSProperties = { ...sel, borderColor: '#2A4566' }
+  if (state === 'ok') return (
+    <>
+      <H head={head}>Дякуємо! Запитання надіслано</H>
+      <p style={{ fontSize: 19, color: SOFT, lineHeight: 1.5 }}>Ментори перевірять його, і незабаром його розгадуватимуть школярі з усієї України. Хочеш додати ще одне?</p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12 }}>
+        <button style={btn(GOLD)} onClick={() => { setF({ ...f, q: '', a: '', w1: '', w2: '', w3: '', why: '' }); setState('idle') }}>Ще одне запитання</button>
+        <button style={btn('#2A4566', '#fff')} onClick={onBack}>← На початок</button>
+      </div>
+    </>
+  )
+  return (
+    <>
+      <H head={head}>Запропонуй запитання про своє місто</H>
+      <p style={{ fontSize: 18, color: SOFT, marginTop: 0, lineHeight: 1.5 }}>Що цікавого є у твоєму рідному місті чи селі? Склади запитання — його розгадуватимуть інші учні. Не пиши прізвищ, адрес і даних про рідних. Ми перевіримо запитання, перш ніж додати його в гру.</p>
+      <form onSubmit={send} style={{ ...card, display: 'grid', gap: 12 }}>
+        <L t="Моє місто">
+          <select required value={f.city} onChange={set('city')} style={inp}>
+            <option value="">Обери місто</option>
+            {sortedCities.map((c) => <option key={c.n} value={c.n}>{c.n}</option>)}
+            <option value="Інше">Іншого міста чи села немає в списку</option>
+          </select>
+        </L>
+        {f.city === 'Інше' && <L t="Назва міста чи села"><input required maxLength={40} value={f.place} onChange={set('place')} style={inp} /></L>}
+        <L t="Запитання"><textarea required maxLength={200} rows={2} value={f.q} onChange={set('q')} style={{ ...inp, minHeight: 70 }} placeholder="Наприклад: Як називається найстаріша вулиця мого міста?" /></L>
+        <L t="Правильна відповідь"><input required maxLength={80} value={f.a} onChange={set('a')} style={inp} /></L>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12 }}>
+          <L t="Хибна відповідь 1"><input required maxLength={80} value={f.w1} onChange={set('w1')} style={inp} /></L>
+          <L t="Хибна відповідь 2"><input required maxLength={80} value={f.w2} onChange={set('w2')} style={inp} /></L>
+          <L t="Хибна відповідь 3"><input required maxLength={80} value={f.w3} onChange={set('w3')} style={inp} /></L>
+        </div>
+        <L t="Коротке пояснення (необов’язково)"><textarea maxLength={300} rows={2} value={f.why} onChange={set('why')} style={{ ...inp, minHeight: 70 }} /></L>
+        <L t="Підпис: ім’я та вік або псевдонім"><input required maxLength={40} value={f.sign} onChange={set('sign')} style={inp} placeholder="Оля, 13 або Мандрівниця" /></L>
+        <button type="submit" disabled={state === 'busy'} style={btn(GOLD)}>{state === 'busy' ? 'Надсилаємо…' : 'Надіслати запитання'}</button>
+        <p aria-live="polite" style={{ margin: 0, color: GOLD_L }}>{state === 'err' && 'Не вдалося надіслати. Спробуй ще раз за хвилину.'}</p>
+      </form>
+      <button style={{ ...btn('#2A4566', '#fff'), marginTop: 16 }} onClick={onBack}>← На початок</button>
+    </>
+  )
+}
+
+// Прапор, що майорить — власний малюнок (SVG), без готових іконок.
+function Flag() {
+  return (
+    <svg width="34" height="24" viewBox="0 0 34 24" aria-hidden="true" style={{ flex: 'none' }}>
+      <path d="M2 3 Q10 0 17 3 T32 3 V12 Q24 9 17 12 T2 12 Z" fill="#0057B7">
+        <animate attributeName="d" dur="2.4s" repeatCount="indefinite" values="M2 3 Q10 0 17 3 T32 3 V12 Q24 9 17 12 T2 12 Z;M2 3 Q10 6 17 3 T32 3 V12 Q24 15 17 12 T2 12 Z;M2 3 Q10 0 17 3 T32 3 V12 Q24 9 17 12 T2 12 Z" />
+      </path>
+      <path d="M2 12 Q10 9 17 12 T32 12 V21 Q24 18 17 21 T2 21 Z" fill="#FFD700">
+        <animate attributeName="d" dur="2.4s" repeatCount="indefinite" values="M2 12 Q10 9 17 12 T32 12 V21 Q24 18 17 21 T2 21 Z;M2 12 Q10 15 17 12 T32 12 V21 Q24 24 17 21 T2 21 Z;M2 12 Q10 9 17 12 T32 12 V21 Q24 18 17 21 T2 21 Z" />
+      </path>
+      <rect x="0" y="1" width="2" height="23" rx="1" fill="#FAC775" />
+    </svg>
+  )
+}
+
+// Звання за кількістю правильних відповідей.
+function rank(right: number) {
+  if (right >= 10) return { t: 'Посол памʼяті', d: 'Ідеально! Ти знаєш Україну від Ужгорода до Луганська і від Чернігова до Криму.' }
+  if (right >= 8) return { t: 'Знавець України', d: 'Чудовий результат — ти справжній знавець рідної країни.' }
+  if (right >= 6) return { t: 'Краєзнавець', d: 'Добре! Ще кілька ігор — і станеш знавцем України.' }
+  if (right >= 3) return { t: 'Мандрівник', d: 'Гарний початок подорожі Україною. Грай ще — запитання щоразу інші.' }
+  return { t: 'Відкривач', d: 'Кожна гра відкриває нові міста. Спробуй ще раз!' }
+}
+
+// Мапа відкриттів: міста з цієї гри — золоті (відгадав), блакитні (ще варто дізнатися).
+function Discoveries({ results }: { results: { city?: string; ok: boolean }[] }) {
+  const seen = new Map<string, boolean>()
+  for (const r of results) if (r.city && byName.has(r.city)) seen.set(r.city, (seen.get(r.city) ?? false) || r.ok)
+  if (!seen.size) return null
+  const marks = [...seen.entries()].map(([n, ok]) => ({ city: byName.get(n)!, color: ok ? GOLD_L : BLUE, label: '' }))
+  return (
+    <div style={{ ...card, padding: 12, margin: '6px 0 16px' }}>
+      <p style={{ margin: '4px 6px 8px', fontSize: 18, fontWeight: 800 }}>Твоя мапа відкриттів</p>
+      <UaMap marks={marks} showAll={false} label={`Міста з цієї гри: ${[...seen.keys()].join(', ')}`} />
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '8px 6px 0' }}>{[...seen.entries()].map(([n, ok]) => <span key={n} style={{ border: `2px solid ${ok ? GOLD_L : BLUE}`, color: ok ? GOLD_L : '#CFE3FA', borderRadius: 999, padding: '4px 12px', fontSize: 15, fontWeight: 700 }}>{n}{byName.get(n)?.tot ? ' · памʼятаємо' : ''}</span>)}</div>
+      <p style={{ margin: '8px 6px 2px', fontSize: 15, color: SOFT }}><span style={{ color: GOLD_L, fontWeight: 800 }}>Золоті</span> — відгадані міста, <span style={{ color: BLUE, fontWeight: 800 }}>блакитні</span> — ті, про які варто дізнатися більше.</p>
+    </div>
+  )
+}
+
+// Конфеті кольорів прапора — лише CSS, вимикається для тих, хто обрав «менше руху».
+function Confetti() {
+  const bits = Array.from({ length: 36 }, (_, k) => k)
+  return (
+    <div aria-hidden="true" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 5 }}>
+      <style>{`@keyframes mu-fall{0%{transform:translateY(-20px) rotate(0)}100%{transform:translateY(110vh) rotate(540deg)}}@media (prefers-reduced-motion: reduce){.mu-c{display:none}}`}</style>
+      {bits.map((k) => (
+        <span key={k} className="mu-c" style={{ position: 'absolute', left: `${(k * 97) % 100}%`, top: -20, width: 9, height: 14, borderRadius: 2, background: k % 2 ? '#FFD700' : '#0057B7', animation: `mu-fall ${2.2 + (k % 5) * 0.35}s ${(k % 9) * 0.12}s ease-in forwards` }} />
+      ))}
+    </div>
   )
 }
