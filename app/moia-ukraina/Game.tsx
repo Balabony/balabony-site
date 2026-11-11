@@ -294,7 +294,7 @@ function Rating({ onBack, onQuiz, head }: { onBack: () => void; onQuiz: () => vo
           <div style={card}>
             <h2 style={{ margin: '0 0 10px', fontSize: 22 }}>Школи</h2>
             <ol style={{ margin: 0, paddingLeft: 26, display: 'grid', gap: 6, fontSize: 18 }}>
-              {rows.slice(0, 20).map((r) => <li key={r.city + r.school}>{r.city}, школа №{r.school} — <b style={{ color: GOLD_L }}>{r.points}</b> <span style={{ color: SOFT, fontSize: 15 }}>({r.players} ігор)</span></li>)}
+              {rows.slice(0, 20).map((r) => <li key={r.city + r.school}>{r.city}, школа №{r.school} — <b style={{ color: GOLD_L }}>{r.points}</b> <span style={{ color: SOFT, fontSize: 15 }}>({r.players} {r.players % 10 === 1 && r.players % 100 !== 11 ? 'гра' : r.players % 10 >= 2 && r.players % 10 <= 4 && (r.players % 100 < 12 || r.players % 100 > 14) ? 'гри' : 'ігор'})</span></li>)}
             </ol>
           </div>
           <div style={card}>
