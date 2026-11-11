@@ -137,6 +137,7 @@ function Home({ onQuiz, onMap, onRating, onSuggest, onFind, noTimer, setNoTimer,
         <button style={btn('#2A4566', '#fff')} onClick={onRating}>Рейтинг шкіл</button>
         <button style={btn('#2A4566', '#fff')} onClick={onSuggest}>Запропонуй запитання про своє місто</button>
       </div>
+      <Rules />
       {stats && stats.games > 0 && <p style={{ margin: '14px 0 0', fontSize: 17, color: SOFT }}>Зіграно ігор: <b style={{ color: GOLD_L }}>{stats.games}</b> · Шкіл у рейтингу: <b style={{ color: GOLD_L }}>{stats.schools}</b></p>}
       <label style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 16, fontSize: 17, color: SOFT, cursor: 'pointer' }}>
         <input type="checkbox" checked={noTimer} onChange={(e) => setNoTimer(e.target.checked)} style={{ width: 22, height: 22 }} />
@@ -541,5 +542,57 @@ function Prize({ icon, t, d }: { icon: 'shirt' | 'cert' | 'star'; t: string; d: 
       <svg width="40" height="40" viewBox="0 0 30 28" aria-hidden="true" style={{ flex: 'none' }}>{g}</svg>
       <div><div style={{ fontWeight: 800, fontSize: 18 }}>{t}</div><div style={{ color: SOFT, fontSize: 15, lineHeight: 1.45 }}>{d}</div></div>
     </div>
+  )
+}
+
+// Правила гри й умови участі (11.11.2026).
+function Rules() {
+  const h: React.CSSProperties = { margin: '16px 0 6px', fontSize: 19 }
+  const ul: React.CSSProperties = { margin: 0, paddingLeft: 22, display: 'grid', gap: 5, fontSize: 17, lineHeight: 1.5, color: '#E6EEF8' }
+  return (
+    <details style={{ ...card, marginTop: 16 }}>
+      <summary style={{ cursor: 'pointer', fontSize: 19, fontWeight: 800, color: GOLD_L }}>Правила гри й умови участі</summary>
+      <h2 style={h}>Хто може грати</h2>
+      <ul style={ul}>
+        <li>Учні 5–11 класів з усієї України і з-за кордону. Молодші — разом із дорослими.</li>
+        <li>Гра безкоштовна й без реєстрації.</li>
+      </ul>
+      <h2 style={h}>Вікторина</h2>
+      <ul style={ul}>
+        <li>10 випадкових запитань із банку; щоразу набір інший.</li>
+        <li>На відповідь — 20 секунд (у режимі «більше часу» — 40).</li>
+        <li>Правильна відповідь — 100 балів, плюс бонус за швидкість до 100 балів.</li>
+        <li>Серія: від трьох правильних відповідей поспіль — ще +50 за кожну.</li>
+        <li>Звання наприкінці залежить від кількості правильних відповідей.</li>
+      </ul>
+      <h2 style={h}>Знайди місто на мапі</h2>
+      <ul style={ul}>
+        <li>5 раундів. Торкнись мапи там, де, на твою думку, назване місто.</li>
+        <li>Помилка до 25 км — 100 балів; що далі, то менше балів.</li>
+      </ul>
+      <h2 style={h}>Рейтинг шкіл</h2>
+      <ul style={ul}>
+        <li>Після вікторини обери місто, номер школи й клас — бали додаються до рахунку школи.</li>
+        <li>Рейтинг лише шкіл: ми не змагаємося містами чи регіонами.</li>
+        <li>Чесна гра: явно неможливі чи підозрілі результати ми видаляємо.</li>
+      </ul>
+      <h2 style={h}>Запропонуй запитання про своє місто</h2>
+      <ul style={ul}>
+        <li>Запитання має бути твоїм власним і спиратися на правдиві факти.</li>
+        <li>Не пиши прізвищ, адрес, номерів телефонів і жодних даних про рідних — особливо тих, хто на окупованих територіях чи в полоні.</li>
+        <li>Кожне запитання перевіряють ментори й психолог; ми можемо його відредагувати або не опублікувати.</li>
+        <li>Підпис — лише імʼя та вік або псевдонім. Запитання видалимо на прохання автора чи батьків.</li>
+      </ul>
+      <h2 style={h}>Всеукраїнський етап і призи</h2>
+      <ul style={ul}>
+        <li>Всеукраїнський етап для шкіл плануємо провести у 2027 році, якщо проєкт отримає фінансування. Строки й умови оголосимо окремо на цій сторінці.</li>
+        <li>Призи лише негрошові: футболки гри для трьох класів-переможців, іменні сертифікати учням і дипломи школам.</li>
+      </ul>
+      <h2 style={h}>Дані</h2>
+      <ul style={ul}>
+        <li>Ми не збираємо імен і персональних даних дітей. Для рейтингу зберігаємо лише місто, номер школи, клас і бали.</li>
+        <li>Організатор — Львівська обласна громадська організація «Інститут громадянського суспільства». Питання й прохання: mksbog@ukr.net.</li>
+      </ul>
+    </details>
   )
 }
