@@ -135,14 +135,35 @@ function Home({ onQuiz, onMap, onRating, onSuggest, onFind, onOblasti, onDaily, 
         <p style={{ margin: '10px 0 0', fontSize: 14, color: SOFT }}>Всеукраїнський етап із призами для класів плануємо провести у 2027 році. Грай уже зараз і набирай бали для своєї школи.</p>
       </div>
       <Explorer />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: 12 }}>
-        <button style={{ ...btn('#FFD700'), boxShadow: '0 0 0 3px #0057B7 inset' }} onClick={onDaily}>Місто дня<span style={{ display: 'block', fontSize: '.8em', fontWeight: 600, opacity: .85 }}>нова загадка щодня</span></button>
-        <button style={btn(GOLD)} onClick={onQuiz}>Почати вікторину<span style={{ display: 'block', fontSize: '.8em', fontWeight: 600, opacity: .85 }}>10 запитань</span></button>
-        <button style={btn(GOLD_L)} onClick={onFind}>Знайди місто на мапі<span style={{ display: 'block', fontSize: '.8em', fontWeight: 600, opacity: .85 }}>5 раундів</span></button>
-        <button style={btn(GOLD_L)} onClick={onOblasti}>Наклацай область<span style={{ display: 'block', fontSize: '.8em', fontWeight: 600, opacity: .85 }}>усі 25 на час</span></button>
-        <button style={btn(GOLD_L)} onClick={onMap}>Моя мапа: звідки я і де я зараз</button>
-        <button style={btn('#2A4566', '#fff')} onClick={onRating}>Рейтинг шкіл</button>
-        <button style={btn('#2A4566', '#fff')} onClick={onSuggest}>Запропонуй запитання про своє місто</button>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gap: 6, alignContent: 'start' }}>
+          <button style={{ ...btn('#FFD700'), boxShadow: '0 0 0 3px #0057B7 inset' }} onClick={onDaily}>Місто дня<span style={{ display: 'block', fontSize: '.8em', fontWeight: 600, opacity: .85 }}>нова загадка щодня</span></button>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.45, color: SOFT }}>Щодня нове загадане місто. Після кожної спроби бачиш, скільки до нього кілометрів і в який бік. Вгадуй щодня — росте серія.</p>
+        </div>
+        <div style={{ display: 'grid', gap: 6, alignContent: 'start' }}>
+          <button style={btn(GOLD)} onClick={onQuiz}>Почати вікторину<span style={{ display: 'block', fontSize: '.8em', fontWeight: 600, opacity: .85 }}>10 запитань</span></button>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.45, color: SOFT }}>10 запитань про історію, памʼять і культуру міст. Що швидше відповідаєш, то більше балів для своєї школи.</p>
+        </div>
+        <div style={{ display: 'grid', gap: 6, alignContent: 'start' }}>
+          <button style={btn(GOLD_L)} onClick={onFind}>Знайди місто на мапі<span style={{ display: 'block', fontSize: '.8em', fontWeight: 600, opacity: .85 }}>5 раундів</span></button>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.45, color: SOFT }}>Гра називає місто — торкнись мапи там, де воно. Чим ближче, тим більше балів.</p>
+        </div>
+        <div style={{ display: 'grid', gap: 6, alignContent: 'start' }}>
+          <button style={btn(GOLD_L)} onClick={onOblasti}>Наклацай область<span style={{ display: 'block', fontSize: '.8em', fontWeight: 600, opacity: .85 }}>усі 25 на час</span></button>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.45, color: SOFT }}>Гра називає область — знайди її на мапі. Усі 25 областей на час: побий свій рекорд.</p>
+        </div>
+        <div style={{ display: 'grid', gap: 6, alignContent: 'start' }}>
+          <button style={btn(GOLD_L)} onClick={onMap}>Моя мапа: звідки я і де я зараз</button>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.45, color: SOFT }}>Познач рідне місто і місто, де живеш зараз, — побачиш відстань між ними.</p>
+        </div>
+        <div style={{ display: 'grid', gap: 6, alignContent: 'start' }}>
+          <button style={btn('#2A4566', '#fff')} onClick={onRating}>Рейтинг шкіл</button>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.45, color: SOFT }}>Які школи набрали найбільше балів у вікторині.</p>
+        </div>
+        <div style={{ display: 'grid', gap: 6, alignContent: 'start' }}>
+          <button style={btn('#2A4566', '#fff')} onClick={onSuggest}>Запропонуй запитання про своє місто</button>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.45, color: SOFT }}>Придумай запитання про своє місто — найкращі додамо в гру з твоїм іменем.</p>
+        </div>
       </div>
       <TopSchools onRating={onRating} />
       <Rules />
@@ -660,7 +681,7 @@ function TopSchools({ onRating }: { onRating: () => void }) {
 }
 
 // ——— 11.11.2026: «Наклацай область» (ідея Seterra). Гра називає область — учень торкається її на мапі.
-// 3 помилки на одній області — показуємо її й ідемо далі. Найкращий час зберігається лише в цьому браузері.
+// 3 помилки на одній області — показуємо її й ідемо далі. Найкращий час зберігається лише в цьому браузері.
 const regName = (r: Region) => (r.n === 'АР Крим' ? 'Автономна Республіка Крим' : `${r.n} область`)
 const TARGETS = REGIONS.filter((r) => r.id !== 'UA-30' && r.id !== 'UA-40')
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
@@ -747,14 +768,14 @@ function Oblasti({ onBack, head }: { onBack: () => void; head: HeadRef }) {
   )
 }
 
-// ——— 11.11.2026: «Місто дня» (ідея Worldle). Одна загадка на день для всієї України, 6 спроб.
+// ——— 11.11.2026: «Місто дня» (ідея Worldle). Одна загадка на день для всієї України, 6 спроб.
 // Після кожної спроби — відстань і напрям. Після 3-ї — підказка: область. Серія днів — лише в цьому браузері.
 const TRIES = 6
 function kyivDay() {
   const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Kyiv' }))
   return { n: Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000), s: `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}` }
 }
-// стабільне перемішування міст: однакове для всіх, повтор не раніше ніж через 69 днів
+// стабільне перемішування міст: однакове для всіх, повтор не раніше ніж через 69 днів
 const DAILY = (() => {
   const a = [...CITIES].sort((x, y) => x.n.localeCompare(y.n, 'uk'))
   let seed = 20261111
