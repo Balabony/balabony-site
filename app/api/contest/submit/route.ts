@@ -264,7 +264,7 @@ async function handlePOST(req: NextRequest) {
       return NextResponse.json(
         {
           ok: false,
-          error: `У файлі «${f.name}» ${words} слів, а конкурс приймає ${contest.minWords}–${contest.maxWords}.${fitsOther(words, contest.id)} Нічого не збережено. Допишіть або скоротіть текст і подайте файл ще раз на цій сторінці — листом конкурсні твори не приймаємо.`,
+          error: `У файлі «${f.name}» ${words} слів, а конкурс приймає ${contest.minWords}–${contest.maxWords}.${bundleHint(words, contest) || fitsOther(words, contest.id)} Нічого не збережено. Допишіть або скоротіть текст і подайте файл ще раз на цій сторінці — листом конкурсні твори не приймаємо.`,
         },
         { status: 400 },
       )
@@ -512,6 +512,14 @@ export async function POST(req: NextRequest) {
   const copy = res.clone()
   after(() => alertIfFailed(copy, 'подача на конкурс (/konkursy/podaty)'))
   return res
+}
+
+// 11.11.2026: у «Одного разу перед Різдвом» три казки йдуть ОДНИМ файлом. Авторка (Вікторія Філіна)
+// двічі подала по одній казці, а форма радила інші конкурси — і вона не зрозуміла, що треба обʼєднати.
+// Якщо файл замалий для конкурсу, де кілька творів подаються разом, кажемо саме це.
+function bundleHint(words: number, c: { minWords: number; volumeLabel?: string }): string {
+  if (words >= c.minWords || !c.volumeLabel || !/одному файлі/.test(c.volumeLabel)) return ''
+  return ` У цьому конкурсі всі твори подаються одним файлом: ${c.volumeLabel}. Обʼєднайте їх в один документ — казку за казкою, кожну з назвою — і завантажте цей файл.`
 }
 
 // 21.10.2026: автори плутають конкурс (Галина Максим'юк подала казки в серіальний). Якщо обсяг
