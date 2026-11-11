@@ -24,7 +24,7 @@ export async function ensureGrammarTable() {
   ready = true
 }
 
-export async function getGrammar(source: 'contest' | 'application', id: string): Promise<GrammarResult | null> {
+export async function getGrammar(source: 'contest' | 'application' | 'content', id: string): Promise<GrammarResult | null> {
   try {
     await ensureGrammarTable()
     const r = await dbQuery(`select result from grammar_checks where source = $1 and source_id = $2 limit 1`, [source, id])
@@ -32,7 +32,7 @@ export async function getGrammar(source: 'contest' | 'application', id: string):
   } catch { return null }
 }
 
-type Job = { source: 'contest' | 'application'; id: string; title: string }
+type Job = { source: 'contest' | 'application' | 'content'; id: string; title: string }
 
 export async function autoGrammarChecks(budgetMs = 240_000): Promise<string[]> {
   const started = Date.now()
@@ -52,6 +52,22 @@ export async function autoGrammarChecks(budgetMs = 240_000): Promise<string[]> {
      order by created_at desc
      limit 6`,
   )
+  // 11.11.2026 (Богдан): ще й усі твори в графіку публікацій — найближчі до виходу першими,
+  // щоб редактор устиг виправити помилки до дня публікації. Конкурсні й заявки — пріоритетніші.
+  if (r.rows.length < 6) {
+    const c = await dbQuery(
+      `select 'content' as source, c.id::text as id, c.title, c.publish_at as created_at
+         from content c
+        where c.status::text in ('scheduled', 'approved', 'review')
+          and coalesce(c.text, '') <> ''
+          and not exists (select 1 from contest_episodes ep where ep.content_id = c.id)
+          and not exists (select 1 from grammar_checks g where g.source = 'content' and g.source_id = c.id::text)
+        order by c.publish_at asc nulls last
+        limit $1`,
+      [6 - r.rows.length],
+    )
+    r.rows.push(...c.rows)
+  }
   const done: string[] = []
   for (const j of r.rows as Job[]) {
     if (Date.now() - started > budgetMs - 100_000 && done.length > 0) break
@@ -60,6 +76,9 @@ export async function autoGrammarChecks(budgetMs = 240_000): Promise<string[]> {
       if (j.source === 'contest') {
         const eps = await dbQuery(`select body from contest_episodes where entry_id::text = $1 order by ord`, [j.id])
         text = (eps.rows as { body: string }[]).map((x) => x.body).join('\n\n')
+      } else if (j.source === 'content') {
+        const c = await dbQuery(`select coalesce(nullif(corrected_text, ''), text) as body from content where id::text = $1`, [j.id])
+        text = (c.rows[0] as { body: string } | undefined)?.body ?? ''
       } else {
         const a = await dbQuery(`select body from author_applications where id::text = $1`, [j.id])
         text = (a.rows[0] as { body: string } | undefined)?.body ?? ''

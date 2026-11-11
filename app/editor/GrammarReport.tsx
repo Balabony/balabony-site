@@ -5,7 +5,7 @@ const GOLD_L = '#FAC775'
 const MUTED = '#8CA0B8'
 const LINE = 'rgba(255,255,255,.10)'
 
-export default function GrammarReport({ g }: { g: GrammarResult | null }) {
+export default function GrammarReport({ g, open = true }: { g: GrammarResult | null; open?: boolean }) {
   if (!g) {
     return (
       <div style={{ fontSize: 13, color: MUTED, margin: '0 0 1.2rem' }}>
@@ -15,7 +15,7 @@ export default function GrammarReport({ g }: { g: GrammarResult | null }) {
   }
   const color = g.level === 'добра' ? '#7FD1A0' : g.level === 'середня' ? GOLD_L : '#F09A8A'
   return (
-    <details open style={{ margin: '0 0 1.4rem', border: `1px solid ${LINE}`, borderRadius: 12, padding: '.8rem 1rem', background: 'rgba(255,255,255,.03)' }}>
+    <details open={open} style={{ margin: '0 0 1.4rem', border: `1px solid ${LINE}`, borderRadius: 12, padding: '.8rem 1rem', background: 'rgba(255,255,255,.03)' }}>
       <summary style={{ cursor: 'pointer', fontSize: 15, color: GOLD_L, fontWeight: 600 }}>
         ШІ-перевірка грамотності: <span style={{ color }}>{g.level}</span> · зауважень: {g.issues.length}
       </summary>
