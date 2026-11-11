@@ -35,7 +35,7 @@ const LAB: Record<string, { t?: string[]; s?: number; dx?: number; dy?: number }
   'UA-53': { dx: -4 },
   'UA-74': { t: ['Черні-', 'гівська'] },
 }
-const zoomOf = (r: Region) => (r.id === 'UA-30' ? REGIONS.find((x) => x.id === 'UA-32')! : r)
+export const zoomOf = (r: Region) => (r.id === 'UA-30' ? REGIONS.find((x) => x.id === 'UA-32')! : r.id === 'UA-40' ? REGIONS.find((x) => x.id === 'UA-43')! : r)
 
 // Географічний шар: головні річки, моря, Карпати, Говерла, столиця. Координати — опорні точки русел (спрощено).
 const RIVERS: { n: string; pts: [number, number][]; lab: [number, number] }[] = [
@@ -66,19 +66,34 @@ function GeoLayer({ k, names }: { k: number; names: boolean }) {
   )
 }
 
+const regionTitle = (r: Region) => (r.n === 'АР Крим' ? 'Автономна Республіка Крим' : `${r.n} область`)
+
 export function unproject(x: number, y: number) {
   return { lat: 52.5 - y / 60, lon: 22 + x / KX }
 }
 
-function fit(r: Region): [number, number, number, number] {
-  const [x0, y0, x1, y1] = r.box
+// Межі збільшення: область + підписи її міст (вони стоять праворуч від крапки), щоб усе було по центру.
+function fit(r: Region, px: number): [number, number, number, number] {
   const ratio = VIEW_W / VIEW_H
-  const bw = (x1 - x0) * 1.25, bh = (y1 - y0) * 1.25
-  const w = Math.max(bw, bh * ratio, 170), h = w / ratio
+  let [x0, y0, x1, y1] = r.box
+  let w = 0
+  for (let pass = 0; pass < 3; pass++) {
+    const bw = (x1 - x0) * 1.2, bh = (y1 - y0) * 1.2
+    w = Math.max(bw, bh * ratio, 170)
+    const k = w / VIEW_W, sp = w / px
+    for (const n of r.cities) {
+      const c = CITIES.find((q) => q.n === n)
+      if (!c) continue
+      const [x] = project(c.lat, c.lon)
+      const f = Math.max((c.obl ? 16 : 14) * k, (c.obl ? 15 : 13) * sp)
+      x1 = Math.max(x1, x + 8 * Math.max(k, sp) + n.length * f * 0.6)
+    }
+  }
+  const h = w / ratio
   return [(x0 + x1) / 2 - w / 2, (y0 + y1) / 2 - h / 2, w, h]
 }
 
-export default function UaMap({ marks = [], thread, label, showAll = true, onPick, onMapClick, active, geo = false, regions = 'lines', onRegion }: {
+export default function UaMap({ marks = [], thread, label, showAll = true, onPick, onMapClick, active, geo = false, regions = 'lines', onRegion, regionFill, onRegionClick, regionLabel }: {
   marks?: { city: City; color: string; label?: string }[]
   thread?: [City, City]
   label?: string
@@ -89,6 +104,9 @@ export default function UaMap({ marks = [], thread, label, showAll = true, onPic
   geo?: boolean
   regions?: 'lines' | 'names' | 'zoom'
   onRegion?: (r: Region | null) => void
+  regionFill?: Record<string, string>
+  onRegionClick?: (r: Region) => void
+  regionLabel?: Record<string, string>
 }) {
   const [hover, setHover] = useState<City | null>(null)
   const [hoverR, setHoverR] = useState<string | null>(null)
@@ -109,7 +127,7 @@ export default function UaMap({ marks = [], thread, label, showAll = true, onPic
 
   // Плавне збільшення: анімуємо viewBox; для тих, хто обрав «менше руху», — одразу.
   useEffect(() => {
-    const to = zoom ? fit(zoom) : FULL
+    const to = zoom ? fit(zoom, px) : FULL
     const from = vbRef.current
     const reduce = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     if (reduce) { vbRef.current = to; setVb(to); return }
@@ -124,7 +142,7 @@ export default function UaMap({ marks = [], thread, label, showAll = true, onPic
     }
     raf = requestAnimationFrame(step)
     return () => cancelAnimationFrame(raf)
-  }, [zoom])
+  }, [zoom, px])
 
   const k = vb[2] / VIEW_W
   const sp = vb[2] / px // одиниць мапи на 1 пiксель екрана
@@ -161,6 +179,15 @@ export default function UaMap({ marks = [], thread, label, showAll = true, onPic
   const ALL = REGIONS.map((r) => r.d).join('')
   return (
     <div style={{ position: 'relative' }}>
+      {zoom && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '2px 2px 8px' }}>
+          <button type="button" onClick={() => choose(null)}
+            style={{ background: '#FFD700', color: '#0E1A2B', border: 0, borderRadius: 10, padding: '7px 12px', fontSize: 15, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            ← Вся Україна
+          </button>
+          <b style={{ color: '#FFD700', fontSize: 16, textAlign: 'right' }}>{regionTitle(zoom)}</b>
+        </div>
+      )}
       <svg ref={svg} viewBox={vb.map((v) => v.toFixed(2)).join(' ')} role="img" aria-label={zoom ? `${label ?? 'Мапа України'}: ${zoom.n === 'АР Крим' ? 'Автономна Республіка Крим' : zoom.n + ' область'}` : label ?? 'Мапа України'} onClick={click}
         style={{ width: '100%', height: 'auto', display: 'block', cursor: onMapClick ? 'crosshair' : 'default', touchAction: 'manipulation' }}>
         <path d={ALL} fill="none" stroke={EDGE} strokeWidth={2.6 * k} strokeLinejoin="round" pointerEvents="none" />
@@ -169,15 +196,24 @@ export default function UaMap({ marks = [], thread, label, showAll = true, onPic
           const on = zoom ? zoom.id === z.id : zoomable && hoverR === z.id
           const dim = zoom && !on
           return (
-            <path key={r.id} d={r.d} fillRule="evenodd" fill={on ? LAND_ON : LAND} stroke={BORDER} strokeWidth={(on && zoom ? 1.6 : 0.9) * k} strokeLinejoin="round"
+            <path key={r.id} d={r.d} fillRule="evenodd" fill={regionFill?.[z.id] ?? (on || (onRegionClick && hoverR === z.id) ? LAND_ON : LAND)} stroke={BORDER} strokeWidth={(on && zoom ? 1.6 : 0.9) * k} strokeLinejoin="round"
               opacity={dim ? 0.55 : 1}
-              onMouseEnter={zoomable ? () => setHoverR(z.id) : undefined} onMouseLeave={zoomable ? () => setHoverR((h) => (h === z.id ? null : h)) : undefined}
-              onClick={zoomable ? (e) => { e.stopPropagation(); if (zoom?.id !== z.id) choose(r) } : undefined}
-              style={{ cursor: zoomable && zoom?.id !== z.id ? 'zoom-in' : undefined, transition: 'fill .15s' }} />
+              onMouseEnter={zoomable || onRegionClick ? () => setHoverR(z.id) : undefined} onMouseLeave={zoomable || onRegionClick ? () => setHoverR((h) => (h === z.id ? null : h)) : undefined}
+              onClick={onRegionClick ? (e) => { e.stopPropagation(); onRegionClick(z) } : zoomable ? (e) => { e.stopPropagation(); if (zoom?.id !== z.id) choose(r) } : undefined}
+              style={{ cursor: onRegionClick ? 'pointer' : zoomable && zoom?.id !== z.id ? 'zoom-in' : undefined, transition: 'fill .25s' }} />
           )
         })}
         {zoom && <path d={zoom.d + (zoom.id === 'UA-32' ? REGIONS.find((x) => x.id === 'UA-30')!.d : '')} fill="none" stroke="#FFD700" strokeWidth={2.2 * k} strokeLinejoin="round" pointerEvents="none" />}
         {geo && <GeoLayer k={k} names={names} />}
+        {regionLabel && (
+          <g pointerEvents="none">
+            {REGIONS.filter((r) => regionLabel[r.id]).map((r) => {
+              const o = LAB[r.id] ?? {}
+              const size = Math.max((o.s ?? 10.5) * k, 11 * sp)
+              return <text key={r.id} x={r.lab[0] + (o.dx ?? 0)} y={r.lab[1] + (o.dy ?? 0)} fontSize={size} fontWeight={800} fill="#fff" textAnchor="middle" stroke="#0E1A2B" strokeWidth={size / 4} paintOrder="stroke">{regionLabel[r.id]}</text>
+            })}
+          </g>
+        )}
         {names && !zoom && px >= 480 && (
           <g pointerEvents="none">
             {REGIONS.filter((r) => r.id !== 'UA-30' && r.id !== 'UA-40').map((r) => {
@@ -247,17 +283,6 @@ export default function UaMap({ marks = [], thread, label, showAll = true, onPic
           )
         })()}
       </svg>
-      {zoom && (
-        <button type="button" onClick={() => choose(null)}
-          style={{ position: 'absolute', top: 8, left: 8, background: '#FFD700', color: '#0E1A2B', border: 0, borderRadius: 10, padding: '7px 12px', fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,.35)' }}>
-          ← Вся Україна
-        </button>
-      )}
-      {zoom && (
-        <span aria-hidden="true" style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(14,26,43,.85)', color: '#FFD700', border: '1px solid #FFD700', borderRadius: 10, padding: '6px 10px', fontSize: 14, fontWeight: 800, maxWidth: '50%', textAlign: 'right' }}>
-          {zoom.n === 'АР Крим' ? 'АР Крим' : `${zoom.n} обл.`}
-        </span>
-      )}
     </div>
   )
 }

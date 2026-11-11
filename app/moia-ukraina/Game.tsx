@@ -6,7 +6,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import UaMap from './UaMap'
-import type { Region } from './ua-regions'
+import { REGIONS, type Region } from './ua-regions'
 import { CITIES, QUESTIONS, TOT_NOTE, OBL, type City, type Q } from './data'
 
 const NAVY = '#0E1A2B', NAVY2 = '#14253B', CARD = '#193049', GOLD = '#EF9F27', GOLD_L = '#FAC775', SOFT = '#CFE3FA'
@@ -28,7 +28,7 @@ function km(a: City, b: City) {
   return Math.round(2 * R * Math.asin(Math.sqrt(h)))
 }
 
-type Mode = 'home' | 'quiz' | 'done' | 'map' | 'rating' | 'suggest' | 'find'
+type Mode = 'home' | 'quiz' | 'done' | 'map' | 'rating' | 'suggest' | 'find' | 'oblasti' | 'daily'
 type Item = { q: Q; opts: string[] }
 type Row = { city: string; school: number; points: number; players: number }
 
@@ -88,18 +88,21 @@ export default function Game() {
       <div style={{ maxWidth: 860, margin: '0 auto' }}>
         <nav aria-label="Навігація" style={{ marginBottom: 14, fontSize: 15 }}><a href="/" style={{ color: GOLD_L, textDecoration: 'none' }}>← Балабони</a> <span style={{ color: SOFT }}>·</span> <a href="/games" style={{ color: GOLD_L, textDecoration: 'none' }}>Ігри</a> <span style={{ color: SOFT }}>·</span> <a href="/skoromovky" style={{ color: GOLD_L, textDecoration: 'none' }}>Скоромовки</a></nav>
         <p style={{ margin: 0, color: GOLD_L, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 }}><Flag />Моє місце · голоси молоді України</p>
-        {mode === 'home' && <Home onQuiz={start} onMap={() => setMode('map')} onRating={() => setMode('rating')} onSuggest={() => setMode('suggest')} onFind={() => setMode('find')} noTimer={noTimer} setNoTimer={setNoTimer} head={head} />}
+        {mode === 'home' && <Home onQuiz={start} onMap={() => setMode('map')} onRating={() => setMode('rating')} onSuggest={() => setMode('suggest')} onFind={() => setMode('find')} onOblasti={() => setMode('oblasti')} onDaily={() => setMode('daily')} noTimer={noTimer} setNoTimer={setNoTimer} head={head} />}
         {mode === 'quiz' && items[i] && (
           <QuizStep item={items[i]} n={i} picked={picked} left={left} lim={lim} score={score} streak={streak} onAnswer={answer} onNext={next} head={head} />
         )}
         {mode === 'done' && <Done score={score} right={right} results={results} onAgain={start} onMap={() => setMode('map')} onRating={() => setMode('rating')} head={head} />}
         {mode === 'map' && <MyMap onBack={() => setMode('home')} head={head} />}
         {mode === 'find' && <Find onBack={() => setMode('home')} head={head} />}
+        {mode === 'oblasti' && <Oblasti onBack={() => setMode('home')} head={head} />}
+        {mode === 'daily' && <Daily onBack={() => setMode('home')} head={head} />}
         {mode === 'suggest' && <Suggest onBack={() => setMode('home')} head={head} />}
         {mode === 'rating' && <Rating onBack={() => setMode('home')} onQuiz={start} head={head} />}
         <p style={{ marginTop: 40, fontSize: 14, color: SOFT, opacity: 0.8, lineHeight: 1.5 }}>
           Демоверсія гри проєкту «Моє місце: голоси молоді України» · ЛОГО «Інститут громадянського суспільства» (Львів).
           Без реєстрації. Ми не збираємо імен і персональних даних дітей. Крим — це Україна.
+          {' '}Гру створено власними силами організації. Сподіваємося на підтримку держави та грантодавців, щоб розвивати її далі.
         </p>
       </div>
       </div>
@@ -112,7 +115,7 @@ const H = ({ head, children }: { head: HeadRef; children: React.ReactNode }) => 
   <h1 ref={head} tabIndex={-1} style={{ fontSize: 'clamp(28px,5vw,42px)', lineHeight: 1.15, margin: '8px 0 14px', outline: 'none' }}>{children}</h1>
 )
 
-function Home({ onQuiz, onMap, onRating, onSuggest, onFind, noTimer, setNoTimer, head }: { onQuiz: () => void; onMap: () => void; onRating: () => void; onSuggest: () => void; onFind: () => void; noTimer: boolean; setNoTimer: (v: boolean) => void; head: HeadRef }) {
+function Home({ onQuiz, onMap, onRating, onSuggest, onFind, onOblasti, onDaily, noTimer, setNoTimer, head }: { onQuiz: () => void; onMap: () => void; onRating: () => void; onSuggest: () => void; onFind: () => void; onOblasti: () => void; onDaily: () => void; noTimer: boolean; setNoTimer: (v: boolean) => void; head: HeadRef }) {
   const [stats, setStats] = useState<{ games: number; schools: number } | null>(null)
   useEffect(() => { fetch('/api/moia-ukraina?stats=1', { cache: 'no-store' }).then((r) => r.json()).then((j) => { if (j?.ok) setStats(j.stats) }).catch(() => {}) }, [])
   return (
@@ -133,8 +136,10 @@ function Home({ onQuiz, onMap, onRating, onSuggest, onFind, noTimer, setNoTimer,
       </div>
       <Explorer />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: 12 }}>
+        <button style={{ ...btn('#FFD700'), boxShadow: '0 0 0 3px #0057B7 inset' }} onClick={onDaily}>Місто дня<span style={{ display: 'block', fontSize: '.8em', fontWeight: 600, opacity: .85 }}>нова загадка щодня</span></button>
         <button style={btn(GOLD)} onClick={onQuiz}>Почати вікторину<span style={{ display: 'block', fontSize: '.8em', fontWeight: 600, opacity: .85 }}>10 запитань</span></button>
         <button style={btn(GOLD_L)} onClick={onFind}>Знайди місто на мапі<span style={{ display: 'block', fontSize: '.8em', fontWeight: 600, opacity: .85 }}>5 раундів</span></button>
+        <button style={btn(GOLD_L)} onClick={onOblasti}>Наклацай область<span style={{ display: 'block', fontSize: '.8em', fontWeight: 600, opacity: .85 }}>усі 25 на час</span></button>
         <button style={btn(GOLD_L)} onClick={onMap}>Моя мапа: звідки я і де я зараз</button>
         <button style={btn('#2A4566', '#fff')} onClick={onRating}>Рейтинг шкіл</button>
         <button style={btn('#2A4566', '#fff')} onClick={onSuggest}>Запропонуй запитання про своє місто</button>
@@ -651,5 +656,216 @@ function TopSchools({ onRating }: { onRating: () => void }) {
         : <div style={{ ...card }}><p style={{ margin: 0, fontSize: 20, fontWeight: 800 }}>Рейтинг шкіл</p><p style={{ margin: '6px 0 0', color: SOFT, fontSize: 17 }}>Тут поки порожньо. Зіграй вікторину й зарахуй бали своїй школі — вона стане першою!</p></div>}
       {rows.length > 5 && <button style={{ ...btn('#2A4566', '#fff'), marginTop: 10 }} onClick={onRating}>Увесь рейтинг →</button>}
     </div>
+  )
+}
+
+// ——— 11.11.2026: «Наклацай область» (ідея Seterra). Гра називає область — учень торкається її на мапі.
+// 3 помилки на одній області — показуємо її й ідемо далі. Найкращий час зберігається лише в цьому браузері.
+const regName = (r: Region) => (r.n === 'АР Крим' ? 'Автономна Республіка Крим' : `${r.n} область`)
+const TARGETS = REGIONS.filter((r) => r.id !== 'UA-30' && r.id !== 'UA-40')
+const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+function store(key: string, v?: unknown) {
+  try {
+    if (v === undefined) { const x = localStorage.getItem(key); return x ? JSON.parse(x) : null }
+    localStorage.setItem(key, JSON.stringify(v))
+  } catch { /* приватний режим — просто не зберігаємо */ }
+  return null
+}
+
+function Oblasti({ onBack, head }: { onBack: () => void; head: HeadRef }) {
+  const [order, setOrder] = useState(() => shuffle(TARGETS))
+  const [k, setK] = useState(0)
+  const [fill, setFill] = useState<Record<string, string>>({})
+  const [miss, setMiss] = useState(0)
+  const [errs, setErrs] = useState(0)
+  const [missed, setMissed] = useState(0)
+  const [t0, setT0] = useState(() => Date.now())
+  const [sec, setSec] = useState(0)
+  const [msg, setMsg] = useState('')
+  const [best, setBest] = useState<number | null>(null)
+  const [isBest, setIsBest] = useState(false)
+  const done = k >= order.length
+  const target = order[k]
+  useEffect(() => { setBest(store('mu_obl_best')) }, [])
+  useEffect(() => {
+    if (done) return
+    const t = setInterval(() => setSec(Math.floor((Date.now() - t0) / 1000)), 500)
+    return () => clearInterval(t)
+  }, [done, t0])
+  function finish(total: number, missedN: number) {
+    fetch('/api/moia-ukraina?played=1', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).catch(() => {})
+    if (missedN === 0 && (best === null || total < best)) { store('mu_obl_best', total); setBest(total); setIsBest(true) }
+  }
+  function pick(r: Region) {
+    if (done || fill[r.id] === GREEN || fill[r.id] === GOLD) return
+    if (r.id === target.id) {
+      setFill((f) => ({ ...f, [r.id]: GREEN })); setMsg(`Так! ${regName(r)}.`)
+      setMiss(0); const nk = k + 1; setK(nk)
+      if (nk >= order.length) { const total = Math.floor((Date.now() - t0) / 1000); setSec(total); finish(total, missed) }
+      return
+    }
+    setErrs((x) => x + 1)
+    const m = miss + 1
+    setFill((f) => ({ ...f, [r.id]: RED }))
+    setTimeout(() => setFill((f) => { if (f[r.id] !== RED) return f; const n = { ...f }; delete n[r.id]; return n }), 600)
+    if (m >= 3) {
+      setFill((f) => ({ ...f, [target.id]: GOLD })); setMsg(`Це ${regName(r)}. А ${regName(target)} — тут, підсвічено жовтим.`)
+      setMiss(0); setMissed((x) => x + 1); const nk = k + 1; setK(nk)
+      if (nk >= order.length) { const total = Math.floor((Date.now() - t0) / 1000); setSec(total); finish(total, missed + 1) }
+    } else { setMiss(m); setMsg(`Ні, це ${regName(r)}. Спробуй ще (${3 - m}).`) }
+  }
+  function again() { setOrder(shuffle(TARGETS)); setK(0); setFill({}); setMiss(0); setErrs(0); setMissed(0); setT0(Date.now()); setSec(0); setMsg(''); setIsBest(false) }
+  const found = Object.fromEntries(Object.entries(fill).filter(([, c]) => c === GREEN || c === GOLD).map(([id]) => [id, TARGETS.find((x) => x.id === id)?.n ?? ''])) as Record<string, string>
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginTop: 8, color: SOFT, fontSize: 17 }}>
+        <span>{Math.min(k + 1, order.length)} з {order.length}</span>
+        <b style={{ color: GOLD_L, fontVariantNumeric: 'tabular-nums' }}>{mmss(sec)}</b>
+      </div>
+      {!done ? <H head={head}>Де {regName(target)}?</H> : <H head={head}>{missed === 0 ? `Усі області за ${mmss(sec)}!` : `Готово: ${order.length - missed} з ${order.length}`}</H>}
+      <div style={{ ...card, padding: 10 }}>
+        <UaMap showAll={false} regionFill={fill} onRegionClick={done ? undefined : pick} regionLabel={found} label={done ? 'Мапа областей України' : `Знайди на мапі: ${regName(target)}`} />
+      </div>
+      <p aria-live="polite" style={{ minHeight: 26, margin: '10px 0 0', fontSize: 18, color: msg.startsWith('Так') ? GREEN : GOLD_L, fontWeight: 700 }}>{msg}</p>
+      {done && (
+        <>
+          {done && miss === 0 && msg && null}
+          <div style={{ ...card, marginTop: 8 }}>
+            <p style={{ margin: 0, fontSize: 19, lineHeight: 1.5 }}>Час: <b>{mmss(sec)}</b> · помилок: <b>{errs}</b>{missed ? <> · підказок: <b>{missed}</b></> : null}</p>
+            {isBest && <p style={{ margin: '6px 0 0', color: GREEN, fontWeight: 800, fontSize: 19 }}>Новий рекорд!</p>}
+            {!isBest && best !== null && <p style={{ margin: '6px 0 0', color: SOFT }}>Твій рекорд без підказок: {mmss(best)}</p>}
+            <p style={{ margin: '6px 0 0', color: SOFT }}>{errs === 0 ? 'Жодної помилки — ти знаєш мапу України напамʼять!' : errs <= 5 ? 'Чудово! Ще одне коло — і буде без помилок.' : 'Зіграй ще раз — з кожним колом області запамʼятовуються краще.'}</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12, marginTop: 12 }}>
+            <button style={btn(GOLD)} onClick={again}>Грати ще раз</button>
+            <button style={btn('#2A4566', '#fff')} onClick={onBack}>← На початок</button>
+          </div>
+        </>
+      )}
+      {!done && <button style={{ ...btn('#2A4566', '#fff'), marginTop: 16 }} onClick={onBack}>← На початок</button>}
+    </>
+  )
+}
+
+// ——— 11.11.2026: «Місто дня» (ідея Worldle). Одна загадка на день для всієї України, 6 спроб.
+// Після кожної спроби — відстань і напрям. Після 3-ї — підказка: область. Серія днів — лише в цьому браузері.
+const TRIES = 6
+function kyivDay() {
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Kyiv' }))
+  return { n: Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000), s: `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}` }
+}
+// стабільне перемішування міст: однакове для всіх, повтор не раніше ніж через 69 днів
+const DAILY = (() => {
+  const a = [...CITIES].sort((x, y) => x.n.localeCompare(y.n, 'uk'))
+  let seed = 20261111
+  const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648 }
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]] }
+  return a
+})()
+const DIRS = ['північ', 'північний схід', 'схід', 'південний схід', 'південь', 'південний захід', 'захід', 'північний захід']
+function bearing(a: City, b: City) {
+  const dx = (b.lon - a.lon) * Math.cos(((a.lat + b.lat) / 2) * Math.PI / 180), dy = b.lat - a.lat
+  return ((Math.atan2(dx, dy) * 180) / Math.PI + 360) % 360
+}
+const heat = (d: number) => (d === 0 ? GREEN : d <= 100 ? '#FFD700' : d <= 250 ? GOLD : d <= 450 ? '#E07A3F' : BLUE)
+function Arrow({ deg, color }: { deg: number; color: string }) {
+  return (
+    <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" style={{ transform: `rotate(${deg}deg)`, flex: 'none' }}>
+      <circle cx="15" cy="15" r="14" fill="rgba(255,255,255,.08)" stroke={color} strokeWidth="1.5" />
+      <path d="M15 5 L21 16 L16.5 14.5 L16.5 24 L13.5 24 L13.5 14.5 L9 16 Z" fill={color} />
+    </svg>
+  )
+}
+
+function Daily({ onBack, head }: { onBack: () => void; head: HeadRef }) {
+  const day = useMemo(kyivDay, [])
+  const target = DAILY[((day.n % DAILY.length) + DAILY.length) % DAILY.length]
+  const region = REGIONS.find((r) => r.id !== 'UA-30' && r.cities.includes(target.n))
+  const [g, setG] = useState<string[]>([])
+  const [choice, setChoice] = useState('')
+  const [streak, setStreak] = useState(0)
+  const [copied, setCopied] = useState(false)
+  useEffect(() => {
+    const s = store('mu_daily')
+    if (s?.day === day.n && Array.isArray(s.g)) setG(s.g)
+    const st = store('mu_daily_streak')
+    if (st && (st.last === day.n || st.last === day.n - 1)) setStreak(st.n)
+  }, [day.n])
+  const won = g.includes(target.n)
+  const over = won || g.length >= TRIES
+  function guess() {
+    if (over || !choice || g.includes(choice)) return
+    const ng = [...g, choice]
+    setG(ng); setChoice('')
+    store('mu_daily', { day: day.n, g: ng })
+    const fin = choice === target.n || ng.length >= TRIES
+    if (fin) {
+      fetch('/api/moia-ukraina?played=1', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).catch(() => {})
+      if (choice === target.n) {
+        const st = store('mu_daily_streak')
+        const n = st && st.last === day.n - 1 ? st.n + 1 : st && st.last === day.n ? st.n : 1
+        store('mu_daily_streak', { last: day.n, n }); setStreak(n)
+      } else { store('mu_daily_streak', { last: -1, n: 0 }); setStreak(0) }
+    }
+  }
+  const rows = g.map((n) => { const c = byName.get(n)!; const d = n === target.n ? 0 : km(c, target); return { c, d, b: bearing(c, target) } })
+  async function share() {
+    const path = rows.map((r) => (r.d === 0 ? 'вгадав(-ла)!' : `${r.d} км`)).join(' → ')
+    const text = `Моя Україна на мапі · Місто дня ${day.s}\n${won ? `Спроб: ${g.length} з ${TRIES}` : 'Сьогодні не вгадав(-ла)'} · ${path}\nhttps://balabony.com/moia-ukraina`
+    try {
+      if (navigator.share) { await navigator.share({ text }); return }
+      await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2500)
+    } catch { /* скасовано */ }
+  }
+  const fact = QUESTIONS.find((q) => q.city === target.n)?.w ?? OBL[target.n]?.f[0]
+  const marks = rows.map((r) => ({ city: r.c, color: heat(r.d), label: r.d === 0 ? r.c.n : '' }))
+  if (over && !won) marks.push({ city: target, color: GREEN, label: target.n })
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginTop: 8, color: SOFT, fontSize: 17 }}>
+        <span>Місто дня · {day.s}</span><b style={{ color: GOLD_L }}>Серія: {streak} {streak % 10 === 1 && streak % 100 !== 11 ? 'день' : [2, 3, 4].includes(streak % 10) && ![12, 13, 14].includes(streak % 100) ? 'дні' : 'днів'}</b>
+      </div>
+      <H head={head}>{won ? `Так! Це ${target.n}` : over ? `Це було місто ${target.n}` : 'Яке місто сьогодні загадано?'}</H>
+      {!over && <p style={{ margin: '0 0 12px', color: SOFT, fontSize: 17, lineHeight: 1.5 }}>Обери місто — і гра підкаже, скільки кілометрів до загаданого і в який бік. У тебе {TRIES} спроб. Нове місто — щодня опівночі.</p>}
+      <div style={{ ...card, padding: 10 }}>
+        <UaMap geo showAll={false} marks={marks} label={`Мапа спроб: ${g.join(', ') || 'ще немає'}`} />
+      </div>
+      {!over && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 10, marginTop: 12 }}>
+          <label style={{ position: 'absolute', left: -9999 }} htmlFor="mu-daily">Місто</label>
+          <select id="mu-daily" style={sel} value={choice} onChange={(e) => setChoice(e.target.value)}>
+            <option value="">Обери місто…</option>
+            {sortedCities.filter((c) => !g.includes(c.n)).map((c) => <option key={c.n} value={c.n}>{c.n}</option>)}
+          </select>
+          <button style={{ ...btn(GOLD), opacity: choice ? 1 : 0.6 }} disabled={!choice} onClick={guess}>Перевірити</button>
+        </div>
+      )}
+      <ol aria-live="polite" style={{ listStyle: 'none', padding: 0, margin: '12px 0 0', display: 'grid', gap: 8 }}>
+        {rows.map((r, i) => (
+          <li key={r.c.n} style={{ display: 'flex', alignItems: 'center', gap: 12, background: NAVY2, borderRadius: 12, padding: '10px 14px', borderLeft: `6px solid ${heat(r.d)}` }}>
+            <span style={{ color: SOFT, width: 18 }}>{i + 1}</span>
+            <b style={{ flex: 1, fontSize: 18 }}>{r.c.n}</b>
+            {r.d === 0 ? <b style={{ color: GREEN, fontSize: 18 }}>Влучно!</b> : <>
+              <span style={{ fontSize: 18, fontWeight: 800, color: heat(r.d), fontVariantNumeric: 'tabular-nums' }}>{r.d} км</span>
+              <Arrow deg={r.b} color={heat(r.d)} /><span className="sr-only" style={{ position: 'absolute', left: -9999 }}>на {DIRS[Math.round(r.b / 45) % 8]}</span>
+            </>}
+          </li>
+        ))}
+      </ol>
+      {!over && g.length >= 3 && region && <p style={{ margin: '12px 0 0', color: GOLD_L, fontWeight: 700, fontSize: 18 }}>Підказка: це місто в {region.n === 'АР Крим' ? 'Автономній Республіці Крим' : `${region.n.replace(/ка$/, 'кій')} області`}.</p>}
+      {over && (
+        <div style={{ ...card, marginTop: 12, borderColor: won ? GREEN : GOLD_L }}>
+          {won && <p style={{ margin: 0, fontSize: 21, fontWeight: 800, color: GREEN }}>{g.length === 1 ? 'З першої спроби — неймовірно!' : `Вгадано з ${g.length}-ї спроби!`}</p>}
+          {target.tot && <p style={{ margin: '6px 0 0', color: GOLD_L, fontWeight: 700 }}>{TOT_NOTE}</p>}
+          {fact && <p style={{ margin: '8px 0 0', fontSize: 17, color: SOFT, lineHeight: 1.5 }}><b style={{ color: '#fff' }}>Чи знаєш ти?</b> {fact}</p>}
+          <p style={{ margin: '10px 0 0', color: SOFT }}>Наступне місто — завтра. Не загуби серію!</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12, marginTop: 12 }}>
+            <button style={btn(GOLD)} onClick={share}>{copied ? 'Скопійовано!' : 'Поділитися результатом'}</button>
+            <button style={btn('#2A4566', '#fff')} onClick={onBack}>← На початок</button>
+          </div>
+        </div>
+      )}
+      {!over && <button style={{ ...btn('#2A4566', '#fff'), marginTop: 16 }} onClick={onBack}>← На початок</button>}
+    </>
   )
 }
