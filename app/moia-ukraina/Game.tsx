@@ -137,6 +137,7 @@ function Home({ onQuiz, onMap, onRating, onSuggest, onFind, noTimer, setNoTimer,
         <button style={btn('#2A4566', '#fff')} onClick={onRating}>Рейтинг шкіл</button>
         <button style={btn('#2A4566', '#fff')} onClick={onSuggest}>Запропонуй запитання про своє місто</button>
       </div>
+      <TopSchools onRating={onRating} />
       <Rules />
       {stats && stats.games > 0 && <p style={{ margin: '14px 0 0', fontSize: 17, color: SOFT }}>Зіграно ігор: <b style={{ color: GOLD_L }}>{stats.games}</b> · Шкіл у рейтингу: <b style={{ color: GOLD_L }}>{stats.schools}</b></p>}
       <label style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 16, fontSize: 17, color: SOFT, cursor: 'pointer' }}>
@@ -315,12 +316,7 @@ function Rating({ onBack, onQuiz, head }: { onBack: () => void; onQuiz: () => vo
       {rows && rows.length === 0 && <p style={{ color: SOFT }}>Поки що тут порожньо. Стань першим!</p>}
       {rows && rows.length > 0 && (
         <div style={{ display: 'grid', gap: 16 }}>
-          <div style={card}>
-            <h2 style={{ margin: '0 0 10px', fontSize: 22 }}>Школи</h2>
-            <ol style={{ margin: 0, paddingLeft: 26, display: 'grid', gap: 6, fontSize: 18 }}>
-              {rows.slice(0, 20).map((r) => <li key={r.city + r.school}>{r.city}, школа №{r.school} — <b style={{ color: GOLD_L }}>{r.points}</b> <span style={{ color: SOFT, fontSize: 15 }}>({r.players} {r.players % 10 === 1 && r.players % 100 !== 11 ? 'гра' : r.players % 10 >= 2 && r.players % 10 <= 4 && (r.players % 100 < 12 || r.players % 100 > 14) ? 'гри' : 'ігор'})</span></li>)}
-            </ol>
-          </div>
+          <SchoolTable rows={rows} limit={50} />
         </div>
       )}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12, marginTop: 16 }}>
@@ -594,5 +590,51 @@ function Rules() {
         <li>Організатор — Львівська обласна громадська організація «Інститут громадянського суспільства». Питання й прохання: mksbog@ukr.net.</li>
       </ul>
     </details>
+  )
+}
+
+const games = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? 'гра' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'гри' : 'ігор')
+const MEDAL = ['#FFD700', '#C9D3DE', '#D99A5B']
+
+// Рейтингова таблиця шкіл: місце, школа, бали, кількість ігор.
+function SchoolTable({ rows, limit }: { rows: Row[]; limit: number }) {
+  const th: React.CSSProperties = { textAlign: 'left', padding: '10px 12px', fontSize: 14, letterSpacing: '.06em', textTransform: 'uppercase', color: GOLD_L, borderBottom: '2px solid #FFD700' }
+  const td: React.CSSProperties = { padding: '11px 12px', borderBottom: '1px solid #2A4566', fontSize: 18 }
+  return (
+    <div style={{ ...card, padding: 0, overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 420 }}>
+        <caption style={{ textAlign: 'left', padding: '14px 14px 6px', fontSize: 20, fontWeight: 800 }}>Рейтинг шкіл</caption>
+        <thead><tr><th scope="col" style={{ ...th, width: 64 }}>Місце</th><th scope="col" style={th}>Школа</th><th scope="col" style={{ ...th, textAlign: 'right' }}>Бали</th><th scope="col" style={{ ...th, textAlign: 'right' }}>Ігор</th></tr></thead>
+        <tbody>
+          {rows.slice(0, limit).map((r, k) => (
+            <tr key={r.city + r.school} style={{ background: k < 3 ? 'rgba(255,215,0,.07)' : 'transparent' }}>
+              <td style={td}>
+                {k < 3
+                  ? <span aria-label={`${k + 1} місце`} style={{ display: 'inline-grid', placeItems: 'center', width: 30, height: 30, borderRadius: '50%', background: MEDAL[k], color: NAVY, fontWeight: 900 }}>{k + 1}</span>
+                  : <span style={{ paddingLeft: 9, color: SOFT, fontWeight: 700 }}>{k + 1}</span>}
+              </td>
+              <td style={{ ...td, fontWeight: k < 3 ? 800 : 500 }}>{r.city}, школа №{r.school}{byName.get(r.city)?.tot ? <span style={{ color: GOLD_L, fontSize: 14 }}> · памʼятаємо</span> : null}</td>
+              <td style={{ ...td, textAlign: 'right', color: GOLD_L, fontWeight: 800 }}>{r.points.toLocaleString('uk-UA')}</td>
+              <td style={{ ...td, textAlign: 'right', color: SOFT }}>{r.players} <span style={{ fontSize: 14 }}>{games(r.players)}</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// Топ-5 шкіл на головній сторінці гри.
+function TopSchools({ onRating }: { onRating: () => void }) {
+  const [rows, setRows] = useState<Row[] | null>(null)
+  useEffect(() => { fetch('/api/moia-ukraina', { cache: 'no-store' }).then((r) => r.json()).then((j) => { if (j?.ok) setRows(j.rows) }).catch(() => {}) }, [])
+  if (!rows) return null
+  return (
+    <div style={{ marginTop: 16 }}>
+      {rows.length > 0
+        ? <SchoolTable rows={rows} limit={5} />
+        : <div style={{ ...card }}><p style={{ margin: 0, fontSize: 20, fontWeight: 800 }}>Рейтинг шкіл</p><p style={{ margin: '6px 0 0', color: SOFT, fontSize: 17 }}>Тут поки порожньо. Зіграй вікторину й зарахуй бали своїй школі — вона стане першою!</p></div>}
+      {rows.length > 5 && <button style={{ ...btn('#2A4566', '#fff'), marginTop: 10 }} onClick={onRating}>Увесь рейтинг →</button>}
+    </div>
   )
 }
