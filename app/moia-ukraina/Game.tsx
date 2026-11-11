@@ -6,7 +6,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import UaMap from './UaMap'
-import { CITIES, QUESTIONS, TOT_NOTE, type City, type Q } from './data'
+import { CITIES, QUESTIONS, TOT_NOTE, OBL, type City, type Q } from './data'
 
 const NAVY = '#0E1A2B', NAVY2 = '#14253B', CARD = '#193049', GOLD = '#EF9F27', GOLD_L = '#FAC775', SOFT = '#CFE3FA'
 const GREEN = '#36AB62', RED = '#E8434B', BLUE = '#5AA9FF'
@@ -27,7 +27,7 @@ function km(a: City, b: City) {
   return Math.round(2 * R * Math.asin(Math.sqrt(h)))
 }
 
-type Mode = 'home' | 'quiz' | 'done' | 'map' | 'rating' | 'suggest'
+type Mode = 'home' | 'quiz' | 'done' | 'map' | 'rating' | 'suggest' | 'find'
 type Item = { q: Q; opts: string[] }
 type Row = { city: string; school: number; points: number; players: number }
 
@@ -86,12 +86,13 @@ export default function Game() {
       <div style={{ padding: '24px 16px 0' }}>
       <div style={{ maxWidth: 860, margin: '0 auto' }}>
         <p style={{ margin: 0, color: GOLD_L, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10 }}><Flag />Моє місце · голоси молоді України</p>
-        {mode === 'home' && <Home onQuiz={start} onMap={() => setMode('map')} onRating={() => setMode('rating')} onSuggest={() => setMode('suggest')} noTimer={noTimer} setNoTimer={setNoTimer} head={head} />}
+        {mode === 'home' && <Home onQuiz={start} onMap={() => setMode('map')} onRating={() => setMode('rating')} onSuggest={() => setMode('suggest')} onFind={() => setMode('find')} noTimer={noTimer} setNoTimer={setNoTimer} head={head} />}
         {mode === 'quiz' && items[i] && (
           <QuizStep item={items[i]} n={i} picked={picked} left={left} lim={lim} score={score} streak={streak} onAnswer={answer} onNext={next} head={head} />
         )}
         {mode === 'done' && <Done score={score} right={right} results={results} onAgain={start} onMap={() => setMode('map')} onRating={() => setMode('rating')} head={head} />}
         {mode === 'map' && <MyMap onBack={() => setMode('home')} head={head} />}
+        {mode === 'find' && <Find onBack={() => setMode('home')} head={head} />}
         {mode === 'suggest' && <Suggest onBack={() => setMode('home')} head={head} />}
         {mode === 'rating' && <Rating onBack={() => setMode('home')} onQuiz={start} head={head} />}
         <p style={{ marginTop: 40, fontSize: 14, color: SOFT, opacity: 0.8, lineHeight: 1.5 }}>
@@ -109,8 +110,7 @@ const H = ({ head, children }: { head: HeadRef; children: React.ReactNode }) => 
   <h1 ref={head} tabIndex={-1} style={{ fontSize: 'clamp(28px,5vw,42px)', lineHeight: 1.15, margin: '8px 0 14px', outline: 'none' }}>{children}</h1>
 )
 
-function Home({ onQuiz, onMap, onRating, onSuggest, noTimer, setNoTimer, head }: { onQuiz: () => void; onMap: () => void; onRating: () => void; onSuggest: () => void; noTimer: boolean; setNoTimer: (v: boolean) => void; head: HeadRef }) {
-  const demo = useMemo(() => [byName.get('Львів')!, byName.get('Маріуполь')!], [])
+function Home({ onQuiz, onMap, onRating, onSuggest, onFind, noTimer, setNoTimer, head }: { onQuiz: () => void; onMap: () => void; onRating: () => void; onSuggest: () => void; onFind: () => void; noTimer: boolean; setNoTimer: (v: boolean) => void; head: HeadRef }) {
   const [stats, setStats] = useState<{ games: number; schools: number } | null>(null)
   useEffect(() => { fetch('/api/moia-ukraina?stats=1', { cache: 'no-store' }).then((r) => r.json()).then((j) => { if (j?.ok) setStats(j.stats) }).catch(() => {}) }, [])
   return (
@@ -120,11 +120,19 @@ function Home({ onQuiz, onMap, onRating, onSuggest, noTimer, setNoTimer, head }:
         Гра про міста України, їхню історію і пам’ять. Відповідай на запитання, позначай на мапі рідне місто і змагайся за свою школу.
         {' '}Понад {Math.floor(QUESTIONS.length / 10) * 10} запитань: історія, пам’ять, культура, природа, держава.
       </p>
-      <div style={{ ...card, padding: 10, margin: '18px 0' }}>
-        <UaMap marks={[{ city: demo[0], color: GOLD_L }, { city: demo[1], color: BLUE }]} thread={[demo[0], demo[1]]} label="Мапа України з ниткою від Львова до Маріуполя" />
+      <div style={{ ...card, margin: '14px 0 0', borderColor: '#FFD700', background: 'linear-gradient(135deg, rgba(0,87,183,.35), rgba(255,215,0,.10))' }}>
+        <p style={{ margin: 0, fontSize: 14, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', color: GOLD_L }}>Грай і перемагай</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 12, marginTop: 10 }}>
+          <Prize icon="shirt" t="Футболки для класу" d="Три класи-переможці всеукраїнського етапу отримають футболки гри на весь клас." />
+          <Prize icon="cert" t="Сертифікати" d="Іменні сертифікати учням і дипломи школам-учасницям — надішлемо поштою." />
+          <Prize icon="star" t="Твоє запитання в грі" d="Найкращі запитання учнів додаємо в гру з іменем автора — уже зараз." />
+        </div>
+        <p style={{ margin: '10px 0 0', fontSize: 14, color: SOFT }}>Всеукраїнський етап із призами для класів плануємо провести у 2027 році. Грай уже зараз і набирай бали для своєї школи.</p>
       </div>
+      <Explorer />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: 12 }}>
         <button style={btn(GOLD)} onClick={onQuiz}>Почати вікторину · 10 запитань</button>
+        <button style={btn(GOLD_L)} onClick={onFind}>Знайди місто на мапі · 5 раундів</button>
         <button style={btn(GOLD_L)} onClick={onMap}>Моя мапа: звідки я і де я зараз</button>
         <button style={btn('#2A4566', '#fff')} onClick={onRating}>Рейтинг шкіл</button>
         <button style={btn('#2A4566', '#fff')} onClick={onSuggest}>Запропонуй запитання про своє місто</button>
@@ -274,7 +282,7 @@ function MyMap({ onBack, head }: { onBack: () => void; head: HeadRef }) {
         </label>
       </div>
       <div style={{ ...card, padding: 10, marginTop: 16 }}>
-        <UaMap marks={marks} thread={a && b && a !== b ? [a, b] : undefined} label={a && b ? `Нитка від міста ${a.n} до міста ${b.n}` : 'Мапа України'} />
+        <UaMap geo marks={marks} thread={a && b && a !== b ? [a, b] : undefined} label={a && b ? `Нитка від міста ${a.n} до міста ${b.n}` : 'Мапа України'} />
       </div>
       <div aria-live="polite" style={{ marginTop: 14 }}>
         {d !== null && a && b && (
@@ -427,6 +435,111 @@ function Confetti() {
       {bits.map((k) => (
         <span key={k} className="mu-c" style={{ position: 'absolute', left: `${(k * 97) % 100}%`, top: -20, width: 9, height: 14, borderRadius: 2, background: k % 2 ? '#FFD700' : '#0057B7', animation: `mu-fall ${2.2 + (k % 5) * 0.35}s ${(k % 9) * 0.12}s ease-in forwards` }} />
       ))}
+    </div>
+  )
+}
+
+// Дослідник мапи: торкнись крапки — побачиш місто, особливості області й цікавий факт.
+const UA_FACTS = ['603 628 км² — найбільша країна, що повністю лежить у Європі', '24 області, Автономна Республіка Крим, Київ і Севастополь', 'Кордон із 7 державами', 'Говерла — 2061 м', 'Дніпро — найдовша річка в межах України', 'Береги Чорного й Азовського морів']
+function Explorer() {
+  const [c, setC] = useState<City | null>(null)
+  const info = c ? OBL[c.n] : undefined
+  const fact = c ? QUESTIONS.find((q) => q.city === c.n)?.w : undefined
+  return (
+    <div style={{ margin: '18px 0' }}>
+      <div style={{ ...card, padding: 10 }}>
+        <UaMap geo onPick={setC} active={c?.n} label="Інтерактивна мапа України: міста, річки, моря й гори. Оберіть місто, щоб дізнатися про нього." />
+        <p style={{ margin: '6px 8px 4px', fontSize: 15, color: SOFT }}>Наведи або торкнись будь-якої крапки — дізнаєшся про місто й область. Зірка — столиця, трикутник — Говерла.</p>
+      </div>
+      <div aria-live="polite">
+        {c && (
+          <div style={{ ...card, marginTop: 12, borderColor: '#FFD700' }}>
+            <p style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>{c.n}</p>
+            {info && <p style={{ margin: '2px 0 8px', color: GOLD_L, fontWeight: 700 }}>{info.o}</p>}
+            {c.tot && <p style={{ margin: '0 0 8px', color: GOLD_L, fontWeight: 700 }}>{TOT_NOTE}</p>}
+            {info && <ul style={{ margin: '0 0 6px', paddingLeft: 22, display: 'grid', gap: 4, fontSize: 18, lineHeight: 1.45 }}>{info.f.map((x) => <li key={x}>{x}</li>)}</ul>}
+            {fact && <p style={{ margin: '6px 0 0', fontSize: 17, color: SOFT, lineHeight: 1.5 }}><b style={{ color: '#fff' }}>Чи знаєш ти?</b> {fact}</p>}
+            {!info && !fact && <p style={{ margin: 0, color: SOFT }}>Знаєш щось цікаве про це місто? Запропонуй запитання — і його розгадуватимуть інші учні.</p>}
+          </div>
+        )}
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+        {UA_FACTS.map((x) => <span key={x} style={{ background: 'rgba(0,87,183,.25)', border: '1px solid rgba(255,215,0,.45)', borderRadius: 999, padding: '6px 12px', fontSize: 15 }}>{x}</span>)}
+      </div>
+    </div>
+  )
+}
+
+// Гра «Знайди місто на мапі»: 5 обласних центрів, торкнись місця на мапі без підказок-крапок.
+function Find({ onBack, head }: { onBack: () => void; head: HeadRef }) {
+  const pool = useMemo(() => shuffle(CITIES.filter((c) => c.obl)).slice(0, 5), [])
+  const [k, setK] = useState(0)
+  const [guess, setGuess] = useState<{ lat: number; lon: number } | null>(null)
+  const [total, setTotal] = useState(0)
+  const [log, setLog] = useState<number[]>([])
+  const target = pool[k]
+  const done = k >= pool.length
+  function pick(lat: number, lon: number) {
+    if (guess || done) return
+    setGuess({ lat, lon })
+    const d = km(target, { n: '', lat, lon })
+    const pts = d <= 25 ? 100 : Math.max(0, Math.round(100 - (d - 25) / 4))
+    setTotal((x) => x + pts); setLog((l) => [...l, d])
+  }
+  if (done) {
+    const avg = Math.round(log.reduce((a, b) => a + b, 0) / log.length)
+    return (
+      <>
+        <Confetti />
+        <H head={head}>{total} балів із 500</H>
+        <p style={{ fontSize: 19, color: SOFT, lineHeight: 1.5 }}>У середньому ти помилявся на <b style={{ color: GOLD_L }}>{avg} км</b>. {avg <= 50 ? 'Ти знаєш мапу України як справжній штурман!' : avg <= 150 ? 'Добре! Ще трохи — і знатимеш мапу напамʼять.' : 'Спробуй ще раз — річки й моря на мапі допоможуть зорієнтуватися.'}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12 }}>
+          <button style={btn(GOLD)} onClick={() => { setK(0); setGuess(null); setTotal(0); setLog([]) }}>Грати ще раз</button>
+          <button style={btn('#2A4566', '#fff')} onClick={onBack}>← На початок</button>
+        </div>
+      </>
+    )
+  }
+  const gc: City | null = guess ? { n: 'Твоя позначка', lat: guess.lat, lon: guess.lon } : null
+  const d = guess ? log[log.length - 1] : 0
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginTop: 8, color: SOFT, fontSize: 17 }}>
+        <span>Раунд {k + 1} з {pool.length}</span><b style={{ color: GOLD_L }}>{total} балів</b>
+      </div>
+      <H head={head}>Де на мапі місто {target.n}?</H>
+      <p style={{ margin: '0 0 12px', color: SOFT, fontSize: 17 }}>Торкнись мапи там, де, на твою думку, це місто. Чим ближче — тим більше балів.</p>
+      <div style={{ ...card, padding: 10 }}>
+        <UaMap geo showAll={false} onMapClick={pick}
+          marks={guess && gc ? [{ city: gc, color: BLUE, label: '' }, { city: target, color: '#FFD700' }] : []}
+          thread={guess && gc ? [gc, target] : undefined} label={`Мапа для пошуку міста ${target.n}`} />
+      </div>
+      <div aria-live="polite">
+        {guess && (
+          <div style={{ ...card, marginTop: 12 }}>
+            <p style={{ margin: 0, fontSize: 21, fontWeight: 800, color: d <= 25 ? GREEN : d <= 100 ? GOLD_L : '#fff' }}>{d <= 25 ? 'Влучно!' : `Ти помилився на ${d} км`}</p>
+            {OBL[target.n] && <p style={{ margin: '6px 0 0', color: SOFT, fontSize: 17 }}>{target.n} — центр: {OBL[target.n].o}. {OBL[target.n].f[0]}.</p>}
+            {target.tot && <p style={{ margin: '6px 0 0', color: GOLD_L, fontWeight: 700 }}>{TOT_NOTE}</p>}
+            <button style={{ ...btn(GOLD), marginTop: 12, width: '100%' }} onClick={() => { setGuess(null); setK(k + 1) }}>{k + 1 >= pool.length ? 'Мій результат' : 'Далі'}</button>
+          </div>
+        )}
+      </div>
+      <button style={{ ...btn('#2A4566', '#fff'), marginTop: 16 }} onClick={onBack}>← На початок</button>
+    </>
+  )
+}
+
+// Призи — власні прості SVG-піктограми в кольорах прапора (без готових іконок).
+function Prize({ icon, t, d }: { icon: 'shirt' | 'cert' | 'star'; t: string; d: string }) {
+  const g = icon === 'shirt'
+    ? <path d="M9 4 L4 7 L6 12 L9 11 V22 H21 V11 L24 12 L26 7 L21 4 Q15 8 9 4 Z" fill="#0057B7" stroke="#FFD700" strokeWidth="1.6" strokeLinejoin="round" />
+    : icon === 'cert'
+      ? <g><rect x="4" y="5" width="22" height="16" rx="2" fill="#0057B7" stroke="#FFD700" strokeWidth="1.6" /><path d="M8 10 H22 M8 14 H17" stroke="#FFD700" strokeWidth="1.6" strokeLinecap="round" /><circle cx="21" cy="21" r="4" fill="#FFD700" /></g>
+      : <path d="M15 3 L18.5 10.5 L26.5 11.3 L20.5 16.7 L22.3 24.5 L15 20.5 L7.7 24.5 L9.5 16.7 L3.5 11.3 L11.5 10.5 Z" fill="#FFD700" stroke="#0057B7" strokeWidth="1.6" strokeLinejoin="round" />
+  return (
+    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+      <svg width="40" height="40" viewBox="0 0 30 28" aria-hidden="true" style={{ flex: 'none' }}>{g}</svg>
+      <div><div style={{ fontWeight: 800, fontSize: 18 }}>{t}</div><div style={{ color: SOFT, fontSize: 15, lineHeight: 1.45 }}>{d}</div></div>
     </div>
   )
 }
