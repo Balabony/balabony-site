@@ -67,7 +67,9 @@ export async function POST(req: NextRequest) {
     const msg = await new Anthropic({ apiKey: key }).messages.create({ model: 'claude-sonnet-4-6', max_tokens: 1500, messages: [{ role: 'user', content: PROMPT(text) }] })
     const raw = msg.content.map((c) => (c.type === 'text' ? c.text : '')).join('')
     const s = raw.indexOf('{'), e = raw.lastIndexOf('}')
-    try { return NextResponse.json({ item: clean(JSON.parse(raw.slice(s, e + 1))) }) } catch { return NextResponse.json({ error: 'ШІ не зміг розібрати лист — заповніть поля вручну' }, { status: 422 }) }
+    // 13.11.2026: якщо дати в листі немає («уже в кіно») — ставимо сьогоднішню
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Kyiv' })
+    try { const it = clean(JSON.parse(raw.slice(s, e + 1))); if (!/^\d{4}-\d{2}-\d{2}$/.test(String(it.date || ''))) it.date = today; return NextResponse.json({ item: it }) } catch { return NextResponse.json({ error: 'ШІ не зміг розібрати лист — заповніть поля вручну' }, { status: 422 }) }
   }
   if (body.action === 'save') {
     const item = clean(body.item || {})

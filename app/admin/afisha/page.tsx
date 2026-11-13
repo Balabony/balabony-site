@@ -5,9 +5,13 @@ import { useEffect, useState } from 'react'
 
 const GOLD = '#f5a623', DARK = '#0d1b2a', FONT = "'Montserrat', Arial, sans-serif"
 type Item = { id?: string; kind: 'event' | 'film'; date: string; time?: string | null; title: string; category?: string | null; venue?: string | null; city?: string | null; studio?: string | null; genre?: string | null; director?: string | null; cast_text?: string | null; about?: string | null; book?: string | null; trailer?: string | null; source?: string | null; distributor?: string | null; access: string[]; published?: boolean }
-const EMPTY: Item = { kind: 'film', date: '', title: '', access: [] }
+const today = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Kyiv' })
+const EMPTY: Item = { kind: 'film', date: '', title: '', access: [], distributor: 'Kinomania Film Distribution' }
+// 13.11.2026: відомі дистрибʼютори — випадне меню; «Інший» відкриває поле для вписування
+const DISTR = ['Kinomania Film Distribution', 'B&H Film Distribution', 'MMD UA', 'Arthouse Traffic', 'Ukrainian Film Distribution']
 const ACC: [string, string][] = [['audio', 'Аудіодескрипція'], ['subs', 'Розширені субтитри'], ['sign', 'Жестова мова'], ['wheel', 'Доступ на візку'], ['braille', 'Брайль']]
-const F: [keyof Item, string, boolean?][] = [['date', 'Дата (13.11.2026 або 2026-11-13)'], ['time', 'Час (для подій)'], ['title', 'Назва'], ['category', 'Тип: Кіно / Вистава / Читання…'], ['venue', 'Місце'], ['city', 'Місто'], ['studio', 'Студія'], ['genre', 'Жанр'], ['director', 'Режисер'], ['cast_text', 'Актори / голоси'], ['about', 'Опис', true], ['book', 'Як потрапити (квитки, телефон)', true], ['trailer', 'Трейлер (YouTube)'], ['source', 'Джерело (сайт)'], ['distributor', 'Дистрибʼютор / організатор']]
+const MAIN: [keyof Item, string, boolean?][] = [['title', 'Назва'], ['about', 'Опис', true], ['trailer', 'Трейлер (YouTube)']]
+const MORE: [keyof Item, string, boolean?][] = [['date', 'Дата (ставиться сама; змінити: 13.11.2026)'], ['time', 'Час (для подій)'], ['category', 'Тип: Кіно / Вистава / Читання…'], ['venue', 'Місце'], ['city', 'Місто'], ['studio', 'Студія'], ['genre', 'Жанр'], ['director', 'Режисер'], ['cast_text', 'Актори / голоси'], ['book', 'Як потрапити (квитки, телефон)', true], ['source', 'Джерело (сайт)']]
 const inp: React.CSSProperties = { width: '100%', padding: '9px 11px', borderRadius: 8, border: '1px solid #33465f', background: '#0a1628', color: '#f5f0e8', font: 'inherit', fontSize: 15 }
 
 export default function AfishaAdmin() {
@@ -18,14 +22,14 @@ export default function AfishaAdmin() {
   const load = () => fetch('/api/admin/afisha').then((r) => r.json()).then((d) => setList(d.items || []))
   useEffect(() => { load() }, [])
   const call = async (body: object) => { const r = await fetch('/api/admin/afisha', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }); const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Помилка'); return d }
-  const parse = async () => { setBusy('parse'); setMsg(''); try { const d = await call({ action: 'parse', text }); setIt({ ...EMPTY, ...d.item }); setMsg('Розібрано. Перевірте поля й натисніть «Опублікувати».') } catch (e) { setMsg((e as Error).message) } setBusy('') }
+  const parse = async () => { setBusy('parse'); setMsg(''); try { const d = await call({ action: 'parse', text }); const dist = String(d.item.distributor || ''); setIt({ ...EMPTY, ...d.item, distributor: DISTR.find((x) => dist && x.toLowerCase().includes(dist.toLowerCase().split(' ')[0])) || dist || EMPTY.distributor }); setMsg('Розібрано. Перевірте поля й натисніть «Опублікувати».') } catch (e) { setMsg((e as Error).message) } setBusy('') }
   const save = async () => {
     // 13.11.2026: кнопка не блокується мовчки — пояснюємо, чого бракує; дата приймається й як 13.11.2026
-    let date = String(it.date || '').trim()
+    let date = String(it.date || '').trim() || today()
     const m = date.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/)
     if (m) date = `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`
     if (!it.title) { setMsg('Впишіть назву.'); return }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { setMsg('Впишіть дату, наприклад 13.11.2026 або 2026-11-13.'); return }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { setMsg('Дата має бути як 13.11.2026 — виправте в «Більше полів».'); return }
     setBusy('save'); setMsg(''); try { await call({ action: 'save', item: { ...it, date } }); setMsg('Опубліковано на balabony.com/afisha'); setIt(EMPTY); setText(''); load() } catch (e) { setMsg((e as Error).message) } setBusy('') }
   const del = async (id?: string) => { if (!id || !window.confirm('Прибрати з афіші?')) return; await call({ action: 'delete', id }); load() }
   const set = (k: keyof Item, v: unknown) => setIt((x) => ({ ...x, [k]: v }))
@@ -38,7 +42,18 @@ export default function AfishaAdmin() {
         <p><button type="button" onClick={parse} disabled={!!busy} style={{ background: GOLD, color: '#1a1206', border: 0, borderRadius: 8, padding: '10px 18px', fontWeight: 800, cursor: 'pointer' }}>{busy === 'parse' ? 'Розбираю…' : 'Розібрати лист'}</button></p>
         <div style={{ background: '#13243d', borderRadius: 12, padding: 18, display: 'grid', gap: 10 }}>
           <label>Що це: <select value={it.kind} onChange={(e) => set('kind', e.target.value)} style={{ ...inp, width: 'auto' }}><option value="film">Фільм у прокаті («Скоро в кіно»)</option><option value="event">Подія з датою й місцем</option></select></label>
-          {F.map(([k, l, big]) => <label key={k} style={{ display: 'grid', gap: 4, fontSize: 14 }}>{l}{big ? <textarea rows={3} value={String(it[k] ?? '')} onChange={(e) => set(k, e.target.value)} style={inp} /> : <input value={String(it[k] ?? '')} onChange={(e) => set(k, e.target.value)} style={inp} />}</label>)}
+          {MAIN.map(([k, l, big]: [keyof Item, string, boolean?]) => <label key={k} style={{ display: 'grid', gap: 4, fontSize: 14 }}>{l}{big ? <textarea rows={4} value={String(it[k] ?? '')} onChange={(e) => set(k, e.target.value)} style={inp} /> : <input value={String(it[k] ?? '')} onChange={(e) => set(k, e.target.value)} style={inp} />}</label>)}
+          <label style={{ display: 'grid', gap: 4, fontSize: 14 }}>Дистрибʼютор / організатор
+            <select value={DISTR.includes(String(it.distributor || '')) ? String(it.distributor) : (it.distributor ? '__other' : '')} onChange={(e) => set('distributor', e.target.value === '__other' ? ' ' : e.target.value)} style={inp}>
+              <option value="">— немає —</option>
+              {DISTR.map((d) => <option key={d} value={d}>{d}</option>)}
+              <option value="__other">Інший (вписати)</option>
+            </select>
+            {it.distributor && !DISTR.includes(String(it.distributor)) && <input autoFocus placeholder="Назва дистрибʼютора чи організатора" value={String(it.distributor).trimStart()} onChange={(e) => set('distributor', e.target.value)} style={inp} />}
+          </label>
+          <details><summary style={{ cursor: 'pointer', color: '#c9d4e4', fontSize: 14 }}>Більше полів (дата, місце, жанр, режисер…)</summary>
+            <div style={{ display: 'grid', gap: 10, marginTop: 10 }}>{MORE.map(([k, l, big]: [keyof Item, string, boolean?]) => <label key={k} style={{ display: 'grid', gap: 4, fontSize: 14 }}>{l}{big ? <textarea rows={4} value={String(it[k] ?? '')} onChange={(e) => set(k, e.target.value)} style={inp} /> : <input value={String(it[k] ?? '')} onChange={(e) => set(k, e.target.value)} style={inp} />}</label>)}</div>
+          </details>
           <fieldset style={{ border: '1px solid #33465f', borderRadius: 8 }}><legend>Формати доступності (лише підтверджені організатором)</legend>
             {ACC.map(([k, l]) => <label key={k} style={{ marginRight: 16, whiteSpace: 'nowrap' }}><input type="checkbox" checked={it.access.includes(k)} onChange={(e) => set('access', e.target.checked ? [...it.access, k] : it.access.filter((a) => a !== k))} /> {l}</label>)}
           </fieldset>
