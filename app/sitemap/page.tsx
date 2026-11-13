@@ -38,6 +38,7 @@ const GROUPS: SitemapGroup[] = [
       { href: '/search',     label: 'Пошук',             note: 'Знайти історію чи автора' },
       { href: '/demo',       label: 'Демо озвучення',    note: 'Зразок голосу, аудіо в розробці' },
       { href: '/holosy',     label: 'Голоси платформи',  note: 'Озвучення — у розробці' },
+      { href: '/afisha',     label: 'Афіша без барʼєрів', note: 'Вистави й кіно з аудіодескрипцією, субтитрами, жестовою мовою' },
       { href: '/wolne-lektury', label: 'Wolne Lektury',  note: 'Львів і Галичина у вільних текстах' },
       { href: '/reytyng',    label: 'Рейтинг',           note: 'Найпопулярніші твори' },
     ],

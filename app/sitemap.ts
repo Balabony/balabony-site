@@ -96,6 +96,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // люди пересилатимуть одне одному («проголосуй за мою історію»).
     { url: `${BASE_URL}/cherga`,                lastModified: now, changeFrequency: 'daily',   priority: 0.7 },
     { url: `${BASE_URL}/holosy`,                lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/afisha`,                lastModified: now, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${BASE_URL}/wolne-lektury`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/become-author`,         lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/maibutnim-avtoram`,     lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
