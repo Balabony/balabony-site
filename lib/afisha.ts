@@ -42,3 +42,39 @@ export const EVENTS: AfishaEvent[] = [
 export function upcoming(today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Kyiv' })): AfishaEvent[] {
   return EVENTS.filter((e) => e.date >= today).sort((a, b) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')))
 }
+
+/**
+ * 13.11.2026: «Скоро в кіно» — анонси від партнера Kinomania Film Distribution (PR: Дарина Бордун),
+ * 1–2 на тиждень. Формати доступності сеансів (субтитри, аудіодескрипція) уточнюємо в дистрибʼютора
+ * і дописуємо в access, лише коли їх підтвердили.
+ */
+export type Premiere = {
+  date: string
+  title: string
+  studio: string
+  genre: string
+  director?: string
+  cast?: string
+  about: string
+  trailer?: string
+  distributor: string
+  access?: Access[]
+}
+
+export const PREMIERES: Premiere[] = [
+  {
+    date: '2027-03-04',
+    title: 'Ґатто: девʼять життів Неро',
+    studio: 'Pixar Animation Studios, Walt Disney Pictures',
+    genre: 'анімація, пригоди, комедія, сімейний',
+    director: 'Енріко Казароза («Лука»)',
+    cast: 'Марк Руффало, Лоуренс Фішберн (оригінальне озвучення)',
+    about: 'Кмітливий чорний кіт Неро роками блукає каналами забобонної Венеції й починає сумніватися, чи правильно прожив свої життя. Борг перед котячим мафіозі Рокко загрожує його майбутньому, і Неро доводиться завести найнесподіванішу дружбу у своєму житті. Саме вона може допомогти йому знайти справжнє призначення — якщо Венеція не візьме гору раніше.',
+    trailer: 'https://www.youtube.com/watch?v=tRD0PHLOwOM',
+    distributor: 'Kinomania Film Distribution',
+  },
+]
+
+export function upcomingPremieres(today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Kyiv' })): Premiere[] {
+  return PREMIERES.filter((p) => p.date >= today).sort((a, b) => a.date.localeCompare(b.date))
+}

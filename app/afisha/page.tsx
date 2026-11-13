@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { ThemeProvider } from '../context/ThemeContext'
-import { upcoming, ACCESS_LABEL } from '@/lib/afisha'
+import { upcoming, upcomingPremieres, ACCESS_LABEL } from '@/lib/afisha'
 
 // 13.11.2026 (Богдан): рубрика «Афіша без бар'єрів» — вистави, кіно й читання з аудіодескрипцією,
 // субтитрами, жестовою мовою чи доступним залом. Окремої такої афіші в Україні немає — перевірено 13.11.2026.
@@ -25,6 +25,7 @@ export const metadata: Metadata = {
 
 export default function AfishaPage() {
   const list = upcoming()
+  const films = upcomingPremieres()
   return (
     <ThemeProvider>
       <Header />
@@ -54,6 +55,25 @@ export default function AfishaPage() {
             ))}
           </ul>
 
+          {films.length > 0 && (
+            <section aria-labelledby="kino" style={{ marginBottom: 36 }}>
+              <h2 id="kino" style={{ fontSize: 22, color: CREAM, margin: '0 0 6px' }}>Скоро в кіно</h2>
+              <p style={{ margin: '0 0 14px', color: '#9fb0c8', fontSize: 14.5, lineHeight: 1.6 }}>Анонси від нашого партнера — дистрибʼютора Kinomania. Чи будуть сеанси із субтитрами чи аудіодескрипцією, уточнюємо й допишемо тут.</p>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 14 }}>
+                {films.map((f) => (
+                  <li key={f.date + f.title} style={{ background: '#0f1e3a', border: '1px solid rgba(239,159,39,0.22)', borderRadius: 14, padding: '18px 20px' }}>
+                    <p style={{ margin: '0 0 6px', color: GOLD, fontWeight: 700, fontSize: 15 }}>У кіно з {human(f.date)}</p>
+                    <h3 style={{ margin: '0 0 6px', color: CREAM, fontSize: 20, lineHeight: 1.3 }}>{f.title}</h3>
+                    <p style={{ margin: '0 0 10px', color: '#c9d4e4', fontSize: 15 }}>{f.genre} · {f.studio}</p>
+                    {f.access && f.access.length > 0 && <p style={{ margin: '0 0 10px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>{f.access.map((a) => <span key={a} style={{ fontSize: 13, fontWeight: 700, padding: '4px 10px', borderRadius: 99, background: 'rgba(239,159,39,0.14)', color: GOLD, border: `1px solid ${GOLD}55` }}>{ACCESS_LABEL[a]}</span>)}</p>}
+                    <p style={{ margin: '0 0 8px', color: '#dbe4f0', fontSize: 15.5, lineHeight: 1.6 }}>{f.about}</p>
+                    {(f.director || f.cast) && <p style={{ margin: '0 0 8px', color: '#c9d4e4', fontSize: 14.5, lineHeight: 1.6 }}>{f.director && <>Режисер: {f.director}. </>}{f.cast && <>Ролі озвучують: {f.cast}.</>}</p>}
+                    <p style={{ margin: 0, fontSize: 14 }}>{f.trailer && <a href={f.trailer} target="_blank" rel="noopener noreferrer" style={{ color: GOLD, fontWeight: 600 }}>Дивитися трейлер<span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}> (YouTube, відкриється в новій вкладці)</span></a>}<span style={{ color: '#9fb0c8' }}>{f.trailer ? ' · ' : ''}Дистрибʼютор: {f.distributor}</span></p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           <section aria-labelledby="dodaty" style={{ background: 'rgba(239,159,39,0.09)', border: `1px solid ${GOLD}44`, borderLeft: `3px solid ${GOLD}`, borderRadius: 12, padding: '18px 20px', marginBottom: 26 }}>
             <h2 id="dodaty" style={{ fontSize: 20, color: CREAM, margin: '0 0 8px' }}>Організовуєте доступну подію?</h2>
             <p style={{ margin: 0, color: '#dbe4f0', fontSize: 15.5, lineHeight: 1.65 }}>
