@@ -45,6 +45,7 @@ export const ADMIN_GROUPS: AdminGroup[] = [
       { href: '/admin/rozklad',         label: 'Розклад публікацій', note: 'Вівторок і пʼятниця о 18:00 — що на які дати призначено', quick: true, short: 'Розклад' },
       { href: '/admin/bez-opysu',       label: 'Описи для ukr.net',  note: 'Історії без опису не потрапляють у стрічку ukr.net — дописати тут', quick: true, short: 'Описи' },
       { href: '/admin/shorts',          label: 'Шорти',              note: 'Готові тексти гачків для роликів: копіювання, кадр 9:16, тривалість озвучення' },
+      { href: '/admin/afisha',          label: 'Афіша без барʼєрів', note: 'Вставити лист-анонс (кіно, вистави) — ШІ розкладе по полях, ви перевіряєте й публікуєте', quick: true, short: 'Афіша' },
     ],
   },
   {

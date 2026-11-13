@@ -78,3 +78,16 @@ export const PREMIERES: Premiere[] = [
 export function upcomingPremieres(today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Kyiv' })): Premiere[] {
   return PREMIERES.filter((p) => p.date >= today).sort((a, b) => a.date.localeCompare(b.date))
 }
+
+/** 13.11.2026: записи з адмінки (/admin/afisha, таблиця afisha_items) — до вписаних у код. */
+type Row = { kind: 'event' | 'film'; date: string; time: string | null; title: string; category: string | null; venue: string | null; city: string | null; studio: string | null; genre: string | null; director: string | null; cast_text: string | null; about: string | null; book: string | null; trailer: string | null; source: string | null; distributor: string | null; access: string[] | null }
+const KINDS = ['Вистава', 'Кіно', 'Читання', 'Виставка', 'Концерт', 'Зустріч'] as const
+export function fromRows(rows: Row[]): { events: AfishaEvent[]; films: Premiere[] } {
+  const acc = (a: string[] | null) => (a || []).filter((x): x is Access => x in ACCESS_LABEL)
+  const events: AfishaEvent[] = [], films: Premiere[] = []
+  for (const r of rows) {
+    if (r.kind === 'film') films.push({ date: r.date, title: r.title, studio: r.studio || '', genre: r.genre || '', director: r.director || undefined, cast: r.cast_text || undefined, about: r.about || '', trailer: r.trailer || undefined, distributor: r.distributor || '', access: acc(r.access) })
+    else events.push({ date: r.date, time: r.time || undefined, title: r.title, kind: (KINDS as readonly string[]).includes(r.category || '') ? (r.category as AfishaEvent['kind']) : 'Зустріч', venue: r.venue || '', city: r.city || '', access: acc(r.access), note: r.about || '', book: r.book || undefined, source: r.source || '' })
+  }
+  return { events, films }
+}
