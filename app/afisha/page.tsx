@@ -30,8 +30,10 @@ export default async function AfishaPage() {
   const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Kyiv' })
   let db: ReturnType<typeof fromRows> = { events: [], films: [] }
   try {
-    const { data } = await getSupabaseAdmin().from('afisha_items').select('*').eq('published', true).gte('date', today)
-    db = fromRows(data || [])
+    const from35 = new Date(new Date(today + 'T12:00:00Z').getTime() - 35 * 864e5).toISOString().slice(0, 10)
+    const { data } = await getSupabaseAdmin().from('afisha_items').select('*').eq('published', true).gte('date', from35)
+    const rows = (data || []).filter((r: { kind: string; date: string }) => r.kind === 'film' || r.date >= today)
+    db = fromRows(rows)
   } catch {}
   const byDate = <T extends { date: string; time?: string }>(a: T, b: T) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || ''))
   const list = [...upcoming(today), ...db.events].sort(byDate)
@@ -84,7 +86,7 @@ export default async function AfishaPage() {
 
           {films.length > 0 && (
             <section aria-labelledby="kino" style={{ marginBottom: 40 }}>
-              <h2 id="kino" style={{ fontSize: 24, color: CREAM, margin: '0 0 6px' }}>Скоро в кіно</h2>
+              <h2 id="kino" style={{ fontSize: 24, color: CREAM, margin: '0 0 6px' }}>Кіно: прем’єри й анонси</h2>
               <p style={{ margin: '0 0 16px', color: '#9fb0c8', fontSize: 14.5, lineHeight: 1.6 }}>Анонси від наших партнерів-дистрибʼюторів. Чи будуть сеанси із субтитрами чи аудіодескрипцією, уточнюємо й допишемо тут.</p>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 18 }}>
                 {films.map((f) => { const id = ytId(f.trailer); return (
@@ -96,7 +98,7 @@ export default async function AfishaPage() {
                       <span style={SR}>Дивитися трейлер на YouTube (відкриється в новій вкладці)</span>
                     </a>}
                     <div style={{ padding: '16px 18px 18px', display: 'grid', gap: 8 }}>
-                      <p style={{ margin: 0, color: GOLD, fontWeight: 700, fontSize: 14 }}>У кіно з {human(f.date)}</p>
+                      <p style={{ margin: 0, color: GOLD, fontWeight: 700, fontSize: 14 }}>{f.date <= today ? 'Уже в кіно' : `У кіно з ${human(f.date)}`}</p>
                       <h3 style={{ margin: 0, color: CREAM, fontSize: 21, lineHeight: 1.25 }}>{f.title}</h3>
                       <p style={{ margin: 0, color: '#c9d4e4', fontSize: 14.5 }}>{f.genre}{f.studio ? ` · ${f.studio}` : ''}</p>
                       {f.access && f.access.length > 0 && <p style={{ margin: 0, display: 'flex', flexWrap: 'wrap', gap: 8 }}>{f.access.map((a) => <Badge key={a} a={a} />)}</p>}

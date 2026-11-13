@@ -76,7 +76,9 @@ export const PREMIERES: Premiere[] = [
 ]
 
 export function upcomingPremieres(today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Kyiv' })): Premiere[] {
-  return PREMIERES.filter((p) => p.date >= today).sort((a, b) => a.date.localeCompare(b.date))
+  // 13.11.2026: фільм тримаємо на афіші ще 35 днів після старту прокату («Уже в кіно»).
+  const from = new Date(new Date(today + 'T12:00:00Z').getTime() - 35 * 864e5).toISOString().slice(0, 10)
+  return PREMIERES.filter((p) => p.date >= from).sort((a, b) => a.date.localeCompare(b.date))
 }
 
 /** 13.11.2026: записи з адмінки (/admin/afisha, таблиця afisha_items) — до вписаних у код. */
