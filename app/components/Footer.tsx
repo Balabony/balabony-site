@@ -91,7 +91,6 @@ const READ_LINKS = [
   { label: 'Черга на озвучення', href: '/cherga' },
   { label: 'Ігри для мозку',    href: '/games' },
   { label: 'Моя Україна на мапі', href: '/moia-ukraina' },
-  { label: 'Афіша без барʼєрів', href: '/afisha' },
   // 27.10.2026: новий розділ, «загадки» — 40 500 запитів/міс. Підвал є на
   // всіх сторінках, тож це головне джерело внутрішньої ваги для /zahadky.
   { label: 'Загадки з відповідями', href: '/zahadky' },
@@ -209,6 +208,15 @@ export default function Footer() {
               </a>
             ))}
           </div>
+
+          {/* 13.11.2026: виділений блок рубрики «Афіша без барʼєрів» */}
+          <a href="/afisha" className="footer-afisha" style={{ display: 'flex', gap: 12, alignItems: 'center', margin: '4px 0 16px', padding: '12px 14px', borderRadius: 12, textDecoration: 'none', background: 'linear-gradient(135deg, rgba(239,159,39,0.22), rgba(239,159,39,0.06))', border: '1px solid rgba(239,159,39,0.55)', maxWidth: 300 }}>
+            <svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0, color: 'var(--accent-gold)' }}><path d="M3 21V9Q12 2 21 9v12" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /><path d="M3 9q3 1 4.5-.5C7 13 7 17 8 21M21 9q-3 1-4.5-.5C17 13 17 17 16 21" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M10.3 14.6c-.8.9-.8 2.4 0 3.3M13.7 14.6c.8.9.8 2.4 0 3.3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><circle cx="12" cy="16.2" r="1.1" fill="currentColor" /></svg>
+            <span style={{ display: 'grid', gap: 2 }}>
+              <span style={{ color: 'var(--accent-gold)', fontWeight: 800, fontSize: 14.5, fontFamily: "'Montserrat', sans-serif" }}>Афіша без барʼєрів</span>
+              <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12.5, lineHeight: 1.4 }}>Вистави й кіно з аудіодескрипцією, субтитрами, жестовою мовою</span>
+            </span>
+          </a>
 
           <h2 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Підтримати
