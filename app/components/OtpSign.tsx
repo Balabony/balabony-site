@@ -37,7 +37,7 @@ export default function OtpSign({
   }
 
   const send = async () => {
-    if (!agree) { setErr('Спершу поставте позначку «Я прочитав(ла) договір і погоджуюсь».'); return }
+    if (!agree) { setErr('Спершу поставте позначку: Ви прочитали договір, погоджуєтесь з ним і не маєте зауважень.'); return }
     setBusy(true); setErr('')
     try {
       const d = await post('/api/contracts/sign/otp/send', {})
@@ -78,7 +78,7 @@ export default function OtpSign({
 
       <label style={chk}>
         <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} style={{ width: 22, height: 22, marginTop: 1, accentColor: GOLD, flex: 'none' }} />
-        <span>Я прочитав(ла) <a href={docUrl || `/author/contract/${contractId}`} target="_blank" rel="noreferrer" style={{ color: light ? '#b26f00' : GOLD, fontWeight: 700 }}>договір</a> і погоджуюсь з його умовами.</span>
+        <span>Я прочитав(ла) <a href={docUrl || `/author/contract/${contractId}`} target="_blank" rel="noreferrer" style={{ color: light ? '#b26f00' : GOLD, fontWeight: 700 }}>договір</a>, погоджуюсь з його умовами і не маю до нього зауважень.</span>
       </label>
       {pendingCount > 0 && (
         <label style={chk}>

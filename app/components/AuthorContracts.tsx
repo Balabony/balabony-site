@@ -182,7 +182,7 @@ export default function AuthorContracts(
               <dt style={{ fontWeight: 700, color: BRAND.ink, marginTop: 8 }}>Можна підписати без банківського рахунку?</dt>
               <dd style={{ margin: '2px 0 0' }}>Так. Рахунок потрібен лише для виплат — впишіть його в реквізитах до першої виплати.</dd>
               <dt style={{ fontWeight: 700, color: BRAND.ink, marginTop: 8 }}>Підпис кодом має юридичну силу?</dt>
-              <dd style={{ margin: '2px 0 0' }}>Так, як письмовий (п. 16.1 договору, ст. 12 Закону «Про електронну комерцію»). Якщо хочете інакше — під кнопкою «Інші способи підписати» є «Дія», ключ КЕП і папір поштою.</dd>
+              <dd style={{ margin: '2px 0 0' }}>Так, як письмовий (п. 16.1 договору, ст. 12 Закону «Про електронну комерцію»). Якщо хочете інакше — під кнопкою «Інші способи підписати» є «Дія» і ключ КЕП.</dd>
               <dt style={{ fontWeight: 700, color: BRAND.ink, marginTop: 8 }}>Мій твір уже публікувався в інших виданнях чи на сайтах</dt>
               <dd style={{ margin: '2px 0 0' }}>Не ставте позначку «раніше не публікувалися». Після підпису відкрийте «Перелік творів» і зазначте, де твір публікувався, — тоді щодо нього права будуть невиключні. Публікації в газетах «Життя» та інших наших виданнях і на Ваших сторінках у соцмережах не рахуються.</dd>
               <dt style={{ fontWeight: 700, color: BRAND.ink, marginTop: 8 }}>Лист із кодом не прийшов</dt>
@@ -272,17 +272,13 @@ export default function AuthorContracts(
           )}
           {c.status !== 'signed' && (
             <details style={{ marginTop: 12 }}>
-              <summary style={{ cursor: 'pointer', color: BRAND.muted, fontSize: '0.9rem' }}>Інші способи підписати: «Дія», ключ КЕП, папір поштою</summary>
+              <summary style={{ cursor: 'pointer', color: BRAND.muted, fontSize: '0.9rem' }}>Інші способи підписати: «Дія», ключ КЕП</summary>
               {diiaEnabled && (
                 <button type="button" onClick={() => start(c.id)} disabled={busy} style={{ ...primaryBtn, marginTop: 10 }}>
                   Підписати через Дію
                 </button>
               )}
               <KepUpload contractId={c.id} docUrl={c.doc_url} />
-              <p style={{ color: BRAND.muted, fontSize: '0.82rem', marginTop: 10, lineHeight: 1.6 }}>
-                Хочете на папері?{' '}
-                <a href="/contacts" style={{ color: BRAND.amberDark }}>Замовте паперовий примірник</a> — надішлемо поштою за наш рахунок.
-              </p>
             </details>
           )}
 

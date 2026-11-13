@@ -54,10 +54,7 @@ const RED = '#e06666'
 // 08.11.2026: для договору досить чотирьох полів; адреса, IBAN і банк — перед першою виплатою.
 const REQUIRED: (keyof Requisites)[] = ['full_name', 'rnokpp', 'birth_date', 'phone']
 
-// Поштові поля потрібні НЕ для договору, а для паперової розсилки (1 жовтня).
-// Тому вони просяться у формі, але НЕ входять до REQUIRED: договір без
-// індексу юридично дійсний, і блокувати його через поштове поле неправильно.
-const POSTAL: (keyof Requisites)[] = ['postal_code', 'np_branch']
+// Поштові поля (індекс, відділення НП) необов'язкові й не входять до REQUIRED.
 
 export function isComplete(r: Requisites): boolean {
   return REQUIRED.every(k => {
@@ -169,22 +166,7 @@ export default function AuthorRequisites({ initial }: Props) {
       })
       const data = (await res.json()) as { ok: boolean; error?: string }
       if (!data.ok) { setErr(data.error || 'Не вдалося зберегти.'); return }
-      // Поштові поля не блокують збереження, але без них паперовий примірник
-      // нікуди надіслати. Кажемо про це саме тут: людина щойно закінчила
-      // заповнювати й ще в кабінеті — це дешевше за другий лист їй услід.
-      const missingPostal = POSTAL.filter(k => !String(form[k] ?? '').trim())
-      if (missingPostal.length > 0) {
-        setNote(
-          'Дані збережено — вони підставляться у ваш договір. '
-          + (missingPostal.length === 2
-            ? 'Лишилося вписати поштовий індекс і відділення Нової пошти — без них не зможемо надіслати вам паперовий примірник договору.'
-            : missingPostal[0] === 'postal_code'
-              ? 'Лишилося вписати поштовий індекс — без нього не зможемо надіслати вам паперовий примірник договору.'
-              : 'Лишилося вписати відділення Нової пошти — без нього не зможемо надіслати вам паперовий примірник договору.'),
-        )
-        setForm(f => ({ ...f, requisites_updated_at: new Date().toISOString() }))
-        return
-      }
+      // 13.11.2026 (рішення засновника): паперових договорів не надсилаємо — нагадування про поштові поля прибрано.
       setNote('Дані збережено. Вони підставляться у ваш договір.')
       setForm(f => ({ ...f, requisites_updated_at: new Date().toISOString() }))
       setOpen(false)
