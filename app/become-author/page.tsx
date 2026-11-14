@@ -69,6 +69,9 @@ export default function BecomeAuthorPage() {
           <p style={{ fontSize: 20, fontFamily: SERIF, fontStyle: 'italic', color: GOLD, marginBottom: 20 }}>
             Пишете? Ми чекаємо на вас.
           </p>
+          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.75, maxWidth: 580, margin: '0 0 12px' }}>
+            Підтримуємо нових авторів: публікуємо їхні історії та даємо читачів.
+          </p>
           <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', lineHeight: 1.75, maxWidth: 580 }}>
             Balabony — українська платформа коротких історій і серіалів для всієї родини. Ми шукаємо авторів, які хочуть ділитись своїми історіями з читачами, а згодом і заробляти на цьому. Писати може будь-хто — головне оригінальність, цікавий сюжет і жива мова без штучного інтелекту.
           </p>

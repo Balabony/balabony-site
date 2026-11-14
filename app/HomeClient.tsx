@@ -123,7 +123,7 @@ export default function HomeClient({
           ветерани й люди з інвалідністю не гортали всю сторінку. */}
       <p style={{ maxWidth: 1100, margin: '0 auto', padding: '4px 20px 18px', textAlign: 'center', fontSize: 15 }}>
         <a href="#pricing" style={{ color: 'var(--accent-gold)', fontWeight: 700, textDecoration: 'underline', textUnderlineOffset: 3 }}>
-          Для ВПО, ветеранів і людей з інвалідністю — 1&nbsp;₴ на рік →
+          Для ВПО, ветеранів і людей з інвалідністю — пільга 1&nbsp;₴ на рік після запуску передплати →
         </a>
       </p>
 

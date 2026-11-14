@@ -449,6 +449,18 @@ export default async function AuthorsPage() {
             <strong style={{ color: GOLD }}>Наша місія</strong> — розвиток української мови та доступ до
             творів українських письменників для людей з інвалідністю.
           </p>
+          <p
+            style={{
+              fontFamily: FONT,
+              fontSize: 16,
+              lineHeight: 1.7,
+              color: '#cbd5e1',
+              margin: '8px 0 0',
+              maxWidth: 720,
+            }}
+          >
+            Підтримуємо нових авторів: публікуємо їхні історії та даємо читачів.
+          </p>
         </header>
 
         {(boards.mostRead.length > 0 || boards.bestDepth.length > 0) && (
