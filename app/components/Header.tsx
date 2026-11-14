@@ -84,13 +84,14 @@ export default function Header() {
             { label: 'Історії', href: '/stories' },
             { label: 'Серії', href: '/episodes' },
             { label: 'Що читають', href: '/top' },
+            { label: 'Правопис', href: '/pravopys', cls: 'header-nav-pravopys' },
             { label: 'Передплата', href: '/peredplata' },
             { label: 'Підтримати проєкт', href: '/support' },
           ].map((item) => (
             <a
               key={item.href}
               href={item.href}
-              className="header-nav-link"
+              className={`header-nav-link${'cls' in item && item.cls ? ' ' + item.cls : ''}`}
               style={{
                 fontSize: 13,
                 fontWeight: 600,
