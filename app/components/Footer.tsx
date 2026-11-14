@@ -542,6 +542,12 @@ export default function Footer() {
                 Навігація сайту
               </a>
             </li>
+            {/* 14.11.2026: опитування читачів і авторів */}
+            <li style={{ marginBottom: 5 }}>
+              <a href="/survey" className="footer-link" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+                Пройти опитування
+              </a>
+            </li>
           </ul>
 
           <h2 style={{ color: 'var(--accent-gold)', marginBottom: 10, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
@@ -591,14 +597,14 @@ export default function Footer() {
           fontSize: 14, lineHeight: 1.7, color: 'rgba(255,255,255,0.85)',
           marginBottom: 8, fontFamily: "'Montserrat', sans-serif",
         }}>
-          Balabony — українська літературна платформа: серіали, історії письменників і казки для читачів різного віку. Проєкт розвиває <span style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>ЛОГО «Інститут громадянського суспільства»</span> (Львів, з 2005 року). Ветерани, люди з інвалідністю та родини ВПО отримують повний доступ за 1 гривню на рік (статус підтверджується через «Дію» або за документом). Платформа побудована з урахуванням стандарту доступності WCAG 2.1 рівня AA. Аудіоверсії історій — у розробці.
+          Balabony — українська літературна платформа: серіали, історії письменників і казки для читачів різного віку. Проєкт розвиває <span style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>ЛОГО «Інститут громадянського суспільства»</span> (Львів, з 2005 року). Після запуску передплати ветерани, люди з інвалідністю та родини ВПО отримуватимуть повний доступ за 1 гривню на рік (статус підтверджуватиметься через «Дію» або за документом). Платформа побудована з урахуванням стандарту доступності WCAG 2.1 рівня AA. Аудіоверсії історій — у розробці.
         </p>
         <p style={{
           fontSize: 12, lineHeight: 1.6, color: 'rgba(255,255,255,0.55)',
           margin: 0, fontStyle: 'italic',
           fontFamily: "'Montserrat', sans-serif",
         }}>
-          Balabony is a Ukrainian literary platform: serialised fiction, writers&rsquo; stories and fairy tales for readers of all ages. The project is run by the NGO &laquo;Institute of Civil Society&raquo; (Lviv, founded 2005). Veterans, people with disabilities and internally displaced families get full access for one hryvnia a year, with status verified through the state Diia service. The platform is built to WCAG 2.1 level AA accessibility. Audio versions of the stories are in development.
+          Balabony is a Ukrainian literary platform: serialised fiction, writers&rsquo; stories and fairy tales for readers of all ages. The project is run by the NGO &laquo;Institute of Civil Society&raquo; (Lviv, founded 2005). After subscriptions launch, veterans, people with disabilities and internally displaced families will get full access for one hryvnia a year, with status verified through the state Diia service. The platform is built to WCAG 2.1 level AA accessibility. Audio versions of the stories are in development.
         </p>
       </div>
 

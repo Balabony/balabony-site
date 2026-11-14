@@ -85,7 +85,6 @@ export default function Header() {
             { label: 'Серії', href: '/episodes' },
             { label: 'Що читають', href: '/top' },
             { label: 'Правопис', href: '/pravopys', cls: 'header-nav-pravopys' },
-            { label: 'Передплата', href: '/peredplata' },
           ].map((item) => (
             <a
               key={item.href}
