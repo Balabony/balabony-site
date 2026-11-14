@@ -16,6 +16,7 @@ import SeriesStrip, { type SeriesCard } from './components/SeriesStrip'
 import FreshStoriesGrid, { type Story } from './components/FreshStoriesGrid'
 import type { TyshaItem, GenreCount, SiteStats, StripAuthor } from '@/lib/home-data'
 import KonkursyBanner from './components/KonkursyBanner'
+import PravopysBanner from './components/PravopysBanner'
 import TyshaSection from './components/TyshaSection'
 import BonusSection from './components/BonusSection'
 import AuthorSection from './components/AuthorSection'
@@ -135,6 +136,9 @@ export default function HomeClient({
       <FreeBanner />
 
       <KonkursyBanner />
+
+      {/* 14.11.2026: анонс розділу «Правопис» (SEO-ключі: правопис, абетка, 5–9 клас, НМТ). */}
+      <PravopysBanner />
 
       {/* 17.10.2026: клуб, календар, підтримка — цілі реклами Ad Grants. */}
       <HomePromoRow />

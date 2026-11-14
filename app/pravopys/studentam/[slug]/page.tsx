@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { RULES, bySlug, SOURCE_URL } from '@/lib/pravopys/data'
 import { Shell, Crumbs, Tabs, Card, Label, H1, Lead, C, SERIF, IconYes, IconNo, IconTip, RuleItem, OkNo, Related, ReadCta, FaqLd } from '../../ui'
 import Quiz from '../../Quiz'
+import { AlphabetTable } from '../../Alphabet'
 
 export const dynamicParams = false
 export function generateStaticParams() { return RULES.map((r) => ({ slug: r.slug })) }
@@ -30,6 +31,7 @@ export default async function StudentamSlug({ params }: { params: Promise<{ slug
         <Label>{r.section} · {r.para}</Label>
         <H1>{s.h1}</H1>
         <Lead>{s.lead}</Lead>
+        {r.extra === 'alphabet' && <AlphabetTable />}
         {s.blocks.map((b, i) => (
           <div key={i}>
             <h2 style={{ fontSize: 23, color: C.NAVY, margin: '22px 0 8px', display: 'flex', alignItems: 'center', gap: 10 }}>{icon(b.kind)}{b.h}</h2>

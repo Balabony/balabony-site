@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { RULES, GRADES, bySlug, byGrade } from '@/lib/pravopys/data'
 import { Shell, Crumbs, Tabs, Card, Label, H1, Lead, C, SERIF, IconTip, OkNo, Related, ReadCta, RuleLinkCard } from '../../ui'
 import Quiz from '../../Quiz'
+import { AlphabetGrid } from '../../Alphabet'
 
 export const dynamicParams = false
 export function generateStaticParams() {
@@ -66,6 +67,7 @@ export default async function UchnyamSlug({ params }: { params: Promise<{ slug: 
             <IconTip /><div><b style={{ color: C.NAVY }}>Підказка: </b>{p.tip}</div>
           </div>
         )}
+        {r.extra === 'alphabet' && <AlphabetGrid />}
         <h2 style={{ fontFamily: SERIF, fontSize: 26, color: C.NAVY, margin: '10px 0 0' }}>Правильно і неправильно</h2>
         <OkNo ok={p.ok} wrong={p.wrong} />
       </Card>
