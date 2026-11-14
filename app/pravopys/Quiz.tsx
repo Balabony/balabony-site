@@ -18,13 +18,13 @@ export default function Quiz({ items, title }: { items: Q[]; title: string }) {
         return (
           <div key={i} style={{ margin: '0 0 18px' }}>
             <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>{i + 1}. {it.q}</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+            <div role="group" aria-label={`Питання ${i + 1}`} style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
               {it.options.map((o, j) => {
                 const chosen = p === j
                 const right = p !== null && j === it.answer
                 return (
-                  <button key={j} type="button" disabled={p !== null}
-                    onClick={() => setPicked((a) => a.map((x, k) => (k === i ? j : x)))}
+                  <button key={j} type="button" aria-disabled={p !== null} aria-pressed={chosen}
+                    onClick={() => { if (p === null) setPicked((a) => a.map((x, k) => (k === i ? j : x))) }}
                     style={{ fontFamily: 'inherit', fontSize: 21, fontWeight: 700, padding: '8px 18px', borderRadius: 12, cursor: p === null ? 'pointer' : 'default',
                       background: right ? GOLD : chosen ? '#334155' : '#1e293b', color: right ? NAVY : IVORY, border: `2px solid ${right ? GOLD : '#334155'}`,
                       textDecoration: chosen && !right ? 'line-through' : 'none' }}>

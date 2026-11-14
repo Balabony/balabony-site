@@ -28,7 +28,7 @@ export default function PravopysHub() {
           {big('/pravopys/studentam', 'Студентам', 'Повні правила з § стандарту · НМТ')}
         </div>
         <h2 style={{ fontFamily: SERIF, fontSize: 26, color: C.NAVY, margin: '18px 0 10px' }}>Що змінилося в правописі 2026</h2>
-        <p style={{ margin: '0 0 10px', display: 'flex', gap: 12 }}><IconYes />Норми правопису 2019 року не змінилися. Стандарт 2026 уточнив формулювання, виправив помилки, змінив нумерацію параграфів і додав підрозділ «Український алфавіт»: <a href="/pravopys/uchnyam/alfavit" style={{ color: C.NAVY, fontWeight: 700 }}>абетка для учнів</a> і <a href="/pravopys/studentam/alfavit" style={{ color: C.NAVY, fontWeight: 700 }}>таблиця з назвами букв для студентів</a>.</p>
+        <p style={{ margin: '0 0 10px', display: 'flex', gap: 12 }}><IconYes /><span>Норми правопису 2019 року не змінилися. Стандарт 2026 уточнив формулювання, виправив помилки, змінив нумерацію параграфів і додав підрозділ «Український алфавіт»: <a href="/pravopys/uchnyam/alfavit" style={{ color: C.NAVY, fontWeight: 700 }}>абетка для учнів</a> і <a href="/pravopys/studentam/alfavit" style={{ color: C.NAVY, fontWeight: 700 }}>таблиця з назвами букв для студентів</a>.</span></p>
         <p style={{ margin: 0 }}><a href={SOURCE_PDF} target="_blank" rel="noopener" style={{ color: C.NAVY, fontWeight: 700 }}>Завантажити офіційний текст правопису (PDF, mova.gov.ua) →</a></p>
       </Card>
       <Card>

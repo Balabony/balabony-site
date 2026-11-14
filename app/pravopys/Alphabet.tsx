@@ -4,8 +4,9 @@
 import { useState } from 'react'
 import { ALPHABET, type Letter } from '@/lib/pravopys/data'
 
-const NAVY = '#0f172a', GOLD = '#ef9f27', GOLD_BG = '#fff7e8', BORDER = '#e2e8f0', MUTED = '#64748b'
+const NAVY = '#0f172a', GOLD = '#ef9f27', GOLD_BG = '#fff7e8', BORDER = '#e2e8f0', MUTED = '#475569'
 const SERIF = "'Lora', Georgia, serif"
+const KIND_SHORT: Record<Letter['kind'], string> = { v: 'голосна', c: 'приголосна', s: 'м’який знак' }
 const KIND_LABEL: Record<Letter['kind'], string> = { v: 'голосна', c: 'приголосна', s: 'не має окремого звука — показує м’якість' }
 
 function Word({ word, letter }: { word: string; letter: string }) {
@@ -30,18 +31,19 @@ export function AlphabetGrid() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(76px, 1fr))', gap: 10 }}>
         {ALPHABET.map((L, i) => {
           const on = sel === i
-          const dim = f !== 'all' && L.kind !== f
+          if (f !== 'all' && L.kind !== f) return null
           return (
-            <button key={L.n} type="button" aria-pressed={on} aria-label={`Буква ${L.up}, ${L.name}`} onClick={() => setSel(i)}
-              style={{ fontFamily: SERIF, cursor: 'pointer', padding: '10px 4px', borderRadius: 16, textAlign: 'center', opacity: dim ? 0.3 : 1,
+            <button key={L.n} type="button" aria-pressed={on} aria-label={`Буква ${L.up}, номер ${L.n}, назва: ${L.name}, ${KIND_SHORT[L.kind]}`} onClick={() => setSel(i)}
+              style={{ fontFamily: SERIF, cursor: 'pointer', padding: '10px 4px', borderRadius: 16, textAlign: 'center',
                 background: on ? NAVY : L.kind === 'v' ? GOLD_BG : '#fff', color: on ? GOLD : NAVY, border: `2px solid ${on ? NAVY : L.kind === 'v' ? GOLD : BORDER}` }}>
               <span style={{ display: 'block', fontSize: 30, fontWeight: 700, lineHeight: 1.1 }}>{L.up}{L.lo}</span>
-              <span style={{ display: 'block', fontSize: 12, color: on ? '#cbd5e1' : MUTED, fontFamily: "'Montserrat', Arial, sans-serif" }}>{L.n}</span>
+              <span aria-hidden="true" style={{ display: 'block', fontSize: 14, color: on ? '#cbd5e1' : MUTED, fontFamily: "'Montserrat', Arial, sans-serif" }}>{L.kind === 'v' ? '● ' : ''}{L.n}</span>
             </button>
           )
         })}
       </div>
-      <div role="status" style={{ marginTop: 16, background: NAVY, color: '#f8fafc', borderRadius: 18, padding: '18px 22px', minHeight: 84, border: `2px solid ${GOLD}` }}>
+      <p style={{ margin: '10px 0 0', fontSize: 15, color: MUTED }}>● — голосна буква (золота плитка). Букву можна вибрати мишею, пальцем або клавішею Tab і Enter.</p>
+      <div role="status" aria-live="polite" style={{ marginTop: 16, background: NAVY, color: '#f8fafc', borderRadius: 18, padding: '18px 22px', minHeight: 84, border: `2px solid ${GOLD}` }}>
         {cur ? (
           <>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>

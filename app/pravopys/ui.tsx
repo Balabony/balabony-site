@@ -23,7 +23,10 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <main style={{ background: C.NAVY, minHeight: '100vh', padding: '40px 16px 96px', fontFamily: SANS, color: C.TEXT, fontSize: 20, lineHeight: 1.65 }}>
       <div style={{ maxWidth: 860, margin: '0 auto' }}>
-        <a href="/" style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 700, color: C.GOLD, textDecoration: 'none' }}>Балабони</a>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+          <a href="/" style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 700, color: C.GOLD, textDecoration: 'none' }}>Балабони</a>
+          <a href="/accessibility" style={{ fontSize: 15, fontWeight: 700, color: C.GOLD }}>Доступність: розмір шрифту й теми →</a>
+        </div>
         {children}
         <p style={{ color: C.LIGHT, fontSize: 14, lineHeight: 1.7, marginTop: 40 }}>
           Правила звірені з чинним стандартом державної мови «Український правопис» (рішення Національної комісії зі стандартів державної мови № 47 від 01.03.2026, чинний з 28.03.2026).
