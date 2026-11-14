@@ -109,7 +109,7 @@ const GROUPS: SitemapGroup[] = [
   {
     title: 'Для авторів',
     links: [
-      { href: '/become-author', label: 'Стати автором',      note: '50%/40% умови, через Дію' },
+      { href: '/become-author', label: 'Стати автором',      note: 'умови співпраці 50%/40%' },
       { href: '/konkursy',      label: 'Конкурси для авторів', note: 'Призи, публікація в газетах' },
       { href: '/legal/author-contract', label: 'Умови договору', note: 'Ставки й порядок виплат' },
     ],
