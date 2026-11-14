@@ -559,6 +559,7 @@ export default function Footer() {
               { label: 'Часті питання', href: '/faq'    },
               { label: 'Календар 2027 роздрукувати', href: '/kalendar-2027' },
               { label: 'Бонусна програма', href: '/bonusy' },
+              { label: 'RSS-стрічка', href: '/feed.xml' },
             ].map(item => (
               <li key={item.label} style={{ marginBottom: 5 }}>
                 <a href={item.href} className="footer-link" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 14 }}>
