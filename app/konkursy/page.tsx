@@ -1227,7 +1227,7 @@ export default function KonkursyPage() {
             Літературні конкурси Балабонів
           </h1>
           <p style={{ margin: '0 0 12px', color: SOFT, fontSize: 16, lineHeight: 1.7 }}>
-            Підтримуємо нових авторів: публікуємо їхні історії та даємо читачів.
+            <strong style={{ color: GOLD }}>Підтримуємо нових авторів: публікуємо їхні історії та даємо читачів.</strong>
           </p>
           <ul style={{ margin: '0 0 18px', paddingLeft: 20, color: SOFT, fontSize: 16, lineHeight: 1.7 }}>
             <li>Конкурси для дорослих авторів, призи до 20 000 ₴, участь безкоштовна.</li>

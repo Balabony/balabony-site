@@ -459,7 +459,7 @@ export default async function AuthorsPage() {
               maxWidth: 720,
             }}
           >
-            Підтримуємо нових авторів: публікуємо їхні історії та даємо читачів.
+            <strong style={{ color: GOLD }}>Підтримуємо нових авторів: публікуємо їхні історії та даємо читачів.</strong>
           </p>
         </header>
 
