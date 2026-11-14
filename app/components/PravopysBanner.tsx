@@ -30,6 +30,10 @@ export default function PravopysBanner() {
           <Link href="/pravopys/uchnyam" style={{ ...chip, border: `1.5px solid ${GOLD}`, color: GOLD }}>Українська мова 5–9 клас</Link>
           <Link href="/pravopys/studentam" style={{ ...chip, border: `1.5px solid ${GOLD}`, color: GOLD }}>Правопис для студентів і НМТ</Link>
         </div>
+        <p style={{ fontFamily: FONT, fontSize: 13, lineHeight: 1.5, color: '#B5C6DA', margin: '14px 0 0', paddingTop: 12, borderTop: '1px solid rgba(239,159,39,0.25)' }}>
+          Онлайн-гра для учнів 5–11 класів:{' '}
+          <Link href="/moia-ukraina" style={{ color: GOLD, fontWeight: 700, textDecoration: 'underline', textUnderlineOffset: 3 }}>Моя Україна на мапі — запитання про міста України →</Link>
+        </p>
       </div>
     </section>
   )
