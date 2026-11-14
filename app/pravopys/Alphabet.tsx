@@ -28,15 +28,15 @@ export function AlphabetGrid() {
             style={{ fontFamily: 'inherit', fontSize: 16, fontWeight: 700, padding: '8px 16px', borderRadius: 999, cursor: 'pointer', background: f === x.k ? GOLD : '#fff', color: NAVY, border: `2px solid ${f === x.k ? GOLD : BORDER}` }}>{x.l}</button>
         ))}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(76px, 1fr))', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))', gap: 10 }}>
         {ALPHABET.map((L, i) => {
           const on = sel === i
           if (f !== 'all' && L.kind !== f) return null
           return (
             <button key={L.n} type="button" aria-pressed={on} aria-label={`Буква ${L.up}, номер ${L.n}, назва: ${L.name}, ${KIND_SHORT[L.kind]}`} onClick={() => setSel(i)}
-              style={{ fontFamily: SERIF, cursor: 'pointer', padding: '10px 4px', borderRadius: 16, textAlign: 'center',
+              style={{ fontFamily: SERIF, cursor: 'pointer', padding: '8px 2px', borderRadius: 14, textAlign: 'center',
                 background: on ? NAVY : L.kind === 'v' ? GOLD_BG : '#fff', color: on ? GOLD : NAVY, border: `2px solid ${on ? NAVY : L.kind === 'v' ? GOLD : BORDER}` }}>
-              <span style={{ display: 'block', fontSize: 30, fontWeight: 700, lineHeight: 1.1 }}>{L.up}{L.lo}</span>
+              <span style={{ display: 'block', fontSize: 26, fontWeight: 700, lineHeight: 1.1 }}>{L.up}{L.lo}</span>
               <span aria-hidden="true" style={{ display: 'block', fontSize: 14, color: on ? '#cbd5e1' : MUTED, fontFamily: "'Montserrat', Arial, sans-serif" }}>{L.kind === 'v' ? '● ' : ''}{L.n}</span>
             </button>
           )

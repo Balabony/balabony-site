@@ -94,8 +94,8 @@ export function RuleItem({ it, kind }: { it: Item; kind: 'yes' | 'no' | 'info' }
 export function OkNo({ ok, wrong }: { ok: string[]; wrong: string[] }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12, margin: '16px 0' }}>
-      {ok.length > 0 && <div style={{ background: C.GOLD_BG, borderRadius: 14, padding: '14px 18px', fontSize: 21, fontWeight: 700, color: C.NAVY, display: 'flex', gap: 12, alignItems: 'center' }}><IconYes />{ok.join(', ')}</div>}
-      {wrong.length > 0 && <div style={{ background: C.BORDER, borderRadius: 14, padding: '14px 18px', fontSize: 21, fontWeight: 700, color: '#475569', display: 'flex', gap: 12, alignItems: 'center' }}><IconNo /><span style={{ textDecoration: 'line-through', textDecorationThickness: 2 }}>{wrong.join(', ')}</span></div>}
+      {ok.length > 0 && <div style={{ background: C.GOLD_BG, borderRadius: 14, padding: '14px 18px', fontSize: 21, fontWeight: 700, color: C.NAVY, display: 'flex', gap: 12, alignItems: 'center' }}><IconYes />{ok.join(ok.some((x) => /[ ,]/.test(x)) ? ' · ' : ', ')}</div>}
+      {wrong.length > 0 && <div style={{ background: C.BORDER, borderRadius: 14, padding: '14px 18px', fontSize: 21, fontWeight: 700, color: '#475569', display: 'flex', gap: 12, alignItems: 'center' }}><IconNo /><span style={{ textDecoration: 'line-through', textDecorationThickness: 2 }}>{wrong.join(wrong.some((x) => /[ ,]/.test(x)) ? ' · ' : ', ')}</span></div>}
     </div>
   )
 }

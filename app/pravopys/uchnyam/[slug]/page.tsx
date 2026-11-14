@@ -61,7 +61,7 @@ export default async function UchnyamSlug({ params }: { params: Promise<{ slug: 
         <H1>{p.h1}</H1>
         <Lead>{p.lead}</Lead>
         <h2 style={{ fontFamily: SERIF, fontSize: 26, color: C.NAVY, margin: '6px 0 8px' }}>Правило</h2>
-        <p style={{ fontSize: 22, fontWeight: 600, color: C.NAVY, margin: '0 0 12px' }}>{p.rule}</p>
+        <p style={{ fontSize: 'clamp(18px, 4.8vw, 22px)', fontWeight: 600, color: C.NAVY, margin: '0 0 12px' }}>{p.rule}</p>
         {p.tip && (
           <div style={{ background: C.GOLD_BG, border: `2px dashed ${C.GOLD}`, borderRadius: 16, padding: '16px 20px', margin: '16px 0', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
             <IconTip /><div><b style={{ color: C.NAVY }}>Підказка: </b>{p.tip}</div>
