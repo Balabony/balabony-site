@@ -436,6 +436,19 @@ export default async function AuthorsPage() {
             Українські письменники, чиї історії читають на платформі. У кожного —
             власна сторінка з добіркою творів.
           </p>
+          <p
+            style={{
+              fontFamily: FONT,
+              fontSize: 16,
+              lineHeight: 1.7,
+              color: '#cbd5e1',
+              margin: '12px 0 0',
+              maxWidth: 720,
+            }}
+          >
+            <strong style={{ color: GOLD }}>Наша місія</strong> — розвиток української мови та доступ до
+            творів українських письменників для людей з інвалідністю.
+          </p>
         </header>
 
         {(boards.mostRead.length > 0 || boards.bestDepth.length > 0) && (

@@ -262,6 +262,11 @@ export default function InclusiveVoicePage() {
           <p className="iv-kicker">{t.kicker}</p>
           <h1 className="iv-title">{t.title}</h1>
           <p className="iv-sub">{t.subtitle}</p>
+          <p className="iv-sub">
+            {lang === 'en'
+              ? 'Our mission is to develop the Ukrainian language and to give people with disabilities access to the works of Ukrainian writers.'
+              : 'Наша місія — розвиток української мови та доступ до творів українських письменників для людей з інвалідністю.'}
+          </p>
         </section>
 
         <section className="iv-section iv-reveal" style={{ animationDelay: '.15s' }}>
