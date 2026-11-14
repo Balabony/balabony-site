@@ -371,5 +371,5 @@ body, body * {
   .ra-grid { grid-template-columns: 1fr; }
 }
 
-/* 14.11.2026: пункт «Правопис» у шапці — лише там, де вистачає місця (на вужчих екранах шапка й так тісна) */
-@media (max-width: 1439px) { .header-nav-pravopys { display: none !important; } }
+/* 14.11.2026: пункт «Правопис» у шапці — лише там, де вистачає місця */
+@media (max-width: 1180px) { .header-nav-pravopys { display: none !important; } }
