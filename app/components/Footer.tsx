@@ -602,6 +602,26 @@ export default function Footer() {
         </p>
       </div>
 
+      {/* 14.11.2026: невеликий блок з онлайн-грою внизу футера — яскравий, щоб було видно */}
+      <div style={{
+        maxWidth: 1200, margin: '0 auto 28px',
+        padding: '18px 22px',
+        border: '1.5px solid #EF9F27',
+        borderRadius: 14,
+        background: 'linear-gradient(135deg, rgba(239,159,39,0.28) 0%, rgba(239,159,39,0.10) 100%)',
+        boxShadow: '0 0 0 3px rgba(239,159,39,0.12)',
+        display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px 20px',
+      }}>
+        <div style={{ fontFamily: "'Montserrat', sans-serif" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1.2px', color: '#FFD888', marginBottom: 4 }}>ОНЛАЙН-ГРА · 5–11 КЛАСИ</div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: '#FFFFFF', marginBottom: 2 }}>Моя Україна на мапі</div>
+          <div style={{ fontSize: 14, lineHeight: 1.5, color: 'rgba(255,255,255,0.88)' }}>Запитання про історію, пам’ять і культуру міст України.</div>
+        </div>
+        <a href="/moia-ukraina" style={{ background: '#EF9F27', color: '#0a0f1a', fontWeight: 700, fontSize: 15, textDecoration: 'none', borderRadius: 12, padding: '12px 22px', fontFamily: "'Montserrat', sans-serif" }}>
+          Грати →
+        </a>
+      </div>
+
       {/* ════════ ПАРТНЕРИ ════════ */}
       {/* Щоб додати партнера — додай об'єкт у масив PARTNERS вгорі файлу.
           Для темного фону футера логотип має бути світлим (білим). */}
@@ -719,6 +739,12 @@ export default function Footer() {
         }
         .footer-root :global(.footer-link:hover::after) {
           width: 100%;
+        }
+
+        /* 14.11.2026: PageSpeed «області дотику» — мінімум 24 px заввишки для всіх посилань футера */
+        .footer-root :global(a) {
+          display: inline-block;
+          padding-block: 4px;
         }
 
         /* ── Social text links ── */
