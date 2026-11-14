@@ -590,14 +590,14 @@ export default function Footer() {
           fontSize: 14, lineHeight: 1.7, color: 'rgba(255,255,255,0.85)',
           marginBottom: 8, fontFamily: "'Montserrat', sans-serif",
         }}>
-          Balabony — українська літературна платформа: серіали з продовженням, історії письменників і казки для читачів різного віку. Проєкт розвиває <span style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>ЛОГО «Інститут громадянського суспільства»</span> (Львів, з 2005 року) разом із видавничою групою «Життя», яка з 2003 року видає літературні газети сукупним накладом близько 1,56 млн примірників на рік. Ветерани, люди з інвалідністю та родини ВПО отримують повний доступ за 1 гривню на рік із підтвердженням статусу через «Дію» або за документом. Платформа побудована з урахуванням стандарту доступності WCAG 2.1 рівня AA. Аудіоверсії історій — у розробці.
+          Balabony — українська літературна платформа: серіали, історії письменників і казки для читачів різного віку. Проєкт розвиває <span style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>ЛОГО «Інститут громадянського суспільства»</span> (Львів, з 2005 року). Ветерани, люди з інвалідністю та родини ВПО отримують повний доступ за 1 гривню на рік (статус підтверджується через «Дію» або за документом). Платформа побудована з урахуванням стандарту доступності WCAG 2.1 рівня AA. Аудіоверсії історій — у розробці.
         </p>
         <p style={{
           fontSize: 12, lineHeight: 1.6, color: 'rgba(255,255,255,0.55)',
           margin: 0, fontStyle: 'italic',
           fontFamily: "'Montserrat', sans-serif",
         }}>
-          Balabony is a Ukrainian literary platform: serialised fiction, writers&rsquo; stories and fairy tales for readers of all ages. The project is run by the NGO &laquo;Institute of Civil Society&raquo; (Lviv, founded 2005) together with the Zhyttia publishing group, which has published literary newspapers since 2003 with a combined circulation of around 1.56 million copies a year. Veterans, people with disabilities and internally displaced families receive full access for one hryvnia per year, with status verified through the state Diia service. The platform is built to WCAG 2.1 level AA accessibility. Audio versions of the stories are in development.
+          Balabony is a Ukrainian literary platform: serialised fiction, writers&rsquo; stories and fairy tales for readers of all ages. The project is run by the NGO &laquo;Institute of Civil Society&raquo; (Lviv, founded 2005). Veterans, people with disabilities and internally displaced families get full access for one hryvnia a year, with status verified through the state Diia service. The platform is built to WCAG 2.1 level AA accessibility. Audio versions of the stories are in development.
         </p>
       </div>
 
@@ -662,14 +662,14 @@ export default function Footer() {
           Авторське право: свідоцтво АП №147106 від 18.05.2026 (УКРНОІВІ).
         </p>
         {/* 09.11.2026: підпис студії-розробника — активне посилання на OLBO на всіх сторінках */}
-        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', margin: '10px 0 0 0' }}>
+        <p style={{ fontSize: 13, color: '#B5D4F4', fontWeight: 600, margin: '10px 0 0 0' }}>
           Розробка:{' '}
           <a
             href="https://olbo.com.ua/?utm_source=balabony&utm_medium=footer&utm_campaign=credit"
             target="_blank"
             rel="noopener"
             aria-label="Розробка: студія OLBO (відкривається в новій вкладці)"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#ffffff', fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 3, verticalAlign: 'middle' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#ffffff', fontWeight: 600, textDecoration: 'underline', textDecorationColor: '#B5D4F4', textUnderlineOffset: 3, verticalAlign: 'middle', background: 'rgba(181,212,244,0.14)', border: '1px solid rgba(181,212,244,0.45)', borderRadius: 8, padding: '4px 10px' }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/olbo-logo.svg" alt="" height={14} style={{ height: 14, width: 'auto', display: 'block' }} />

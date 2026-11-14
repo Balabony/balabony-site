@@ -23,7 +23,6 @@ import AuthorSection from './components/AuthorSection'
 import AboutBalabonySection from './components/AboutBalabonySection'
 import PwaSection from './components/PwaSection'
 import ChannelsSection from './components/ChannelsSection'
-import SurveyPreviewSection from './components/SurveyPreviewSection'
 import EmailCapture from './components/EmailCapture'
 import AuthorsStrip from './components/AuthorsStrip'
 import GenreChips from './components/GenreChips'
@@ -264,7 +263,6 @@ export default function HomeClient({
         <AuthorsStrip limit={8} initial={authors} />
 
         <AuthorSection />
-        <SurveyPreviewSection />
       </main>
 
 
