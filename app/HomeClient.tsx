@@ -18,7 +18,6 @@ import type { TyshaItem, GenreCount, SiteStats, StripAuthor } from '@/lib/home-d
 import KonkursyBanner from './components/KonkursyBanner'
 import PravopysBanner from './components/PravopysBanner'
 import TyshaSection from './components/TyshaSection'
-import BonusSection from './components/BonusSection'
 import AuthorSection from './components/AuthorSection'
 import AboutBalabonySection from './components/AboutBalabonySection'
 import PwaSection from './components/PwaSection'
@@ -254,8 +253,6 @@ export default function HomeClient({
             </div>
           </div>
         </section>
-
-        <BonusSection />
 
         <PwaSection />
 

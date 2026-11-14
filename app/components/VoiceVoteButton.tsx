@@ -143,7 +143,7 @@ export default function VoiceVoteButton({ contentId }: { contentId: string }) {
           {showHow && (
             <>
               {' '}
-              <a href="/#bonusy" style={{ color: '#FAC775', fontWeight: 600 }}>
+              <a href="/bonusy" style={{ color: '#FAC775', fontWeight: 600 }}>
                 Як заробити бали
               </a>
             </>
