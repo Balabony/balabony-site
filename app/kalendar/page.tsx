@@ -195,121 +195,25 @@ export default function KalendarPage() {
           </p>
         </div>
 
-        {/* ── Ціна й форма ──────────────────────────────────── */}
+        {/* 14.11.2026: календар не продається — це подарунок найкращим авторам платформи.
+            Платформа безкоштовна й доходів не має (рішення Богдана), тому форму замовлення й оплату з сторінки прибрано. */}
         <div style={{ background: CARD, border: `1px solid rgba(239,159,39,.55)`,
                       borderRadius: 12, padding: '1.25rem', margin: '2rem 0' }}>
-          <div style={{ fontSize: '2rem', color: GOLD_L, fontWeight: 500 }}>
-            {unit * qty} грн
-            {price?.expert && (
-              <span style={{ fontSize: '1rem', color: MUTED, marginLeft: '.6rem',
-                             textDecoration: 'line-through' }}>
-                {price.base * qty} грн
-              </span>
-            )}
+          <div style={{ fontSize: '1.35rem', color: GOLD_L, fontWeight: 500 }}>
+            Календар не продається
           </div>
-
-          {price?.expert ? (
-            <p style={{ color: GOLD_L, fontSize: '.95rem', margin: '.2rem 0 0' }}>
-              Ваша ціна як «Знавця Балабонів». Знижку застосовано автоматично.
-            </p>
-          ) : (
-            <>
-              <p style={{ color: MUTED, fontSize: '.95rem', margin: '.2rem 0 0' }}>
-                Ціна від виробника: макет, друк і відправлення наші, посередників
-                немає — тому нижчої ціни на цей календар не буває.
-              </p>
-              <p style={{ color: MUTED, fontSize: '.95rem', margin: '.35rem 0 0' }}>
-                Читачі рівня «Знавець Балабонів» платять 400 грн.
-                {typeof price?.toExpert === 'number' && price.toExpert > 0 && (
-                  <> Вам до цього рівня — ще {withPlural(price.toExpert, 'прочитана серія', 'прочитані серії', 'прочитаних серій')}.</>
-                )}
-              </p>
-            </>
-          )}
-
-          {/* Це передзамовлення, і сказати про це треба до кнопки, а не
-              дрібним унизу. Інакше перший покупець питатиме «де календар»
-              наступного дня. */}
-          <p style={{
-            margin: '.9rem 0 0',
-            padding: '.6rem .8rem',
-            background: 'rgba(239,159,39,.10)',
-            border: `1px solid ${LINE}`,
-            borderRadius: 8,
-            fontSize: '.95rem',
-          }}>
-            Календарі виходять з друку наприкінці жовтня 2026 року.
-            Замовлення відправимо одразу після цього.
-          </p>
-          <p style={{ margin: '.4rem 0 .9rem' }}>
-            Кожен проданий календар — це гонорар авторові й крок до озвучення
-            історій.
-          </p>
-
-          <div style={{ display: 'grid', gap: '.85rem',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-            <div>
-              <label style={label} htmlFor="nm">Прізвище та ім’я одержувача</label>
-              <input id="nm" style={input} value={form.buyerName} onChange={set('buyerName')} />
-            </div>
-            <div>
-              <label style={label} htmlFor="ph">Телефон</label>
-              <input id="ph" style={input} placeholder="0XX XXX XX XX"
-                     value={form.buyerPhone} onChange={set('buyerPhone')} />
-            </div>
-            <div>
-              <label style={label} htmlFor="ct">Місто</label>
-              <input id="ct" style={input} value={form.npCity} onChange={set('npCity')} />
-            </div>
-            <div>
-              <label style={label} htmlFor="br">Відділення Нової пошти</label>
-              <input id="br" style={input} placeholder="№ 12"
-                     value={form.npBranch} onChange={set('npBranch')} />
-            </div>
-            <div>
-              <label style={label} htmlFor="em">Пошта, щоб надіслати номер накладної</label>
-              <input id="em" style={input} value={form.buyerEmail} onChange={set('buyerEmail')} />
-            </div>
-            <div>
-              <label style={label} htmlFor="qt">Кількість</label>
-              <input id="qt" type="number" min={1} max={MAX_QTY} style={input} value={qty}
-                     onChange={e => setQty(Math.max(1, Math.min(MAX_QTY, Number(e.target.value) || 1)))} />
-            </div>
-          </div>
-
-          {err && (
-            <p style={{ color: '#ff9b9b', marginTop: '.85rem', marginBottom: 0 }}>{err}</p>
-          )}
-
-          <button onClick={order} disabled={busy}
-                  style={{ marginTop: '1rem', background: GOLD, color: '#2a1a02', border: 0,
-                           borderRadius: 8, padding: '.7rem 1.5rem', fontSize: '1.05rem',
-                           fontWeight: 500, cursor: busy ? 'default' : 'pointer',
-                           opacity: busy ? .6 : 1 }}>
-            {busy ? 'Готуємо оплату…' : 'Замовити'}
-          </button>
-
-          <p style={{ color: MUTED, fontSize: '.9rem', marginTop: '.85rem', marginBottom: 0 }}>
-            Оплата карткою. Доставка Новою поштою за тарифами перевізника, оплачує отримувач.
-            Дані потрібні лише для відправлення — як ми з ними поводимось, написано в{' '}
-            <Link href="/legal/privacy" style={{ color: GOLD_L }}>політиці конфіденційності</Link>.
+          <p style={{ margin: '.6rem 0 0' }}>
+            Платформа Balabony безкоштовна й не отримує доходів. Настінний календар-планувальник
+            на 2027 рік ми не продаємо: це подарунок найкращим авторам платформи.
           </p>
         </div>
 
         {/* Блок подарунка стоїть ПІД формою навмисно. Над нею він забирав би
             покупців: людина, готова заплатити, читає «можна безкоштовно» і
             йде думати. Тут його бачить той, хто вже прогорнув повз оплату. */}
-        <h2 style={h2}>Календар у подарунок</h2>
+        <h2 style={h2}>Кому ми дарували календар</h2>
         <p>
-          Десять примірників ми віддаємо читачам, які приводять на платформу
-          інших. Умова одна: двоє приведених вами читачів оформили річну
-          передплату — особисту або сімейну. Доставку оплачуємо ми.
-        </p>
-        <p>
-          Свій прогрес видно в{' '}
-          <Link href="/profile" style={{ color: GOLD_L }}>кабінеті</Link>, умови —
-          на сторінці{' '}
-          <Link href="/bonusy" style={{ color: GOLD_L }}>бонусної програми</Link>.
+          Календарі-планувальники ми даруємо найкращим авторам Balabony. Купити їх не можна.
         </p>
 
         <h2 style={h2}>Що всередині</h2>
@@ -354,13 +258,6 @@ export default function KalendarPage() {
         <p>
           Календар виріс звідти ж. Це не куплений на стороні товар із перебитою
           наліпкою: макет наш, друк ми замовляли самі.
-        </p>
-        <p>
-          <b>Різниця між ціною і собівартістю йде на платформу</b> — на гонорари
-          авторам, на призові фонди конкурсів і на озвучення історій. Це не
-          благодійність і не «підтримайте нас»: ви купуєте річ, якою
-          користуватиметеся щодня, а гроші лишаються в українській літературі,
-          а не в посередника.
         </p>
         <p>
           Якщо ви тут уперше:{' '}

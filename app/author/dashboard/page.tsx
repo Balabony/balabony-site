@@ -27,6 +27,7 @@ import WorksFilter from '@/app/components/WorksFilter'
 import DeleteDraftButton from '@/app/components/DeleteDraftButton'
 import ShareWorkTemplate from '@/app/components/ShareWorkTemplate'
 import RequestUnpublishButton from '@/app/components/RequestUnpublishButton'
+import RequestUnpublishAllButton from '@/app/components/RequestUnpublishAllButton'
 import CopyLinkButton from '@/app/components/CopyLinkButton'
 import { realPen } from '@/lib/pen-name'
 import { authorSlug } from '@/lib/author-slug'
@@ -615,17 +616,25 @@ export default async function AuthorDashboardPage() {
           marginBottom: '1.5rem', padding: '0.9rem 1.2rem', borderRadius: 12,
           background: 'rgba(239,159,39,0.12)', border: '1px solid rgba(239,159,39,0.45)',
         }}>
+          {/* 14.11.2026: умови викладено прямо — платформа безкоштовна, виплат немає. */}
           <div style={{ color: '#FAC775', fontWeight: 700, marginBottom: 6 }}>
-            Платформа в тестовому режимі
+            Умови співпраці на сьогодні
           </div>
           <div style={{ color: '#e8eef7', lineHeight: 1.7, fontSize: '0.93rem' }}>
-            Орієнтовна дата запуску — кінець 2026 року. До того передплата
-            не продається, тож виплат авторам поки немає: нарахування в кабінеті
-            ви бачите, але це механіка, а не гроші. Перші виплати — не раніше
-            2027 року: спершу має початися продаж передплати, накопичитися
-            прочитання й пройти розрахунковий період. Усе інше — публікація
-            творів, конкурси, черга на озвучення — працює по-справжньому.
+            <strong style={{ color: '#FFF8EE' }}>Balabony — безкоштовна платформа. Ми не отримуємо доходів, і автори також: гонорар за прочитання наразі не нараховується.</strong>
+            Усі історії авторів, крім серіалів, відкриті для читачів безкоштовно.
+            <strong style={{ color: '#FFF8EE' }}>Наразі вся команда Balabony працює волонтерами й не отримує жодної гривні за свою роботу. Balabony також не заробляє на розміщенні реклами.</strong>
+            Наша мета — створити платформу аудіоісторій. Після перетворення текстових
+            історій на аудіо ми плануємо перейти до платної моделі, і винагорода авторам
+            визначатиметься умовами авторського договору.
+            Якщо така модель вас не влаштовує, просимо не публікувати твори на платформі.
+            Дякуємо за розуміння. Автор може в будь-який момент відмовитися від співпраці й попросити зняти всі свої текстові твори з публікації: для цього нижче є кнопка. Редакція зніме твори й напише вам. Аудіоверсії та переклади, створені платформою, лишаються за умовами договору.
           </div>
+          <RequestUnpublishAllButton
+            works={stories
+              .filter((s) => s.status === 'published')
+              .map((s) => ({ contentId: s.content_id, title: s.title, slug: s.slug, type: s.type }))}
+          />
         </div>
 
         {/* Заголовок сторінки */}
@@ -1277,8 +1286,9 @@ export default async function AuthorDashboardPage() {
             помітив плашки, або вирішив, що гроші вже мали прийти.
             Те саме речення поруч із самим числом знімає питання. */}
         <p style={{ fontSize: '0.85rem', color: '#b9c6db', lineHeight: 1.6, margin: '-0.9rem 0 1.5rem' }}>
-          Виплати почнуться не раніше 2027 року — після старту передплати. Поки
-          що це нарахування за механікою договору, а не готові до перерахунку гроші.
+          Зараз платформа безкоштовна, виплат немає. Суми тут — це нарахування за
+          механікою договору, а не гроші до перерахунку. Виплати можливі лише після
+          переходу до платної моделі.
         </p>
 
         {/* Список історій */}
