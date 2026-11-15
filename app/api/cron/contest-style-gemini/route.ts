@@ -1,0 +1,32 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { autoGeminiChecks } from '@/lib/ai-style-gemini'
+
+/**
+ * Щогодинна друга думка Gemini для конкурсних робіт, де Claude дав ≥ 50 (див. lib/ai-style-gemini.ts).
+ * Запуск: Vercel Cron (vercel.json) або вручну з-під cookie адмінки.
+ */
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const maxDuration = 300
+
+function authorized(req: NextRequest): boolean {
+  const secret = process.env.CRON_SECRET
+  if (secret && req.headers.get('authorization') === `Bearer ${secret}`) return true
+  // 05.11.2026: CRON_SECRET на Vercel не задано — щогодинна публікація з вересня отримувала 403
+  // (73 твори не вийшли). Без секрету довіряємо самому Vercel Cron (user-agent vercel-cron/…).
+  if (!secret && (req.headers.get('user-agent') ?? '').startsWith('vercel-cron/')) return true
+  const pass = process.env.ADMIN_PASSWORD
+  return Boolean(pass) && req.cookies.get('admin_session')?.value === pass
+}
+
+export async function GET(req: NextRequest) {
+  if (!authorized(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
+  try {
+    const done = await autoGeminiChecks()
+    return NextResponse.json({ ok: true, checked: done })
+  } catch (err) {
+    console.error('[cron contest-style-gemini]', (err as Error)?.message)
+    return NextResponse.json({ ok: false, error: (err as Error)?.message }, { status: 500 })
+  }
+}

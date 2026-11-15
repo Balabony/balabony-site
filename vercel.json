@@ -25,6 +25,10 @@
       "schedule": "25 * * * *"
     },
     {
+      "path": "/api/cron/contest-style-gemini",
+      "schedule": "50 * * * *"
+    },
+    {
       "path": "/api/cron/grammar-auto",
       "schedule": "40 * * * *"
     },
