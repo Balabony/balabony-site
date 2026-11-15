@@ -16,7 +16,7 @@ const FONT = "'Montserrat', Arial, sans-serif"
 const NAVY = '#0a1628', CARD = '#0f1f38', GOLD = '#ef9f27', CREAM = '#FFF8EE', MUTED = '#8CA0B8', LINE = 'rgba(255,255,255,.10)'
 const GREEN = '#5cc98a', AMBER = '#f0b54a', RED = '#ef6b6b'
 
-type Entry = { id: string; contest: string; title: string; status: string; created_at: string; episodes: number; words: number; ai_total: number | null; ai_at: string | null; style_index: number | null; style_at: string | null; orig_verdict: string | null; orig_matches: number | null }
+type Entry = { id: string; contest: string; title: string; author_name: string; email: string | null; status: string; created_at: string; episodes: number; words: number; ai_total: number | null; ai_at: string | null; style_index: number | null; style_at: string | null; orig_verdict: string | null; orig_matches: number | null }
 type Review = { id: string; entry_id: string; total: number; words: number; model: string; result: ReviewResult; created_at: string }
 
 const color = (s: number | null, max = 10) => s === null ? MUTED : s / max >= 0.75 ? GREEN : s / max >= 0.5 ? AMBER : RED
@@ -160,6 +160,7 @@ export default function Page() {
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 12, color: GOLD }}>{c?.name ?? e.contest}</div>
                   <div style={{ fontSize: 16, fontWeight: 600 }}>{e.title || 'Без назви'}</div>
+                  <div style={{ fontSize: 13, color: CREAM, opacity: .85 }}>{e.author_name || 'Автор не вказаний'}{e.email ? <span style={{ color: MUTED }}> · {e.email}</span> : null}</div>
                   <div style={{ fontSize: 12, color: MUTED }}>
                     Заявка № {e.id} · серій: {e.episodes} · слів: {e.words} · статус: {e.status}
                   </div>

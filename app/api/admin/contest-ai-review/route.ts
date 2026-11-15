@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ ok: true, review: r.rows[0] ?? null })
     }
     const r = await dbQuery(
-      `select e.id::text, e.contest, e.title, e.status, e.created_at,
+      `select e.id::text, e.contest, e.title, coalesce(e.author_name, '') as author_name, e.email, e.status, e.created_at,
               count(ep.id)::int as episodes, coalesce(sum(ep.words), 0)::int as words,
               (select total from contest_ai_reviews a where a.entry_id = e.id::text order by created_at desc limit 1) as ai_total,
               (select created_at from contest_ai_reviews a where a.entry_id = e.id::text order by created_at desc limit 1) as ai_at,
