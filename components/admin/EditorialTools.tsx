@@ -6,7 +6,7 @@
 // «Олюднення»: цілісно переписаний текст — лише все/нічого (правки не атомарні).
 // Підсвітка: видалене — червоним закресленим, додане/виправлене — зеленим/золотим.
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 
 const GOLD      = '#d0a355'
 const NAVY_DEEP = '#0a1628'
@@ -20,6 +20,8 @@ interface Props {
   authorName?: string
   onApply: (newText: string) => void
   showAnalysis?: boolean
+  /** id твору в content — щоб показати ШІ-правки, підготовлені наперед (15.11.2026). */
+  contentId?: string
 }
 
 interface Change { id?: number; original?: string; corrected?: string; reason?: string }
@@ -147,13 +149,36 @@ function buildCorrectSegments(builtText: string, changes: Change[]): Seg[] {
 }
 
 export default function EditorialTools({
-  text, genre, title, authorName, onApply, showAnalysis = true,
+  text, genre, title, authorName, onApply, showAnalysis = true, contentId,
 }: Props) {
   const [busy,    setBusy]    = useState<'idle' | 'correct' | 'humanize' | 'check'>('idle')
   const [msg,     setMsg]     = useState('')
   const [report,  setReport]  = useState('')
   const [pending, setPending] = useState<Pending | null>(null)
   const [accepted, setAccepted] = useState<Set<number>>(new Set()) // індекси прийнятих правок (correct)
+  // 15.11.2026: ШІ-правки, підготовлені наперед щогодинним завданням (lib/ai-correct-auto.ts).
+  // Питаємо один раз — коли текст твору завантажився. Якщо текст відтоді змінено, сервер нічого не віддасть.
+  const [ready, setReady] = useState<Change[]>([])
+  const askedRef = useRef(false)
+  useEffect(() => {
+    if (!contentId || askedRef.current || !text.trim()) return
+    askedRef.current = true
+    fetch('/api/admin/ai-correction', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: contentId, text }),
+    })
+      .then(r => r.json())
+      .then((d: { changes?: Change[] }) => { if (Array.isArray(d.changes) && d.changes.length) setReady(d.changes) })
+      .catch(() => {})
+  }, [contentId, text])
+  const openReady = useCallback(() => {
+    if (!ready.length) return
+    setReport('')
+    setPending({ mode: 'correct', before: text, corrections: ready })
+    setAccepted(new Set(ready.map((_, i) => i)))
+    setMsg('ШІ вже перевірив цей текст. Зніми галочки з правок, які не підходять, і натисни «Застосувати».')
+    setReady([])
+  }, [ready, text])
 
   const humanizeOnce = useCallback(async (input: string): Promise<{ text: string; changes: string[] }> => {
     const res = await fetch('/api/admin/stories1/humanize', {
@@ -306,6 +331,17 @@ export default function EditorialTools({
           {busy === 'correct' ? 'Перевіряю…' : 'Грамотність'}
         </button>
       </div>
+
+      {ready.length > 0 && !pending && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', border: `1px solid ${GOLD}66`, background: 'rgba(208, 163, 85,0.10)', borderRadius: 10, padding: '10px 14px', marginBottom: 12 }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: GOLD, fontFamily: FONT }}>
+            ШІ вже перевірив текст і пропонує правок: {ready.length}
+          </span>
+          <button onClick={openReady} style={{ background: GOLD, color: '#1a1205', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: FONT }}>
+            Переглянути й погодити
+          </button>
+        </div>
+      )}
 
       {msg && (
         <div style={{ fontSize: 13, color: '#cbd5e1', fontFamily: FONT, padding: '10px 14px', background: 'rgba(255,255,255,0.04)', borderRadius: 10, marginBottom: 12 }}>

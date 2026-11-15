@@ -606,6 +606,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
             authorName={author}
             onApply={setText}
             showAnalysis={true}
+            contentId={id}
           />
         </SectionCard>
 
