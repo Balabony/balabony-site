@@ -125,3 +125,59 @@ export async function saveModeration(contentId: string, res: ModerationResult, t
     console.error('[moderation save]', (e as Error)?.message)
   }
 }
+
+// -----------------------------------------------------------------------------
+// Разова (і далі щогодинна) перевірка ВЖЕ опублікованих авторських творів.
+// 'block' → твір знімається в 'review' + лист редактору одразу;
+// 'adult' → is_adult = true; кожен твір перевіряється один раз.
+// -----------------------------------------------------------------------------
+export async function scanPublished(budgetMs = 250_000, parallel = 4) {
+  const { alertForContent } = await import('@/lib/new-work-alert')
+  await ensureModerationTable()
+  const started = Date.now()
+  const stats = { checked: 0, held: 0, adult: 0, errors: 0, left: 0 }
+  for (;;) {
+    if (Date.now() - started > budgetMs - 40_000) break
+    const r = await dbQuery(
+      `select c.id::text as id, c.title, c.text
+         from content c
+        where c.author_id is not null and c.status::text = 'published'
+          and length(coalesce(c.text, '')) > 0
+          and not exists (select 1 from content_moderation m where m.content_id = c.id)
+        order by coalesce(c.published_at, c.created_at) desc
+        limit $1`,
+      [parallel],
+    )
+    const rows = r.rows as { id: string; title: string | null; text: string }[]
+    if (!rows.length) break
+    await Promise.all(rows.map(async (w) => {
+      const mod = await moderateText(w.title ?? '', w.text)
+      stats.checked++
+      if (mod.error) {
+        // ШІ не відповів — не знімаємо твір, спробуємо наступного разу.
+        stats.errors++
+        return
+      }
+      if (mod.verdict === 'block') {
+        await dbQuery(`update content set status = 'review' where id::text = $1 and status::text = 'published'`, [w.id])
+        await saveModeration(w.id, mod, true, 'review')
+        await alertForContent('moderation', w.id, null, ['Перевірка вже опублікованих творів: знято з сайту до вашого рішення', ...mod.reasons])
+        stats.held++
+      } else {
+        if (mod.verdict === 'adult') {
+          await dbQuery(`update content set is_adult = true where id::text = $1`, [w.id])
+          stats.adult++
+        }
+        await saveModeration(w.id, mod, true, 'published')
+      }
+    }))
+    if (stats.errors >= 3) break
+  }
+  const left = await dbQuery(
+    `select count(*)::int as n from content c
+      where c.author_id is not null and c.status::text = 'published' and length(coalesce(c.text, '')) > 0
+        and not exists (select 1 from content_moderation m where m.content_id = c.id)`,
+  )
+  stats.left = (left.rows[0] as { n: number }).n
+  return stats
+}
