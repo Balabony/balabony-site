@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { GENRE_OPTIONS } from '@/lib/genres'
 import AuthorCoverUpload from './AuthorCoverUpload'
+import ContentRulesNote from './ContentRulesNote'
 
 /**
  * «Додати свою історію» в кабінеті автора.
@@ -143,6 +144,8 @@ export default function AddWorkForm() {
         Маєте раніше написані твори? Додайте їх самі — редакція нічого не переписує.
         Історія збережеться як чернетка, і ви самі вирішите, коли її опублікувати.
       </div>
+
+      <ContentRulesNote compact={!open} />
 
       {!open ? (
         <button

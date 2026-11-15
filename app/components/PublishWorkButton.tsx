@@ -1,5 +1,7 @@
 'use client'
 
+import ContentRulesNote from './ContentRulesNote'
+
 import { useState } from 'react'
 
 /**
@@ -117,7 +119,7 @@ export default function PublishWorkButton({
           cursor: consent && !busy ? 'pointer' : 'default',
         }}
       >
-        {busy ? 'Зберігаємо…' : consentOnly ? 'Дати згоду на публікацію' : 'Опублікувати'}
+        {busy ? (consentOnly ? 'Зберігаємо…' : 'Перевіряємо твір…') : consentOnly ? 'Дати згоду на публікацію' : 'Опублікувати'}
       </button>
 
       {error && (
@@ -125,6 +127,8 @@ export default function PublishWorkButton({
           {error}
         </div>
       )}
+
+      {!consentOnly && <ContentRulesNote compact />}
     </div>
   )
 }
