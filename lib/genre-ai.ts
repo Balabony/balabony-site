@@ -1,0 +1,176 @@
+// lib/genre-ai.ts
+//
+// 15.11.2026: визначення жанру через Gemini винесено сюди з
+// app/api/admin/suggest-genre/route.ts, щоб ним користувалися і екран «Жанри»,
+// і щогодинне автоматичне проставлення жанру (lib/genre-auto.ts).
+// Логіку не змінено.
+
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
+import { GENRES, isGenre, normalizeGenre } from '@/lib/genres'
+import { toPlainText } from '@/lib/plain-text'
+
+export type GenreRow = {
+  id: string; title: string | null; text: string | null
+  corrected_text: string | null; humanized_text: string | null
+  published_version: string | null
+}
+export type GenreResult = { id: string; genre: string | null; confidence: number; why: string; error?: string }
+
+const SAFETY = [
+  { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+]
+
+const MODELS = ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-flash-latest', 'gemini-2.5-flash']
+
+/**
+ * Скільки тексту показувати моделі.
+ *
+ * Було 4000 знаків суцільного початку — і Gemini масово відмовлявся працювати
+ * з поверненням RECITATION: довгий уривок авторської прози модель приймає за
+ * відтворення чужого тексту й блокує. Це не залежить від safetySettings, тому
+ * BLOCK_NONE не рятував. Блокувалися твори без жодного гострого вмісту —
+ * «Канікули в селі», «Кобила Райка».
+ *
+ * Розвʼязок: коротше й не суцільно. Три короткі шматки з різних місць твору
+ * дають моделі ту саму жанрову картину, але не складаються в цитату.
+ */
+const CHUNK_CHARS = 500
+const CHUNKS = 3
+
+/**
+ * Три уривки: зачин, середина, ближче до кінця.
+ *
+ * Зачин показує тон і місце дії, середина — що відбувається, кінець — чим
+ * розвʼязується. Для жанру цього досить: детектив видно з розслідування,
+ * казку з чарів, військову прозу з обставин.
+ */
+function sampleChunks(full: string): string {
+  const t = full.trim()
+  if (t.length <= CHUNK_CHARS * CHUNKS) return t
+
+  const parts: string[] = []
+  for (let i = 0; i < CHUNKS; i++) {
+    // Рівномірно по тексту; останній шматок не впритул до кінця.
+    const start = Math.floor((t.length - CHUNK_CHARS) * (i / (CHUNKS - 1)) * 0.9)
+    parts.push(t.slice(start, start + CHUNK_CHARS).trim())
+  }
+  return parts.join('\n\n[…]\n\n')
+}
+
+function buildPrompt(title: string, text: string): string {
+  return `Ти — редактор української літературної платформи. Визнач жанр твору.
+
+ОБИРАЙ СУВОРО ОДИН З ЦЬОГО ПЕРЕЛІКУ, слово в слово:
+${GENRES.map(g => `- ${g}`).join('\n')}
+
+ЯК РОЗРІЗНЯТИ:
+- «Життєві історії» — побутова проза про звичайних людей, без вираженої іншої жанрової ознаки. Бери його ЛИШЕ тоді, коли не підходить нічого точнішого. Але «точніше» означає, що ознака жанру є СУТТЮ твору, а не деталлю в ньому. Сюди ж історії про тварин як справжніх істот і різдвяні історії без інших ознак.
+- «Сімейна історія» — РОДИННІ СТОСУНКИ Є САМИМ СЮЖЕТОМ: конфлікт, примирення, таємниця роду, спадок, розрив або зближення між рідними. Присутності родичів НЕ ДОСИТЬ: у побутовій прозі майже завжди є мати, чоловік чи син, і це не робить твір сімейною історією. Питай себе: якщо прибрати родинний зв'язок, історія розсиплеться? Якщо ні — це «Життєві історії» або точніший жанр.
+- «Про кохання» — у центрі любовна лінія та її розв'язка.
+- «Військова проза» — війна: фронт, окупація, втрата близьких на війні, повернення військового, тил під обстрілами. Це сильніша ознака за «Драму»: якщо війна є суттю твору, бери цей жанр.
+- «Драма» — тяжка втрата, хвороба, важкий моральний вибір; тон серйозний. Сюди ж напружена дія без розслідування: трилер, небезпека, пригода. Сюди ж психологічна та історична проза, якщо немає точнішої ознаки. Якщо йдеться саме про війну — бери «Військова проза».
+- «Гумор» — комічні ситуації, іронія, сміх є метою.
+- «Містика» — надприродне, віщі сни, потойбічне, страшне без пояснення. Сюди ж фантастика та жахи.
+- «Детектив» — Є ЗЛОЧИН АБО ЗАГАДКА, І ХТОСЬ ЇЇ РОЗСЛІДУЄ. Обидві умови обов'язкові. Просто напружена або небезпечна ситуація, погоня, бійка, пригода без розслідування — це НЕ детектив: бери «Драму». Сумнів у бік «ні».
+- «Спогади» — оповідач згадує власне минуле: дитинство, бабусю й діда, рідне село, школу, першу вчительку. Ознака — погляд назад і теплий тон, а не подія в теперішньому. Якщо в центрі стосунки рідних тут і тепер — це «Сімейна історія».
+- «Казка» — вигаданий світ, чари, чарівні істоти.
+- «Дитяче оповідання» — реалістична історія для дітей, без чарів: дитина як головний герой, проста мова, повчальний висновок.
+- «Фантастика» — вигаданий світ, майбутнє, космос, технології, інші планети, фентезі, антиутопія, постапокаліпсис. ВІДРІЗНЯТИ ВІД «Містики»: містика — надприродне в НАШОМУ світі (привиди, віщі сни, домовики, нечиста сила, відьми); фантастика — інший світ або інший час, з власними правилами. Якщо в тексті є дракони, магія й вигаданий світ — це «Фантастика», а не «Містика».
+- «Інтерв'ю» — НЕ ХУДОЖНІЙ ТВІР: розмова з реальною людиною, запис питань і відповідей, або журналістський матеріал про реальну особу чи подію. Ознаки — справжні імена й прізвища, посади, назви установ, пряма мова респондента, відсутність вигаданого сюжету. Якщо це вигадана історія, у якій герой дає інтерв'ю, — це НЕ «Інтерв'ю», бери жанр за сюжетом.
+
+ВІДПОВІДЬ — ЛИШЕ JSON, без пояснень, без розмітки:
+{"genre":"<точна назва з переліку>","confidence":<число від 0 до 100>,"why":"<до 8 слів українською>"}
+
+confidence — наскільки ти впевнений. Якщо твір рівною мірою підходить під два жанри, став менше 70.
+
+Назва твору: «${title}»
+
+Початок тексту:
+"""
+${text}
+"""`
+}
+
+async function askModel(apiKey: string, model: string, prompt: string) {
+  const genAI = new GoogleGenerativeAI(apiKey)
+  const m = genAI.getGenerativeModel({ model, safetySettings: SAFETY }, { apiVersion: 'v1beta' })
+  const result = await m.generateContent(prompt)
+  const raw = result.response.text().trim().replace(/```json|```/g, '').trim()
+  return JSON.parse(raw) as { genre?: string; confidence?: number; why?: string }
+}
+
+function isBlocked(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err)
+  return /PROHIBITED_CONTENT|blocked|SAFETY|Text not available/i.test(msg)
+}
+
+export async function classifyGenre(key: string, row: GenreRow): Promise<GenreResult> {
+  const v = row.published_version ?? 'original'
+  const source =
+    (v === 'humanized' || v === 'corrected_humanized') && row.humanized_text
+      ? row.humanized_text
+      : v === 'corrected' && row.corrected_text
+        ? row.corrected_text
+        : row.text
+
+  const sample = sampleChunks(toPlainText(source ?? ''))
+  if (!sample.trim()) {
+    return { id: row.id, genre: null, confidence: 0, why: '', error: 'Порожній текст' }
+  }
+
+  const prompt = buildPrompt(row.title ?? '', sample)
+  // Що саме відповіла модель, коли відповідь не лягла в перелік. Без цього
+  // редактор бачив глухе «не дала відповіді» й не міг зрозуміти причину.
+  let lastRaw = ''
+  let lastErr = ''
+
+  for (const model of MODELS) {
+    try {
+      const answer = await askModel(key, model, prompt)
+      const said = typeof answer.genre === 'string' ? answer.genre.trim() : ''
+
+      // Спершу точний збіг, далі — приведення синонімів. Модель часто
+      // відповідає формою («Оповідання») або старою назвою («Психологічна
+      // проза»); normalizeGenre знає ці відповідності, і відкидати такі
+      // відповіді як помилкові було б втратою готового результату.
+      const genre = isGenre(said) ? said : normalizeGenre(said)
+
+      if (!genre) {
+        if (said) lastRaw = said
+        continue
+      }
+
+      return {
+        id: row.id,
+        genre,
+        confidence: Math.max(0, Math.min(100, Number(answer.confidence) || 0)),
+        // Якщо жанр довелося приводити до канону, показуємо це редакторові.
+        why: (isGenre(said) ? '' : `(${said}) `) +
+             (typeof answer.why === 'string' ? answer.why.slice(0, 60) : ''),
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Помилка'
+      if (isBlocked(err)) {
+        // Показуємо саме причину: RECITATION і SAFETY лікуються по-різному.
+        lastErr = /RECITATION/i.test(msg)
+          ? 'модель вважає текст цитатою (RECITATION)'
+          : `заблоковано: ${msg.slice(0, 90)}`
+        continue
+      }
+      if (/not found|404|unsupported/i.test(msg)) { lastErr = `модель ${model} недоступна`; continue }
+      if (err instanceof SyntaxError) { lastErr = 'відповідь не JSON'; continue }
+      return { id: row.id, genre: null, confidence: 0, why: '', error: msg }
+    }
+  }
+
+  const why = lastRaw
+    ? `Модель каже «${lastRaw}» — такого жанру немає в переліку`
+    : lastErr
+      ? `Не вдалося: ${lastErr}`
+      : 'Модель не дала відповіді'
+  return { id: row.id, genre: null, confidence: 0, why: '', error: why }
+}
+
