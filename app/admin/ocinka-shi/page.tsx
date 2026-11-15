@@ -14,6 +14,9 @@ import AiStyleReport, { indexBand, type StyleCheck } from '@/app/components/AiSt
 
 const FONT = "'Montserrat', Arial, sans-serif"
 const NAVY = '#0a1628', CARD = '#0f1f38', GOLD = '#ef9f27', CREAM = '#FFF8EE', MUTED = '#8CA0B8', LINE = 'rgba(255,255,255,.10)'
+// 16.11.2026 (Богдан): поріг сумніву — 50/100 для обох моделей, однаковий для всіх авторів.
+// Від нього з'являється друга думка Gemini; лист автору — лише коли обидві моделі ≥ порога.
+const AI_DOUBT = 50
 const GREEN = '#5cc98a', AMBER = '#f0b54a', RED = '#ef6b6b'
 
 type Entry = { id: string; contest: string; title: string; author_name: string; email: string | null; status: string; created_at: string; episodes: number; words: number; ai_total: number | null; ai_at: string | null; style_index: number | null; style_at: string | null; orig_verdict: string | null; orig_matches: number | null }
@@ -37,7 +40,7 @@ export default function Page() {
     setEntries(d.entries ?? [])
   }, [])
 
-  // 16.11.2026: друга думка Gemini — лише для робіт зі значною концентрацією ознак за Claude (індекс ≥ 56).
+  // 16.11.2026: друга думка Gemini — лише для робіт, де Claude дав ≥ AI_DOUBT.
   const [gem, setGem] = useState<Record<string, number>>({})
   const [gemCheck, setGemCheck] = useState<StyleCheck | null>(null)
   const [gemOpen, setGemOpen] = useState<string | null>(null)
@@ -186,7 +189,7 @@ export default function Page() {
                   {busy === 's' + e.id ? 'Перевіряю…' : e.style_index === null ? 'Перевірити' : 'Перевірити заново'}
                 </button>
               </div>
-              {e.style_index !== null && e.style_index >= 56 && (
+              {e.style_index !== null && e.style_index >= AI_DOUBT && (
                 <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${LINE}`, fontSize: 13 }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
                     <span style={{ color: MUTED }}>Друга думка (Gemini, Google):</span>
@@ -199,9 +202,9 @@ export default function Page() {
                     </button>
                   </div>
                   {gem[e.id] !== undefined && (
-                    gem[e.id] >= 56
-                      ? <div style={{ marginTop: 6, color: AMBER, fontWeight: 600 }}>Обидві моделі — значна концентрація. Підстава написати автору (п. 8.11, 14 днів).</div>
-                      : <div style={{ marginTop: 6, color: GREEN, fontWeight: 600 }}>Моделі розходяться — сумнів на користь автора, лист не надсилаємо.</div>
+                    gem[e.id] >= AI_DOUBT
+                      ? <div style={{ marginTop: 6, color: AMBER, fontWeight: 600 }}>Обидві моделі — {AI_DOUBT}/100 і вище. Підстава написати автору (п. 8.11, 14 днів).</div>
+                      : <div style={{ marginTop: 6, color: GREEN, fontWeight: 600 }}>Gemini нижче {AI_DOUBT}/100 — сумнів на користь автора, лист не надсилаємо.</div>
                   )}
                   {gemOpen === e.id && (gemCheck
                     ? <div style={{ marginTop: 10 }}><AiStyleReport check={gemCheck} /></div>
