@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import FarmingCheck from './FarmingCheck'
 
 /**
  * Конкурсні заявки — окремий розділ адмінки.
@@ -416,6 +417,9 @@ export default function AdminKonkursyPage() {
             </button>
           ))}
         </div>
+
+        {/* ── Перевірка накрутки (16.11.2026) ───────────────────── */}
+        <FarmingCheck />
 
         {/* ── Нумерація робіт ───────────────────────────────────── */}
         <div style={{ display: 'flex', gap: '.7rem', alignItems: 'center',

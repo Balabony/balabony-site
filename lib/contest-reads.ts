@@ -103,9 +103,10 @@ const BASE_CTE = `
       left join win w0 on w0.contest = e0.contest
      where ep.content_id is not null
   ),
-  counted as (
-    select w.entry_id,
-           count(distinct ar.user_id::text || ':' || w.episode_id::text)::int as counted
+  -- 16.11.2026: зараховані пари «читач + серія» винесено в окремий CTE, щоб перевірка
+  -- накрутки (farmingCheck нижче) брала рівно ті самі правила, а не свою копію.
+  pairs as (
+    select w.entry_id, w.episode_id, w.author_id, ar.user_id, ar.read_date
       from works w
       join article_reads ar
         on ar.content_id = w.content_id
@@ -133,7 +134,12 @@ const BASE_CTE = `
                 and c2.author_id is not null
                 and (w.author_id is null or c2.author_id <> w.author_id)
            )
-     group by w.entry_id
+  ),
+  counted as (
+    select entry_id,
+           count(distinct user_id::text || ':' || episode_id::text)::int as counted
+      from pairs
+     group by entry_id
   )
 `
 
@@ -216,4 +222,104 @@ export async function publicCountedReads(): Promise<PublicContestRow[]> {
     console.error('[contest-reads public]', (err as Error)?.message)
     return []
   }
+}
+
+/**
+ * Перевірка накрутки — для адмінки перед підбиттям підсумків кожного конкурсу.
+ *
+ * 15.11.2026 (Богдан): на «Око Дракона» за 07–15.11 зайшли дві хвилі свіжих акаунтів,
+ * що дочитували тільки цю авторку. У конкурс вони не зараховані — не читали інших
+ * авторів. Але умова «читав іншого автора» діє заднім числом: досить такому акаунту
+ * дочитати будь-кого ще, і всі його дочитування стануть чинними. Правило свідомо
+ * не міняємо (воно в опублікованих умовах і захищає чесних новачків), а перед
+ * підсумками дивимося очима.
+ *
+ * ЩО ПОКАЗУЄ на кожну прийняту роботу:
+ *   retro   — зараховані читачі, які вперше дочитали ІНШОГО автора вже ПІСЛЯ цієї
+ *             роботи, тобто зараховані лише «заднім числом». Серед них і чесні
+ *             новачки, і боти, що «ожили» — тому список, а не автоматичне рішення;
+ *   single  — читачі з акаунтом, які дочитали цю роботу, але жодного іншого автора
+ *             (зараз не зараховані). Велике число тут — ознака накрутки, що чекає.
+ * Нічого не блокує й не змінює.
+ */
+export type FarmingRow = {
+  entryId: string
+  contest: string
+  title: string
+  author: string
+  counted: number
+  single: number
+  retro: { email: string; registered: string; firstRead: string; firstOther: string }[]
+}
+
+const FARMING_SQL = `
+  ${BASE_CTE},
+  firsts as (
+    select p.entry_id, p.user_id, p.author_id, min(p.read_date) as first_read
+      from pairs p
+     group by p.entry_id, p.user_id, p.author_id
+  ),
+  retro as (
+    select f.entry_id, u.email, u.created_at, f.first_read, o.first_other
+      from firsts f
+      join auth.users u on u.id = f.user_id
+      cross join lateral (
+        select min(ar2.read_date) as first_other
+          from article_reads ar2
+          join content c2 on c2.id = ar2.content_id
+         where ar2.user_id = f.user_id
+           and ar2.completed = true
+           and c2.author_id is not null
+           and (f.author_id is null or c2.author_id <> f.author_id)
+      ) o
+     where o.first_other > f.first_read
+  ),
+  single as (
+    select w.entry_id, count(distinct ar.user_id)::int as single
+      from works w
+      join article_reads ar on ar.content_id = w.content_id and ar.completed = true
+      join users u on u.id = ar.user_id
+     where (w.author_id is null or ar.user_id <> w.author_id)
+       and not exists (
+             select 1
+               from article_reads ar2
+               join content c2 on c2.id = ar2.content_id
+              where ar2.user_id = ar.user_id
+                and ar2.completed = true
+                and c2.author_id is not null
+                and (w.author_id is null or c2.author_id <> w.author_id)
+           )
+     group by w.entry_id
+  )
+  select e.id::text as entry_id, e.contest, e.title, coalesce(e.author_name, '') as author,
+         coalesce(c.counted, 0)::int as counted,
+         coalesce(s.single, 0)::int as single,
+         coalesce((
+           select json_agg(json_build_object(
+                    'email', r.email,
+                    'registered', to_char(r.created_at at time zone 'Europe/Kyiv', 'DD.MM.YYYY'),
+                    'firstRead', to_char(r.first_read, 'DD.MM.YYYY'),
+                    'firstOther', to_char(r.first_other, 'DD.MM.YYYY'))
+                  order by r.created_at)
+             from retro r where r.entry_id = e.id
+         ), '[]'::json) as retro
+    from contest_entries e
+    left join counted c on c.entry_id = e.id
+    left join single s on s.entry_id = e.id
+   where e.status = 'accepted'
+     and (coalesce(s.single, 0) > 0 or exists (select 1 from retro r where r.entry_id = e.id))
+   order by coalesce(s.single, 0) desc, e.title
+`
+
+export async function farmingCheck(): Promise<FarmingRow[]> {
+  const res = await dbQuery(FARMING_SQL)
+  return (res.rows as Record<string, unknown>[]).map(r => ({
+    entryId: String(r.entry_id),
+    contest: String(r.contest || ''),
+    title:   String(r.title || 'Без назви'),
+    author:  String(r.author || ''),
+    counted: Number(r.counted) || 0,
+    single:  Number(r.single) || 0,
+    retro:   (r.retro as FarmingRow['retro']) || [],
+  }))
 }
