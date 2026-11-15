@@ -281,7 +281,6 @@ export default function FreshStoriesGrid({
                     genreLabel,
                     story.duration_minutes ? `${story.duration_minutes} хв` : null,
                   ].filter(Boolean) as string[]
-                  if (!displayTags.length) return null
                   return (
                     <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 5, marginTop: 'auto' }}>
                       {displayTags.map(tag => (
