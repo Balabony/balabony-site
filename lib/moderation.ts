@@ -45,7 +45,7 @@ function prompt(title: string, text: string) {
 
 Пам'ятай: на платформі є художня проза, а також інтерв'ю, життєві історії, нариси й публіцистика з газет — нехудожній текст сам по собі НЕ порушення. Серйозні теми самі по собі не порушення. Але щодо неповнолітніх і сексуального контенту будь суворим: сумнів — "block".
 
-"reasons" — 1–3 короткі причини українською, конкретно (що саме в тексті). Для "ok" — порожній список.
+"reasons" — 1–3 короткі причини українською, конкретно (що саме в тексті). Пиши ввічливо й нейтрально — ці причини отримає сам автор у листі; без оцінок на кшталт «псевдо-», «низькоякісний». Для "ok" — порожній список.
 
 Назва: ${title}
 Текст:
@@ -163,6 +163,7 @@ export async function scanPublished(budgetMs = 250_000, parallel = 4) {
         await dbQuery(`update content set status = 'review' where id::text = $1 and status::text = 'published'`, [w.id])
         await saveModeration(w.id, mod, true, 'review')
         await alertForContent('moderation', w.id, null, ['Перевірка вже опублікованих творів: знято з сайту до вашого рішення', ...mod.reasons])
+        await sendAuthorModerationLetter(w.id, 'block', mod.reasons)
         stats.held++
       } else {
         if (mod.verdict === 'adult') {
@@ -181,4 +182,54 @@ export async function scanPublished(budgetMs = 250_000, parallel = 4) {
   )
   stats.left = (left.rows[0] as { n: number }).n
   return stats
+}
+
+// -----------------------------------------------------------------------------
+// Лист АВТОРУ з поясненням (рішення Богдана 15.11.2026: «кожному автору
+// автоматично шлемо листа із поясненням причини»).
+//   kind 'block'  — твір порушує правила; причини від ШІ.
+//   kind 'new'    — новий автор: перші твори виходять після перевірки редактором.
+// «Відповісти» — лист піде редактору.
+// -----------------------------------------------------------------------------
+function escHtml(v: string): string {
+  return (v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+export async function sendAuthorModerationLetter(contentId: string, kind: 'block' | 'new', reasons: string[] = []) {
+  if (!process.env.RESEND_API_KEY) return
+  try {
+    const r = await dbQuery(
+      `select c.title, c.author_name, u.email
+         from content c join auth.users u on u.id = c.author_id
+        where c.id::text = $1`,
+      [contentId],
+    )
+    const row = r.rows[0] as { title: string | null; author_name: string | null; email: string | null } | undefined
+    if (!row?.email) return
+    const title = row.title ?? 'Без назви'
+    const hello = row.author_name ? `Вітаємо, ${escHtml(row.author_name)}!` : 'Вітаємо!'
+    const body = kind === 'new'
+      ? `<p>Дякуємо за твір «${escHtml(title)}». Перші три твори нового автора на Балабонах виходять після перевірки редактором — це стосується всіх авторів. Ми переглянемо текст найближчим часом і опублікуємо його.</p>`
+      : `<p>Ваш твір «${escHtml(title)}» ми поки не можемо опублікувати: він тимчасово знятий з публікації й чекає рішення редактора.</p>
+         <p><b>Причина:</b></p>
+         <ul>${reasons.map((x) => `<li>${escHtml(x)}</li>`).join('')}</ul>
+         <p>Балабони читають і діти, тому ми не публікуємо сексуальний контент за участі неповнолітніх, відверті сцени сексу, натуралістичне насильство, ненависть до людей, пропаганду держави-агресора, небезпечні медичні поради, схвалення самоушкодження, інструкції щодо зброї чи наркотиків, рекламу.</p>
+         <p>Якщо ви можете доопрацювати текст — відредагуйте його в кабінеті автора й напишіть нам, ми переглянемо ще раз. Якщо вважаєте, що сталася помилка, просто відповідайте на цей лист.</p>`
+    const html = `<body style="font-family:Arial,sans-serif;color:#1c1917;line-height:1.6;max-width:620px;margin:0 auto;padding:20px;">
+      <p>${hello}</p>${body}
+      <p>Ваш кабінет: <a href="https://balabony.com/author/dashboard">https://balabony.com/author/dashboard</a></p>
+      <p>З повагою,<br>Редакція Балабонів</p></body>`
+    const { Resend } = await import('resend')
+    await new Resend(process.env.RESEND_API_KEY).emails.send({
+      from: process.env.RESEND_FROM_EMAIL ?? 'editorial@balabony.com',
+      to: row.email,
+      replyTo: 'nazar@balabony.com',
+      subject: kind === 'new'
+        ? `Балабони: твір «${title.slice(0, 80)}» на перевірці редактора`
+        : `Балабони: твір «${title.slice(0, 80)}» потребує доопрацювання`,
+      html,
+    })
+  } catch (e) {
+    console.error('[moderation author letter]', (e as Error)?.message)
+  }
 }

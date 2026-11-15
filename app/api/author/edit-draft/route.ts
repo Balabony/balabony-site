@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { moderateText, saveModeration } from '@/lib/moderation'
+import { moderateText, saveModeration, sendAuthorModerationLetter } from '@/lib/moderation'
 import { alertForContent } from '@/lib/new-work-alert'
 
 export const runtime = 'nodejs'
@@ -188,6 +188,7 @@ export async function POST(req: NextRequest) {
     if (modResult) await saveModeration(contentId, modResult, true, held ? 'review' : 'published')
     if (held) {
       await alertForContent('moderation', contentId, user.email ?? null, modReasons)
+      await sendAuthorModerationLetter(contentId, 'block', modReasons)
       return NextResponse.json({ ok: true, status: 'review' })
     }
 

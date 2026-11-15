@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { alertForContent } from '@/lib/new-work-alert'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
-import { moderateText, publishedCount, saveModeration, TRUSTED_AFTER } from '@/lib/moderation'
+import { moderateText, publishedCount, saveModeration, sendAuthorModerationLetter, TRUSTED_AFTER } from '@/lib/moderation'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -130,6 +130,7 @@ export async function POST(req: NextRequest) {
       }
       await saveModeration(contentId, mod, trusted, 'review')
       await alertForContent('moderation', contentId, user.email ?? null, reasons)
+      await sendAuthorModerationLetter(contentId, mod.verdict === 'block' ? 'block' : 'new', mod.reasons)
       return NextResponse.json({ ok: true, status: 'review' })
     }
 
