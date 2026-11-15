@@ -20,7 +20,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ f
     `select c.id::text, c.title, c.author_name, c.status::text as status, c.publish_at, c.slug, g.result
        from content c
        left join grammar_checks g on g.source = 'content' and g.source_id = c.id::text
-      where c.status::text in ('scheduled', 'approved', 'review')
+      where (c.status::text in ('scheduled', 'approved', 'review')
+             or (c.status::text = 'published' and coalesce(c.published_at, c.created_at) > now() - interval '14 days'))
         and coalesce(c.text, '') <> ''
         and not exists (select 1 from contest_episodes ep where ep.content_id = c.id)
       order by c.publish_at asc nulls last`,

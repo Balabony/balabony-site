@@ -58,7 +58,10 @@ export async function autoGrammarChecks(budgetMs = 240_000): Promise<string[]> {
     const c = await dbQuery(
       `select 'content' as source, c.id::text as id, c.title, c.publish_at as created_at
          from content c
-        where c.status::text in ('scheduled', 'approved', 'review')
+        where (c.status::text in ('scheduled', 'approved', 'review')
+               -- 15.11.2026 (Богдан): і твори, які автори опублікували самі, — за останні 14 днів
+               -- (старий архів не чіпаємо, щоб не перевіряти сотні давніх творів).
+               or (c.status::text = 'published' and coalesce(c.published_at, c.created_at) > now() - interval '14 days'))
           and coalesce(c.text, '') <> ''
           and not exists (select 1 from contest_episodes ep where ep.content_id = c.id)
           and not exists (select 1 from grammar_checks g where g.source = 'content' and g.source_id = c.id::text)
