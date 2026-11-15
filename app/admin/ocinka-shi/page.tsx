@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { findContest } from '@/lib/contests'
 import type { ReviewResult } from '@/lib/contest-ai-review'
-import { indexBand } from '@/app/components/AiStyleReport'
+import AiStyleReport, { indexBand, type StyleCheck } from '@/app/components/AiStyleReport'
 
 /**
  * Оцінка конкурсних творів ШІ — паралельна й незалежна від редакторів.
@@ -37,7 +37,42 @@ export default function Page() {
     setEntries(d.entries ?? [])
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  // 16.11.2026: друга думка Gemini — лише для робіт зі значною концентрацією ознак за Claude (індекс ≥ 56).
+  const [gem, setGem] = useState<Record<string, number>>({})
+  const [gemCheck, setGemCheck] = useState<StyleCheck | null>(null)
+  const [gemOpen, setGemOpen] = useState<string | null>(null)
+  const loadGem = useCallback(async () => {
+    try {
+      const r = await fetch('/api/admin/ai-style-gemini', { cache: 'no-store' })
+      const d = await r.json() as { rows?: { source_id: string; idx: number }[] }
+      const m: Record<string, number> = {}
+      for (const x of d.rows ?? []) m[x.source_id] = Number(x.idx) || 0
+      setGem(m)
+    } catch { /* мовчки: без другої думки сторінка працює як раніше */ }
+  }, [])
+  const runGem = async (id: string, force: boolean) => {
+    setBusy('g' + id); setErr('')
+    try {
+      const r = await fetch('/api/admin/ai-style-gemini', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entryId: id, force }),
+      })
+      const d = await r.json() as { ok?: boolean; error?: string }
+      if (!d.ok) { setErr(d.error ?? 'Помилка'); return }
+      void loadGem()
+    } catch {
+      setErr('Немає звʼязку з сервером. Довгий текст перевіряється до 5 хвилин — оновіть сторінку пізніше.')
+    } finally { setBusy(null) }
+  }
+  const showGem = async (id: string) => {
+    if (gemOpen === id) { setGemOpen(null); setGemCheck(null); return }
+    setGemOpen(id); setGemCheck(null)
+    const r = await fetch(`/api/admin/ai-style-gemini?entry=${encodeURIComponent(id)}`, { cache: 'no-store' })
+    const d = await r.json() as { check?: StyleCheck | null }
+    setGemCheck(d.check ?? null)
+  }
+
+  useEffect(() => { void load(); void loadGem() }, [load, loadGem])
 
   const show = async (id: string) => {
     if (open === id) { setOpen(null); setReview(null); return }
@@ -150,6 +185,28 @@ export default function Page() {
                   {busy === 's' + e.id ? 'Перевіряю…' : e.style_index === null ? 'Перевірити' : 'Перевірити заново'}
                 </button>
               </div>
+              {e.style_index !== null && e.style_index >= 56 && (
+                <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${LINE}`, fontSize: 13 }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+                    <span style={{ color: MUTED }}>Друга думка (Gemini, Google):</span>
+                    {gem[e.id] !== undefined
+                      ? <span style={{ fontWeight: 700, color: indexBand(gem[e.id])[1] }}>концентрація {indexBand(gem[e.id])[0]} · {gem[e.id]}/100</span>
+                      : <span style={{ color: MUTED }}>ще не перевіряли</span>}
+                    {gem[e.id] !== undefined && <button onClick={() => void showGem(e.id)} style={btn(false)}>{gemOpen === e.id ? 'Згорнути' : 'Звіт'}</button>}
+                    <button disabled={busy !== null} onClick={() => void runGem(e.id, gem[e.id] !== undefined)} style={btn(false)}>
+                      {busy === 'g' + e.id ? 'Перевіряю…' : gem[e.id] === undefined ? 'Перевірити' : 'Перевірити заново'}
+                    </button>
+                  </div>
+                  {gem[e.id] !== undefined && (
+                    gem[e.id] >= 56
+                      ? <div style={{ marginTop: 6, color: AMBER, fontWeight: 600 }}>Обидві моделі — значна концентрація. Підстава написати автору (п. 8.11, 14 днів).</div>
+                      : <div style={{ marginTop: 6, color: GREEN, fontWeight: 600 }}>Моделі розходяться — сумнів на користь автора, лист не надсилаємо.</div>
+                  )}
+                  {gemOpen === e.id && (gemCheck
+                    ? <div style={{ marginTop: 10 }}><AiStyleReport check={gemCheck} /></div>
+                    : <div style={{ marginTop: 8, color: MUTED }}>Завантажую…</div>)}
+                </div>
+              )}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${LINE}`, fontSize: 13 }}>
                 <span style={{ color: MUTED }}>Публікація в інших онлайн-медіа:</span>
                 {e.orig_verdict === null

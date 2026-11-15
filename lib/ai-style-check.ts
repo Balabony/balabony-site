@@ -11,6 +11,7 @@
 // =============================================================================
 
 import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createHash } from 'crypto'
 import { AUTHOR_QUESTIONS, AI_POLICY_SHORT, type Answers } from '@/lib/author-questions'
 
@@ -290,4 +291,53 @@ export async function runStyleCheck(p: { title: string; genre: string; text: str
   result.index = computeIndex(result.markers)
   result.stage = p.answers && Object.keys(p.answers).length ? 'остаточний' : 'попередній'
   return { stats, result }
+}
+
+// =============================================================================
+// ДРУГА ДУМКА — Gemini (Google). 16.11.2026 (Богдан): для робіт зі значною
+// концентрацією ознак за Claude — незалежна перевірка іншою моделькою іншої компанії
+// з тим самим завданням, тими самими цифрами й тією самою перевіркою цитат.
+// Лист авторові (п. 8.11, 14 днів) — лише коли обидві моделі показують значну
+// концентрацію; якщо розходяться, сумнів трактуємо на користь автора.
+// =============================================================================
+
+
+// Перша доступна з переліку (назви моделей Google змінюються; той самий підхід, що в lib/genre-ai.ts).
+// Pro-моделі — бо текст довгий і завдання аналітичне; flash — лише запасний варіант.
+const GEMINI_STYLE_MODELS = ['gemini-3.5-pro', 'gemini-3-pro-preview', 'gemini-pro-latest', 'gemini-2.5-pro', 'gemini-3.5-flash']
+
+export async function runStyleCheckGemini(p: { title: string; genre: string; text: string; answers: Answers | null }):
+  Promise<{ stats: StyleStats; result: StyleResult; model: string }> {
+  const key = process.env.GEMINI_API_KEY
+  if (!key) throw new Error('Немає GEMINI_API_KEY')
+  const stats = computeStats(p.text)
+  const prompt = buildPrompt({ ...p, stats })
+  const genAI = new GoogleGenerativeAI(key)
+  let lastErr: Error | null = null
+  for (const name of GEMINI_STYLE_MODELS) {
+    const model = genAI.getGenerativeModel(
+      { model: name, generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 16000 } },
+      { apiVersion: 'v1beta' },
+    )
+    // Дві спроби на модель: іноді повертається зламаний JSON.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const res = await model.generateContent(prompt)
+        const clean = res.response.text().replace(/```json/g, '').replace(/```/g, '').trim()
+        const start = clean.indexOf('{'), end = clean.lastIndexOf('}')
+        if (start < 0 || end < 0) throw new Error('Модель не повернула JSON')
+        const parsed = JSON.parse(clean.slice(start, end + 1)) as StyleResult
+        const result = verifyQuotes(parsed, p.text)
+        result.scenario = String(result.scenario ?? '').replace(/^\s*(найімовірніший сценарій\s*:\s*)+/i, '')
+        result.index = computeIndex(result.markers)
+        result.stage = p.answers && Object.keys(p.answers).length ? 'остаточний' : 'попередній'
+        return { stats, result, model: name }
+      } catch (e) {
+        lastErr = e as Error
+        // Модель недоступна для ключа — одразу до наступної, без другої спроби.
+        if (/404|not found|not supported|permission/i.test(lastErr.message)) break
+      }
+    }
+  }
+  throw lastErr ?? new Error('Gemini не відповів')
 }
