@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isAllCapsTitle, ALL_CAPS_ERROR } from '@/lib/title-rules'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { dbQuery } from '@/lib/db'
 import { slugify } from '@/lib/slugify'
@@ -66,6 +67,9 @@ export async function POST(req: NextRequest) {
       { ok: false, error: `Назва задовга — максимум ${TITLE_MAX} знаків` },
       { status: 400 },
     )
+  }
+  if (isAllCapsTitle(title)) {
+    return NextResponse.json({ ok: false, error: ALL_CAPS_ERROR }, { status: 400 })
   }
   if (text.length < TEXT_MIN) {
     return NextResponse.json(
