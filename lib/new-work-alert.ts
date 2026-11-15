@@ -17,12 +17,13 @@ function esc(v: string): string {
   return (v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
-export type NewWorkEvent = 'added' | 'published' | 'review'
+export type NewWorkEvent = 'added' | 'published' | 'review' | 'moderation'
 
 const LABEL: Record<NewWorkEvent, string> = {
   added: 'Новий твір у кабінеті автора (чернетка)',
   published: 'Автор сам опублікував твір',
   review: 'Автор надіслав серію на редактуру',
+  moderation: 'Твір затримано до перевірки редактором (автор хотів опублікувати сам)',
 }
 
 export async function sendNewWorkAlert(p: {
@@ -33,11 +34,12 @@ export async function sendNewWorkAlert(p: {
   email?: string | null
   words?: number | null
   genre?: string | null
+  reasons?: string[]
 }) {
   if (!process.env.RESEND_API_KEY) return
   // 14.10.2026: додані й опубліковані твори — тепер в одному щоденному листі (lib/new-works-digest.ts).
   // Окремим листом лишається тільки серія на редактуру — її треба взяти в роботу.
-  if (p.event !== 'review') return
+  if (p.event !== 'review' && p.event !== 'moderation') return
   const time = new Date().toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv' })
   const html = `
 <body style="font-family:Arial,sans-serif;background:#0a1628;color:#f5f0e8;padding:24px;max-width:640px;margin:0 auto;">
@@ -46,6 +48,7 @@ export async function sendNewWorkAlert(p: {
     <div style="font-size:20px;font-weight:700;margin-bottom:12px;">«${esc(p.title)}»</div>
     <p style="color:#c8d4e8;margin:0 0 6px;"><b>Автор:</b> ${esc(p.author ?? '—')}${p.email ? ` · <a href="mailto:${esc(p.email)}" style="color:#ef9f27">${esc(p.email)}</a>` : ''}</p>
     <p style="color:#c8d4e8;margin:0 0 6px;"><b>Обсяг:</b> ${p.words ?? '—'} слів${p.genre ? ` · <b>Жанр:</b> ${esc(p.genre)}` : ''}</p>
+    ${p.reasons?.length ? `<p style="color:#ffb4a8;margin:10px 0 0;"><b>Чому:</b><br>${p.reasons.map(esc).join('<br>')}</p>` : ''}
     <a href="${SITE}/admin/content/stories/${esc(p.id)}/edit" style="display:inline-block;margin-top:12px;background:#ef9f27;color:#0a1628;padding:12px 18px;border-radius:10px;text-decoration:none;font-weight:700;">Відкрити твір</a>
     <a href="${SITE}/admin/works" style="display:inline-block;margin:12px 0 0 10px;color:#ef9f27;">Каталог творів</a>
     <p style="color:#8899bb;font-size:12px;margin:14px 0 0;">${esc(time)} · «Відповісти» — лист піде автору.</p>
@@ -56,7 +59,9 @@ export async function sendNewWorkAlert(p: {
       from: process.env.RESEND_FROM_EMAIL ?? 'editorial@balabony.com',
       to: TO,
       ...(p.email ? { replyTo: p.email } : {}),
-      subject: `[Балабони] Серія на редактуру: «${p.title.slice(0, 80)}» — ${p.author ?? ''}`,
+      subject: p.event === 'moderation'
+        ? `[Балабони] На перевірку: «${p.title.slice(0, 80)}» — ${p.author ?? ''}`
+        : `[Балабони] Серія на редактуру: «${p.title.slice(0, 80)}» — ${p.author ?? ''}`,
       html,
     })
   } catch (e) {
@@ -65,7 +70,7 @@ export async function sendNewWorkAlert(p: {
 }
 
 /** Дані твору з бази для листа (коли в роуті їх немає під рукою). */
-export async function alertForContent(event: NewWorkEvent, id: string, email?: string | null) {
+export async function alertForContent(event: NewWorkEvent, id: string, email?: string | null, reasons?: string[]) {
   try {
     const { dbQuery } = await import('@/lib/db')
     const r = await dbQuery(
@@ -76,7 +81,7 @@ export async function alertForContent(event: NewWorkEvent, id: string, email?: s
     )
     const row = r.rows[0] as { id: string; title: string; author_name: string | null; genre: string | null; words: number | null } | undefined
     if (!row) return
-    await sendNewWorkAlert({ event, id: row.id, title: row.title ?? 'Без назви', author: row.author_name, email, words: row.words, genre: row.genre })
+    await sendNewWorkAlert({ event, id: row.id, title: row.title ?? 'Без назви', author: row.author_name, email, words: row.words, genre: row.genre, reasons })
   } catch (e) {
     console.error('[new-work-alert content]', (e as Error)?.message)
   }

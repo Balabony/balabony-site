@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { moderateText, saveModeration } from '@/lib/moderation'
+import { alertForContent } from '@/lib/new-work-alert'
+
+export const runtime = 'nodejs'
+export const maxDuration = 60
 
 /**
  * Редагування власного твору автором: /api/author/edit-draft
@@ -151,9 +156,24 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const update: Record<string, string> = {}
+    const update: Record<string, string | boolean> = {}
     if (hasTitle && title) update.title = title
     if (hasText && text) update.text = text
+
+    // 15.11.2026: правка вже опублікованого тексту — повторна ШІ-модерація (lib/moderation.ts).
+    let held = false
+    let modReasons: string[] = []
+    let modResult: Awaited<ReturnType<typeof moderateText>> | null = null
+    if (String(row.status) === 'published' && hasText && text) {
+      modResult = await moderateText(title ?? '', text)
+      if (modResult.verdict === 'block') {
+        update.status = 'review'
+        held = true
+        modReasons = modResult.reasons
+      } else if (modResult.verdict === 'adult') {
+        update.is_adult = true
+      }
+    }
 
     const { error: updErr } = await admin
       .from('content')
@@ -163,6 +183,12 @@ export async function POST(req: NextRequest) {
 
     if (updErr) {
       return NextResponse.json({ ok: false, error: 'Не вдалося зберегти' }, { status: 500 })
+    }
+
+    if (modResult) await saveModeration(contentId, modResult, true, held ? 'review' : 'published')
+    if (held) {
+      await alertForContent('moderation', contentId, user.email ?? null, modReasons)
+      return NextResponse.json({ ok: true, status: 'review' })
     }
 
     return NextResponse.json({ ok: true })

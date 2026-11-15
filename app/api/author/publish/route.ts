@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { alertForContent } from '@/lib/new-work-alert'
 import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { moderateText, publishedCount, saveModeration, TRUSTED_AFTER } from '@/lib/moderation'
+
+export const runtime = 'nodejs'
+export const maxDuration = 60
 
 /**
  * Публікація твору самим автором: /api/author/publish
@@ -63,7 +67,7 @@ export async function POST(req: NextRequest) {
 
     const { data: row, error: readErr } = await admin
       .from('content')
-      .select('id, author_id, status, title')
+      .select('id, author_id, status, title, text')
       .eq('id', contentId)
       .maybeSingle()
 
@@ -107,9 +111,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, status: 'scheduled' })
     }
 
+    // 15.11.2026: ШІ-модерація + перші твори нових авторів — через редактора (lib/moderation.ts).
+    const mod = await moderateText(String(row.title ?? ''), String(row.text ?? ''))
+    const trusted = (await publishedCount(user.id, contentId)) >= TRUSTED_AFTER
+    const hold = mod.verdict === 'block' || !trusted
+
+    if (hold) {
+      const reasons = mod.verdict === 'block'
+        ? mod.reasons
+        : [`Новий автор: перші ${TRUSTED_AFTER} твори публікуються після перевірки редактором`, ...mod.reasons]
+      const { error: revErr } = await admin
+        .from('content')
+        .update({ status: 'review', ...(mod.verdict === 'adult' ? { is_adult: true } : {}) })
+        .eq('id', contentId)
+        .eq('author_id', user.id)
+      if (revErr) {
+        return NextResponse.json({ ok: false, error: 'Згоду збережено, але статус не змінився' }, { status: 500 })
+      }
+      await saveModeration(contentId, mod, trusted, 'review')
+      await alertForContent('moderation', contentId, user.email ?? null, reasons)
+      return NextResponse.json({ ok: true, status: 'review' })
+    }
+
     const { error: updErr } = await admin
       .from('content')
-      .update({ status: 'published' })
+      .update({ status: 'published', is_adult: mod.verdict === 'adult' })
       .eq('id', contentId)
       .eq('author_id', user.id)
 
@@ -120,9 +146,10 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    await saveModeration(contentId, mod, trusted, 'published')
     await alertForContent('published', contentId, user.email ?? null)
 
-    return NextResponse.json({ ok: true, status: 'published' })
+    return NextResponse.json({ ok: true, status: 'published', adult: mod.verdict === 'adult' })
   } catch {
     return NextResponse.json({ ok: false, error: 'Помилка сервера' }, { status: 500 })
   }

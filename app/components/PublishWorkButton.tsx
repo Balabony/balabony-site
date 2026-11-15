@@ -29,12 +29,13 @@ export default function PublishWorkButton({
   const [consent, setConsent] = useState(false)
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState(false)
+  const [held, setHeld] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   if (done) {
     return (
       <div style={{ marginTop: 10, fontFamily: FONT, fontSize: '0.85rem', color: '#4ade80' }}>
-        {consentOnly ? '✓ Згоду збережено. Твір вийде за графіком.' : '✓ Опубліковано. Оновіть сторінку, щоб побачити оновлений статус.'}
+        {consentOnly ? '✓ Згоду збережено. Твір вийде за графіком.' : held ? '✓ Дякуємо! Твір передано редактору на перевірку — опублікуємо найближчим часом.' : '✓ Опубліковано. Оновіть сторінку, щоб побачити оновлений статус.'}
       </div>
     )
   }
@@ -50,8 +51,9 @@ export default function PublishWorkButton({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contentId, consent: true }),
       })
-      const d = (await res.json()) as { ok?: boolean; error?: string }
+      const d = (await res.json()) as { ok?: boolean; error?: string; status?: string }
       if (d?.ok) {
+        setHeld(d.status === 'review')
         setDone(true)
       } else {
         setError(d?.error ?? 'Не вдалося опублікувати')
