@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
 
     const { error: updErr } = await admin
       .from('content')
-      .update({ status: 'published', is_adult: mod.verdict === 'adult' })
+      .update({ status: 'published', ...(mod.verdict === 'adult' ? { is_adult: true } : {}) })
       .eq('id', contentId)
       .eq('author_id', user.id)
 
