@@ -66,25 +66,6 @@ export default async function AfishaPage() {
             <StageArt />
           </section>
 
-          <h2 style={{ fontSize: 24, color: CREAM, margin: '0 0 16px' }}>Найближчі події</h2>
-          {list.length === 0 && <p style={{ color: '#dbe4f0' }}>Нових подій поки немає. Надішліть нам свою — додамо.</p>}
-          <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 40px', display: 'grid', gap: 16 }}>
-            {list.map((e) => (
-              <li key={e.date + e.title} style={{ display: 'flex', gap: 18, background: 'linear-gradient(180deg,#12244a,#0f1e3a)', border: '1px solid rgba(239,159,39,0.25)', borderRadius: 18, padding: 18, flexWrap: 'wrap' }}>
-                <DateTile iso={e.date} time={e.time} />
-                <div style={{ flex: '1 1 260px', minWidth: 0 }}>
-                  <p style={{ margin: '0 0 4px', color: GOLD, fontWeight: 700, fontSize: 14, letterSpacing: .5, textTransform: 'uppercase' }}>{e.kind} · {e.city}<span style={SR}>, {human(e.date)}{e.time ? `, ${e.time}` : ''}</span></p>
-                  <h3 style={{ margin: '0 0 4px', color: CREAM, fontSize: 22, lineHeight: 1.25 }}>{e.title}</h3>
-                  <p style={{ margin: '0 0 12px', color: '#c9d4e4', fontSize: 15 }}>{e.venue}</p>
-                  <p style={{ margin: '0 0 12px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>{e.access.map((a) => <Badge key={a} a={a} />)}</p>
-                  <p style={{ margin: '0 0 8px', color: '#dbe4f0', fontSize: 15.5, lineHeight: 1.6 }}>{e.note}</p>
-                  {e.book && <p style={{ margin: '0 0 8px', color: '#dbe4f0', fontSize: 15.5, lineHeight: 1.6 }}><strong style={{ color: CREAM }}>Як піти:</strong> {e.book}</p>}
-                  {e.source && <p style={{ margin: 0, fontSize: 14 }}><a href={e.source} target="_blank" rel="noopener noreferrer" style={{ color: GOLD }}>Джерело: сайт організатора<span style={SR}> (відкриється в новій вкладці)</span></a></p>}
-                </div>
-              </li>
-            ))}
-          </ul>
-
           {films.length > 0 && (
             <section aria-labelledby="kino" style={{ marginBottom: 40 }}>
               <h2 id="kino" style={{ fontSize: 24, color: CREAM, margin: '0 0 6px' }}>Кіно: прем’єри й анонси</h2>
@@ -114,6 +95,25 @@ export default async function AfishaPage() {
               </ul>
             </section>
           )}
+
+          <h2 style={{ fontSize: 24, color: CREAM, margin: '0 0 16px' }}>Найближчі події</h2>
+          {list.length === 0 && <p style={{ color: '#dbe4f0' }}>Нових подій поки немає. Надішліть нам свою — додамо.</p>}
+          <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 40px', display: 'grid', gap: 16 }}>
+            {list.map((e) => (
+              <li key={e.date + e.title} style={{ display: 'flex', gap: 18, background: 'linear-gradient(180deg,#12244a,#0f1e3a)', border: '1px solid rgba(239,159,39,0.25)', borderRadius: 18, padding: 18, flexWrap: 'wrap' }}>
+                <DateTile iso={e.date} time={e.time} />
+                <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+                  <p style={{ margin: '0 0 4px', color: GOLD, fontWeight: 700, fontSize: 14, letterSpacing: .5, textTransform: 'uppercase' }}>{e.kind} · {e.city}<span style={SR}>, {human(e.date)}{e.time ? `, ${e.time}` : ''}</span></p>
+                  <h3 style={{ margin: '0 0 4px', color: CREAM, fontSize: 22, lineHeight: 1.25 }}>{e.title}</h3>
+                  <p style={{ margin: '0 0 12px', color: '#c9d4e4', fontSize: 15 }}>{e.venue}</p>
+                  <p style={{ margin: '0 0 12px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>{e.access.map((a) => <Badge key={a} a={a} />)}</p>
+                  <p style={{ margin: '0 0 8px', color: '#dbe4f0', fontSize: 15.5, lineHeight: 1.6 }}>{e.note}</p>
+                  {e.book && <p style={{ margin: '0 0 8px', color: '#dbe4f0', fontSize: 15.5, lineHeight: 1.6 }}><strong style={{ color: CREAM }}>Як піти:</strong> {e.book}</p>}
+                  {e.source && <p style={{ margin: 0, fontSize: 14 }}><a href={e.source} target="_blank" rel="noopener noreferrer" style={{ color: GOLD }}>Джерело: сайт організатора<span style={SR}> (відкриється в новій вкладці)</span></a></p>}
+                </div>
+              </li>
+            ))}
+          </ul>
 
           <section aria-labelledby="dodaty" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18, alignItems: 'center', background: 'linear-gradient(135deg,rgba(239,159,39,0.16),rgba(239,159,39,0.05))', border: `1px solid ${GOLD}55`, borderRadius: 18, padding: '22px 24px', marginBottom: 26 }}>
             <div>
