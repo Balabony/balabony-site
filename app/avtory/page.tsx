@@ -6,6 +6,7 @@ import Breadcrumbs from '@/app/components/Breadcrumbs'
 import { ThemeProvider } from '@/app/context/ThemeContext'
 import { authorSlug } from '@/lib/author-slug'
 import { realPen } from '@/lib/pen-name'
+import { authorReadTotals, newReaderLeaders } from '@/lib/author-read-totals'
 
 /**
  * Публічний список авторів: /avtory
@@ -151,27 +152,24 @@ async function allLikes(): Promise<Map<string, number>> {
 }
 
 /**
- * Дошки за останні 30 днів.
+ * Дошки за весь час (з 16.11.2026; раніше — 30 днів) + «Нові читачі цього місяця».
  *
  * Рахуємо дочитування, а не лайки: лайк анонімний і накручується очищенням
  * браузера, а прочитання пишеться лише авторизованому читачеві й лише після
  * 70% тексту. Публічний рейтинг на лайках посварив би авторів між собою.
  *
- * Період, а не весь час: інакше автор зі ста архівними текстами був би
- * першим назавжди, і рейтинг перестав би щось означати для решти.
+ * Раніше тут був період (30 днів), щоб автор з архівом не стояв першим назавжди.
+ * 16.11.2026 перейшли на весь час: число, що падало, ображало авторів. Шанс для
+ * новачків тепер дає окрема дошка «Нові читачі цього місяця» — без чисел.
  */
 async function getBoards(
   nameById: Map<string, { slug: string; name: string }>,
-): Promise<{ mostRead: BoardEntry[]; bestDepth: BoardEntry[] }> {
-  const supabase = getSupabaseAdmin()
+): Promise<{ mostRead: BoardEntry[]; bestDepth: BoardEntry[]; newReaders: BoardEntry[] }> {
+  // 16.11.2026: за весь час (lib/author-read-totals.ts) — число, що падає, ображало авторів.
+  let data: BoardRow[]
+  try { data = await authorReadTotals() } catch { return { mostRead: [], bestDepth: [], newReaders: [] } }
 
-  const { data, error } = await supabase
-    .from('author_month_stats')
-    .select('author_id, reads_completed, reads_total, avg_percentage')
-
-  if (error || !data) return { mostRead: [], bestDepth: [] }
-
-  const rows = (data as BoardRow[]).filter((r) => nameById.has(r.author_id))
+  const rows = data.filter((r) => nameById.has(r.author_id))
 
   const mostRead = rows
     .filter((r) => r.reads_completed > 0)
@@ -193,7 +191,18 @@ async function getBoards(
       return { slug: p.slug, name: p.name, value: `${r.avg_percentage}%` }
     })
 
-  return { mostRead, bestDepth }
+  // Нові читачі за 30 днів — лише імена: тут має шанс і новачок.
+  let newIds: string[] = []
+  try { newIds = await newReaderLeaders(5) } catch { newIds = [] }
+  const newReaders = newIds
+    .filter((id) => nameById.has(id))
+    .slice(0, 5)
+    .map((id) => {
+      const p = nameById.get(id)!
+      return { slug: p.slug, name: p.name, value: '' }
+    })
+
+  return { mostRead, bestDepth, newReaders }
 }
 
 /**
@@ -463,19 +472,25 @@ export default async function AuthorsPage() {
           </p>
         </header>
 
-        {(boards.mostRead.length > 0 || boards.bestDepth.length > 0) && (
+        {(boards.mostRead.length > 0 || boards.bestDepth.length > 0 || boards.newReaders.length > 0) && (
           <section style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: 34 }}>
             <Board
-              title="Найчитаніші за місяць"
-              note="Скільки історій дочитали до кінця за останні 30 днів"
+              title="Найчитаніші автори"
+              note="Скільки історій дочитали до кінця за весь час"
               unit="дочитувань"
               entries={boards.mostRead}
             />
             <Board
               title="Найкраще дочитують"
-              note="Середня глибина читання, від 30 прочитань за місяць"
+              note="Середня глибина читання, від 30 прочитань"
               unit=""
               entries={boards.bestDepth}
+            />
+            <Board
+              title="Нові читачі цього місяця"
+              note="Кого за 30 днів уперше дочитало найбільше нових читачів"
+              unit=""
+              entries={boards.newReaders}
             />
           </section>
         )}

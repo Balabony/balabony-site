@@ -16,6 +16,7 @@ import AuthorCoverUpload from '@/app/components/AuthorCoverUpload'
 import AuthorSeriesCovers from '@/app/components/AuthorSeriesCovers'
 import AuthorProfileEditor from '@/app/components/AuthorProfileEditor'
 import { dbQuery } from '@/lib/db'
+import { authorReadTotals, newReaderLeaders } from '@/lib/author-read-totals'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import PublishWorkButton from '@/app/components/PublishWorkButton'
 import { getAuthorVotes, getNarrationOrder, VOTE_COST } from '@/lib/voice-queue'
@@ -317,15 +318,11 @@ export default async function AuthorDashboardPage() {
     // Голоси — не головне в кабінеті: якщо запит упав, показуємо решту.
   }
 
-  // Місце автора за останні 30 днів. Показуємо лише йому: публічно
-  // висить тільки топ, бо побачити себе останнім — привід піти, а не
-  // писати краще.
+  // Місце автора — ЗА ВЕСЬ ЧАС (16.11.2026, було 30 днів: число падало, автори ображались).
+  // Показуємо лише йому: публічно висить тільки топ, бо побачити себе останнім —
+  // привід піти, а не писати краще. Правила підрахунку — lib/author-read-totals.ts.
   const admin = getSupabaseAdmin()
-  const { data: monthRows } = await admin
-    .from('author_month_stats')
-    .select('author_id, reads_completed, reads_total, avg_percentage') as {
-      data: { author_id: string; reads_completed: number; reads_total: number; avg_percentage: number }[] | null
-    }
+  const monthRows = await authorReadTotals().catch(() => [])
 
   const ranked = (monthRows ?? [])
     .filter((r) => r.reads_completed > 0)
@@ -340,7 +337,7 @@ export default async function AuthorDashboardPage() {
   // те, що він прочитав. Дочитування — інша величина й інша заслуга: 70%
   // тексту, доведені до кінця. Тому окремий блок, а не колонка в наявному.
   //
-  // Дані вже є в author_month_stats (30 днів) — тими самими, що на /avtory.
+  // Ті самі дані, що на /avtory (за весь час, lib/author-read-totals.ts).
   // Бракує лише імен: у таблиці лежить author_id.
   const topReadIds = ranked.slice(0, 40).map(r => r.author_id)
   const { data: topReadProfiles } = topReadIds.length
@@ -367,6 +364,25 @@ export default async function AuthorDashboardPage() {
       depth: r.avg_percentage,
       isMe: r.author_id === user.id,
     }))
+
+  // НОВІ ЧИТАЧІ МІСЯЦЯ (16.11.2026): рейтинг тепер за весь час, і новачкові до
+  // верху не дістати. Тут — хто за 30 днів здобув найбільше нових читачів. Лише імена.
+  const newIds = await newReaderLeaders(5).catch(() => [] as string[])
+  const { data: newProfiles } = newIds.length
+    ? await admin
+        .from('author_profiles')
+        .select('user_id, display_name, pen_name, hide_from_directory')
+        .in('user_id', newIds) as {
+          data: { user_id: string; display_name: string | null; pen_name: string | null; hide_from_directory: boolean | null }[] | null
+        }
+    : { data: [] }
+  const newNameById = new Map(
+    (newProfiles ?? []).map(p => [p.user_id, (realPen(p.pen_name) || p.display_name || 'Автор').trim()]),
+  )
+  const newReaderBoard = newIds
+    .filter(id => newNameById.has(id) && newNameById.get(id) !== 'Назар Колодій')
+    .slice(0, 5)
+    .map(id => ({ name: newNameById.get(id) ?? 'Автор', isMe: id === user.id }))
 
   // ПОРЯДОК ОЗВУЧЕННЯ — окрема дошка (17.09.2026).
   //
@@ -855,7 +871,7 @@ export default async function AuthorDashboardPage() {
                           </span>
                         </span>
                         <span style={{ color: '#5FB3C4', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                          {w.reads} за тиждень
+                          {/* 16.11.2026: без числа — тижневе число щодня падає, а це ображає авторів. */}
                         </span>
                       </div>
                       <div style={{
@@ -947,8 +963,8 @@ export default async function AuthorDashboardPage() {
               <RankBoard
                 title="Рейтинг авторів за дочитуваннями"
                 accent="#97C459"
-                hint={<>Двадцять п&apos;ять авторів за дочитуваннями їхніх текстів за останні
-                  30 днів. Це інша величина, ніж голоси: не «хочу почути», а «прочитав».</>}
+                hint={<>Двадцять п&apos;ять авторів за дочитуваннями їхніх текстів за весь час.
+                  Це інша величина, ніж голоси: не «хочу почути», а «прочитав».</>}
               >
                 {readBoard.map((r, i) => (
                   <div key={r.name} style={{ marginBottom: 7 }}>
@@ -976,6 +992,22 @@ export default async function AuthorDashboardPage() {
               </RankBoard>
             )
           })()}
+
+          {newReaderBoard.length > 0 && (
+            <RankBoard
+              title="Нові читачі цього місяця"
+              accent="#5FB3C4"
+              hint={<>Автори, яких за останні 30 днів уперше дочитало найбільше нових читачів.
+                Тут має шанс кожен — і той, хто прийшов учора.</>}
+            >
+              {newReaderBoard.map((r, i) => (
+                <div key={r.name} style={{ fontSize: '0.86rem', marginBottom: 6,
+                  color: r.isMe ? '#FAC775' : '#e8eef7', fontWeight: r.isMe ? 700 : 400 }}>
+                  {i + 1}. {r.isMe ? 'Ви' : r.name}
+                </div>
+              ))}
+            </RankBoard>
+          )}
 
           {/* ПОЯСНЕННЯ ПІД ДОШКАМИ (17.09.2026).
               Три рейтинги поруч читалися як одне «місце автора», і питання
@@ -1483,7 +1515,7 @@ export default async function AuthorDashboardPage() {
               fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.4px',
               textTransform: 'uppercase', color: BRAND.muted, marginBottom: 8,
             }}>
-              Ваші показники за 30 днів
+              Ваші показники за весь час
             </div>
 
             <div style={{ display: 'flex', gap: '1.6rem', flexWrap: 'wrap', alignItems: 'baseline' }}>
