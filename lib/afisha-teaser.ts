@@ -22,7 +22,7 @@ export async function getAfishaTeaser(limit = 3): Promise<TeaserItem[]> {
   const films = [...upcomingPremieres(today), ...db.films]
     .filter((f) => f.date <= today && (f.access || []).length > 0)
     .sort((a, b) => (a.until || '9999').localeCompare(b.until || '9999'))
-    .map((f): TeaserItem => ({ title: f.title, label: 'Кіно', when: f.until ? `у кіно до ${dm(f.until)}` : 'уже в кіно', access: f.access || [] }))
+    .map((f): TeaserItem => ({ title: f.title, label: 'Кіно', when: f.until ? `кіно до ${dm(f.until)}` : 'уже в кіно', access: f.access || [] }))
   const events = [...upcoming(today), ...db.events]
     .sort((a, b) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')))
     .map((e): TeaserItem => ({ title: e.title, label: `${e.kind}${e.city ? ' · ' + e.city : ''}`, when: `${dm(e.date)}${e.time ? ', ' + e.time : ''}`, access: e.access }))

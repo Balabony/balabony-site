@@ -18,8 +18,8 @@ export default function AfishaTeaser({ items }: { items: TeaserItem[] }) {
               <strong>{it.title}</strong> <span style={{ color: '#9fb0c8' }}>— {it.when}</span>
             </li>
           ))}
+          <li style={{ fontSize: 14, lineHeight: 1.4 }}><Link href="/afisha" style={{ color: GOLD, fontWeight: 800, textDecoration: 'none', whiteSpace: 'nowrap' }}>Вся афіша →</Link></li>
         </ul>
-        <Link href="/afisha" style={{ color: GOLD, fontWeight: 800, fontSize: 14, textDecoration: 'none', whiteSpace: 'nowrap' }}>Вся афіша →</Link>
       </div>
     </section>
   )
