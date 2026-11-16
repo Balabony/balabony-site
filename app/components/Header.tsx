@@ -84,6 +84,8 @@ export default function Header() {
             { label: 'Історії', href: '/stories' },
             { label: 'Серії', href: '/episodes' },
             { label: 'Що читають', href: '/top' },
+            // 16.11.2026 (Богдан): «Афіша без барʼєрів» у верхньому меню
+            { label: 'Афіша', href: '/afisha', cls: 'header-nav-afisha' },
             { label: 'Правопис', href: '/pravopys', cls: 'header-nav-pravopys' },
           ].map((item) => (
             <a

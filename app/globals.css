@@ -373,6 +373,7 @@ body, body * {
 
 /* 14.11.2026: пункт «Правопис» у шапці — лише там, де вистачає місця */
 @media (max-width: 1180px) { .header-nav-pravopys { display: none !important; } }
+@media (max-width: 1040px) { .header-nav-afisha { display: none !important; } }
 
 /* 15.11.2026: обкладинки — показувати верх кадру, щоб не обрізало голови */
 img[style*="object-fit:cover"], img[style*="object-fit: cover"] { object-position: center 20%; }
