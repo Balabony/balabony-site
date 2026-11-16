@@ -1,6 +1,6 @@
 /**
  * «Афіша без бар'єрів» — події, де є аудіодескрипція, субтитри, жестова мова
- * або доступний зал. Почали 13.11.2026 зі Львова.
+ * або доступний зал. Почали 13.11.2026 зі Львова; з 16.11.2026 — уся Україна (мережі кіно).
  *
  * ЯК ДОДАТИ ПОДІЮ: новий об'єкт у EVENTS. Дата — 'YYYY-MM-DD'. Минулі події
  * сторінка ховає сама (перезбирається щогодини). Кожна подія — з джерелом:
@@ -59,6 +59,11 @@ export type Premiere = {
   trailer?: string
   distributor: string
   access?: Access[]
+  // 16.11.2026: для кіно в мережах (Планета Кіно) — де дивитися, як увімкнути доступність, до якої дати в прокаті
+  venue?: string
+  book?: string
+  source?: string
+  until?: string
 }
 
 export const PREMIERES: Premiere[] = [
@@ -82,13 +87,13 @@ export function upcomingPremieres(today = new Date().toLocaleDateString('sv-SE',
 }
 
 /** 13.11.2026: записи з адмінки (/admin/afisha, таблиця afisha_items) — до вписаних у код. */
-type Row = { kind: 'event' | 'film'; date: string; time: string | null; title: string; category: string | null; venue: string | null; city: string | null; studio: string | null; genre: string | null; director: string | null; cast_text: string | null; about: string | null; book: string | null; trailer: string | null; source: string | null; distributor: string | null; access: string[] | null }
+type Row = { kind: 'event' | 'film'; date: string; time: string | null; title: string; category: string | null; venue: string | null; city: string | null; studio: string | null; genre: string | null; director: string | null; cast_text: string | null; about: string | null; book: string | null; trailer: string | null; source: string | null; distributor: string | null; access: string[] | null; until?: string | null }
 const KINDS = ['Вистава', 'Кіно', 'Читання', 'Виставка', 'Концерт', 'Зустріч'] as const
 export function fromRows(rows: Row[]): { events: AfishaEvent[]; films: Premiere[] } {
   const acc = (a: string[] | null) => (a || []).filter((x): x is Access => x in ACCESS_LABEL)
   const events: AfishaEvent[] = [], films: Premiere[] = []
   for (const r of rows) {
-    if (r.kind === 'film') films.push({ date: r.date, title: r.title, studio: r.studio || '', genre: r.genre || '', director: r.director || undefined, cast: r.cast_text || undefined, about: r.about || '', trailer: r.trailer || undefined, distributor: r.distributor || '', access: acc(r.access) })
+    if (r.kind === 'film') films.push({ date: r.date, title: r.title, studio: r.studio || '', genre: r.genre || '', director: r.director || undefined, cast: r.cast_text || undefined, about: r.about || '', trailer: r.trailer || undefined, distributor: r.distributor || '', access: acc(r.access), venue: r.venue || undefined, book: r.book || undefined, source: r.source || undefined, until: r.until || undefined })
     else events.push({ date: r.date, time: r.time || undefined, title: r.title, kind: (KINDS as readonly string[]).includes(r.category || '') ? (r.category as AfishaEvent['kind']) : 'Зустріч', venue: r.venue || '', city: r.city || '', access: acc(r.access), note: r.about || '', book: r.book || undefined, source: r.source || '' })
   }
   return { events, films }

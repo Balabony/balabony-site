@@ -13,7 +13,7 @@ function checkAuth(req: NextRequest): boolean {
   return req.cookies.get('admin_session')?.value === process.env.ADMIN_PASSWORD
 }
 
-const FIELDS = ['kind', 'date', 'time', 'title', 'category', 'venue', 'city', 'studio', 'genre', 'director', 'cast_text', 'about', 'book', 'trailer', 'source', 'distributor', 'access', 'published'] as const
+const FIELDS = ['kind', 'date', 'time', 'title', 'category', 'venue', 'city', 'studio', 'genre', 'director', 'cast_text', 'about', 'book', 'trailer', 'source', 'distributor', 'access', 'published', 'until'] as const
 const ACCESS = ['audio', 'subs', 'sign', 'wheel', 'braille']
 
 function clean(input: Record<string, unknown>) {

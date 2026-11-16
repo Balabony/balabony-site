@@ -22,7 +22,7 @@ const human = (iso: string) => { const [y, m, d] = iso.split('-').map(Number); c
 
 export const metadata: Metadata = {
   title: 'Афіша без барʼєрів — вистави й кіно з аудіодескрипцією · Балабони',
-  description: 'Куди піти незрячим, людям з порушеннями слуху й на візку: вистави з аудіодескрипцією, кіно з субтитрами, події з жестовою мовою. Львів і вся Україна.',
+  description: 'Куди піти незрячим, людям з порушеннями слуху й на візку: вистави з аудіодескрипцією, кіно з субтитрами, події з жестовою мовою. По всій Україні.',
   alternates: { canonical: '/afisha' },
 }
 
@@ -32,7 +32,8 @@ export default async function AfishaPage() {
   try {
     const from35 = new Date(new Date(today + 'T12:00:00Z').getTime() - 35 * 864e5).toISOString().slice(0, 10)
     const { data } = await getSupabaseAdmin().from('afisha_items').select('*').eq('published', true).gte('date', from35)
-    const rows = (data || []).filter((r: { kind: string; date: string }) => r.kind === 'film' || r.date >= today)
+    // 16.11.2026: фільм зникає після дати «Показ до» (until), якщо її вказано
+    const rows = (data || []).filter((r: { kind: string; date: string; until?: string | null }) => r.kind === 'film' ? !(r.until && r.until < today) : r.date >= today)
     db = fromRows(rows)
   } catch {}
   const byDate = <T extends { date: string; time?: string }>(a: T, b: T) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || ''))
@@ -57,7 +58,7 @@ export default async function AfishaPage() {
             <div>
               <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 2, color: GOLD, textTransform: 'uppercase', marginBottom: 12 }}>Балабони · Культура для всіх</div>
               <h1 style={{ fontSize: 'clamp(30px,4.5vw,44px)', fontWeight: 800, color: CREAM, lineHeight: 1.12, margin: '0 0 14px' }}>Афіша без барʼєрів</h1>
-              <p style={{ fontSize: 17, lineHeight: 1.65, color: '#dbe4f0', margin: '0 0 18px' }}>Вистави, кіно, концерти й читання, куди можуть прийти всі. Збираємо лише ті події, де організатор сам оголосив формат доступності. Починаємо зі Львова.</p>
+              <p style={{ fontSize: 17, lineHeight: 1.65, color: '#dbe4f0', margin: '0 0 18px' }}>Вистави, кіно, концерти й читання, куди можуть прийти всі. Збираємо лише ті події, де організатор сам оголосив формат доступності. По всій Україні.</p>
               <ul aria-label="Формати доступності" style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {(Object.keys(ACCESS_LABEL) as Access[]).map((a) => <li key={a}><Badge a={a} /></li>)}
               </ul>
@@ -98,12 +99,15 @@ export default async function AfishaPage() {
                       <span style={SR}>Дивитися трейлер на YouTube (відкриється в новій вкладці)</span>
                     </a>}
                     <div style={{ padding: '16px 18px 18px', display: 'grid', gap: 8 }}>
-                      <p style={{ margin: 0, color: GOLD, fontWeight: 700, fontSize: 14 }}>{f.date <= today ? 'Уже в кіно' : `У кіно з ${human(f.date)}`}</p>
+                      <p style={{ margin: 0, color: GOLD, fontWeight: 700, fontSize: 14 }}>{f.date <= today ? 'Уже в кіно' : `У кіно з ${human(f.date)}`}{f.until ? ` · до ${human(f.until).split(',')[0]}` : ''}</p>
                       <h3 style={{ margin: 0, color: CREAM, fontSize: 21, lineHeight: 1.25 }}>{f.title}</h3>
                       <p style={{ margin: 0, color: '#c9d4e4', fontSize: 14.5 }}>{f.genre}{f.studio ? ` · ${f.studio}` : ''}</p>
                       {f.access && f.access.length > 0 && <p style={{ margin: 0, display: 'flex', flexWrap: 'wrap', gap: 8 }}>{f.access.map((a) => <Badge key={a} a={a} />)}</p>}
                       <p style={{ margin: 0, color: '#dbe4f0', fontSize: 15, lineHeight: 1.6 }}>{f.about}</p>
                       {(f.director || f.cast) && <p style={{ margin: 0, color: '#c9d4e4', fontSize: 14, lineHeight: 1.6 }}>{f.director && <>Режисер: {f.director}. </>}{f.cast && <>Ролі озвучують: {f.cast}.</>}</p>}
+                      {f.venue && <p style={{ margin: 0, color: '#dbe4f0', fontSize: 15, lineHeight: 1.6 }}><strong style={{ color: CREAM }}>Де дивитися:</strong> {f.venue}</p>}
+                      {f.book && <p style={{ margin: 0, color: '#dbe4f0', fontSize: 15, lineHeight: 1.6 }}><strong style={{ color: CREAM }}>Як увімкнути доступність:</strong> {f.book}</p>}
+                      {f.source && <p style={{ margin: 0, fontSize: 15 }}><a href={f.source} target="_blank" rel="noopener noreferrer" style={{ color: GOLD, fontWeight: 700 }}>Розклад і квитки<span style={SR}> (відкриється в новій вкладці)</span></a></p>}
                       {f.distributor && <p style={{ margin: 0, color: '#9fb0c8', fontSize: 13.5 }}>Дистрибʼютор: {f.distributor}</p>}
                     </div>
                   </li>) })}

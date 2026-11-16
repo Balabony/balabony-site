@@ -4,14 +4,14 @@
 import { useEffect, useState } from 'react'
 
 const GOLD = '#f5a623', DARK = '#0d1b2a', FONT = "'Montserrat', Arial, sans-serif"
-type Item = { id?: string; kind: 'event' | 'film'; date: string; time?: string | null; title: string; category?: string | null; venue?: string | null; city?: string | null; studio?: string | null; genre?: string | null; director?: string | null; cast_text?: string | null; about?: string | null; book?: string | null; trailer?: string | null; source?: string | null; distributor?: string | null; access: string[]; published?: boolean }
+type Item = { id?: string; kind: 'event' | 'film'; date: string; time?: string | null; title: string; category?: string | null; venue?: string | null; city?: string | null; studio?: string | null; genre?: string | null; director?: string | null; cast_text?: string | null; about?: string | null; book?: string | null; trailer?: string | null; source?: string | null; distributor?: string | null; access: string[]; published?: boolean; until?: string | null }
 const today = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Kyiv' })
 const EMPTY: Item = { kind: 'film', date: '', title: '', access: [], distributor: 'Kinomania Film Distribution' }
 // 13.11.2026: відомі дистрибʼютори — випадне меню; «Інший» відкриває поле для вписування
 const DISTR = ['Kinomania Film Distribution', 'B&H Film Distribution', 'MMD UA', 'Arthouse Traffic', 'Ukrainian Film Distribution']
 const ACC: [string, string][] = [['audio', 'Аудіодескрипція'], ['subs', 'Розширені субтитри'], ['sign', 'Жестова мова'], ['wheel', 'Доступ на візку'], ['braille', 'Брайль']]
 const MAIN: [keyof Item, string, boolean?][] = [['title', 'Назва'], ['about', 'Опис', true], ['trailer', 'Трейлер (YouTube)']]
-const MORE: [keyof Item, string, boolean?][] = [['date', 'Дата (ставиться сама; змінити: 13.11.2026)'], ['time', 'Час (для подій)'], ['category', 'Тип: Кіно / Вистава / Читання…'], ['venue', 'Місце'], ['city', 'Місто'], ['studio', 'Студія'], ['genre', 'Жанр'], ['director', 'Режисер'], ['cast_text', 'Актори / голоси'], ['book', 'Як потрапити (квитки, телефон)', true], ['source', 'Джерело (сайт)']]
+const MORE: [keyof Item, string, boolean?][] = [['date', 'Дата (ставиться сама; змінити: 13.11.2026)'], ['time', 'Час (для подій)'], ['category', 'Тип: Кіно / Вистава / Читання…'], ['venue', 'Місце'], ['city', 'Місто'], ['studio', 'Студія'], ['genre', 'Жанр'], ['director', 'Режисер'], ['cast_text', 'Актори / голоси'], ['book', 'Як потрапити (квитки, телефон)', true], ['source', 'Джерело (сайт)'], ['until', 'Кіно: показ до (РРРР-ММ-ДД)']]
 const inp: React.CSSProperties = { width: '100%', padding: '9px 11px', borderRadius: 8, border: '1px solid #33465f', background: '#0a1628', color: '#f5f0e8', font: 'inherit', fontSize: 15 }
 
 export default function AfishaAdmin() {
