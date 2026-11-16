@@ -105,6 +105,9 @@ export default function HomeClient({
       <Header />
       <Hero />
 
+      {/* 16.11.2026: «Афіша без барʼєрів» — компактна смуга одразу під героєм */}
+      <AfishaTeaser items={afisha} />
+
       <FactsLine initial={stats} />
 
       <nav aria-label="Розділи" style={doorsWrapStyle}>
@@ -159,9 +162,6 @@ export default function HomeClient({
           <FreshStoriesGrid stories={freshStories} />
         </div>
       )}
-
-      {/* 16.11.2026: «Афіша без барʼєрів» — одразу після свіжих історій */}
-      <AfishaTeaser items={afisha} />
 
       {/* 24.09.2026: «Найбільше дочитують» одразу після свіжих історій —
           посилання з головної на найкращі твори допомагають їм потрапити в
