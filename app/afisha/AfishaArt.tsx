@@ -14,28 +14,32 @@ export function AccessIcon({ a, size = 18 }: { a: Access; size?: number }) {
 
 /** Сцена: арка, завіса, промінь світла й звукові хвилі — образ «культура для всіх». */
 export function StageArt() {
+  // 16.11.2026 (Богдан): замість театральних штор — білий кіноекран, субтитри й ряди крісел
+  const seats = (y: number, n: number, w: number, h: number, c: string) => <g fill={c}>{Array.from({ length: n }, (_, i) => { const x = 260 - (n * w) / 2 + i * w + 3; return <path key={i} d={`M${x} ${y + h}v-${h - 8}q0-8 8-8h${w - 22}q8 0 8 8v${h - 8}z`} /> })}</g>
   return (
-    <svg viewBox="0 0 520 300" role="img" aria-label="Ілюстрація: театральна сцена із завісою, промінь світла й звукові хвилі" style={{ width: '100%', height: 'auto', display: 'block' }}>
+    <svg viewBox="0 0 520 300" role="img" aria-label="Ілюстрація: кінозал із білим екраном, на якому видно субтитри, і ряди крісел" style={{ width: '100%', height: 'auto', display: 'block' }}>
       <defs>
-        <linearGradient id="af-curt" x1="0" x2="1"><stop offset="0" stopColor="#7a1a2c" /><stop offset=".5" stopColor="#a8263c" /><stop offset="1" stopColor="#6a1424" /></linearGradient>
-        <radialGradient id="af-spot" cx=".5" cy="0" r="1"><stop offset="0" stopColor="#ffd98a" stopOpacity=".75" /><stop offset=".6" stopColor="#ef9f27" stopOpacity=".12" /><stop offset="1" stopColor="#ef9f27" stopOpacity="0" /></radialGradient>
-        <linearGradient id="af-floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#1a2d4d" /><stop offset="1" stopColor="#0a1628" /></linearGradient>
+        <radialGradient id="af-glow" cx=".5" cy=".45" r=".7"><stop offset="0" stopColor="#fffaf0" stopOpacity=".55" /><stop offset="1" stopColor="#fffaf0" stopOpacity="0" /></radialGradient>
+        <linearGradient id="af-screen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset="1" stopColor="#efe8da" /></linearGradient>
+        <clipPath id="af-clip"><rect width="520" height="300" rx="22" /></clipPath>
+        <filter id="af-blur"><feGaussianBlur stdDeviation="14" /></filter>
       </defs>
-      <rect width="520" height="300" rx="22" fill="#0f1e3a" />
-      <path d="M40 300V70Q260-20 480 70v230" fill="#0a1628" stroke="#ef9f27" strokeOpacity=".5" strokeWidth="3" />
-      <polygon points="260,20 170,250 350,250" fill="url(#af-spot)" />
-      <rect x="40" y="230" width="440" height="70" fill="url(#af-floor)" />
-      <ellipse cx="260" cy="250" rx="92" ry="12" fill="#ffd98a" opacity=".22" />
-      <path d="M40 70Q100 40 150 52C140 120 132 200 150 300H40Z" fill="url(#af-curt)" />
-      <path d="M480 70Q420 40 370 52c10 68 18 148 0 248H480Z" fill="url(#af-curt)" />
-      <path d="M150 52c-12 80-14 160 0 248" stroke="#3d0b15" strokeOpacity=".5" strokeWidth="3" fill="none" />
-      <path d="M370 52c12 80 14 160 0 248" stroke="#3d0b15" strokeOpacity=".5" strokeWidth="3" fill="none" />
-      <g fill="none" stroke="#ef9f27" strokeWidth="3.2" strokeLinecap="round">
-        <path d="M228 168c-9 10-9 28 0 38" opacity=".9" /><path d="M212 156c-16 18-16 44 0 62" opacity=".6" /><path d="M196 144c-23 26-23 60 0 86" opacity=".35" />
-        <path d="M292 168c9 10 9 28 0 38" opacity=".9" /><path d="M308 156c16 18 16 44 0 62" opacity=".6" /><path d="M324 144c23 26 23 60 0 86" opacity=".35" />
+      <rect width="520" height="300" rx="22" fill="#0a1628" />
+      <ellipse cx="260" cy="110" rx="250" ry="120" fill="url(#af-glow)" filter="url(#af-blur)" />
+      <path d="M58 40Q260 26 462 40V182Q260 170 58 182Z" fill="url(#af-screen)" />
+      <path d="M58 40Q260 26 462 40" stroke="#ef9f27" strokeOpacity=".7" strokeWidth="2" fill="none" />
+      <rect x="170" y="140" width="180" height="9" rx="4.5" fill="#0a1628" opacity=".78" />
+      <rect x="205" y="155" width="110" height="9" rx="4.5" fill="#0a1628" opacity=".78" />
+      <g fill="none" stroke="#ef9f27" strokeWidth="3" strokeLinecap="round">
+        <path d="M244 82c-6 7-6 19 0 26" /><path d="M233 74c-11 12-11 30 0 42" opacity=".55" />
+        <path d="M276 82c6 7 6 19 0 26" /><path d="M287 74c11 12 11 30 0 42" opacity=".55" />
       </g>
-      <circle cx="260" cy="187" r="15" fill="#ef9f27" /><circle cx="260" cy="187" r="6" fill="#0a1628" />
-      <g fill="#f5f0e8" opacity=".85">{[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => <circle key={i} cx={70 + i * 47.5} cy={282} r="4" />)}</g>
+      <circle cx="260" cy="95" r="9" fill="#ef9f27" />
+      <g clipPath="url(#af-clip)">
+        {seats(206, 9, 44, 26, '#17294a')}
+        {seats(232, 10, 46, 30, '#13223f')}
+        {seats(262, 11, 48, 38, '#0f1c34')}
+      </g>
     </svg>
   )
 }
