@@ -11,6 +11,7 @@ import {
 } from '@/lib/home-data'
 import { getMostFinished } from '@/lib/most-finished'
 import { getFeaturedAuthor } from '@/lib/featured-author'
+import { getAfishaTeaser } from '@/lib/afisha-teaser'
 
 /**
  * Головна тепер збирається на сервері.
@@ -28,7 +29,7 @@ import { getFeaturedAuthor } from '@/lib/featured-author'
 export const revalidate = 3600
 
 export default async function HomePage() {
-  const [seriesData, freshStories, fairytales, tyshaItems, genreCounts, stats, authors, mostFinished, featured] =
+  const [seriesData, freshStories, fairytales, tyshaItems, genreCounts, stats, authors, mostFinished, featured, afisha] =
     await Promise.all([
     // Баланс головної, рішення 09.09.2026: серіали автора платформи забирали
     // більшу частину екрана — три великі картки «Балабонів» плюс три «Тиші»
@@ -54,6 +55,8 @@ export default async function HomePage() {
     getMostFinished(5, { storiesOnly: true, onePerAuthor: true }),
     // 21.10.2026: «Знайомтеся: автор тижня» — lib/featured-author.ts
     getFeaturedAuthor(),
+    // 16.11.2026: «Афіша без барʼєрів» на головній — lib/afisha-teaser.ts
+    getAfishaTeaser(3),
   ])
 
   return (
@@ -69,6 +72,7 @@ export default async function HomePage() {
         authors={authors}
         mostFinished={mostFinished}
         featured={featured}
+        afisha={afisha}
       />
     </>
   )

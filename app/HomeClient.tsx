@@ -10,6 +10,8 @@ import FAQ from './components/FAQ'
 import AudioPlayer from './components/AudioPlayer'
 import DemoAudioPlayer from './components/DemoAudioPlayer'
 import Footer from './components/Footer'
+import AfishaTeaser from './components/AfishaTeaser'
+import type { TeaserItem } from '@/lib/afisha-teaser'
 import FairytalesSection from './components/FairytalesSection'
 import { ThemeProvider } from './context/ThemeContext'
 import SeriesStrip, { type SeriesCard } from './components/SeriesStrip'
@@ -62,6 +64,7 @@ export default function HomeClient({
   authors,
   mostFinished = [],
   featured = null,
+  afisha = [],
 }: {
   seriesData: SeriesCard[]
   freshStories: Story[]
@@ -72,6 +75,7 @@ export default function HomeClient({
   authors: StripAuthor[]
   mostFinished?: FinishedItem[]
   featured?: FA | null
+  afisha?: TeaserItem[]
 }) {
 
   // Доскрол до якоря після того, як ліниві секції
@@ -155,6 +159,9 @@ export default function HomeClient({
           <FreshStoriesGrid stories={freshStories} />
         </div>
       )}
+
+      {/* 16.11.2026: «Афіша без барʼєрів» — одразу після свіжих історій */}
+      <AfishaTeaser items={afisha} />
 
       {/* 24.09.2026: «Найбільше дочитують» одразу після свіжих історій —
           посилання з головної на найкращі твори допомагають їм потрапити в
