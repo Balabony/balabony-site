@@ -56,12 +56,14 @@ function d(iso: string | null): string {
   return `${String(t.getDate()).padStart(2, '0')}.${String(t.getMonth() + 1).padStart(2, '0')}.${t.getFullYear()}`
 }
 
-/** Строк за п. 4.2 — три роки від дати публікації конкретного Твору. */
+/**
+ * Строк за п. 4.2 — три роки від дати публікації Твору; для Творів, опублікованих
+ * до початку нарахування винагороди, — від дати початку нарахування (п. 4.2-2, v8.7).
+ * Поки нарахування не почалося, дати кінця ще немає.
+ */
 function termEnd(publishedAt: string | null): string {
   if (!publishedAt) return '—'
-  const t = new Date(publishedAt)
-  if (isNaN(t.getTime())) return '—'
-  return d(new Date(t.getFullYear() + 3, t.getMonth(), t.getDate()).toISOString())
+  return '3 роки з початку виплат'
 }
 
 export default async function DodatokPage({ params }: { params: Promise<{ id: string }> }) {
@@ -190,7 +192,9 @@ export default async function DodatokPage({ params }: { params: Promise<{ id: st
               Усього творів у переліку: <strong style={{ color: BRAND.ink }}>{works.length}</strong>,
               з них зі статусом «опубліковано»: <strong style={{ color: BRAND.ink }}>{published}</strong>.
               Договором охоплені Твори зі статусом «опубліковано». Строк передачі прав обчислюється
-              окремо для кожного Твору — три роки від дати його публікації на Платформі (п. 4.2).
+              окремо для кожного Твору — три роки від дати його публікації на Платформі (п. 4.2), а для
+              Творів, опублікованих до початку нарахування винагороди, — від дати початку нарахування
+              (п. 4.2-2). До початку нарахування Автор може будь-коли відмовитися від Ліцензії.
               Перелік формується автоматично і є невідʼємною частиною Договору.
             </p>
 

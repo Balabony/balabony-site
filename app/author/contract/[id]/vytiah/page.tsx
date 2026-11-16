@@ -150,7 +150,8 @@ export default async function RightsStatementPage({ params }: { params: Promise<
         <p style={p}>
           Territory: worldwide (cl. 4.1). Term of assignment:
           <strong> three years for each Work separately</strong>, running from the date that Work is
-          published on the platform (cl. 4.2). This time limit does not apply to derivative works or
+          published on the platform (cl. 4.2); for Works published before royalty payments start, from the
+          date payments start, and until then the author may withdraw at any time (cl. 4.2-2). This time limit does not apply to derivative works or
           to the licence under cl. 3.18, which are perpetual (cl. 4.2-1).
         </p>
 
