@@ -119,7 +119,7 @@ const GROUPS: SitemapGroup[] = [
     links: [
       { href: '/pro-balabony', label: 'Про проєкт', note: 'UA · EN' },
       { href: '/about',    label: 'Про автора' },
-      { href: '/vydannya', label: 'Друковані видання',  note: 'Газети та журнали' },
+      { href: '/vydannya', label: 'Друковані видання',  note: 'Газети' },
       { href: '/contacts', label: 'Контакти',           note: 'Контактні дані та звернення' },
       { href: '/survey',   label: 'Опитування',         note: 'Поділіться думкою' },
     ],
