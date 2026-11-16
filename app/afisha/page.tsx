@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { ThemeProvider } from '../context/ThemeContext'
-import { upcoming, upcomingPremieres, ACCESS_LABEL, fromRows } from '@/lib/afisha'
+import { upcoming, upcomingPremieres, ACCESS_LABEL, fromRows, HOME_WATCH } from '@/lib/afisha'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { AccessIcon, StageArt } from './AfishaArt'
 import type { Access } from '@/lib/afisha'
@@ -69,7 +69,7 @@ export default async function AfishaPage() {
           {films.length > 0 && (
             <section aria-labelledby="kino" style={{ marginBottom: 40 }}>
               <h2 id="kino" style={{ fontSize: 24, color: CREAM, margin: '0 0 6px' }}>Кіно: прем’єри й анонси</h2>
-              <p style={{ margin: '0 0 16px', color: '#9fb0c8', fontSize: 14.5, lineHeight: 1.6 }}>Анонси від наших партнерів-дистрибʼюторів. Чи будуть сеанси із субтитрами чи аудіодескрипцією, уточнюємо й допишемо тут.</p>
+              <p style={{ margin: '0 0 16px', color: '#9fb0c8', fontSize: 14.5, lineHeight: 1.6 }}>Субтитри чи аудіодескрипцію вмикаєте в застосунку на своєму телефоні — на будь-якому сеансі фільму зі значком. Без значків — анонси, формат доступності ще уточнюємо.</p>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 18 }}>
                 {films.map((f) => { const id = ytId(f.trailer); return (
                   <li key={f.date + f.title} style={{ background: '#0f1e3a', border: '1px solid rgba(239,159,39,0.25)', borderRadius: 18, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -114,6 +114,24 @@ export default async function AfishaPage() {
               </li>
             ))}
           </ul>
+
+          {/* 16.11.2026: «Дивитися вдома» — доступний контент MEGOGO та Київстар ТБ (lib/afisha.ts, HOME_WATCH) */}
+          <section aria-labelledby="vdoma" style={{ marginBottom: 40 }}>
+            <h2 id="vdoma" style={{ fontSize: 24, color: CREAM, margin: '0 0 6px' }}>Дивитися вдома</h2>
+            <p style={{ margin: '0 0 16px', color: '#9fb0c8', fontSize: 14.5, lineHeight: 1.6 }}>Онлайн-сервіси, де є кіно й серіали з жестовою мовою, субтитрами чи аудіоописом.</p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 18 }}>
+              {HOME_WATCH.map((h) => (
+                <li key={h.title} style={{ background: '#0f1e3a', border: '1px solid rgba(239,159,39,0.25)', borderRadius: 18, padding: '16px 18px 18px', display: 'grid', gap: 8, alignContent: 'start' }}>
+                  <p style={{ margin: 0, color: GOLD, fontWeight: 700, fontSize: 14 }}>{h.service}</p>
+                  <h3 style={{ margin: 0, color: CREAM, fontSize: 20, lineHeight: 1.3 }}>{h.title}</h3>
+                  <p style={{ margin: 0, display: 'flex', flexWrap: 'wrap', gap: 8 }}>{h.access.map((a) => <Badge key={a} a={a} />)}</p>
+                  <p style={{ margin: 0, color: '#dbe4f0', fontSize: 15, lineHeight: 1.6 }}>{h.about}</p>
+                  <p style={{ margin: 0, color: '#dbe4f0', fontSize: 15, lineHeight: 1.6 }}><strong style={{ color: CREAM }}>Як дивитися:</strong> {h.how}</p>
+                  <p style={{ margin: 0, fontSize: 15 }}><a href={h.href} target="_blank" rel="noopener noreferrer" style={{ color: GOLD, fontWeight: 700 }}>Відкрити {h.service}<span style={SR}> (відкриється в новій вкладці)</span></a></p>
+                </li>
+              ))}
+            </ul>
+          </section>
 
           <section aria-labelledby="dodaty" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18, alignItems: 'center', background: 'linear-gradient(135deg,rgba(239,159,39,0.16),rgba(239,159,39,0.05))', border: `1px solid ${GOLD}55`, borderRadius: 18, padding: '22px 24px', marginBottom: 26 }}>
             <div>
