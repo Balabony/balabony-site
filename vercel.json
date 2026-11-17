@@ -29,6 +29,10 @@
       "schedule": "50 * * * *"
     },
     {
+      "path": "/api/cron/ai-authorship-watch",
+      "schedule": "20 * * * *"
+    },
+    {
       "path": "/api/cron/grammar-auto",
       "schedule": "40 * * * *"
     },
