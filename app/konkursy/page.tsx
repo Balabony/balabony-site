@@ -6,6 +6,7 @@ import WinnerBadge from '@/app/components/WinnerBadge'
 import { AWARDS as WINNERS, PLACE_LABEL } from '@/lib/contest-winners'
 import { CONTESTS, findContest, isOpen, prizeFund, prizeLine, topPrize, type Contest } from '@/lib/contests'
 import KlubCta from '@/app/components/KlubCta'
+import AiRulesNote from '@/app/components/AiRulesNote'
 import { KIDS_CONTEST, contestState } from '@/lib/kids-contest'
 
 /**
@@ -1226,6 +1227,7 @@ export default function KonkursyPage() {
           <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(22px, 4.5vw, 28px)', color: CREAM, fontWeight: 700, margin: '0 0 10px' }}>
             Літературні конкурси Балабонів
           </h1>
+          <AiRulesNote />
           <p style={{ margin: '0 0 12px', color: SOFT, fontSize: 16, lineHeight: 1.7 }}>
             <strong style={{ color: GOLD }}>Підтримуємо нових авторів: публікуємо їхні історії та даємо читачів.</strong>
           </p>

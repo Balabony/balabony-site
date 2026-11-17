@@ -1,3 +1,4 @@
+import AiRulesNote from '@/app/components/AiRulesNote'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -164,6 +165,7 @@ export default async function ContestPage(
           <p style={{ fontSize: 17, lineHeight: 1.65, color: SOFT, margin: '14px 0 0' }}>
             {c.tagline}
           </p>
+          <AiRulesNote />
 
           <div style={{
             marginTop: 20, padding: '14px 16px', borderRadius: 10,

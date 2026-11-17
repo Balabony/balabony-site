@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Breadcrumbs from '@/app/components/Breadcrumbs'
 import ContestSubmitForm from '@/app/components/ContestSubmitForm'
+import AiRulesNote from '@/app/components/AiRulesNote'
 
 /**
  * Подача твору на конкурс.
@@ -68,6 +69,7 @@ export default function Page() {
           Тут сама подача.
         </p>
 
+        <AiRulesNote />
         <ContestSubmitForm />
 
         <h2 style={{ fontFamily: SERIF, fontSize: '1.4rem', color: GOLD, margin: '2.5rem 0 1rem' }}>

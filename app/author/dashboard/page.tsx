@@ -5,6 +5,8 @@ import { createSupabaseServerClient } from '@/lib/supabase-ssr'
 import NarrationOrderForm from '@/app/components/NarrationOrderForm'
 import EditDraftForm from '@/app/components/EditDraftForm'
 import AuthorContracts, { type ContractRow } from '@/app/components/AuthorContracts'
+import AuthorContractAck from '@/app/components/AuthorContractAck'
+import { CONTRACT_REVISION, CONTRACT_REVISION_DATE } from '@/lib/contract/template'
 import AuthorRequisites, { type Requisites } from '@/app/components/AuthorRequisites'
 import AuthorRevisions from '@/app/components/AuthorRevisions'
 import AuthorSurvey, { type Feedback } from '@/app/components/AuthorSurvey'
@@ -548,6 +550,19 @@ export default async function AuthorDashboardPage() {
 
   // Скільки творів чекають підтвердження і в якому договорі. Договір зазвичай
   // один; якщо їх кілька, ведемо в перший, де є непідтверджені.
+  // 17.11.2026: чи ознайомився автор із поточною редакцією договору (v8.8)
+  let ackNeeded = false
+  if (contracts.some(c => c.status === 'signed')) {
+    try {
+      const ak = await dbQuery(
+        `select 1 from author_contract_acks where user_id = $1 and revision = $2`,
+        [user.id, CONTRACT_REVISION],
+      )
+      ackNeeded = ak.rows.length === 0
+    } catch {
+      ackNeeded = false // таблиці ще немає — блок не показуємо
+    }
+  }
   const pendingWorks = contracts.reduce((n, c) => n + (c.pending_count ?? 0), 0)
   const pendingContractId = contracts.find(c => (c.pending_count ?? 0) > 0)?.id ?? null
 
@@ -1539,6 +1554,8 @@ export default async function AuthorDashboardPage() {
         )}
 
         <AuthorRequisites initial={requisites} />
+
+        {ackNeeded && <AuthorContractAck revision={CONTRACT_REVISION} revisionDate={CONTRACT_REVISION_DATE} />}
 
         <AuthorContracts contracts={contracts} diiaEnabled={Boolean((process.env.SIGN_SERVICE_URL ?? '').trim())} />
 
