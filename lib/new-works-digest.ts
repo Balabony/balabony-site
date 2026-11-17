@@ -11,7 +11,8 @@
 import { Resend } from 'resend'
 import { dbQuery } from '@/lib/db'
 
-const TO = 'nazar@balabony.com'
+// 17.11.2026: лист іде лише двом редакторам (Богдан: «автоматом все передавай редакторам», собі — не надсилати).
+const TO = ['petrivska64@ukr.net', 'novatska.t@gmail.com']
 const SITE = 'https://balabony.com'
 
 type Row = { id: string; title: string | null; author_name: string | null; status: string; published: boolean; contest: boolean }
