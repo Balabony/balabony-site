@@ -218,7 +218,7 @@ ${AI_POLICY_SHORT}
 ВІДПОВІДІ АВТОРА НА ЗАПИТАННЯ
 Оціни конкретність, узгодженість із текстом (наприклад, чи цитата з п. 3 справді є в тексті), відповідність стилю відповідей стилю твору, чесність розкриття використання ШІ (п. 9) з огляду на політику платформи. Розбіжність стилів — привід придивитися, не доказ.
 
-ФОРМАТ ВІДПОВІДІ — ЛИШЕ JSON, без markdown і пояснень поза ним:
+ФОРМАТ ВІДПОВІДІ — ЛИШЕ JSON, без markdown і пояснень поза ним. Усередині рядків не вживай прямих подвійних лапок ("): цитати з діалогів і власні назви в лапках пиши в «ялинках», а якщо без прямих лапок ніяк — екрануй їх як \\". Переносів рядків усередині рядків не роби:
 {
   "level": "низьку" | "помірну" | "значну" | "дуже значну",
   "summary": "2–4 речення: «Текст демонструє … концентрацію ознак, сумісних із AI-assisted writing» і головне обґрунтування",
@@ -262,6 +262,35 @@ function verifyQuotes(r: StyleResult, text: string): StyleResult {
   return r
 }
 
+const JSON_RETRY_NOTE = `
+
+УВАГА: попередня відповідь була зламаним JSON. Поверни ЛИШЕ коректний JSON. У рядках жодних прямих подвійних лапок — лише «ялинки»; цитати коротші, без переносів рядків усередині рядків.`
+
+/** 18.11.2026: модель іноді лишає в рядках JSON неекрановані прямі лапки (цитата з діалогу) — тоді
+ *  JSON.parse падає («Expected ',' or '}' after property value»). Спершу пробуємо як є, потім
+ *  чинимо: лапка всередині рядка вважається закриваючою, лише якщо за нею (після пробілів)
+ *  йде , } ] або :. Решту екрануємо; «голі» переноси рядків у рядках — теж. */
+export function parseModelJson<T>(src: string): T {
+  try { return JSON.parse(src) as T } catch { /* пробуємо виправити */ }
+  let out = '', inStr = false
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i]
+    if (!inStr) { out += ch; if (ch === '"') inStr = true; continue }
+    if (ch === '\\') { out += ch + (src[i + 1] ?? ''); i++; continue }
+    if (ch === '\n') { out += '\\n'; continue }
+    if (ch === '"') {
+      let j = i + 1
+      while (j < src.length && /\s/.test(src[j])) j++
+      const nx = src[j]
+      if (nx === undefined || nx === ',' || nx === '}' || nx === ']' || nx === ':') { out += ch; inStr = false }
+      else out += '\\"'
+      continue
+    }
+    out += ch
+  }
+  return JSON.parse(out) as T
+}
+
 export async function runStyleCheck(p: { title: string; genre: string; text: string; answers: Answers | null }):
   Promise<{ stats: StyleStats; result: StyleResult }> {
   const key = process.env.ANTHROPIC_API_KEY
@@ -271,18 +300,18 @@ export async function runStyleCheck(p: { title: string; genre: string; text: str
   // 13.10.2026: модель іноді повертає зламаний JSON (лапки в цитаті) — одна повторна спроба.
   let parsed: StyleResult | null = null
   let lastErr: Error | null = null
-  for (let attempt = 0; attempt < 2 && !parsed; attempt++) {
+  for (let attempt = 0; attempt < 3 && !parsed; attempt++) {
     const msg = await client.messages.create({
       model: STYLE_MODEL,
       max_tokens: 6000,
-      messages: [{ role: 'user', content: buildPrompt({ ...p, stats }) }],
+      messages: [{ role: 'user', content: buildPrompt({ ...p, stats }) + (attempt > 0 ? JSON_RETRY_NOTE : '') }],
     })
     const raw = msg.content.map((c) => (c.type === 'text' ? c.text : '')).join('').trim()
     const clean = raw.replace(/```json/g, '').replace(/```/g, '').trim()
     const start = clean.indexOf('{'), end = clean.lastIndexOf('}')
     try {
       if (start < 0 || end < 0) throw new Error('Модель не повернула JSON')
-      parsed = JSON.parse(clean.slice(start, end + 1)) as StyleResult
+      parsed = parseModelJson<StyleResult>(clean.slice(start, end + 1))
     } catch (e) { lastErr = e as Error }
   }
   if (!parsed) throw lastErr ?? new Error('Модель не повернула JSON')
@@ -326,7 +355,7 @@ export async function runStyleCheckGemini(p: { title: string; genre: string; tex
         const clean = res.response.text().replace(/```json/g, '').replace(/```/g, '').trim()
         const start = clean.indexOf('{'), end = clean.lastIndexOf('}')
         if (start < 0 || end < 0) throw new Error('Модель не повернула JSON')
-        const parsed = JSON.parse(clean.slice(start, end + 1)) as StyleResult
+        const parsed = parseModelJson<StyleResult>(clean.slice(start, end + 1))
         const result = verifyQuotes(parsed, p.text)
         result.scenario = String(result.scenario ?? '').replace(/^\s*(найімовірніший сценарій\s*:\s*)+/i, '')
         result.index = computeIndex(result.markers)
