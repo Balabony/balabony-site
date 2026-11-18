@@ -4,6 +4,7 @@ import { runStyleCheck, runStyleCheckGemini, textHash, STYLE_MODEL } from '@/lib
 import { AI_DOUBT, ensureGeminiTable } from '@/lib/ai-style-gemini'
 import type { Answers } from '@/lib/author-questions'
 import { sendApplicationToEditors, ensureReviewTable } from '@/lib/application-review'
+import { assignCheckedContent } from '@/lib/content-review'
 
 /**
  * Автоматичний нагляд за ШІ-авторством (рішення Богдана 17.11.2026, п. 8.11 договору v8.8).
@@ -345,6 +346,8 @@ export async function runAiAuthorshipWatch(budgetMs = 240_000): Promise<{ checke
   // таблиця application_reviews створюється в ensureReviewTable (lib/application-review)
   await ensureReviewTable()
   checked.push(...(await assignCheckedApplications()))
+  // 18.11.2026: затримані твори нових авторів — редакторам, які вирішують самі (lib/content-review.ts)
+  checked.push(...(await assignCheckedContent()))
   const alerted: string[] = []
   for (const h of await findHits()) {
     // Спершу фіксуємо, потім шлемо: краще пропустити лист, ніж слати щогодини.

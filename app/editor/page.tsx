@@ -4,6 +4,7 @@ import { getEditor } from '@/lib/editor-auth'
 import { findContest } from '@/lib/contests'
 import LogoutButton from './LogoutButton'
 import { ensureReviewTable, VERDICTS, type Verdict } from '@/lib/application-review'
+import { ensureContentReviewTable } from '@/lib/content-review'
 
 /**
  * Кабінет редактора конкурсів — перелік призначених робіт.
@@ -78,6 +79,19 @@ export default async function EditorHomePage() {
   )
   const apps = ap.rows as { id: string; title: string; genre: string | null; words: number; verdict: Verdict | null }[]
 
+  // 18.11.2026: твори, затримані до перевірки, — редактор вирішує сам (опублікувати / повернути автору).
+  await ensureContentReviewTable()
+  const cr = await dbQuery(
+    `select c.id::text as id, c.title, c.genre,
+            array_length(regexp_split_to_array(trim(coalesce(c.text,'')), '\\s+'), 1) as words
+       from content_reviews r
+       join content c on c.id = r.content_id
+      where r.editor_id = $1 and r.decision is null and c.status::text = 'review'
+      order by r.assigned_at`,
+    [editor.id],
+  )
+  const held = cr.rows as { id: string; title: string; genre: string | null; words: number | null }[]
+
   return (
     <main style={{ background: NAVY, minHeight: '100vh', padding: '28px 18px 80px', fontFamily: FONT, color: CREAM }}>
       <div style={{ maxWidth: 820, margin: '0 auto' }}>
@@ -91,13 +105,40 @@ export default async function EditorHomePage() {
           <LogoutButton color={MUTED} />
         </div>
 
+        {held.length > 0 && (
+          <>
+            <h1 style={{ fontSize: 21, color: GOLD_L, fontWeight: 600, margin: '1.4rem 0 .3rem' }}>
+              Твори на перевірці
+            </h1>
+            <p style={{ color: MUTED, fontSize: 13.5, margin: '0 0 1rem', lineHeight: 1.6 }}>
+              Автор хотів опублікувати твір сам, але його затримано до перевірки редактором. Рішення остаточне: опублікувати або повернути автору з коментарем.
+            </p>
+            {held.map(h => (
+              <a
+                key={h.id}
+                href={`/editor/tvir/${h.id}`}
+                style={{
+                  display: 'block', textDecoration: 'none', color: CREAM,
+                  background: CARD, border: `1px solid ${LINE}`, borderRadius: 12,
+                  padding: '.9rem 1rem', marginBottom: '.7rem',
+                }}
+              >
+                <span style={{ fontSize: 15.5, fontWeight: 600, color: GOLD_L }}>«{h.title}»</span>
+                <div style={{ fontSize: 12.5, color: MUTED, marginTop: 4 }}>
+                  {h.genre ? `${h.genre} · ` : ''}слів: {(h.words ?? 0).toLocaleString('uk-UA')}
+                </div>
+              </a>
+            ))}
+          </>
+        )}
+
         {apps.length > 0 && (
           <>
             <h1 style={{ fontSize: 21, color: GOLD_L, fontWeight: 600, margin: '1.4rem 0 .3rem' }}>
               Заявки нових авторів
             </h1>
             <p style={{ color: MUTED, fontSize: 13.5, margin: '0 0 1rem', lineHeight: 1.6 }}>
-              Історії з форми «Стати автором». Порадьте, чи приймати автора, — рішення ухвалює редакція.
+              Історії з форми «Стати автором». Рішення ваше й остаточне: приймати автора чи ні, автор одразу отримає лист.
             </p>
             {apps.map(a => (
               <a
