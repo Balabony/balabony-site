@@ -3,6 +3,7 @@ import { dbQuery } from '@/lib/db'
 import { runStyleCheck, runStyleCheckGemini, textHash, STYLE_MODEL } from '@/lib/ai-style-check'
 import { AI_DOUBT, ensureGeminiTable } from '@/lib/ai-style-gemini'
 import type { Answers } from '@/lib/author-questions'
+import { sendApplicationToEditors, ensureReviewTable } from '@/lib/application-review'
 
 /**
  * Автоматичний нагляд за ШІ-авторством (рішення Богдана 17.11.2026, п. 8.11 договору v8.8).
@@ -167,6 +168,42 @@ async function checkApplications(started: number, budgetMs: number): Promise<str
   return done
 }
 
+/** 18.11.2026 (рішення Богдана): перевірена заявка автора одразу йде редакторам, які вирішують самі
+ *  (прийняти / після доопрацювання / відхилити — і автору одразу лист). Не йдуть лише ті, де ОБИДВІ системи ≥ AI_DOUBT:
+ *  їх тримаємо для Богдана (автору вже пішов лист-попередження). Якщо Claude ≥ AI_DOUBT, а Gemini нижче —
+ *  сумнів на користь автора, заявка йде редакторам. Заявку, якій вже призначали редакторів, не чіпаємо. */
+async function assignCheckedApplications(): Promise<string[]> {
+  const out: string[] = []
+  const r = await dbQuery(
+    `with cl as (
+       select distinct on (source_id) source_id, (result->>'index')::int as idx
+         from ai_style_checks where source = 'application' order by source_id, created_at desc),
+     ge as (
+       select distinct on (source_id) source_id, (result->>'index')::int as idx
+         from ai_style_checks_gemini where source = 'application' order by source_id, created_at desc)
+     select a.id::text as id, a.title
+       from author_applications a
+       join cl on cl.source_id = a.id::text
+       left join ge on ge.source_id = a.id::text
+      where a.status = 'new'
+        and a.created_at > now() - ($2 || ' days')::interval
+        and (cl.idx < $1 or ge.idx < $1)
+        and not exists (select 1 from application_reviews rv where rv.application_id = a.id)
+      order by a.created_at
+      limit 5`,
+    [AI_DOUBT, String(WINDOW_DAYS)],
+  )
+  for (const x of r.rows as { id: string; title: string }[]) {
+    try {
+      const sent = await sendApplicationToEditors(x.id)
+      out.push(`заявка «${x.title}» → ${sent.sent.join(', ') || 'нікому'}`)
+    } catch (err) {
+      console.error('[ai-watch assign]', x.id, (err as Error)?.message)
+    }
+  }
+  return out
+}
+
 type Hit = { source: 'contest' | 'content' | 'application'; id: string; title: string; author: string; email: string; claude: number; gemini: number }
 
 /** Крок 3: твори, де обидві системи ≥ AI_DOUBT і лист ще не слали. */
@@ -305,6 +342,9 @@ export async function runAiAuthorshipWatch(budgetMs = 240_000): Promise<{ checke
   const started = Date.now()
   await ensureAlertsTable()
   const checked = [...(await checkApplications(started, budgetMs)), ...(await checkContent(started, budgetMs))]
+  // таблиця application_reviews створюється в ensureReviewTable (lib/application-review)
+  await ensureReviewTable()
+  checked.push(...(await assignCheckedApplications()))
   const alerted: string[] = []
   for (const h of await findHits()) {
     // Спершу фіксуємо, потім шлемо: краще пропустити лист, ніж слати щогодини.

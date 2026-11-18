@@ -2,10 +2,13 @@ import { after, NextRequest, NextResponse } from 'next/server'
 import { dbQuery } from '@/lib/db'
 import { getEditorByToken, EDITOR_COOKIE } from '@/lib/editor-auth'
 import { ensureReviewTable, mailVerdictToAdmin, VERDICTS, type Verdict } from '@/lib/application-review'
+import { decideApplication, DecisionError } from '@/lib/application-decision'
 
 /**
- * Відгук редактора на заявку нового автора (30.10.2026).
- * Лише своя призначена заявка, лише поки рішення не ухвалено. Відгук можна оновити.
+ * Рішення редактора щодо заявки нового автора (30.10.2026; з 18.11.2026 — остаточне, рішення Богдана:
+ * «редактори вирішують самі»). «Приймати» і «Приймати після доопрацювання» — заявку прийнято, «Відхилити» — відхилено;
+ * автору одразу йде лист з коментарем редактора. Лише своя призначена заявка, лише поки рішення не ухвалено;
+ * хто першим вирішив — той і вирішив (другому редакторові система скаже, що рішення вже ухвалено).
  */
 
 export const dynamic = 'force-dynamic'
@@ -43,6 +46,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Заявку вам не призначено або рішення вже ухвалено' }, { status: 403 })
   }
   const title = (r.rows[0] as { title: string }).title
-  after(() => mailVerdictToAdmin({ editor: editor.name, appId, title, verdict: verdict as Verdict, comment }))
-  return NextResponse.json({ ok: true })
+  let outcome: 'accepted' | 'rejected'
+  try {
+    const d = await decideApplication(appId, verdict === 'reject' ? 'reject' : 'accept', comment, { reconsider: false })
+    outcome = d.status
+  } catch (err) {
+    if (err instanceof DecisionError) return NextResponse.json({ ok: false, error: err.message }, { status: err.status })
+    console.error('[editor/application-review decide]', (err as Error)?.message)
+    after(() => mailVerdictToAdmin({ editor: editor.name, appId, title, verdict: verdict as Verdict, comment, outcome: null }))
+    return NextResponse.json({ ok: false, error: 'Не вдалося ухвалити рішення. Редакцію повідомлено.' }, { status: 500 })
+  }
+  after(() => mailVerdictToAdmin({ editor: editor.name, appId, title, verdict: verdict as Verdict, comment, outcome }))
+  return NextResponse.json({ ok: true, outcome })
 }

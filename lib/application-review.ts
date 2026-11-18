@@ -7,8 +7,8 @@
 // текст, відповіді на запитання і форма «Приймати / Доопрацювати / Відхилити».
 // Відгук приходить Богданові листом і видно в картці заявки.
 //
-// Рішення (прийняти/відхилити, лист автору) лишається за адмінкою — редактор
-// лише радить. Імені автора редактор не бачить, як і в конкурсах.
+// Рішення (прийняти/відхилити, лист автору) з 18.11.2026 ухвалює редактор сам (рішення Богдана);
+// раніше лише радив, а рішення лишалося за адмінкою. Імені автора редактор не бачить, як і в конкурсах.
 // =============================================================================
 
 import { Resend } from 'resend'
@@ -67,13 +67,15 @@ export async function sendApplicationToEditors(appId: string): Promise<{ sent: s
   return { sent, already }
 }
 
-/** Лист Богданові, коли редактор дав відгук. */
-export async function mailVerdictToAdmin(p: { editor: string; appId: string; title: string; verdict: Verdict; comment: string }) {
+/** Лист Богданові, коли редактор ухвалив рішення (з 18.11.2026 — остаточне; outcome null — рішення не вдалося виконати). */
+export async function mailVerdictToAdmin(p: { editor: string; appId: string; title: string; verdict: Verdict; comment: string; outcome?: 'accepted' | 'rejected' | null }) {
+  const done = p.outcome === 'accepted' ? 'Заявку ПРИЙНЯТО, автору надіслано лист, чернетку створено.' : p.outcome === 'rejected' ? 'Заявку ВІДХИЛЕНО, автору надіслано лист.' : 'УВАГА: рішення не виконано (помилка), заявка досі «нова» — перегляньте її.'
   await mail(EDITOR_EMAIL, `[Балабони] ${p.editor}: «${p.title}» — ${VERDICTS[p.verdict]}`, `
-    <p style="color:#c8d4e8;line-height:1.7;">Відгук редактора <strong style="color:#f5f0e8;">${esc(p.editor)}</strong> на заявку #${esc(p.appId)} «${esc(p.title)}»:</p>
+    <p style="color:#c8d4e8;line-height:1.7;">Рішення редактора <strong style="color:#f5f0e8;">${esc(p.editor)}</strong> на заявку #${esc(p.appId)} «${esc(p.title)}»:</p>
     <p style="color:#ef9f27;font-size:17px;font-weight:700;">${VERDICTS[p.verdict]}</p>
     <p style="color:#c8d4e8;line-height:1.7;white-space:pre-wrap;">${esc(p.comment)}</p>
-    <p style="color:#c8d4e8;line-height:1.7;">Вирішити: <a href="${SITE}/admin/zayavky-avtoriv" style="color:#ef9f27">${SITE}/admin/zayavky-avtoriv</a></p>`)
+    <p style="color:#ef9f27;line-height:1.7;">${done}</p>
+    <p style="color:#c8d4e8;line-height:1.7;">Заявки: <a href="${SITE}/admin/zayavky-avtoriv" style="color:#ef9f27">${SITE}/admin/zayavky-avtoriv</a></p>`)
 }
 
 async function mail(to: string, subject: string, inner: string): Promise<void> {

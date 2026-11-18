@@ -23,8 +23,9 @@ export default function VerdictForm({ appId, verdict, comment, closed }: { appId
   const [msg, setMsg] = useState('')
 
   const save = async () => {
-    if (!v) { setMsg('Оберіть пораду'); return }
+    if (!v) { setMsg('Оберіть рішення'); return }
     if (c.trim().length < 30) { setMsg('Напишіть коментар — хоча б одне-два речення (від 30 символів)'); return }
+    if (!window.confirm(v === 'reject' ? 'Рішення остаточне: автор одразу отримає лист про відмову з вашим коментарем. Надіслати?' : 'Рішення остаточне: автору одразу відкриється кабінет і піде лист з вашим коментарем. Надіслати?')) return
     setBusy(true); setMsg('')
     try {
       const r = await fetch('/api/editor/application-review', {
@@ -32,7 +33,7 @@ export default function VerdictForm({ appId, verdict, comment, closed }: { appId
         body: JSON.stringify({ appId, verdict: v, comment: c }),
       })
       const d = await r.json() as { ok?: boolean; error?: string }
-      setMsg(d.ok ? 'Дякуємо! Відгук надіслано редакції.' : (d.error ?? 'Не вдалося зберегти'))
+      setMsg(d.ok ? 'Дякуємо! Рішення ухвалено, автор отримав лист.' : (d.error ?? 'Не вдалося зберегти'))
     } catch {
       setMsg('Немає звʼязку з сервером')
     } finally { setBusy(false) }
@@ -42,7 +43,7 @@ export default function VerdictForm({ appId, verdict, comment, closed }: { appId
 
   return (
     <div style={{ background: CARD, border: `1px solid ${LINE}`, borderRadius: 12, padding: '1rem 1.1rem', fontFamily: FONT }}>
-      <div style={{ fontSize: 16, fontWeight: 600, color: CREAM, marginBottom: 10 }}>Ваша порада</div>
+      <div style={{ fontSize: 16, fontWeight: 600, color: CREAM, marginBottom: 10 }}>Ваше рішення</div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
         {OPTIONS.map(([key, label, color]) => (
           <button key={key} type="button" onClick={() => setV(key)} aria-pressed={v === key}
@@ -55,14 +56,14 @@ export default function VerdictForm({ appId, verdict, comment, closed }: { appId
         ))}
       </div>
       <label style={{ display: 'block', fontSize: 13.5, color: MUTED, marginBottom: 6 }} htmlFor="verdict-comment">
-        Коментар: що вдалося, що поправити. Якщо радите доопрацювання — що саме. Автор цього не бачить; редакція може взяти поради в лист.
+        Коментар для автора: що вдалося, що поправити. Якщо потрібне доопрацювання — що саме. Автор отримає цей коментар у листі (без вашого імені), тож пишіть так, як написали б людині.
       </label>
       <textarea id="verdict-comment" value={c} onChange={e => setC(e.target.value)} maxLength={3000}
         style={{ width: '100%', boxSizing: 'border-box', minHeight: 120, padding: 10, borderRadius: 9, border: `1px solid ${LINE}`, background: NAVY, color: CREAM, fontFamily: FONT, fontSize: 14.5, lineHeight: 1.6 }} />
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 10, flexWrap: 'wrap' }}>
         <button type="button" disabled={busy} onClick={save}
           style={{ padding: '10px 18px', borderRadius: 9, border: 'none', background: '#ef9f27', color: NAVY, fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: FONT, opacity: busy ? 0.6 : 1 }}>
-          {busy ? 'Надсилаємо…' : verdict ? 'Оновити відгук' : 'Надіслати відгук'}
+          {busy ? 'Надсилаємо…' : 'Ухвалити рішення'}
         </button>
         {msg && <span role="status" style={{ fontSize: 14, color: MUTED }}>{msg}</span>}
       </div>
