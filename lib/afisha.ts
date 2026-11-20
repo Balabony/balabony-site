@@ -68,6 +68,16 @@ export type Premiere = {
 
 export const PREMIERES: Premiere[] = [
   {
+    date: '2027-02-04',
+    title: 'Льодовиковий період: Точка кипіння',
+    studio: '20th Century Animation',
+    genre: 'анімація, пригоди, комедія, сімейний',
+    cast: 'Рей Романо, Джон Леґвізамо, Квін Латіфа, Деніс Лірі, Саймон Пеґґ (оригінальне озвучення)',
+    about: 'Улюблена зграя — Менні, Сід, Дієго, Еллі, Бак та решта стада — вирушає в Загублений світ, де на неї чекають динозаври й потоки розпеченої лави. До Скрата, одержимого жолудями, цього разу приєднуються ще двоє: малюк Скрат і гігантський юрський Скрат.',
+    trailer: 'https://www.youtube.com/watch?v=kxqrF2rOINw',
+    distributor: 'Kinomania Film Distribution',
+  },
+  {
     date: '2027-03-04',
     title: 'Ґатто: девʼять життів Неро',
     studio: 'Pixar Animation Studios, Walt Disney Pictures',
