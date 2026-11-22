@@ -191,8 +191,11 @@ export async function countedReadsByEntry(): Promise<Map<string, number>> {
   const out = new Map<string, number>()
   try {
     const res = await dbQuery(SQL)
-    for (const r of res.rows as ContestCount[]) {
-      out.set(String(r.entryId), Number(r.counted) || 0)
+    // 22.11.2026: SQL віддає колонку entry_id (snake_case), а тут читали entryId — ключ завжди
+    // виходив "undefined", і адмінка показувала 0 зарахованих дочитувань у всіх заявок.
+    // Відкрита сторінка конкурсу цим не страждала (там інший запит).
+    for (const r of res.rows as { entry_id: string; counted: number }[]) {
+      out.set(String(r.entry_id), Number(r.counted) || 0)
     }
   } catch (err) {
     // Порожня мапа краща за пятисоту помилку: адмінка покаже нулі й
