@@ -23,6 +23,13 @@ const AMBER = '#ef9f27'
 const FONT = "'Montserrat', Arial, sans-serif"
 
 type Mode = 'all' | 'draft' | 'published'
+type Sort = 'default' | 'new' | 'old'
+
+const SORTS: { id: Sort; label: string }[] = [
+  { id: 'default', label: 'Звичайний порядок' },
+  { id: 'new', label: 'Спочатку нові' },
+  { id: 'old', label: 'Спочатку старі' },
+]
 
 const MODES: { id: Mode; label: string }[] = [
   { id: 'all', label: 'Усі' },
@@ -30,10 +37,37 @@ const MODES: { id: Mode; label: string }[] = [
   { id: 'published', label: 'Опубліковані' },
 ]
 
-export default function WorksFilter({ total }: { total: number }) {
+export default function WorksFilter({ total, showSearch = true }: { total: number; showSearch?: boolean }) {
   const [q, setQ] = useState('')
   const [mode, setMode] = useState<Mode>('all')
   const [shown, setShown] = useState(total)
+  const [sort, setSort] = useState<Sort>('default')
+
+  // Сортування за датою (пропозиція авторки, 22.11.2026). Як і фільтр, працює по DOM:
+  // картки вже відрендерені сервером, ми лише переставляємо їх усередині групи.
+  // «Звичайний порядок» повертає серверний порядок за data-idx, який ставимо при першому запуску.
+  useEffect(() => {
+    document.querySelectorAll<HTMLElement>('[data-group]').forEach(g => {
+      const header = g.firstElementChild as HTMLElement | null
+      if (!header) return
+      const cards = Array.from(g.children).filter(
+        (el): el is HTMLElement => el instanceof HTMLElement && el.hasAttribute('data-work'),
+      )
+      cards.forEach((el, i) => { if (!el.dataset.idx) el.dataset.idx = String(i) })
+      const key = (el: HTMLElement) => Date.parse(el.dataset.date || '') || 0
+      const sorted = [...cards].sort((a, b) => {
+        if (sort === 'default') return Number(a.dataset.idx) - Number(b.dataset.idx)
+        // твори без дати — в кінці в обох напрямках
+        const ka = key(a), kb = key(b)
+        if (!ka && !kb) return 0
+        if (!ka) return 1
+        if (!kb) return -1
+        return sort === 'new' ? kb - ka : ka - kb
+      })
+      let ref: HTMLElement = header
+      for (const el of sorted) { ref.after(el); ref = el }
+    })
+  }, [sort])
 
   useEffect(() => {
     const needle = q.trim().toLowerCase()
@@ -69,7 +103,7 @@ export default function WorksFilter({ total }: { total: number }) {
   return (
     <div style={{ padding: '0.9rem 1.5rem', borderTop: '1px solid rgba(143,163,196,0.25)' }}>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input
+        {showSearch && <input
           value={q}
           onChange={e => setQ(e.target.value)}
           placeholder="Знайти твір за назвою"
@@ -80,7 +114,20 @@ export default function WorksFilter({ total }: { total: number }) {
             border: '1px solid rgba(143,163,196,0.45)',
             borderRadius: 8, padding: '8px 11px',
           }}
-        />
+        />}
+        <select
+          value={sort}
+          onChange={e => setSort(e.target.value as Sort)}
+          aria-label="Порядок творів"
+          style={{
+            fontFamily: FONT, fontSize: '0.85rem',
+            color: '#1c1917', background: '#f6f1e7',
+            border: '1px solid rgba(143,163,196,0.45)',
+            borderRadius: 8, padding: '7px 10px',
+          }}
+        >
+          {SORTS.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+        </select>
         {MODES.map(m => (
           <button
             key={m.id}

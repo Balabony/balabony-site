@@ -279,11 +279,20 @@ export default async function AuthorDashboardPage() {
   // статистику і колонки cover_url не має.
   const { data: coverRows } = await supabase
     .from('content')
-    .select('id, cover_url')
-    .eq('author_id', user.id) as { data: { id: string; cover_url: string | null }[] | null }
+    .select('id, cover_url, created_at, published_at')
+    .eq('author_id', user.id) as { data: { id: string; cover_url: string | null; created_at: string | null; published_at: string | null }[] | null }
 
   const coverById = new Map<string, string | null>()
-  for (const c of coverRows ?? []) coverById.set(c.id, c.cover_url)
+  // 22.11.2026: дата твору для сортування в кабінеті (пропозиція авторки):
+  // дата публікації, а для чернеток — дата створення.
+  const dateById = new Map<string, string>()
+  const pubIds = new Set<string>()
+  for (const c of coverRows ?? []) {
+    coverById.set(c.id, c.cover_url)
+    const d = c.published_at || c.created_at
+    if (d) dateById.set(c.id, d)
+    if (c.published_at) pubIds.add(c.id)
+  }
 
   // 11.11.2026: які твори вже мають згоду автора. Запланований твір без згоди не виходить
   // (тригер check_publish_consent), тож показуємо автору кнопку «Дати згоду».
@@ -1352,7 +1361,7 @@ export default async function AuthorDashboardPage() {
             <div>
               {/* Пошук і фільтр. Показуємо лише коли творів справді багато:
                   при трьох історіях поле пошуку — зайвий елемент. */}
-              {stories.length >= 8 && <WorksFilter total={stories.length} />}
+              {stories.length >= 2 && <WorksFilter total={stories.length} showSearch={stories.length >= 8} />}
 
               {seriesCovers.map(([title, eps]) => (
                 <AuthorSeriesCovers key={title} title={title} episodes={eps} />
@@ -1374,6 +1383,7 @@ export default async function AuthorDashboardPage() {
                   key={s.content_id}
                   data-work={s.title}
                   data-status={s.status}
+                  data-date={dateById.get(s.content_id) ?? ''}
                   style={{ borderTop: `1px solid ${BRAND.line}`, padding: '0.9rem 1.5rem' }}
                 >
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
@@ -1387,6 +1397,12 @@ export default async function AuthorDashboardPage() {
                       {s.is_free && (
                         <span style={{ marginLeft: 8, fontSize: '0.7rem', color: '#ef9f27', background: 'rgba(239,159,39,0.18)', border: '1px solid rgba(239,159,39,0.5)', padding: '2px 8px', borderRadius: 999, fontWeight: 700, whiteSpace: 'nowrap' }}>
                           безкоштовна
+                        </span>
+                      )}
+                      {dateById.get(s.content_id) && (
+                        <span style={{ display: 'block', marginTop: 3, fontSize: '0.75rem', fontWeight: 500, color: BRAND.muted }}>
+                          {pubIds.has(s.content_id) ? 'Опубліковано' : 'Створено'}{' '}
+                          {new Date(dateById.get(s.content_id)!).toLocaleDateString('uk-UA')}
                         </span>
                       )}
                     </div>
