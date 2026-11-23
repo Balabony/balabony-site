@@ -1579,6 +1579,11 @@ export default async function AuthorDashboardPage() {
 
       <AuthorNewsletter initialOptOut={Boolean(profile.newsletter_opt_out)} />
 
+        <p style={{ margin: '1.25rem 0 0', fontSize: '0.95rem', lineHeight: 1.6 }}>
+          <a href="/porady-avtoram" style={{ color: BRAND.amber, fontWeight: 700 }}>Поради редакції: що читають до кінця</a>
+          <span style={{ color: 'rgba(255,255,255,0.65)' }}> — довжина, назва, зачин, жанри, серіали.</span>
+        </p>
+
         <AuthorMessageForm />
 
         <div style={{ marginTop: '1.5rem' }}>
