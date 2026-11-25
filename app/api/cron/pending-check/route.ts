@@ -9,11 +9,13 @@ import { sendCoverHowto } from '@/lib/cover-howto'
 import { featuredCandidates, featuredThisWeek, setFeatured } from '@/lib/featured-author'
 import { revalidatePath } from 'next/cache'
 import { sendConsentReminders } from '@/lib/consent-reminder'
+import { routeStaleApplications } from '@/lib/application-review'
 
 /**
  * Щоденна перевірка «що зависло» (14.10.2026), 10:00 за Києвом.
  * Лист Богдану лише тоді, коли є що робити:
- *   — заявки авторів у статусі «нова» довше 2 днів;
+ *   — заявки авторів у статусі «нова» довше 2 днів: з 25.11.2026 їх віддаємо редакторам (lib/application-review.ts),
+ *     Богдан бачить лише підозру на ШІ й збої;
  *   — конкурсні роботи без номера або без редактора.
  * 14.10.2026: тут же — нагадування авторам про обкладинку через 5 днів
  * (lib/contest-cover-reminder.ts); засновник отримує перелік, кому пішло.
@@ -35,10 +37,6 @@ function authorized(req: NextRequest): boolean {
 export async function GET(req: NextRequest) {
   if (!authorized(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
   try {
-    const apps = await dbQuery(
-      `select id::text, title, full_name, created_at from author_applications
-        where status = 'new' and created_at < now() - interval '2 days' order by created_at`,
-    )
     const entries = await dbQuery(
       `select e.id::text, e.title, e.contest from contest_entries e
         where e.status <> 'rejected'
@@ -46,10 +44,14 @@ export async function GET(req: NextRequest) {
                or not exists (select 1 from contest_assignments a where a.entry_id = e.id and a.role = 'primary'))`,
     )
     const lines: string[] = []
-    for (const a of apps.rows as { id: string; title: string; full_name: string; created_at: string }[]) {
-      const days = Math.floor((Date.now() - new Date(a.created_at).getTime()) / 86400000)
-      lines.push(`Заявка автора #${a.id} «${a.title}» (${a.full_name}) чекає ${days} дн. — https://balabony.com/admin/zayavky-avtoriv`)
-    }
+    // 25.11.2026 (Богдан: «віддавай все редакторам»): заявки авторів — редакторам (призначення + нагадування),
+    // Богданові лишаються лише підозра на ШІ й збої виконання рішення.
+    let appReport: string[] = []
+    try {
+      const routed = await routeStaleApplications()
+      lines.push(...routed.lines)
+      appReport = routed.report
+    } catch (err) { console.error('[route stale applications]', (err as Error)?.message) }
     for (const e of entries.rows as { id: string; title: string; contest: string }[]) {
       lines.push(`Конкурсна робота #${e.id} «${e.title}» без номера або редактора — https://balabony.com/admin/ocinky-konkursiv`)
     }
@@ -126,6 +128,9 @@ export async function GET(req: NextRequest) {
         error: `Надіслано ${howto.length} листів (у дужках — скільки творів без обкладинки)`,
         extra: howto.join(' • '),
       })
+    }
+    if (appReport.length) {
+      await sendProblemAlert({ kind: 'report', where: 'заявки авторів — віддано редакторам', error: `${appReport.length} дій`, extra: appReport.join(' • ') })
     }
     if (lines.length) {
       await sendProblemAlert({

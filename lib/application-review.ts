@@ -67,6 +67,66 @@ export async function sendApplicationToEditors(appId: string): Promise<{ sent: s
   return { sent, already }
 }
 
+/**
+ * 25.11.2026 (Богдан: «віддавай все редакторам»): щоденна перевірка більше не кидає заявки авторів Богданові.
+ *  — заявка «нова» довше 2 днів і редакторам ще не призначена → призначаємо зараз (крім підозри на ШІ);
+ *  — призначена, але редактор ще не відповів → тому редактору один лист-нагадування;
+ *  — Богданові лишається лише те, що справді його: підозра на ШІ (обидві системи ≥ порога, п. 8.11)
+ *    і рішення редактора, яке не вдалося виконати (є відгук, заявка досі «нова»).
+ */
+export async function routeStaleApplications(): Promise<{ lines: string[]; report: string[] }> {
+  await ensureReviewTable()
+  await dbQuery(`create table if not exists ai_authorship_alerts (
+    source text not null, source_id text not null, sent_at timestamptz not null default now(),
+    primary key (source, source_id))`)
+  const apps = await dbQuery(
+    `select a.id::text as id, a.title, a.full_name, a.created_at,
+            exists (select 1 from ai_authorship_alerts x where x.source = 'application' and x.source_id = a.id::text) as ai_hold,
+            (select count(*) from application_reviews rv where rv.application_id = a.id)::int as assigned,
+            (select count(*) from application_reviews rv where rv.application_id = a.id and rv.verdict is not null)::int as answered
+       from author_applications a
+      where a.status = 'new' and a.created_at < now() - interval '2 days'
+      order by a.created_at`,
+  )
+  const lines: string[] = [], report: string[] = []
+  type A = { id: string; title: string; full_name: string; created_at: string; ai_hold: boolean; assigned: number; answered: number }
+  const waiting = new Map<string, { name: string; items: { id: string; title: string; days: number }[] }>()
+  for (const a of apps.rows as A[]) {
+    const days = Math.floor((Date.now() - new Date(a.created_at).getTime()) / 86400000)
+    if (a.ai_hold) { lines.push(`Заявка автора #${a.id} «${a.title}» (${a.full_name}) — підозра на ШІ, рішення за Вами, чекає ${days} дн. — ${SITE}/admin/zayavky-avtoriv`); continue }
+    if (!a.assigned) {
+      try {
+        const r = await sendApplicationToEditors(a.id)
+        report.push(`заявка #${a.id} «${a.title}» → ${r.sent.join(', ') || 'нікому (немає редакторів з правом оцінювати)'}`)
+        if (!r.sent.length) lines.push(`Заявка автора #${a.id} «${a.title}» (${a.full_name}) — немає редакторів, яким її віддати — ${SITE}/admin/zayavky-avtoriv`)
+      } catch (err) {
+        console.error('[routeStale assign]', a.id, (err as Error)?.message)
+        lines.push(`Заявка автора #${a.id} «${a.title}» (${a.full_name}) — не вдалося віддати редакторам — ${SITE}/admin/zayavky-avtoriv`)
+      }
+      continue
+    }
+    if (a.answered > 0) { lines.push(`Заявка автора #${a.id} «${a.title}» (${a.full_name}) — редактор відповів, але рішення не виконано, чекає ${days} дн. — ${SITE}/admin/zayavky-avtoriv`); continue }
+    const rv = await dbQuery(
+      `select ed.email, ed.name from application_reviews r join editors ed on ed.id = r.editor_id
+        where r.application_id = $1 and r.verdict is null`, [a.id])
+    for (const e of rv.rows as { email: string; name: string }[]) {
+      const w = waiting.get(e.email) ?? { name: e.name, items: [] }
+      w.items.push({ id: a.id, title: a.title, days })
+      waiting.set(e.email, w)
+    }
+  }
+  for (const [email, w] of waiting) {
+    const list = w.items.map((i) => `<li><a href="${SITE}/editor/zayavka/${i.id}" style="color:#ef9f27">«${esc(i.title)}»</a> — чекає ${i.days} дн.</li>`).join('')
+    await mail(email, `[Балабони] Заявки авторів чекають Вашого рішення: ${w.items.length}`, `
+      <p style="color:#c8d4e8;line-height:1.7;">Вітаємо, <strong style="color:#f5f0e8;">${esc(w.name)}</strong>!</p>
+      <p style="color:#c8d4e8;line-height:1.7;">Ці заявки нових авторів чекають Вашого рішення (прийняти, після доопрацювання чи відхилити):</p>
+      <ul style="color:#c8d4e8;line-height:1.9;">${list}</ul>
+      <p style="font-size:13px;color:#8899bb;line-height:1.6;margin:0;">Автор чекає на відповідь. Рішення ухвалюєте Ви — автору одразу піде лист.</p>`)
+    report.push(`нагадування ${w.name}: ${w.items.length}`)
+  }
+  return { lines, report }
+}
+
 /** Лист Богданові, коли редактор ухвалив рішення (з 18.11.2026 — остаточне; outcome null — рішення не вдалося виконати). */
 export async function mailVerdictToAdmin(p: { editor: string; appId: string; title: string; verdict: Verdict; comment: string; outcome?: 'accepted' | 'rejected' | null }) {
   const done = p.outcome === 'accepted' ? 'Заявку ПРИЙНЯТО, автору надіслано лист, чернетку створено.' : p.outcome === 'rejected' ? 'Заявку ВІДХИЛЕНО, автору надіслано лист.' : 'УВАГА: рішення не виконано (помилка), заявка досі «нова» — перегляньте її.'
