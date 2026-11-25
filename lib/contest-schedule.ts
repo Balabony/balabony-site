@@ -119,14 +119,14 @@ export async function schedulePending(): Promise<void> {
 }
 
 /** Конкурсні серії, що виходять ПІСЛЯЗАВТРА (за Києвом) — для нагадування Богдану. */
-export async function dueInTwoDays(): Promise<{ id: string; title: string; author: string | null; publish_at: string }[]> {
+export async function dueInTwoDays(): Promise<{ id: string; title: string; author: string | null; publish_at: string; entry_id: string }[]> {
   const r = await dbQuery(
-    `select c.id::text, c.title, c.author_name as author, c.publish_at
+    `select c.id::text, c.title, c.author_name as author, c.publish_at, ep.entry_id::text as entry_id
        from content c
        join contest_episodes ep on ep.content_id = c.id
       where c.status = 'scheduled'
         and (c.publish_at at time zone 'Europe/Kyiv')::date = (now() at time zone 'Europe/Kyiv')::date + 2
       order by c.publish_at, c.title`,
   )
-  return r.rows as { id: string; title: string; author: string | null; publish_at: string }[]
+  return r.rows as { id: string; title: string; author: string | null; publish_at: string; entry_id: string }[]
 }

@@ -89,3 +89,49 @@ export async function sendEditorDeadlineReminders(): Promise<string[]> {
   }
   return sent
 }
+
+
+/**
+ * 25.11.2026 (Богдан: «віддавай все редакторам»): за два дні до виходу конкурсних серій перегляд текстів
+ * просимо редакторів, а не Богдана. Кожен редактор, призначений на роботу, отримує один лист зі своїми серіями
+ * (посилання — у кабінет редактора /editor/<робота>, де можна правити текст). Повертає: кому що надіслано
+ * і серії, у яких немає призначеного редактора (їх лишаємо Богданові).
+ */
+export async function sendDueSeriesToEditors(
+  due: { id: string; title: string; publish_at: string; entry_id: string }[],
+): Promise<{ sent: string[]; unassigned: { id: string; title: string }[] }> {
+  const sent: string[] = [], unassigned: { id: string; title: string }[] = []
+  if (!due.length) return { sent, unassigned }
+  const byEditor = new Map<string, { name: string; items: typeof due }>()
+  for (const d of due) {
+    const r = await dbQuery(
+      `select distinct ed.email, ed.name from contest_assignments a join editors ed on ed.id = a.editor_id
+        where a.entry_id::text = $1 and ed.email is not null`, [d.entry_id])
+    if (!r.rowCount) { unassigned.push({ id: d.id, title: d.title }); continue }
+    for (const e of r.rows as { email: string; name: string | null }[]) {
+      const w = byEditor.get(e.email) ?? { name: (e.name ?? '').trim(), items: [] }
+      w.items.push(d)
+      byEditor.set(e.email, w)
+    }
+  }
+  if (!process.env.RESEND_API_KEY) return { sent, unassigned }
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  for (const [email, w] of byEditor) {
+    const items = w.items.map((x) => `<li><a href="${SITE}/editor/${x.entry_id}" style="color:#ef9f27">«${esc(x.title)}»</a></li>`).join('')
+    const html = `<!DOCTYPE html><html lang="uk"><body style="margin:0;padding:24px;background:#081420;font-family:Arial,sans-serif;">
+<div style="max-width:560px;margin:0 auto;background:#0f1f38;border-radius:14px;padding:28px;color:#f5f0e8;line-height:1.7;font-size:16px;">
+<p>Доброго дня${w.name ? `, ${esc(w.name)}` : ''}!</p>
+<p>Післязавтра о 18:00 виходить ${w.items.length} серій, закріплених за Вами. Перегляньте тексти, поки є час:</p>
+<ul>${items}</ul>
+<p style="font-size:13px;color:#8899bb;">Якщо щось не так — напишіть на ${REPLY_TO}.</p>
+</div></body></html>`
+    try {
+      await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL ?? 'editorial@balabony.com', to: email, replyTo: REPLY_TO,
+        subject: `[Балабони] Післязавтра виходять серії (${w.items.length}) — перегляньте тексти`, html,
+      })
+      sent.push(`${w.name || email}: ${w.items.length}`)
+    } catch (e) { console.error('[due-series editor mail]', (e as Error)?.message) }
+  }
+  return { sent, unassigned }
+}

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { dbQuery } from '@/lib/db'
 import { sendProblemAlert } from '@/lib/problem-alert'
 import { sendCoverReminders } from '@/lib/contest-cover-reminder'
-import { sendEditorDeadlineReminders } from '@/lib/editor-deadline-reminder'
+import { sendEditorDeadlineReminders, sendDueSeriesToEditors } from '@/lib/editor-deadline-reminder'
 import { sendNewWorksDigest } from '@/lib/new-works-digest'
 import { dueInTwoDays } from '@/lib/contest-schedule'
 import { sendCoverHowto } from '@/lib/cover-howto'
@@ -61,11 +61,18 @@ export async function GET(req: NextRequest) {
     try {
       const due = await dueInTwoDays()
       if (due.length) {
-        await sendProblemAlert({
-          kind: 'todo', where: 'конкурс — через 2 дні виходять серії',
-          error: `Післязавтра о 18:00 вийде ${due.length} серій. Перегляньте тексти, поки є час.`,
-          extra: due.map(d => `«${d.title}» (${d.author ?? 'автор не вказаний'}) — https://balabony.com/admin/content/stories/${d.id}/edit`).join(' • '),
-        })
+        // 25.11.2026 (Богдан: «віддавай все редакторам»): перегляд серій — редакторам; Богданові — звіт і серії без редактора.
+        const r = await sendDueSeriesToEditors(due)
+        if (r.sent.length) {
+          await sendProblemAlert({ kind: 'report', where: 'конкурс — серії через 2 дні віддано редакторам', error: `Надіслано листів: ${r.sent.length}`, extra: r.sent.join(' • ') })
+        }
+        if (r.unassigned.length) {
+          await sendProblemAlert({
+            kind: 'todo', where: 'конкурс — серії через 2 дні без редактора',
+            error: `Післязавтра о 18:00 вийде ${r.unassigned.length} серій, редактора на них немає. Призначте й перегляньте.`,
+            extra: r.unassigned.map(d => `«${d.title}» — https://balabony.com/admin/content/stories/${d.id}/edit`).join(' • '),
+          })
+        }
       }
     } catch (err) { console.error('[contest due run]', (err as Error)?.message) }
     // 11.11.2026: згода на публікацію — автору один лист, засновнику — що горить (3 дні / прострочене).
